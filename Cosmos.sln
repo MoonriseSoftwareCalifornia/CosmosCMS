@@ -1,0 +1,56 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33502.453
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cosmos.Editor", "WebApps\Editor\Cosmos.Editor\Cosmos.Editor.csproj", "{A946B428-79CE-4AB6-8ACE-90548C08CB05}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cosmos.Publisher", "WebApps\Publisher\Cosmos.Publisher\Cosmos.Publisher.csproj", "{C2B576CD-42E5-4990-B1B1-532F8AF9C208}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cosmos.Common", "Libraries\Cosmos.Common\Cosmos.Common\Cosmos.Common.csproj", "{CE27ADCF-9036-4C54-B5DA-9C33ACF10494}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cosmos.BlobService", "Libraries\Cosmos.BlobService\Cosmos.BlobService\Cosmos.BlobService.csproj", "{482A78FB-CA5B-4CAB-B0E0-AF347EE94814}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cosmos.EmailServices", "Libraries\Cosmos.EmailServices\Cosmos.EmailServices.csproj", "{AD6EB319-F0FD-4C6C-9544-DE1B965424F3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5B063402-7947-4E34-A638-E00FE81E3ACE}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		GlobalSuppressions.cs = GlobalSuppressions.cs
+		stylecop.json = stylecop.json
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A946B428-79CE-4AB6-8ACE-90548C08CB05}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A946B428-79CE-4AB6-8ACE-90548C08CB05}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A946B428-79CE-4AB6-8ACE-90548C08CB05}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A946B428-79CE-4AB6-8ACE-90548C08CB05}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C2B576CD-42E5-4990-B1B1-532F8AF9C208}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C2B576CD-42E5-4990-B1B1-532F8AF9C208}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C2B576CD-42E5-4990-B1B1-532F8AF9C208}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C2B576CD-42E5-4990-B1B1-532F8AF9C208}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CE27ADCF-9036-4C54-B5DA-9C33ACF10494}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CE27ADCF-9036-4C54-B5DA-9C33ACF10494}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CE27ADCF-9036-4C54-B5DA-9C33ACF10494}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CE27ADCF-9036-4C54-B5DA-9C33ACF10494}.Release|Any CPU.Build.0 = Release|Any CPU
+		{482A78FB-CA5B-4CAB-B0E0-AF347EE94814}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{482A78FB-CA5B-4CAB-B0E0-AF347EE94814}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{482A78FB-CA5B-4CAB-B0E0-AF347EE94814}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{482A78FB-CA5B-4CAB-B0E0-AF347EE94814}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AD6EB319-F0FD-4C6C-9544-DE1B965424F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD6EB319-F0FD-4C6C-9544-DE1B965424F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD6EB319-F0FD-4C6C-9544-DE1B965424F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD6EB319-F0FD-4C6C-9544-DE1B965424F3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6B6B13B0-FCB3-4252-BCB6-DABAC23CDAEE}
+	EndGlobalSection
+EndGlobal

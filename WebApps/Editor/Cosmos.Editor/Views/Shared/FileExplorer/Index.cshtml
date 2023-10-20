@@ -1,0 +1,1103 @@
+﻿@using Cosmos.Cms.Common.Services.Configurations
+@using Microsoft.Extensions.Options
+@inject IOptions<CosmosConfig> options
+@model List<Cosmos.BlobService.FileManagerEntry>
+@{
+    var publisherUrl = ViewData["PublisherUrl"];
+    var blobStaticWebsiteUrl = options.Value.SiteSettings.BlobPublicUrl;
+    var directoryOnly = (bool)ViewData["DirectoryOnly"];
+    var editorExtensions = new string[] { ".js", ".css", ".html", ".htm", ".json", ".xml" };
+    var imageEditorExtensions = new string[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+    var container = (string)ViewData["Container"];
+    var topDirectory = (string)ViewData["TopDirectory"];
+    var rowCount = (int)ViewData["RowCount"];
+    var sortOrder = (string)ViewData["sortOrder"];
+    var currentSort = (string)ViewData["currentSort"];
+    var pageNumber = (int)ViewData["pageNo"];
+    var pageSize = (int)ViewData["pageSize"];
+    var controller = (string)ViewData["Controller"];
+    var action = (string)ViewData["Action"];
+    var selectOne = (bool)ViewData["SelectOne"];
+    var imagesOnly = (bool)ViewData["ImagesOnly"];
+    var storageName = (string)ViewData["StorageName"];
+    var isNewSession = (bool)ViewData["isNewSession"];
+    var articleTitle = (string)ViewData["ArticleTitle"];
+
+    var target = Context.Request.Query["target"];
+
+    var baseUrl = @Url.Action(action, controller) + "?container=" + container + "&selectOne=" + selectOne + "&imagesOnly=" + imagesOnly + "&pageSize=" + pageSize + "&";
+    var showImageThumbUrl = @Url.Action(action, controller) + "?container=" + container + "&target=" + target + "&selectOne=" + selectOne + "&imagesOnly=true&pageSize=" + pageSize + "&";
+    var showFileListUrl = @Url.Action(action, controller) + "?container=" + container + "&target=" + target + "&selectOne=" + selectOne + "&imagesOnly=false&pageSize=" + pageSize + "&";
+
+    if (directoryOnly)
+    {
+        ViewData["Title"] = "File Manager" + " - Folder View";
+    }
+    else if (imagesOnly)
+    {
+        ViewData["Title"] = "Select an image";
+    }
+    else
+    {
+        ViewData["Title"] = "Folders and Files";
+    }
+
+    var isReviewer = User.IsInRole("Reviewers");
+    var canEdit = User.IsInRole("Administrators") || User.IsInRole("Editors");
+    var pathPrefix = (string)ViewData["PathPrefix"];
+    var pathNames = (string)(string)ViewData["PathNames"];
+    var pathParts = new List<string>();
+
+    //var containerCss = "container mt-5 pt-2";
+
+    if (!string.IsNullOrEmpty(pathPrefix) && pathPrefix != "/")
+    {
+        pathParts.AddRange(pathPrefix.Trim('/').Split('/').Where(w => w != "/"));
+    }
+
+    var pagerModel = new GridPagerPartialViewModel(pageNumber, rowCount, pageSize, sortOrder, currentSort, Url.Action(action, controller) + "?imagesOnly= " + imagesOnly + "&target=" + target + "&selectOne=" + selectOne.ToString().ToLower());
+}
+<style>
+    li.breadcrumb-item.active {
+        color: white;
+        font-weight: 900;
+    }
+</style>
+@if (selectOne)
+{
+    <style>
+        #ccmsNavMenu {
+            display: none;
+        }
+    </style>
+}
+<link href="https://unpkg.com/filepond@4/dist/filepond.css" rel="stylesheet" />
+<partial name="_ValidationScriptsPartial" />
+<div class="container mt-3">
+    <div class="row">
+        <div class="col-6">
+            @if (directoryOnly)
+            {
+                <h3 class="text-light">@ViewData["Title"]</h3>
+            }
+            else if (imagesOnly)
+            {
+                <h3 class="text-light">@ViewData["Title"]</h3>
+            }
+            else
+            {
+                <h3 class="text-light">@ViewData["Title"]</h3>
+            }
+        </div>
+        <div class="col-6">
+            @if (imagesOnly)
+            {
+                <div class="d-flex justify-content-end">
+                    <a href="@showFileListUrl"
+                       class="btn btn-sm btn-secondary">Show file list</a>
+                </div>
+            }
+            else
+            {
+                <div class="d-flex justify-content-end">
+                    <a href="@showImageThumbUrl"
+                       class="btn btn-sm btn-secondary">Show image thumbnails</a>
+                </div>
+            }
+        </div>
+    </div>
+    <div class="row mb-3 mt-3">
+        <div class="col-md-12 text-truncate">
+            <div class="d-flex">
+                <nav aria-label="breadcrumb mb-3 mt-3">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item active" aria-current="folder">
+                            <a class="btn btn-sm btn-primary" title="Click to navigate here" href="@Html.Raw(baseUrl)target=/"><i class="fa-solid fa-house"></i></a>
+                        </li>
+                        @{
+                            var p = "";
+                            int counter = 0;
+                        }
+                        @foreach (var item in pathParts)
+                        {
+                            counter++;
+                            p += "/" + item;
+                            var href = $"target={p}";
+
+                            var itemName = counter == 3 && !string.IsNullOrEmpty(articleTitle) ? articleTitle : item;
+
+                            if (counter == pathParts.Count)
+                            {
+                                <li class="breadcrumb-item active" aria-current="folder">
+                                    <a class="btn btn-sm btn-primary" title="Click to navigate here" href="@Html.Raw(baseUrl)@href.TrimStart('/')">@itemName</a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="breadcrumb-item active" aria-current="folder">
+                                    <a class="btn btn-sm btn-primary" title="Click to navigate here" href="@Html.Raw(baseUrl)@href">@itemName.TrimStart('/')</a>
+                                </li>
+                            }
+                        }
+
+                        @if (pathPrefix.StartsWith(topDirectory))
+                        {
+                            <li class="breadcrumb-item active" aria-current="folder">
+                                <form id="frmNewFolder" class="d-flex" asp-action="NewFolder" method="post">
+                                    <input type="hidden" name="ParentFolder" id="ParentFolder" value="@pathPrefix" />
+                                    <input type="hidden" name="DirectoryOnly" id="DirectoryOnly" value="@directoryOnly" />
+                                    <input type="hidden" name="Container" id="DirectoryOnly" value="@container" />
+                                    <input class="form-control form-control-sm me-2" name="FolderName" id="FolderName" type="text" placeholder="New folder name" aria-label="New folder name" minlength="2" required />
+                                    <button class="btn btn-sm btn-primary" type="submit">Create</button>
+                                </form>
+                            </li>
+                        }
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    @if (pathPrefix.StartsWith(topDirectory) && directoryOnly == false && selectOne == false)
+    {
+        <div class="row">
+            <div class="col-md-12 justify-content-center text-light">
+                <button id="btnProgress" class="btn btn-sm  btn-primary" type="button" disabled style="display:none;">
+                    <span class="spinner-border spinner-border-sm text-light" role="status" aria-hidden="true"></span>
+                    <span role="status" id="fpMesageSpace"></span>
+                </button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <!-- Filepond File Uploader -->
+                <input type="file"
+                       class="filepond"
+                       id="filepond"
+                       name="files"
+                       data-file-metadata-path="@pathPrefix"
+                       data-file-metadata-container="@container"
+                       multiple>
+            </div>
+        </div>
+    }
+
+    @if (pathPrefix.StartsWith(topDirectory))
+    {
+        <div class="row">
+            <div class="col-md-12">
+                <div id="bgroupCopyMove" class="btn-group" role="group" aria-label="Copy and move actions" style="display:none">
+                    <button type="button" class="btn btn-sm btn-success" title="Copy selected items to this folder." onclick="btnClick('copyItems')">Copy to here</button>
+                    <button type="button" class="btn btn-sm btn-success" title="Move selected items to this folder." onclick="btnClick('moveItems')">Move to here</button>
+                    <button type="button" class="btnShowSelected btn btn-sm btn-secondary" title="Show list of selected items" style="display:none">Show Selected</button>
+                    <button type="button" class="btn btn-sm btn-primary" title="Cancel copy or move operation." onclick="btnClick('cancel')">Cancel</button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="row cpws-table-pager-row-top">
+        <div class="col-md-4">
+            <div class="btn-group" role="group" aria-label="File and folder actions">
+                @if (directoryOnly)
+                {
+                    <button id="btnCancel" type="button" class="btn btn-sm btn-secondary" onclick="btnClick('cancel')">Cancel</button>
+                    <button id="btnMove" type="button" class="btn btn-sm btn-secondary" onclick="btnClick('move')" disabled>Copy/Move</button>
+                }
+                else if (selectOne)
+                {
+                    <button id="btnClear" type="button" class="btn btn-sm btn-primary" title="Clear list of selected items" style="display:none">Clear Selected</button>
+                    <button type="button" class="btnShowSelected btn btn-sm btn-primary" title="Show list of selected items" style="display:none">Show Selected</button>
+                }
+                else if (!selectOne)
+                {
+                    <button id="btnRename" type="button" class="btn btn-sm btn-secondary" onclick="btnClick('rename')" disabled>Rename</button>
+                    <button id="btnDelete" type="button" class="btn btn-sm btn-secondary" onclick="btnClick('delete')" disabled>Delete</button>
+                    <button id="btnMove" type="button" class="btn btn-sm btn-secondary" onclick="btnClick('move')" disabled>Copy/Move</button>
+                    <button type="button" class="btnShowSelected btn btn-sm btn-primary" title="Show list of selected items" style="display:none">Show Selected</button>
+                }
+            </div>
+        </div>
+        <div class="col-md-4 d-flex justify-content-center">
+            <partial name="~/Views/Shared/GridPager/_GridPager.cshtml" model="pagerModel"></partial>
+        </div>
+        <div class="col-md-4">
+        </div>
+    </div>
+
+    <div class="row bg-dark">
+        <div class="col-md-12">
+            <!-- Flexbox container for aligning the toasts -->
+            <div aria-live="polite" aria-atomic="true" class="d-flex justify-content-center align-items-center" style="position:relative;">
+                <!-- Then put toasts within -->
+                <div id="copied-toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" style="position: absolute; top: 0; left: 0;z-index:50000;">
+                    <div class="toast-body">
+                        Copied URL.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (imagesOnly)
+    {
+        <div class="row justify-content-center">
+            @if (Model.Count == 0)
+            {
+                <div class="d-flex text-center">
+                    <h4> ** EMPTY (no items to list) ** </h4>
+                </div>
+            }
+            <div class="row row-cols-1 row-cols-md-4 g-4">
+                @foreach (var row in Model)
+                {
+                    if (@row.IsDirectory)
+                    {
+                        <div class="col">
+                            <div class="card h-100">
+                                <a href='@Html.Raw(baseUrl)target=@row.Path'><img src="/images/folder.png" class="card-img-top" alt="Image preview"></a>
+                                <div class="card-body">
+                                    <h5 class="card-title">@(row.Name + row.Extension)</h5>
+                                    <p class="card-text">Created: <span class='toLocalTimeZone'>@row.CreatedUtc</span> </p>
+                                    <div class="btn-group" role="group">
+                                        <a href='@Html.Raw(baseUrl)target=@row.Path'>Open Folder</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="col">
+                            <div class="card h-100">
+                                <a title="Click to select image" href="javascript:selectImage('@row.Path.Trim('/')')"><img src="@(blobStaticWebsiteUrl + "/" + row.Path)" class="card-img-top" alt="Image preview"></a>
+                                <div class="card-body">
+                                    <h5 class="card-title">@(row.Name + row.Extension)</h5>
+                                    <div class="form-check">
+                                        <input class="form-check-input gridCheckBox" data-ccms-isdir='@row.IsDirectory' data-ccms-blob='@row.Path.Trim('/')' type="checkbox">
+                                        <label class="form-check-label">
+                                            Select image
+                                        </label>
+                                    </div>
+                                    <p class="card-text">Created: <span class='toLocalTimeZone'>@row.CreatedUtc</span> </p>
+                                    <div class="btn-group" role="group">
+                                        <a class="btn btn-sm btn-secondary" href="javascript:download('@row.Path')">Download</a>
+                                        <button class="btn btn-sm btn-secondary ccms-clip-board" title="Copy URL to clipbard" data-clipboard-text="@options.Value.SiteSettings.BlobPublicUrl.TrimEnd('/')/@row.Path"><i class="fa-regular fa-clipboard"></i></button>
+                                        <a class='btn btn-sm btn-secondary' title='Filerobot image editor' href='/FileManager/EditImage?target=@row.Path'><img src="/images/filerobot-icon.png" height="22" /></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row bg-dark">
+            <div class="col-md-12">
+                <div class="table-responsive custom-table-responsive">
+                    <table class="table custom-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">
+                                    Select
+                                </th>
+                                <th>Type</th>
+                                <th></th>
+                                <th>Name</th>
+                                <th>Modified</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.Count == 0)
+                            {
+                                <tr scope="row" style="height: auto !important">
+                                    <td colspan="5">
+                                        <div class="d-flex justify-content-center">
+                                            <h4 class="text-light"> ** EMPTY (no items to list) ** </h4>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                            @foreach (var row in Model)
+                            {
+                                <tr scope="row" style="height: auto !important">
+                                    <td scope="row" style="width:30px;">
+                                        @if (row.Path.Trim('/') != "pub/articles")
+                                        {
+                                            if (selectOne && row.IsDirectory)
+                                            {
+
+                                                <div class="form-check">
+                                                    <input class="form-check-input gridCheckBox" data-ccms-isdir='@row.IsDirectory' data-ccms-blob='@row.Path.Trim('/')' type="checkbox" disabled>
+                                                    <label class="form-check-label">
+                                                        Select
+                                                    </label>
+                                                </div>
+
+                                            }
+                                            else
+                                            {
+                                                <div class="form-check">
+                                                    <input class="form-check-input gridCheckBox" data-ccms-isdir='@row.IsDirectory' data-ccms-blob='@row.Path.Trim('/')' type="checkbox">
+                                                    <label class="form-check-label">
+                                                        Select
+                                                    </label>
+                                                </div>
+                                            }
+                                        }
+                                    </td>
+                                    <td style="width:30px;">
+                                        @if (row.IsDirectory)
+                                        {
+                                            <a href='@Html.Raw(baseUrl)target=@row.Path'><i class='fa-solid fa-folder'></i></a>
+                                        }
+                                        else
+                                        {
+                                            <div><i class='fa-solid fa-file'></i></div>
+                                        }
+                                    </td>
+                                    <td style="width:60px;">
+                                        <div class='btn-group' role='group'>
+                                            @if (row.IsDirectory == false && container == "$web")
+                                            {
+                                                <button class="btn btn-sm btn-secondary ccms-clip-board" title="Copy URL to clipbard" data-clipboard-text="@options.Value.SiteSettings.BlobPublicUrl.TrimEnd('/')/@row.Path"><i class="fa-regular fa-clipboard"></i></button>
+                                                @if (editorExtensions.Contains(row.Extension))
+                                                {
+                                                    <a class='btn btn-sm btn-secondary' title='Monaco/VS Code editor' href='/FileManager/EditCode?path=@row.Path&container=@container'><img src="/images/monaco-vscode-logo.png" height="22" /></a>
+                                                }
+                                                @if (imageEditorExtensions.Contains(row.Extension))
+                                                {
+                                                    <a class='btn btn-sm btn-secondary' title='Filerobot image editor' href='/FileManager/EditImage?target=@row.Path'><img src="/images/filerobot-icon.png" height="22" /></a>
+                                                }
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @if (row.IsDirectory)
+                                        {
+                                            <a href='@Html.Raw(baseUrl)target=@row.Path'>@row.Name</a>
+                                        }
+                                        else
+                                        {
+                                            if (imagesOnly && imageEditorExtensions.Contains(row.Extension))
+                                            {
+                                                <a title="Click to download image" href="javascript:download('@row.Path')"><img class="image-fluid" src="@Url.Action("GetImageThumbnail", "FileManager")?target=@row.Path" /></a>
+                                            }
+                                            else
+                                            {
+                                                <a href="javascript:download('@row.Path')">@(row.Name + row.Extension)</a>
+                                            }
+                                        }
+                                    </td>
+                                    <td style="width:240px">
+                                        <div class='toLocalTimeZone'>@row.ModifiedUtc</div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="row cpws-table-pager-row-bottom pb-3">
+        <div class="col-md-12 d-flex justify-content-center">
+            <partial name="~/Views/Shared/GridPager/_GridPager.cshtml" model="pagerModel"></partial>
+        </div>
+    </div>
+</div>
+
+<form>
+    @Html.AntiForgeryToken()
+    <input id="frmPathList" name="frmPathList" type="hidden" />
+</form>
+
+<!-- Before the end of the body tag -->
+<script src="https://unpkg.com/filepond-plugin-file-metadata/dist/filepond-plugin-file-metadata.js"></script>
+<script src="https://unpkg.com/filepond@4/dist/filepond.js"></script>
+
+<div class="modal mt-5" id="showSelectedModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-light">
+            <div class="modal-header">
+                <h5 id="showSelectedTitle" class="modal-title">Selected Item(s)</h5>
+            </div>
+            <div class="modal-body">
+                <div id="tblShowSelected" class="table-responsive">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button id="btnShowSelModalClear" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Clear Selected</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal mt-5" id="checkFirstModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-light">
+            <div class="modal-header">
+                <h5 id="checkFirstTitle" class="modal-title">Verification</h5>
+            </div>
+            <div class="modal-body">
+                <div id="checkFirstDialog"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="continueAction()" data-bs-dismiss="modal">Yes</button>
+                <button type="button" class="btn btn-secondary" onclick="cancelAction()" data-bs-dismiss="modal">No</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal mt-5" id="busyModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-light">
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col">
+                        <h5 id="busyModalTitle" class="modal-title">Working...</h5>
+                        <div id="busyModalDialog"></div>
+                    </div>
+                    <div class="col justify-content-end">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Working...</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal mt-5" id="renameModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-light">
+            <form id="frmChangeName" asp-action="Rename" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="BlobRootPath" name="BlobRootPath" value="@pathPrefix" />
+                <input type="hidden" id="FromBlobName" name="FromBlobName" value="@pathPrefix" />
+                <div class="modal-header">
+                    <h5 id="checkFirstTitle" class="modal-title">Rename Item</h5>
+                </div>
+                <div class="modal-body">
+                    <label for="FromBobName" class="form-label">Original name:</label>
+                    <div class="input-group mb-3 bg-dark text-light">
+                        <span id="itemPrefix1" class="input-group-text"></span>
+                        <input class="form-control" id="ctrlFromBlobName" aria-describedby="emailHelp" disabled>
+                    </div>
+                    <label for="ToBlobName" class="form-label">Change to:</label>
+                    <div class="input-group mb-3 bg-dark text-light">
+                        <span id="itemPrefix2" class="input-group-text"></span>
+                        <input title="Enter the new name of the item" class="form-control" id="ToBlobName" name="ToBlobName" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button id="btnSubmitChange" type="submit" value="submit" class="btn btn-secondary">Change</button>
+                    <div id="extAlert" class="alert alert-warning" role="alert" style="display:none"><i class="fa-solid fa-triangle-exclamation"></i> Warning: file extension does not match original.</div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/clipboard.min.js"></script>
+
+<script>
+
+    var paths = [];
+
+    // MODALS
+    let busyModal = new bootstrap.Modal(document.getElementById('busyModal'));
+    let renameModal = new bootstrap.Modal(document.getElementById('renameModal'));
+    let checkFirstModal = new bootstrap.Modal(document.getElementById('checkFirstModal'));
+    let showSelectedModal = new bootstrap.Modal(document.getElementById('showSelectedModal'));
+    const isNewSession = @isNewSession.ToString().ToLower();
+
+    // Image editor
+    let imageEditorWindow = null;
+
+    // Select one mode?
+    const selectOneFile = @(selectOne.ToString().ToLower());
+    // Set mode
+    const directoryOnly = @(directoryOnly.ToString().ToLower());
+    // Image browser on?
+    const imageBrowserMode = @imagesOnly.ToString().ToLower();
+
+    let totalFileCount = 0;
+    let loadedFileCount = 0;
+
+    function openImageEditor(url) {
+        imageEditorWindow = window.open(url, "_blank");
+    }
+
+    // shows a modal, closes all others.
+    function showModal(name, message, title) {
+        hideModals();
+        switch (name) {
+            case "busy":
+                $("#busyModalDialog").html(message);
+                busyModal.show();
+                break;
+            case "rename":
+                renameModal.show();
+                break;
+            case "checkFirst":
+                $("#checkFirstTitle").html(title);
+                $("#checkFirstDialog").html(message);
+                checkFirstModal.show();
+                break;
+        }
+    }
+
+    // Hides all modals
+    function hideModals() {
+        busyModal.hide();
+        renameModal.hide();
+        checkFirstModal.hide();
+    }
+
+    //
+    // CLIPBOARD
+    let btns = document.querySelectorAll(".ccms-clip-board");
+    let clipboard = new ClipboardJS(btns);
+
+    clipboard.on('success', function (e) {
+        $("#copied-toast").toast("show");
+    });
+
+    clipboard.on('error', function (e) {
+        console.info('Action:', e.action);
+        console.info('Text:', e.text);
+        console.info('Trigger:', e.trigger);
+    });
+    //
+
+    // Get a reference to the file input element
+    const inputElement = document.querySelector('input[type="file"]');
+
+    // Register meta data Plug In
+    FilePond.registerPlugin(FilePondPluginFileMetadata);
+
+    // Create a FilePond instance
+    const pond = FilePond.create(inputElement, {
+        chunkUploads: true,
+        chunkSize: 5242880, // bytes (5 MB) - AWS S3 multi upload requires 5 MB parts. Last part can be any size
+        chunkForce: true
+    });
+
+
+    FilePond.setOptions({
+        server: "@Url.Action("Process", controller)?container=@container"
+    });
+
+    pond.on('addfile', (error, file) => {
+        if (error) {
+            console.log('Oh no');
+            return;
+        }
+
+        replaceCssClass($("#btnProgress"), "btn-success", "btn-primary");
+
+        var relativePath = file.relativePath;
+        file.setMetadata("relativePath", relativePath);
+        file.setMetadata("fileName", file.filename);
+        // Add up the total count of files to be uploaded
+        totalFileCount++;
+        if (totalFileCount > 1) {
+            filePondMessage("Preparing to upload " + totalFileCount + " files...");
+        } else {
+            filePondMessage("Preparing to file...");
+        }
+
+        console.log('File added', file);
+    });
+
+    pond.on('processfilestart', (e) => {
+        const metadata = e.getMetadata();
+    });
+
+    pond.on('processfile', (file) => {
+
+        replaceCssClass($("#btnProgress"), "btn-primary", "btn-success");
+
+        loadedFileCount++;
+        const percent = Math.round((loadedFileCount / totalFileCount) * 100);
+        filePondMessage("Uploaded " + loadedFileCount + " of " + totalFileCount + " files (" + percent + "%).");
+    });
+
+    function filePondMessage(message) {
+        $("#fpMesageSpace").html(message);
+        if (message === "") {
+            $("#btnProgress").hide();
+        } else {
+            $("#btnProgress").show();
+        }
+    }
+
+    // Event handlers
+    document.addEventListener('FilePond:processfiles', (e) => {
+        filePondMessage("");
+        window.location.href = "@Url.Action(action, controller)?target=@pathPrefix&container=@container";
+    });
+
+    function savePath(path) {
+        // Avoid duplicates
+        if (paths.indexOf(path) == -1) {
+            paths.push(path);
+        }
+        sessionStorage.setItem("paths", JSON.stringify(paths));
+    }
+
+    function removePath(path) {
+        var tmp = paths.filter(function (value) {
+            return value !== path;
+        });
+        paths = tmp;
+        sessionStorage.setItem("paths", JSON.stringify(paths));
+    }
+
+    // Reload selected paths from local storage
+    function reloadPaths() {
+        var data = sessionStorage.getItem("paths");
+
+        if (typeof (data) === "undefined" || data === null || data === "") {
+            paths = [];
+            setMode("");
+        } else {
+            paths = JSON.parse(data);
+        }
+    }
+
+    function clearPaths() {
+        paths = [];
+        sessionStorage.removeItem("paths");
+        setMode("");
+    }
+
+    function getItemsToMove() {
+        var items = JSON.parse(sessionStorage.getItem("itemsToMove"));
+        return items;
+    }
+
+    function setMode(mode) {
+        sessionStorage.setItem("mode", mode);
+    }
+
+    function getMode() {
+        return sessionStorage.getItem("mode");
+    }
+
+    function getPath(checkbox) {
+
+        var isDirectory = $(checkbox).attr('data-ccms-isdir');
+
+        if (isDirectory === "True") {
+            return $(checkbox).attr('data-ccms-blob') + "/";
+        }
+        else {
+            return $(checkbox).attr('data-ccms-blob');
+        }
+    }
+
+    $(document).on("unload", function () {
+        // Update preview window if opened
+        if (typeof imageEditorWindow !== "undefined" && imageEditorWindow !== null && imageEditorWindow.location) {
+            imageEditorWindow.close();
+        }
+    });
+
+    $(document).ready(function () {
+
+        $("body").addClass("cwps-editor-container");
+
+        $(".toLocalTimeZone").each(function (index, element) {
+            var date = new Date($(element).html());
+
+            if (isNaN(date)) {
+                return;
+            }
+
+            $(element).html(date.toLocaleDateString() + " " + date.toLocaleTimeString());
+
+        });
+
+        // If new session, clear selection and paths, otherwise
+        // reload selected paths from local storage.
+        if (isNewSession) {
+            clearSelection();
+        } else {
+            reloadPaths();
+        }
+
+        $(".gridCheckBox").each(function (index, element) {
+
+            let path = getPath(element);
+
+            cwpsSelectTableRow(element, false);
+
+            if (path === "pub" || path === "pub/") {
+                $(element).prop('checked', false);
+                $(element).prop('disabled', true);
+            }
+
+            if ((paths.indexOf(path) > -1)) {
+                $(element).prop('checked', true);
+                cwpsSelectTableRow(element, true);
+            }
+
+            $(element).on("change", function () {
+                if (directoryOnly || selectOneFile) {
+                    var isChecked = $(element).prop('checked');
+                    $(".gridCheckBox").each(function (i, e) {
+                        $(e).prop('checked', false);
+                        cwpsSelectTableRow(e, false);
+                    });
+                    $(element).prop('checked', true);
+                    cwpsSelectTableRow(element, true);
+                }
+
+                resetButtons();
+            });
+
+        });
+
+        $("#btnClear").click(function () {
+            clearSelection();
+        });
+
+        $(".btnShowSelected").click(function () {
+
+            let data = sessionStorage.getItem("paths");
+            let items = JSON.parse(data);
+            var count = 0;
+            var table = '<table class="table custom-table">';
+            table += '<thead><tr><th style="width:10%;">#</th><th>Item</th></tr></thead>';
+            table += '<tbody>'
+            $.each(items, function (index, item) {
+
+                var path = "";
+                let lastIndex = item.replace(new RegExp("\/*$"), '').lastIndexOf('/');
+                if (lastIndex === -1) {
+                    path = item;
+                } else {
+                    path = item.substring(0, lastIndex + 1);
+                }
+
+                const target = '<a title="Click to reveal this item in its containing folder" href="@Html.Raw(baseUrl)target=' + path + '">' + item + '</a>';
+
+                count++;
+                table += '<tr scope="row"><td>' + count + '</td><td>' + target + '</td></tr>';
+            });
+            table += '</tbody>'
+            table += '</table>'
+            $('#tblShowSelected').html(table);
+
+            showSelectedModal.show();
+        });
+
+        $("#btnShowSelModalClear").click(function () {
+            clearSelection();
+        });
+
+        $("frmChangeName").submit(function (e) {
+            clearPaths();
+            return true;
+        });
+
+        resetButtons();
+    });
+
+    function selectImage(element) {
+        var selector = '[data-ccms-blob="' + element + '"]';
+        const checkbox = $(selector)[0];
+        $(checkbox).click();
+        if ($(checkbox).prop('checked')) {
+            cwpsSelectTableRow(checkbox, true);
+        } else {
+            cwpsSelectTableRow(checkbox, false);
+        }
+    }
+
+    function clearSelection() {
+        $(".gridCheckBox").each(function (index, element) {
+            $(element).prop('checked', false);
+            cwpsSelectTableRow(element, false);
+        });
+        clearPaths();
+        resetButtons();
+    }
+
+    function resetButtons() {
+
+        const mode = getMode();
+        let disabledChecks = false;
+
+        if (mode === "copyMove") {
+            $("#bgroupCopyMove").show();
+            disabledChecks = true;
+        } else {
+            $("#bgroupCopyMove").hide();
+        }
+
+        if (disabledChecks) {
+            $(".gridCheckBox").each(function (index, element) {
+                $(element).attr("disabled", true);
+            });
+        }
+
+        $(".gridCheckBox").each(function (index, element) {
+
+            var path = getPath(element);
+
+            if ($(element).is(':checked')) {
+                cwpsSelectTableRow(element, true);
+                savePath(path);
+            } else {
+                removePath(path);
+                cwpsSelectTableRow(element, false);
+            }
+
+        });
+
+        // Get the array length
+        let arrayLength = paths.length;
+
+
+        if (selectOneFile) {
+            let btnSelectFileAndClose = parent.document.getElementById("btnSelectFileAndClose");
+            btnSelectFileAndClose.disabled = true;
+        }
+
+        if (arrayLength > 0) {
+            let btnClear = parent.document.getElementById("btnClear");
+            $(btnClear).show();
+
+            $("#btnClear").show();
+            $("#btnShowSelected").show();
+
+            $("#btnDelete").prop('disabled', false);
+            $("#btnDelete").prop('title', "Click to delete.");
+            replaceCssClass($("#btnDelete"), "btn-secondary", "btn-primary");
+
+            $("#btnMove").prop('disabled', false);
+            $("#btnMove").prop('title', "Click to move.");
+            replaceCssClass($("#btnMove"), "btn-secondary", "btn-primary");
+
+            $("#btnRename").prop('title', "Select only one item.");
+            replaceCssClass($("#btnRename"), "btn-primary", "btn-secondary");
+        } else {
+
+            let btnClear = parent.document.getElementById("btnClear");
+            $(btnClear).hide();
+
+            $("#btnClear").hide();
+            $("#btnShowSelected").hide();
+
+            $("#btnDelete").prop('disabled', true);
+            replaceCssClass($("#btnDelete"), "btn-primary", "btn-secondary");
+
+            $("#btnMove").prop('disabled', true);
+            replaceCssClass($("#btnMove"), "btn-primary", "btn-secondary");
+
+            $("#btnRename").prop('title', "Select one item.");
+            replaceCssClass($("#btnRename"), "btn-primary", "btn-secondary");
+        }
+
+        if (arrayLength === 1) {
+
+            if (selectOneFile) {
+                let btnSelectFileAndClose = parent.document.getElementById("btnSelectFileAndClose");
+                btnSelectFileAndClose.disabled = false;
+
+                selectedFile = paths[0];
+            }
+
+            $("#btnSelectFile").prop('disabled', false);
+            replaceCssClass($("#btnSelectFile"), "btn-secondary", "btn-primary");
+
+            $("#btnRename").prop('disabled', false);
+            $("#btnRename").prop('title', "Click to rename.");
+            replaceCssClass($("#btnRename"), "btn-secondary", "btn-primary");
+
+        } else {
+
+            $("#btnSelectFile").prop('disabled', true);
+            replaceCssClass($("#btnSelectFile"), "btn-primary", "btn-secondary");
+
+            $("#btnRename").prop('disabled', true);
+            replaceCssClass($("#btnRename"), "btn-primary", "btn-secondary");
+
+        }
+    }
+
+    function replaceCssClass(element, oldClass, newClass) {
+        $(element).removeClass(oldClass);
+        $(element).addClass(newClass);
+    }
+
+    var next = null;
+    function btnClick(command) {
+
+        // Get the array length
+        var arrayLength = paths.length;
+        var busyMsg = "";
+
+        switch (command) {
+            case "cancel":
+                clearPaths();
+                window.location.href = '@Html.Raw(baseUrl)target=@target';
+                break;
+            case "delete":
+                if (arrayLength == 1) {
+                    showModal("checkFirst", "WARNING: Are you sure you want to permanently delete this item?", "Delete Verification");
+                    busyMsg = "Deleting item";
+                } else {
+                    $("#checkFirstDialog").html();
+                    showModal("checkFirst", "WARNING: Are you sure you want to permanently delete " + arrayLength + " items ?", "Delete Verification");
+                    busyMsg = "Deleting items";
+                }
+                next = function () {
+                    showModal("busy", busyMsg);
+                    $.post('@Url.Action("Delete", controller)?container=@container',   // url
+                        {
+                            ParentPath: '@pathPrefix',
+                            Paths: paths
+                        }, // data to be submit
+                        function (data, status, jqXHR) {// success callback
+                            clearSelection();
+                            hideModals();
+                            // Reload
+                            window.location.href = '@Html.Raw(baseUrl)target=@target';
+                        });
+                }
+                break;
+            case "rename":
+                showModal("checkFirst", "Are you sure you want to rename this item?<br />/" + paths[0], "Rename Verification");
+                next = function () {
+                    var len = paths[0].length;
+
+                    if (paths[0].lastIndexOf("/") == len - 1) {
+                        paths[0] = paths[0].substring(0, len - 1);
+                    }
+
+                    //itemPrefix
+                    var pathArray = paths[0].split("/");
+                    $("#itemPrefix1").html("");
+                    $("#itemPrefix2").html("");
+
+                    var p = "";
+                    var len = pathArray.length;
+                    for (var i = 0; i < len - 1; i++) {
+                        if (pathArray[i] !== "") {
+                            p = p + "/" + pathArray[i];
+                        }
+                    }
+
+                    $("#itemPrefix1").html(p);
+                    $("#itemPrefix2").html(p);
+
+                    $("#FromBlobName").val(pathArray[pathArray.length - 1]);
+
+                    $("#ctrlFromBlobName").val($("#FromBlobName").val());
+                    showModal("rename", "");
+                }
+                break;
+            case "move":
+                $("#checkFirstTitle").html("Move Items");
+                if (arrayLength == 1) {
+                    showModal("checkFirst", "WARNING: Are you sure you want to copy or move this item?", "Move Items");
+                } else {
+                    showModal("checkFirst", "Are you sure you want to copy or move " + arrayLength + " items?", "Move Items");
+                }
+
+                next = function () {
+                    showModal("busy", "Moving item(s)");
+                    sessionStorage.setItem("itemsToMove", sessionStorage.getItem("paths"));
+                    clearSelection();
+                    setMode("copyMove");
+                    window.location.href = '@Html.Raw(baseUrl)target=@pathPrefix'
+                };
+
+                break;
+            case "copyItems":
+            case "moveItems":
+
+                const items = getItemsToMove();
+
+                const dest = "@pathPrefix";
+
+                let itemCount = items.length;
+
+                showModal("checkFirst", "Are you sure you want to move item(s) to: <br />" + dest, "Move Items");
+
+                let urlPath;
+
+                if (command === "moveItems") {
+                    urlPath = "@Url.Action("Move", controller)";
+                } else {
+                    urlPath = "@Url.Action("Copy", controller)";
+                }
+
+                next = function () {
+                    setMode("");
+                    showModal("busy", "Moving item(s)");
+                    $.post(urlPath + '?container=@container',
+                        {
+                            Destination: dest,
+                            Items: items
+                        }, // data to be submit
+                        function (response) {// success callback
+                            clearSelection();
+                            hideModals();
+                        })
+                        .done(function () {
+                            clearSelection();
+                            window.location.href = '@Html.Raw(baseUrl)target=' + dest;
+                        })
+                        .fail(function () {
+                            alert("error");
+                            hideModals();
+                        });
+                }
+                break;
+            case "selectFile":
+                {
+                    let lastIndex = paths[0].replace(new RegExp("\/*$"), '').lastIndexOf('/');
+
+                    if (lastIndex === -1 || lastIndex === paths[0].length) {
+                        alert("Selected file: " + paths[0]);
+                    } else {
+                        // Can only select files
+                        clearSelection();
+                    }
+
+                }
+                break;
+        }
+
+
+    }
+
+    function cancelAction() {
+        hideModals();;
+    }
+
+    function continueAction() {
+        next();
+    }
+
+    function download(p) {
+        window.location.href = encodeURI("@Url.Action("Download", controller)?path=" + p + "&container=@container");
+    }
+
+
+</script>
+

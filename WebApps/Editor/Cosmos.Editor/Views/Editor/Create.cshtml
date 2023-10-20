@@ -1,0 +1,271 @@
+﻿@model CreatePageViewModel
+
+@{
+    ViewData["Title"] = "Create";
+    var templateList = (List<TemplateIndexViewModel>)ViewData["TemplateList"];
+
+    var rowCount = (int)ViewData["RowCount"];
+    var sortOrder = (string)ViewData["sortOrder"];
+    var currentSort = (string)ViewData["currentSort"];
+    var pageNumber = (int)ViewData["pageNo"];
+    var pageSize = (int)ViewData["pageSize"];
+    var reservedPaths = (List<string>)ViewData["reservedPaths"];
+
+    var pagerModel = new GridPagerPartialViewModel(pageNumber, rowCount, pageSize, sortOrder, currentSort, "/Editor/Create");
+}
+<div class="cwps-editor-container pt-3">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 text-light mb-3">
+                <h3>Create a Page</h3>
+                <p>Enter the desired page URL below, and optionally select a quick start page template below.</p>
+                <form id="frmCreate" asp-action="Create">
+                    <input asp-for="Id" type="hidden" />
+                    <input asp-for="TemplateId" type="hidden" />
+                    <input asp-for="ArticleNumber" type="hidden" />
+
+                    <div asp-validation-summary="ModelOnly" class="text-light"></div>
+
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">Page URL: /</span>
+                        <input class="form-control" autocomplete="off" asp-for="Title" />
+                        <input type="submit" value="Create" class="btn btn-primary" />
+                    </div>
+                    <span asp-validation-for="Title"></span>
+
+                    <div id="frmgpSelectedTemplate" class="form-group mb-3" style="display:none">
+                        <div class="input-group input-group-sm mb-3">
+                            <span class="input-group-text" id="basic-addon3">Create using page template:</span>
+                            <div id="lblSelectedTemplate" class="form-control" title="Your new page will be creating using this page template" aria-describedby="input-group-text"></div>
+                            <button id="btnRemoveTemplate" class="btn btn-warning" type="button" title="Click this to not use this template.'">Remove</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <button type="button" id="previewBtn" style="display:none" class="btn btn-primary" onclick="openPreview()">Full Page Preview</button>
+
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col"><h5 class="text-light">Quick start page templates:</h5></div>
+        </div>
+        <div class="row cpws-table-pager-row-top">
+            <div class="col-md-12 d-flex justify-content-center">
+                <partial name="~/Views/Shared/GridPager/_GridPager.cshtml" model="pagerModel"></partial>
+            </div>
+        </div>
+        <div class="row bg-dark">
+            <div class="col-md-12">
+                <div class="table-responsive custom-table-responsive">
+                    <table class="table custom-table">
+                        <thead>
+                            <tr scope="col">
+                                <th scope="col">
+                                    Select
+                                </th>
+                                <th scope="col" style="min-width:200px;">Action</th>
+                                <th scope="col" style="min-width:200px;">Edit With</th>
+                                <th scope="col">Title</th>
+                                <th scope="col">Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var row in templateList)
+                            {
+                                <tr scope="row">
+                                    <td scope="row">
+                                        <div class="form-check form-switch">
+                                            @if (Model.TemplateId == row.Id)
+                                            {
+                                                <input type='checkbox' class="form-check-input gridCheckBox" data-ccms-tid='@row.Id' data-ccms-ttitle="@row.Title" checked>
+                                            }
+                                            else
+                                            {
+                                                <input type='checkbox' class="form-check-input gridCheckBox" data-ccms-tid='@row.Id' data-ccms-ttitle="@row.Title">
+                                            }
+                                        </div>
+                                    </td>
+                                    <td scope="row">
+                                        <div class="btn-group" role="group" aria-label="Actions for this template">
+                                            <a target="_blank" class="btn btn-sm btn-secondary" href="@Url.Action("Preview", "Templates", new { Id = row.Id })" title="Preview"><span class="fa fa-binoculars"></span> Preview</a>
+                                        </div>
+                                    </td>
+                                    <td scope="row">
+                                        <span class="me-2" title="Creates a page that is editable with the code editor">
+                                            <img src="/images/monaco-vscode-logo.png" height="20" /> Code
+                                        </span>
+
+                                        @if (row.UsesHtmlEditor)
+                                        {
+                                            <span title="Creates a page that is editable with the live (WYSIWYG) editor">
+                                                <img src="/images/ckeditor-5-proj-logo.svg" height="22" /> Live
+                                            </span>
+                                        }
+                                    </td>
+                                    <td scope="row">
+                                        @row.Title
+                                    </td>
+                                    <td scope="row">
+                                        @Html.Raw(row.Description)
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="row cpws-table-pager-row-bottom ">
+            <div class="col-md-12 d-flex justify-content-center">
+                <partial name="~/Views/Shared/GridPager/_GridPager.cshtml" model="pagerModel"></partial>
+            </div>
+        </div>
+        <div>
+            <a asp-action="Index">Back to List</a>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal mt-5" id="modalAlert" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-secondary text-light">
+            <div class="modal-header">
+                <h5 class="modal-title">Page URL</h5>
+            </div>
+            <div class="modal-body">
+                <div id="divSaveFirstDialog"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let sessionTitle;
+    var a = "\"";
+    var b = "'";
+    const reservedPaths = [@Html.Raw(string.Join(',', reservedPaths.Select(s => "\"" + s.Replace("\"","\'") + "\"")))];
+
+    const modalAlert = new bootstrap.Modal(document.getElementById('modalAlert'));
+
+    $("#frmCreate").submit(function (e) {
+        var validTitle = validateTitle($("#Title").val());
+
+        if (validTitle) {
+            sessionStorage.setItem("sessionTitle", "");
+            sessionStorage.setItem("templateId", "");
+            return true;
+        }
+        return false;
+    });
+
+    function validateTitle(title) {
+        var isValid = true;
+        //
+        if (title.indexOf(",") > -1 || 
+        title.indexOf(".") > -1 ||
+            title.indexOf("'") > -1 ||
+            title.indexOf("\"") > -1 ||
+            title.indexOf("#") > -1 ||
+            title.indexOf("@@") > -1 ||
+            title.indexOf("{") > -1 ||
+            title.indexOf("}") > -1 ||
+            title.indexOf("&") > -1 ||
+            title.indexOf("\\") > -1) {
+            $("#divSaveFirstDialog").html("<p>Avoid a URL with <b>quote</b> characters such as: <b>&#39; or &#34;</b> and special characters such as: . (period), ',' (comma), \\ (backslash), #, @@, {, }, and & (ampersand).</p><p>Spaces ' ', forward slashes '/' and underscores '_' are OK.</p>");
+            modalAlert.show();
+            return false;
+        }
+        $.each(reservedPaths, function (index, value) {
+            if (value.endsWith("*")) {
+                if (title.toLowerCase().startsWith(value.substring(0, value.length - 1).toLowerCase())) {
+                    const starts = value.substring(0, value.length - 1);
+                    $("#divSaveFirstDialog").html("<p>Cannot have a URL that <u>starts with</u>: <b>/" + starts + "</b></p>");
+                    modalAlert.show();
+                    isValid = false;
+                    return false;
+                }
+            } else {
+                if (title.toLowerCase() === value.toLowerCase()) {
+                    $("#divSaveFirstDialog").html("<p>This URL is already taken or reserved: <b>/" + title + "</b></p>");
+                    modalAlert.show();
+                    isValid = false;
+                    return false;
+                }
+            }
+
+        });
+        return isValid;
+    }
+
+    $(document).ready(function () {
+        if ("@Model.Title" === "") {
+            sessionTitle = sessionStorage.getItem("sessionTitle");
+            $("#Title").val(sessionTitle);
+        } else {
+            $("#Title").val("@Model.Title");
+            sessionStorage.setItem("sessionTitle", "@Model.Title");
+            sessionTitle = "@Model.Title";
+        }
+    });
+
+    $(".gridCheckBox").on("change", function () {
+
+        const templateId = $(this).attr('data-ccms-tid');
+        const isChecked = $(this).prop('checked');
+        setTemplate("");
+
+        $(".gridCheckBox").each(function (index, cbox) {
+            $(cbox).prop('checked', false);
+            cwpsSelectTableRow(cbox, false);
+            if ($(cbox).attr('data-ccms-tid') === templateId) {
+                if (isChecked) {
+                    setTemplate({ Id: $(cbox).attr('data-ccms-tid'), Title: $(cbox).attr('data-ccms-ttitle') });
+                    cwpsSelectTableRow(cbox, true);
+                }
+                $(cbox).prop('checked', isChecked);
+            }
+        });
+    });
+
+    $("#Title").change(function () {
+        sessionStorage.setItem("sessionTitle", $("#Title").val());
+    });
+
+    $("#btnRemoveTemplate").click(function () {
+        $(".gridCheckBox").each(function (index, cbox) {
+            $(cbox).prop('checked', false);
+            cwpsSelectTableRow(cbox, false);
+        });
+        setTemplate("");
+    });
+
+    function setTemplate(data) {
+        if (data === "") {
+            $("#frmgpSelectedTemplate").hide();
+            $("#lblSelectedTemplate").html("");
+            $("#TemplateId").val("");
+        } else {
+            $("#lblSelectedTemplate").html(data.Title);
+            $("#TemplateId").val(data.Id);
+            $("#frmgpSelectedTemplate").show();
+        }
+        sessionStorage.setItem("templateId", JSON.stringify(data));
+    }
+
+    function getTemplate() {
+        var data = sessionStorage.getItem("templateId");
+        if (data === "") {
+            return "";
+        }
+        return JSON.parse(data);
+    }
+</script>
+@{
+    await Html.RenderPartialAsync("_ValidationScriptsPartial");
+}

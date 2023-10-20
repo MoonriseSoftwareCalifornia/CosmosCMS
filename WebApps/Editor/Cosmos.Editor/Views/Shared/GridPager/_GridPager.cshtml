@@ -1,0 +1,35 @@
+﻿@model GridPagerPartialViewModel
+@{
+    var baseUrl = Model.GetUrl.Contains("?") ? Model.GetUrl + "&" : Model.GetUrl + "?";
+}
+<div class="btn-group" role="group" aria-label="Page Actions">
+    <a class="btn btn-sm btn-secondary" title="First page" href="@(baseUrl)pageNo=0&sortOrder=@Model.SortOrder&currentSort=@Model.CurrentSort&pageSize=@Model.PageSize&filter=@Model.Filter&selectOne=@Model.SelectOne"><i class="fa-solid fa-backward-fast"></i></a>
+    <a class="btn btn-sm btn-secondary" title="Previous page" href="@(baseUrl)pageNo=@Model.PreviousPage&sortOrder=@Model.SortOrder&currentSort=@Model.CurrentSort&pageSize=@Model.PageSize&filter=@Model.Filter&selectOne=@Model.SelectOne"><i class="fa-solid fa-caret-left"></i></a>
+    <div class="btn btn-sm btn-secondary">
+        Page @(Model.PageNumber + 1) of @Math.Max(1, Model.PageCount)
+    </div>
+    <a class="btn btn-sm btn-secondary" title="Next page" href="@(baseUrl)pageNo=@Model.NextPage&sortOrder=@Model.SortOrder&currentSort=@Model.CurrentSort&pageSize=@Model.PageSize&filter=@Model.Filter&selectOne=@Model.SelectOne"><i class="fa-solid fa-caret-right"></i></a>
+    <a class="btn btn-sm btn-secondary" title="Last page" href="@(baseUrl)pageNo=@Model.LastPage&sortOrder=@Model.SortOrder&currentSort=@Model.CurrentSort&pageSize=@Model.PageSize&filter=@Model.Filter&selectOne=@Model.SelectOne"><i class="fa-solid fa-forward-fast"></i></a>
+    <button id="btnGroupDrop1" type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+        Page:
+    </button>
+    <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="btnGroupDrop1">
+        @for (long i = 0; i < Model.PageCount; i++)
+        {
+            <li>
+                <a class="dropdown-item" href="@(baseUrl)pageNo=@i&sortOrder=@Model.SortOrder&currentSort=@Model.CurrentSort&pageSize=@Model.PageSize&filter=@Model.Filter&selectOne=@Model.SelectOne">@(i + 1)</a>
+            </li>
+        }
+    </ul>
+    <button id="btnGroupDrop1" type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+        Page Size: @Model.PageSize
+    </button>
+    <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="btnGroupDrop1">
+        @for (var i = 10; i < 100; i = i + 10)
+        {
+            <li>
+                <a class="dropdown-item" href="@(baseUrl)pageNo=0&sortOrder=@Model.SortOrder&currentSort=@Model.CurrentSort&pageSize=@i&filter=@Model.Filter&selectOne=@Model.SelectOne">@i</a>
+            </li>
+        }
+    </ul>
+</div>

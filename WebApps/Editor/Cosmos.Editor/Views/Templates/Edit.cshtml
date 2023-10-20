@@ -1,0 +1,66 @@
+﻿@model TemplateEditViewModel
+
+<script src="https://cdn.ckeditor.com/ckeditor5/36.0.0/classic/ckeditor.js"></script>
+
+<style>
+    p {
+        color:black !important;
+    }
+</style>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-light text-center">
+            <h5>Editing template:</h5>
+            <h1>@ViewData["Title"]</h1>
+            <hr />
+        </div>
+    </div>
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-light">
+            <form id="frmEdit" asp-action="Edit">
+                <input asp-for="Id" type="hidden" />
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                
+                <div class="form-group">
+                    <label asp-for="Title" class="control-label"></label>
+                    <input asp-for="Title" class="form-control" />
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+                <div class="form-group bg-light">
+                    <label asp-for="Description" class="control-label text-dark"></label>
+                    <div id="ckDescription" class="bg-light" style="color:black !important">
+                        @Html.Raw(Model.Description)
+                    </div>
+                    <input asp-for="Description" type="hidden" />
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+                    <input type="submit" value="Save" class="btn btn-primary" />
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    ClassicEditor
+        .create(document.querySelector('#ckDescription'))
+        .then(editor => {
+            window.editor = editor;
+        })
+        .catch( error => {
+            console.error( error );
+        });
+
+    $(document).ready(function() {
+        $("#frmEdit").submit(function () {
+            $("#Description").val(editor.getData());
+        });
+    });
+</script>
+
+@{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }

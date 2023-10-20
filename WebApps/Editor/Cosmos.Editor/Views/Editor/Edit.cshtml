@@ -1,0 +1,885 @@
+﻿@model HtmlEditorViewModel
+@{
+    Layout = "_LayoutEditor";
+    ViewData["Title"] = "Editing: " + Model.Title;
+}
+
+<form class="d-flex" id="frmSave" autocomplete="off">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" value="@Model.Id" />
+    <input type="hidden" asp-for="SaveAsNewVersion" />
+    <input type="hidden" asp-for="ArticleNumber" />
+    <input type="hidden" asp-for="UrlPath" />
+    <input type="hidden" asp-for="VersionNumber" />
+    <input type="hidden" asp-for="RoleList" />
+    <input type="hidden" asp-for="Content" />
+    <input type="hidden" asp-for="Title" />
+    <input type="hidden" asp-for="Published" />
+    <input type="hidden" asp-for="Updated" />
+    <input type="hidden" asp-for="BannerImage" />
+</form>
+
+<script src="/lib/monaco-editor/min/vs/loader.js"></script>
+<script src="/lib/emmet-monaco-es/dist/emmet-monaco.min.js"></script>
+
+<iframe id="ccmsContFrame" src="/Editor/CcmsContent/@Model.ArticleNumber" style="position: absolute; top: 52px; width: 100%; margin:0px; padding:0px;z-index:1;" onload="setupFrame()" frameBorder="0" scrolling="yes"></iframe>
+
+<div class="toast-container position-fixed top-0 end-0 p-3">
+    <div id="linksToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="3000">
+        <div class="toast-header">
+            <strong class="me-auto">Links are disabled while editing</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+@if (Model != null)
+{
+    <div class="modal" id="modalVsCode" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-body" style="height: 80vh;position:relative;">
+                    <div class="navbar">
+                        <div class="container-fluid">
+                            <div class="navbar-brand text-light">
+                                <img src="/images/vscodeicon.svg" alt="Logo" height="20" class="d-inline-block align-text-top">
+                                Code Editor
+                            </div>
+                            <div class="d-flex">
+                                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button id="btnApply" type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Apply</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="editspace" class="m-editor-container" style="height: 80vh;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+
+        function setupPreviewFrame() {
+            const iframe = document.getElementById("iframePreview");
+            const iframeWin = iframe.contentWindow || iframe.contentDocument.parentWindow;
+            if (iframeWin.document.body) {
+
+                $("#modalContent").height = 50 + (window.innerHeight - document.getElementById("ccmsNavMenu").clientHeight);
+
+                // disable all links
+                const contents = $("#iframePreview").contents();
+
+                const anchors = contents.find("a");
+
+                $(anchors).click(function (e) {
+                    e.preventDefault();
+                });
+            }
+        }
+
+    </script>
+    <!-- Full screen modal -->
+    <div class="modal fade" id="modalPreview" tabindex="-3">
+        <div class="modal-dialog modal-fullscreen">
+            <div id="modalContent" class="modal-content">
+                <div class="modal-header bg-dark text-light">
+                    <button type="button" class="btn btn-sm btn-primary" data-bs-dismiss="modal">Close Preview</button>
+                </div>
+                <div class="modal-body">
+                    <iframe id="iframePreview" class="d-block w-100" onload="setupPreviewFrame()" style="height:100%"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<script>
+
+    // Current user
+    const ccms_editor_userid = "@this.Context.User.Identity.Name";
+    const isAuthor = @User.IsInRole("Authors").ToString().ToLower();
+    const isReviewer = @User.IsInRole("Reviewers").ToString().ToLower();
+    const hasModel = @((Model != null).ToString().ToLower());
+
+    // Editable areas
+    let ccms_editibleAreas = [];
+    // Signal R Connection
+    let signalRConnection;
+
+    // Monaco Editor
+    let editor;
+
+    let ckeditorSessions = [ ];
+
+    let lockedEditors = [ ];
+
+    // CK Editor
+    let ckeditor = null;
+    // Indicates a save is in progress - used to deconflict simultaneous saves
+    var saveInProgress = false;
+    var enableAutoSave = true;
+    // Modals
+    const vsCodeModal = new bootstrap.Modal(document.getElementById('modalVsCode'));
+    const modalPreview = new bootstrap.Modal(document.getElementById('modalPreview'));
+    const linksToast = new bootstrap.Toast(document.getElementById('linksToast'));
+
+    $("#frmSave").submit(function (e) {
+        e.preventDefault();
+        saveChanges();
+    });
+
+    function bgEditClickCustom(command) {
+
+        var modelId = $("#Id").val();
+
+        switch (command) {
+            case "Close":
+                // Note: 'next' is defined in _LayoutEditor.cshtml.
+                next = function () {
+                    window.location.href = "@Url.Action("Versions", "Editor")/@Model.ArticleNumber";
+                }
+                $("#divSaveFirstDialog").html("Save page before closing editor?");
+                checkFirstModal.show();
+                break;
+            case "Code":
+                next = function () {
+                    window.location.href = "@Url.Action("EditCode", "Editor")/" + $("#ArticleNumber").val();
+                }
+                $("#divSaveFirstDialog").html("Save before opening code editor?");
+                checkFirstModal.show();
+                break;
+            case "Preview":
+                $("#iframePreview").prop("src", "@Url.Action("Preview", "Home")?articleNumber=" + @Model.ArticleNumber);
+                modalPreview.show();
+                modalPreview.handleUpdate();
+                break;
+        }
+    }
+
+    function getLocalTimeZone() {
+        const datetime = new Date();
+        const dateTimeString = datetime.toString();
+        const timezone = dateTimeString.substring(dateTimeString.indexOf("(") - 1);
+        return timezone;
+    }
+
+    function setupFrame() {
+        const iframe = document.getElementById("ccmsContFrame");
+        const iframeWin = iframe.contentWindow || iframe.contentDocument.parentWindow;
+        if (iframeWin.document.body) {
+
+            iframe.height = window.innerHeight - document.getElementById("ccmsNavMenu").clientHeight;
+
+            // disable all links
+            const contents = $("#ccmsContFrame").contents();
+
+            const anchors = contents.find("a");
+
+            $(anchors).click(function (e) {
+                e.preventDefault();
+                linksToast.show();
+            });
+
+            var editors = contents.find("[data-ccms-ceid]");
+
+            $(editors).css("border", "dashed 1px #dadada");
+
+        }
+
+        ccms_editibleAreas = getEditableAreas();
+
+        // Close loading spinner and display saved status
+        $("#divTitleGroup").show();
+        $("#divPublihedTitleGroup").show();
+        $("#spinLoading").hide();
+        $("#btnSavingStatus").show();
+    };
+
+    $(document).ready(function (e) {
+
+        $("#btnOtherPages").show();
+
+        $("#modalChgTitleHeader").html("Change page URL: ");
+        $("#newTitle").html("New page URL: ");
+
+        if ($("#UrlPath").val() != "root") {
+            $("#divUrlTitleExamples").show();
+        }
+
+        $("#btnCcmsCodeEditor").show();
+
+        $("#liBtnVersions").show();
+
+        $("#btnVersions").attr("href", "/Editor/Versions/" + $("#ArticleNumber").val() + "?versionNumber=" + $("#VersionNumber").val());
+        
+        setWorkingVersion($("#VersionNumber").val());
+
+        $("#btnApply").click(function (e) {
+            var data = editor.getValue();
+            ckeditor.data.set(data);
+            saveChanges();
+        });
+
+        $("#btnSave").click(function () {
+            // If the form contains a published hidden field,
+            // then toggle the save as draft and save and published
+            // buttons accordingly.
+            if (isAuthor) {
+                $("#btnSaveAndPublish").hide();
+                if ($('#Published').val() === "") {
+                    $("#btnSaveChanges").show();
+                } else {
+                    $("#btnSaveAsDraft").show();
+                    $("#btnSaveAndPublish").hide();
+                    $("#btnSaveChanges").hide();
+                }
+            } else {
+                $("#btnSaveAsDraft").show();
+                $("#btnSaveChanges").show();
+                if ($('#Published').val() === "") {
+                    $("#btnSaveAndPublish").show();
+                }
+            }
+        });
+
+        signalRConnection = new signalR.HubConnectionBuilder()
+            .configureLogging(signalR.LogLevel.Information)
+            .withUrl("/___cwps_hubs_live_editor")
+            .withAutomaticReconnect().build();
+
+        async function signalRStart() {
+            try {
+                await signalRConnection.start();
+                console.log('SignalRConnection started');
+                signalRConnection.invoke("JoinArticleGroup", "@Model.ArticleNumber.ToString()");
+            } catch (err) {
+                console.log(err);
+                setTimeout(signalRStart, 5000);
+            }
+        };
+
+        signalRConnection.onclose(async () => {
+            await signalRStart();
+        });
+
+        signalRStart();
+
+        // Create a function that the hub can call to broadcast messages.
+        signalRConnection.on('broadcastMessage', function (data) {
+            var model = JSON.parse(data);
+
+            const editorId = model.EditorId;
+            const ckeditor = findEditor(editorId);
+            const userId = model.UserId;
+            const offest = model.Offset;
+            const command = model.Command;
+
+            console.log("SignalR Command: " + command);
+
+            switch(command) {
+                case "saved":
+                    $("#Id").val(model.Id);
+                    $("#VersionNumber").val(model.VersionNumber);
+                    setWorkingVersion(model.VersionNumber);
+
+                    savePageProperties(model);
+
+                    // Prevent auto save
+                    enableAutoSave = false;
+                    ckeditor.data.set(model.Data);
+                    // Renable auto save
+                    enableAutoSave = true;
+                    saveInProgress = false;
+                    doneSaving();
+                    break;
+                case "keydown":
+                case "mousedown":
+                case "focus":
+                    addCkeditorSession(editorId, userId);
+                    break;
+                case "blur":
+                    removeCkeditorSession(editorId, userId);
+                    break;
+                case "save":
+                    cosmosSignalUpdateEditor(model);
+                    break;
+                case "PropertiesSaved":
+                    $("#Id").val(model.Id);
+                    $("#VersionNumber").val(model.VersionNumber);
+                    setWorkingVersion(model.VersionNumber);
+                    savePageProperties(model);
+                    saveInProgress = false;
+                    doneSaving();
+                    if (next) {
+                        next();
+                    }
+                    break;
+                case "SavePageProperties":
+                    ckeditor.data.set(model.Data);
+                    savePageProperties(model);
+                    break;
+            }
+
+            var session = null;
+
+            $(ckeditorSessions).each(function (index, item) {
+                if (item.Id === editorId) {
+                    session = item;
+                }
+            });
+
+            let msg = "Editable";
+
+            if (session.Emails.length > 0) {
+                msg = "Others here: " + session.Emails;
+            }
+
+            const iframe = document.getElementById("ccmsContFrame");
+        });
+
+
+        $("#ccmsContFrame").click(function () {
+            $("#btnSave").removeClass("show");
+        });
+
+        if (hasModel && isReviewer === false) {
+            $("#btnArticleAccess").show();
+            $("#btnArticleAccess").attr("href", "@Url.Action("Permissions", "Editor", new { Id = Model.ArticleNumber })");
+        }
+
+    });
+
+    function getEditableAreas() {
+        const iframe = document.getElementById("ccmsContFrame");
+        let areas = [];
+
+        // Gather up all the editable areas.
+        const editors = iframe.contentWindow.ccms_editors;
+        $(editors).each(function (index, editor) {
+            // Get the source element for the editor (often a DIV)
+            const sourceElement = editor.sourceElement;
+            
+            // Get the ID
+            const id = sourceElement.getAttribute("data-ccms-ceid");
+            // Get the item
+            const item = { Id: id, Html: editor.getData() };
+            // Add to the collection
+            areas.push(item);
+
+        });
+
+        return areas;
+    }
+
+    function findEditor(editorId) {
+        
+        var iframe = document.getElementById("ccmsContFrame");
+
+        //let areas = [];
+        // Gather up all the editable areas.
+        var editors = iframe.contentWindow.ccms_editors;
+        var editorIds = iframe.contentWindow_editorIds;
+        var editor;
+
+        $(editors).each(function (index, ed) {
+
+            // Get the source element for the editor (often a DIV)
+            const sourceElement = ed.sourceElement;
+            // Get the ID
+            const id = sourceElement.getAttribute("data-ccms-ceid");
+            
+            if (editorId === id) {
+                editor = ed;
+            }
+        });
+
+        return editor;
+    }
+
+    function handle_error(xhr, status, error) {
+        saveInProgress = false;
+        doneSaving();
+        $("#divErrorLog").html(xhr.responseText);
+        errorModal.show();
+    }
+
+    $(window).bind('keydown', function (event) {
+        if (event.ctrlKey || event.metaKey) {
+            switch (String.fromCharCode(event.which).toLowerCase()) {
+                case 's':
+                    event.preventDefault();
+
+                    // If there are "editable" areas being edited, use this method to save changes
+                    const ccms_editibleAreas = iframe.contentWindow.ccms_editibleAreas;
+                    if (typeof (ccms_editibleAreas) !== "undefined" && ccms_editibleAreas.length > 0) {
+                        saveChanges();
+                    }
+                    break;
+            }
+        }
+    });
+
+    window.addEventListener('resize', function (event) { setupFrame(); }, true);
+
+    function openVsCodeBlockEditor(ed) {
+        ckeditor = ed;
+
+        $("#editspace").html("");
+
+        if (typeof ckeditor === "undefined" || ckeditor === null) {
+            alert("Error: Could not open Live editor.");
+            return;
+        }
+
+        vsCodeModal.show();
+
+
+        // Monaco AMD Editor  - https://microsoft.github.io/monaco-editor/
+        require.config({ paths: { 'vs': '/lib/monaco-editor/min/vs' } });
+
+        //require.config({ paths: { vs: '/lib/node_modules/monaco-editor/dist' } }); // Emmet Abbr.
+        require(['vs/editor/editor.main'],
+            function () {
+
+                var code = ckeditor.getData();
+                emmetMonaco.emmetHTML(monaco);
+                editor = monaco.editor.create(document.getElementById('editspace'),
+                    {
+                        language: "html",
+                        theme: "vs-dark",
+                        value: code
+                    });
+            });
+    }
+
+    function openPickPageModal(ed) {
+        ckeditor = ed;
+
+        if (typeof ckeditor === "undefined" || ckeditor === null) {
+            alert("Error: Could not open Live editor.");
+            return;
+        }
+
+        $("#combobox").val("");
+        $("#inputLinkText").val("");
+        $("#switchNewWindow").prop('checked', false);
+        $("#inputLinkCss").val("");
+        $("#inputLinkStyle").val("");
+
+        pickPageModal.show();
+    }
+
+    function openInsertFileLinkModel(ed) {
+        ckeditor = ed;
+        autoSaveOn = false;
+
+        if (typeof ckeditor === "undefined" || ckeditor === null) {
+            alert("Error: Could not open Live editor.");
+            return;
+        }
+
+        openSelectFileModal("file");
+    }
+
+    function openInsertImageModel(ed) {
+        ckeditor = ed;
+        autoSaveOn = false;
+
+        if (typeof ckeditor === "undefined" || ckeditor === null) {
+            alert("Error: Could not open Live editor.");
+            return;
+        }
+
+        openSelectFileModal("image");
+    }
+
+    function insertImage(path) {
+
+        if (typeof path === "undefined" || path === null || path === "") {
+            return;
+        }
+
+
+        // Change the model using the model writer.
+        ckeditor.model.change(writer => {
+
+            autoSaveOn = false;
+
+            const url = fileBaseUrl + "/" + path;
+
+            const viewFragment = ckeditor.data.processor.toView("<img src='" + url + "' />");
+
+            const anchor = ckeditor.data.toModel(viewFragment);
+            ckeditor.model.insertContent(anchor);
+
+            clearFileMgrPaths();
+
+            autoSaveOn = true;
+        });
+
+        next = null;
+
+    }
+
+    function insertPageLink() {
+
+        if (typeof ckeditor === "undefined" || ckeditor === null) {
+            alert("Error: Could not open Live editor.");
+            return;
+        }
+
+        const inputLinkText = $("#inputLinkText").val();
+        const switchNewWindow = $("#switchNewWindow").prop('checked');
+        const inputLinkCss = $("#inputLinkCss").val();
+        const inputLinkStyle = $("#inputLinkStyle").val();
+
+        if (typeof (inputLinkText) === "undefined" || inputLinkText === null || inputLinkText === "") {
+            $("#inputLinkTextError").show();
+            return false;
+        }
+
+        pickPageModal.hide();
+
+        // Change the model using the model writer.
+        ckeditor.model.change(writer => {
+
+            const viewFragment = ckeditor.data.processor.toView("<a target='_blank' href='/" + selectedAnchorData.url + "'>" + inputLinkText + "</a>");
+
+            const anchor = ckeditor.data.toModel(viewFragment);
+            ckeditor.model.insertContent(anchor);
+            ckeditor.editing.view.focus();
+        });
+
+        saveChanges();
+    }
+
+    function insertFileLink(path) {
+
+        if (typeof path === "undefined" || path === null || path === "") {
+            next = null;
+            return;
+        }
+
+        autoSaveOn = false;
+
+        // Change the model using the model writer.
+        ckeditor.model.change(writer => {
+
+            const url = fileBaseUrl + "/" + path;
+
+            const viewFragment = ckeditor.data.processor.toView("<a href='" + url + "'>" + path + "</a>");
+
+            const anchor = ckeditor.data.toModel(viewFragment);
+            ckeditor.model.insertContent(anchor);
+            ckeditor.editing.view.focus();
+
+            clearFileMgrPaths();
+
+            // Allow time for save
+            autoSaveOn = true;
+        });
+
+        next = null;
+    }
+
+    function ccms_setBannerImage(url) {
+        const value = $("#BannerImage").val();
+
+        if (value === null || value === "") {
+            $("#BannerImage").val(url);
+        }
+
+        checkBannerImage();
+    }
+
+    // Methods for live editor (child page)
+    function ccms_updateArea(editor) {
+        return new Promise(resolve => {
+
+            // Let others editing this item know where this user is focused
+            ccms_signal_focus_others(editor, "save");
+
+            const sourceElement = editor.sourceElement;
+            const id = sourceElement.getAttribute("data-ccms-ceid");
+
+            const item = { Id: id, Html: editor.getData() };
+
+            if (ccms_editibleAreas.length === 0) {
+                // First entry in the array
+                ccms_editibleAreas.push(item);
+            } else {
+                // Append or update the array
+                const i = ccms_editibleAreas.findIndex((ed => ed.Id == id));
+
+                if (i === -1) {
+                    // Append
+                    const item = { Id: id, Html: editor.getData() };
+                    ccms_editibleAreas.push(item);
+
+                } else {
+                    // Update
+                    ccms_editibleAreas[i].Html = editor.getData();
+                }
+            }
+
+            // Push to server if autosave is turned on.
+            if (getAutoSave()) {
+                const data = [];
+                data.push(item);
+                saveChanges();
+                ccms_signal_focus_others(editor, "updateEditors", editor.getData());
+            }
+            else {
+                resolve();
+            }
+        });
+    }
+
+    function addCkeditorSession(id, email) {
+
+        lockedEditors.push(id);
+
+        let iframe = document.getElementById("ccmsContFrame");
+
+        //let areas = [];
+        // Gather up all the editable areas.
+        let editors = iframe.contentWindow.ccms_editors;
+
+        // Set the editor to read only mode.
+        $(editors).each(function (index, ed) {
+
+            // Get the source element for the editor (often a DIV)
+            const sourceElement = ed.sourceElement;
+
+            // Get the ID
+            const editorId = sourceElement.getAttribute("data-ccms-ceid");
+
+            if (editorId === id) {
+                ed.enableReadOnlyMode(email);
+                $(sourceElement).css("border-color", "red");
+            }
+        });
+
+        $(iframe.contentWindow.__cwps__toolTips).each(function (index, tip) {
+            const tipId = tip.reference.getAttribute("data-ccms-ceid");
+            if (tipId === id) {
+                tip.setProps({ theme: "material" });
+                tip.setContent(email);
+                tip.show();
+            }
+        });
+    }
+
+    function removeCkeditorSession(id, email) {
+
+        lockedEditors = lockedEditors.filter(item => item !== id);
+
+        let iframe = document.getElementById("ccmsContFrame");
+
+        //let areas = [];
+        // Gather up all the editable areas.
+        let editors = iframe.contentWindow.ccms_editors;
+
+        $(editors).each(function (index, ed) {
+
+            // Get the source element for the editor (often a DIV)
+            const sourceElement = ed.sourceElement;
+            // Get the ID
+            const editorId = sourceElement.getAttribute("data-ccms-ceid");
+
+            if (editorId === id) {
+                ed.disableReadOnlyMode(email);
+                $(sourceElement).css("border-color", "#dadada");
+            }
+        });
+
+        $(iframe.contentWindow.__cwps__toolTips).each(function (index, tip) {
+            const tipId = tip.reference.getAttribute("data-ccms-ceid");
+            if (tipId === id) {
+                tip.setProps({ theme: "" });
+                tip.setContent("Editable.");
+                tip.hide();
+            }
+        });
+    }
+
+    // Saves changes to page title, publishing, not content.
+    function saveChanges(data, editorId) {
+
+        // Signal to the user that saving has started.
+        saving();
+        saveInProgress = true;
+
+        // Get the latest date
+        savePublishDateTime();
+
+        // Build the post payload
+        var id = $("#Id").val();
+        var published = $("#Published").val();
+        var updated = $("#Updated").val();
+        var articleNumber = $("#ArticleNumber").val();
+
+        @*var data = {
+            Id: $("#Id").val(),
+            Title: $("#Title").val(),
+            Published: published,
+            Updated: updated,
+            BannerImage: $("#BannerImage").val(),
+            RoleList: $("#RoleList").val(),
+            UrlPath: "",
+            VersionNumber: $("#VersionNumber").val()
+        };*@
+
+        let model = {
+            Id: $("#Id").val(),
+            ArticleNumber: $("#ArticleNumber").val(),
+            EditorId: editorId,
+            UserId: ccms_editor_userid,
+            Published: published,
+            Updated: updated,
+            Title: $("#Title").val(),
+            Offset: -1,
+            Command: "SavePageProperties",
+            IsFocused: false,
+            VersionNumber: $("#VersionNumber").val(),
+            Data: data
+        };
+
+        $.post("@Url.Action("SaveLiveEditorData", "Editor")", model, function (data){
+            saveInProgress = false;
+            doneSaving();
+        }).fail(function(data){
+            alert("Problem!");
+        }).done(function (data) {
+            setWorkingVersion(data);
+            try {
+                signalRConnection.invoke("Notification", JSON.stringify(model));
+            } catch (err) {
+                console.error(err);
+            }
+
+            if (next) {
+                next();
+            }
+        });
+    }
+
+    function cosmosSignalOthers(editor, command) {
+        
+        const sourceElement = editor.sourceElement;
+        const id = sourceElement.getAttribute("data-ccms-ceid");
+
+        // Make sure this editor isn't locked
+        if (lockedEditors.includes(id)) {
+            return;
+        }
+
+        if (command === "save") {
+            saving();
+            saveInProgress = true;
+        }
+
+        let offset = -1;
+        let isFocused = false;
+
+        if (editor.editing.view.document.isFocused) {
+            const position = editor.editing.view.document.selection.getFirstPosition();
+            offset = position.offset;
+            isFocused = true;
+        }
+
+        if (command === "save") {
+
+            var html = editor.getData();
+
+            saveChanges(editor.getData(), id);
+
+            @*let model = {
+                Id: $("#Id").val(),
+                ArticleNumber: $("#ArticleNumber").val(),
+                EditorId: id,
+                UserId: ccms_editor_userid,
+                Offset: offset,
+                Command: command,
+                IsFocused: isFocused,
+                VersionNumber: $("#VersionNumber").val(),
+                Data: html
+            };
+
+            saving();
+            saveInProgress = true;
+
+            $.post("@Url.Action("SaveLiveEditorData")", model)
+                .done(function (data) {
+
+                    savePageProperties(data);
+
+                    // Now, we don't need the data anymore
+                    model.Data = "";
+
+                    signalRConnection.invoke("Notification", JSON.stringify(model));
+                    saveInProgress = false;
+                    doneSaving();
+                })
+                .fail(function () {
+                    saveInProgress = false;
+                    doneSaving();
+                    alert("error");
+                });*@
+        }
+        else {
+            let model = {
+                Id: $("#Id").val(),
+                ArticleNumber: $("#ArticleNumber").val(),
+                EditorId: id,
+                UserId: ccms_editor_userid,
+                Offset: offset,
+                Command: command,
+                IsFocused: isFocused,
+                VersionNumber: $("#VersionNumber").val(),
+                Data: editor.getData()
+            };
+
+            signalRConnection.invoke("Notification", JSON.stringify(model));
+        }
+    }
+
+    function cosmosSignalUpdateEditor(data) {
+
+        let iframe = document.getElementById("ccmsContFrame");
+
+        //let areas = [];
+        // Gather up all the editable areas.
+
+        // Get array of existing editors
+        let editors = iframe.contentWindow.ccms_editors;
+
+        // For each editor, find the one with changed data.
+        $(editors).each(function (index, editor) {
+
+            // Get the ID of the source element that the editor is bound to.
+            const editorId = editor.sourceElement.getAttribute("data-ccms-ceid");
+
+            // If the ID of the source element matches the element id of the save
+            // push the new data to the editor.
+            if (editorId === data.EditorId) {
+                //editor.sourceElement.innerHTML = data.Data;
+                editor.setData(data.Data);
+            }
+        });
+    }
+
+    function savePageProperties(model) {
+
+        $("#UrlPath").val(model.UrlPath);
+        $("#RoleList").val(model.RoleList);
+        $("#Title").val(model.Title);
+        $("#Published").val(model.Published);
+        $("#Updated").val(model.Updated);
+        $("#BannerImage").val(model.BannerImage);
+        $("#RoleList").val(model.RoleList);
+
+        setWorkingVersion(model.VersionNumber);
+
+    }
+
+</script>

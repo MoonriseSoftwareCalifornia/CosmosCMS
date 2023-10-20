@@ -1,0 +1,91 @@
+﻿@using Cosmos.Cms.Data.Logic
+@model List<LayoutCatalogItem>
+@{
+    ViewData["Title"] = "Import Open Source Designs";
+
+    var rowCount = (int)ViewData["RowCount"];
+    var sortOrder = (string)ViewData["sortOrder"];
+    var currentSort = (string)ViewData["currentSort"];
+    var pageNumber = (int)ViewData["pageNo"];
+    var pageSize = (int)ViewData["pageSize"];
+
+    var pagerModel = new GridPagerPartialViewModel(pageNumber, rowCount, pageSize, sortOrder, currentSort, "/Layouts/CommunityLayouts");
+
+}
+<div class="cwps-editor-container pt-3">
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <h3 class="text-light">@ViewData["Title"]</h3>
+                <p>
+                    Below is a list of open source designs pre-packaged for you to use in your Cosmos website.  All are open source
+                    and have documentation on how to use them.
+                </p>
+            </div>
+        </div>
+
+        <div class="row cpws-table-pager-row-top">
+            <div class="col-md-6">
+                <div class="btn-group" role="group" aria-label="Page Actions">
+                    <a class="btn btn-sm btn-secondary" href="@Url.Action("Index")">Designs <i class="fa-solid fa-circle-arrow-right"></i></a>
+                </div>
+            </div>
+            <div class="col-md-6 d-flex justify-content-end">
+                <partial name="~/Views/Shared/GridPager/_GridPager.cshtml" model="pagerModel"></partial>
+            </div>
+        </div>
+
+        <div class="row bg-dark">
+            <div class="col-md-12">
+                <div class="table-responsive custom-table-responsive">
+                    <table class="table custom-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">
+
+                                </th>
+                                <th>
+                                    Preview
+                                </th>
+                                <th>
+                                    Name/License
+                                </th>
+                                <th>
+                                    Notes/Description
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                            @foreach (var row in Model)
+                            {
+                                <tr scope="row">
+                                    <td scope="row" style="width:60px;">
+                                        <a class='btn btn-sm btn-secondary' title='Import community design.' href='@Url.Action("ImportCommunityLayout", new { Id = row.Id })'>Import</a>
+                                    </td>
+                                    <td>
+                                        <a target='_blank' title='Open design' href='https://cosmos-layouts.moonrise.net/Layouts/@row.Id/layout.html'><img height='120' src='https://cosmos-layouts.moonrise.net/Layouts/@row.Id/preview.jpg' /></a>
+                                    </td>
+                                    <td>
+                                        @row.Name <br />
+                                        <small class="d-block"><span class="badge badge-primary">@Html.Raw(row.License)</span></small>
+                                    </td>
+                                    <td>
+                                        @Html.Raw(row.Description)
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="row cpws-table-pager-row-bottom">
+            <div class="col-md-12 d-flex justify-content-center">
+                <partial name="~/Views/Shared/GridPager/_GridPager.cshtml" model="pagerModel"></partial>
+            </div>
+        </div>
+
+    </div>
+</div>

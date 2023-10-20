@@ -1,0 +1,82 @@
+﻿@model Cosmos.Cms.Models.LayoutIndexViewModel
+
+@{
+    ViewData["Title"] = "EditNotes";
+    Layout = "_Layout";
+
+}
+<script src="https://cdn.ckeditor.com/ckeditor5/35.1.0/balloon-block/ckeditor.js"></script>
+<style>
+    .ck.ck-icon, .ck.ck-icon * {
+        background-color: white;
+    }
+</style>
+<div class="pt-3">
+    <div class="container pt-2">
+        <div class="row">
+            <div class="col-md-8 bg-dark text-light">
+
+                <h1>Design Details</h1>
+
+                <form id="frmEditNotes" asp-action="EditNotes">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <input type="hidden" asp-for="Id" />
+                    <input type="hidden" asp-for="IsDefault" />
+                    <input type="hidden" asp-for="Notes" />
+                    <div class="form-group form-check">
+                        @if (Model.IsDefault)
+                        {
+                            <div class="btn btn-primary">Is default design</div>
+                        }
+                        else
+                        {
+                            <div class="btn btn-secondary">Is NOT default design</div>
+                        }
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="LayoutName" class="control-label"></label>
+                        <input asp-for="LayoutName" class="form-control" />
+                        <span asp-validation-for="LayoutName" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Notes" class="control-label"></label>
+                        <div id="editor" class="bg-white text-dark" style="height:300px;width:100%;">
+                            @Html.Raw(Model.Notes)
+                        </div>
+                        <span asp-validation-for="Notes" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <a class="btn btn-secondary" asp-action="Index">Cancel</a>
+                        <input type="submit" value="Save" class="btn btn-primary" />
+                    </div>
+                </form>
+
+                <div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+
+    var editor;
+
+    $(document).ready(function () {
+        
+        $("body").addClass("cwps-editor-container");
+
+        editor = document.getElementById("editor");
+
+        // Create editor
+        BalloonEditor.create(editor).catch(error => { console.error(error); });
+
+        $("#frmEditNotes").submit(function () {
+            $("#Notes").val(editor.innerHTML);
+        });
+    });
+
+</script>
+@{
+    await Html.RenderPartialAsync("_ValidationScriptsPartial");
+}

@@ -1,0 +1,846 @@
+﻿@using System.Reflection
+@using Cosmos.Cms.Common.Services.Configurations;
+@using Microsoft.Extensions.Options;
+@inject IOptions<CosmosConfig> options
+@{
+    var assemblyName = Assembly.GetExecutingAssembly().GetName();
+    var title = (string)@ViewData["PageTitle"];
+    var assemblyVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+    var isAuthor = User.IsInRole("Authors");
+}
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
+
+    <link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" />
+    <link rel="stylesheet" type="text/css" href="~/lib/jquery-ui-combobox/jquery-ui-combobox.css" />
+
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+    <link rel="stylesheet" type="text/css" href="~/css/2023-07-12-01-site.css" />
+    <link rel="stylesheet" type="text/css" href="~/css/CodeEditor.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.6.2.min.js" integrity="sha256-2krYZKh//PcchRtd+H+VyyQoZ/e3EcrkxhM8ycwASPA=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js" integrity="sha256-lSjKY0/srUM9BE3dPm+c4fBo1dky2v27Gdjm2uoZaL0=" crossorigin="anonymous"></script>
+    <script src="~/lib/jquery-ui-combobox/jquery-ui-combobox.js"></script>
+    <script src="~/ccms/js/TimeUtils.js"></script>
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+
+    <!-- http://www.daterangepicker.com/ -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+
+    <script src="~/lib/microsoft-signalr/signalr.min.js"></script>
+    @Html.Raw(JavaScriptSnippet.FullScript)
+</head>
+<body class="cwps-body" style="margin:0px;padding:0px;">
+    <nav id="ccmsNavMenu" class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <img src="~/images/logos/logo-white.png" height="30" />
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" id="btnSave" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Menu
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark" id="ddSave">
+                            <li id="btnOtherPages" style="display:none">
+                                <a class="dropdown-item" title="Open another web page." onclick="bgEditClick('pages')" href="#">Other Page</a>
+                            </li>
+                            <li id="btnSaveChanges">
+                                <a class="dropdown-item" title="Update this page." onclick="bgEditClick('Save')" href="#">Save</a>
+                            </li>
+                            <li id="btnSaveAsDraft">
+                                <a class="dropdown-item" title="Save as a new unpublished draft." onclick="bgEditClick('Draft')" href="#">Save draft</a>
+                            </li>
+                            <li id="btnSaveAndPublish" style="display:none;">
+                                <a class="dropdown-item" title="Save content and publish now." onclick="bgEditClick('Publish')" href="#">Publish now</a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" onclick="bgEditClick('Close')">Close</a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li id="btnPreview">
+                                <a class="dropdown-item" onclick="bgEditClick('Preview')">Preview</a>
+                            </li>
+                           <li id="btnFiles">
+                                <a class="dropdown-item" title="Files that are uploaded to this page." onclick="bgEditClick('Files')">Files (this page)</a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" title="Files that are uploaded to this page." onclick="bgEditClick('filemgr')">Files (all files)</a>
+                            </li>
+                            <li id="btnSourceCode" style="display:none">
+                                <a class="dropdown-item" href="/Code/Index" title="Internal (non-public) file storage." target="_blank">Internal files</a>
+                            </li>
+                            @if (isAuthor == false)
+                            {
+                                <li id="btnCcmsCodeEditor" style="display:none">
+                                    <a class="dropdown-item" onclick="bgEditClick('Code')">Code editor <img src="/images/monaco-vscode-logo.png" height="20" /></a>
+                                </li>
+                            }
+                            <li id="btnCcmsHtmlEditor" style="display:none">
+                                <a class="dropdown-item" onclick="bgEditClick('Html')">Live editor <img src="/images/ckeditor-5-proj-logo.svg" height="20" /></a>
+                            </li>
+                            <li id="liBtnVersions" style="display:none">
+                                <a id="btnVersions" class="dropdown-item" href="#" target="_blank">Page versions</a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" title="Open public (publisher) website" href="@options.Value.SiteSettings.PublisherUrl" target="_blank">Public Website</a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li id="liInsert" class="nav-item dropdown" style="display:none">
+                        <a class="nav-link dropdown-toggle" id="btnInsert" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Insert
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark" id="ddInsert">
+                            <li class="nav-item">
+                                <button id="btnOpenLink" class="dropdown-item" type="button">Page Link</button>
+                            </li>
+                            <li class="nav-item">
+                                <button id="btnOpenInsertFileLink" class="dropdown-item" type="button">File Link</button>
+                            </li>
+                            <li class="nav-item">
+                                <button id="btnOpenInsertImage" class="dropdown-item" type="button">Image</button>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item">
+                        <div class="btn-group" role="group" aria-label="Preview image button group">
+                            <button id="btnOpenBannerImage" class="btn btn-sm btn-secondary mt-1" title="Sets the preview image for this page." type="button"><i class="fa-regular fa-image"></i></button>
+                            <button id="btnClearBannerImage" class="btn btn-sm btn-secondary mt-1" title="Remove the preview image for this page." type="button"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                    </li>
+
+                    <li class="nav-item" id="divAutoSave">
+                        <div class="form-check form-switch mt-2 ms-3">
+                            <input id="swAutoSave" class="form-check-input" type="checkbox" role="checkbox" checked>
+                            <label id="lblAutoSave" style="font-size:0.8rem" class="form-check-label text-light" for="swAutoSave">Autosave (on)</label>
+                        </div>
+                    </li>
+                    <li class="nav-item"><span title="Cosmos Version" class="nav-link text-mute">@assemblyVersion.ToString()</span></li>
+                    <li class="nav-item"><span id="spanWorkingVersionNo" title="Working version number" class="nav-link text-mute"></span></li>
+                    <li class="nav-item" id="msgSaving">
+                        &nbsp; <div id="btnSavingStatus" class="btn btn-sm btn-secondary mt-1 ms-3 me-3" style="display:none">
+                            <div id="spSaving" class="spinner-border spinner-border-sm text-light" role="status" style="display:none"></div>
+                            <span id="btnSavingText">Saved</span>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <div id="msgSpecial" style="display:none"></div>
+                        &nbsp;
+                        <div id="spinLoading" class="btn btn-sm btn-primary mt-1 ms-3 me-3">
+                            <div class="align-items-center text-light">
+                                <strong>Loading...</strong>
+                                <div class="spinner-border spinner-border-sm text-light" role="status"></div>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <div id="divPublihedTitleGroup" class="input-group input-group-sm mt-1 ms-3 me-3" style="display:none">
+                            <div id="lblPublished" class="input-group-text" style="height:31px;">Published:</div>
+                            <input autocomplete="off" class="form-control text-truncate" name="tbPublished" id="tbPublished" placeholder="DRAFT (not published)" value="@((DateTimeOffset?)ViewData["Published"])" />
+                            <button class="btn btn-danger" title="Clicking this button publishes this page version immediately." type="button" id="btnPublishNow" onclick="bgEditClick('Publish')" style="display:none">Publish Now</button>
+                            <button class="btn btn-secondary" title="Clicking this button will make an editable draft of this page that is not published." type="button" id="btnDraftNow" onclick="bgEditClick('Draft')" style="display:none">Make Draft</button>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <div id="divTitleGroup" class="input-group input-group-sm mt-1 ms-3 me-3 text-truncate" style="display:none">
+                            <span class="input-group-text" id="lblTitle" style="height:31px;">URL: /</span>
+                            <div class="form-control text-truncate" id="divTitle">@title</div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="d-flex">
+                <a target="_blank" title="Open Cosmos documentation" class="btn btn-sm btn-secondary" aria-current="page" href="https://www.moonrise.net/cosmos/documentation"><i class="fa-solid fa-circle-info"></i></a>
+                <a title='Set access permissions for users and roles.' id="btnArticleAccess" class='btn btn-sm btn-secondary' style="display:none"><i class="fa-solid fa-users"></i></a>           
+            </div>
+        </div>
+    </nav>
+
+    <div class="modal" id="checkSaveFirst" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Save First?</h5>
+                </div>
+                <div class="modal-body">
+                    <div id="divSaveFirstDialog"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="saveFirst()" data-bs-dismiss="modal">Yes</button>
+                    <button type="button" class="btn btn-secondary" onclick="doNotSave()" data-bs-dismiss="modal">No</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="modalChangeTitle" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content bg-dark text-light">
+                <div class="modal-header">
+                    <h5 id="modalChgTitleHeader" class="modal-title">Change URL</h5>
+                </div>
+                <div class="modal-body">
+                    <form id="frmChangeTitle">
+                        <div class="form-group">
+                            <label id="lblCurrentTitle" for="currentTitle" title="Showing current URL" class="control-label">Current URL:</label>
+                            <div class="form-control" id="currentTitle"></div>
+                        </div>
+                        <div class="form-group">
+                            <label id="lblNewTitle" for="newTitle" class="control-label">New URL: /</label>
+                            <input class="form-control" autocomplete="off" required id="newTitle" title="Enter new URL" />
+                            <span id="newTitleValidation" class="btn btn-sm btn-danger" style="display:none"></span>
+                        </div>
+                        <div id="divUrlTitleExamples" style="display:none">
+                            <p>Example URLs:</p>
+                            <label id="lblCurrentTitle" for="currentTitle" class="control-label">Example URL:</label>
+                            <div class="form-control" id="currentTitle">Water</div>
+                            <label id="lblCurrentTitle" for="currentTitle" class="control-label">Example URL with a parent page:</label>
+                            <div class="form-control" id="currentTitle">Water/Images</div>
+                            <label id="lblCurrentTitle" for="currentTitle" class="control-label">Example URL with two parent pages:</label>
+                            <div class="form-control" id="currentTitle">Water/Images/Mountain Tops</div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-secondary">Change and Save</button>
+                            <button id="btnCancelChgTitle" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="modalSavingError" tabindex="-1">
+        <div class="modal-dialog bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title text-light">Error Detected</h5>
+            </div>
+            <div class="modal-body text-light">
+                <div id="divErrorLog" class="text-light"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="pickPageModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header">
+                    <h4 class="text-light">
+                        Insert Page Link
+                    </h4>
+                </div>
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <div class="row mb-3">
+                            <label for="combobox">Page search:</label>
+                            <div class="row">
+                                <div class="col-9">
+                                    <input id="combobox" autocomplete="off" laceholder="Search for a page ..." type="text" class="form-control bg-dark text-light custom-combobox" aria-label="Type to search for a page." style="height:26px">
+                                </div>
+                                <div class="col-3">
+                                    <button type="button" id="btnRefreshList" title="Refresh search" class="btn btn-sm btn-secondary">Refresh <i class="fa-solid fa-rotate"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-3" id="pageSelectResults">
+                            <div class="col-9">
+                                <div id="pageStatus" class="text-light" style="display:none;font-size:0.8rem;">
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <a id="btnOpenLink" href="#" target="_blank" class="btn btn-sm btn-secondary" style="display:none">Versions <i class="fa-solid fa-circle-arrow-right"></i></a>
+                            </div>
+                        </div>
+                        <div id="divLinkDetails" style="display:none">
+                            <div class="row mb-3">
+                                <label for="inputLinkText" class="form-label">Link text:</label>
+                                <input id="inputLinkText" type="text" class="form-control form-control-sm">
+                                <span id="inputLinkTextError" class="badge badge-danger" style="display:none">Link text is required.</span>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-fooder">
+                    <div class="container-fluid">
+                        <div class="row mb-3">
+                            <div class="col-auto ms-5">
+                                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button id="btnApplyLink" type="button" class="btn btn-sm btn-primary" disabled>Apply <i class="fa-solid fa-circle-arrow-right"></i></button>
+                                <a id="btnCreatePage" target="_blank" href="" class="btn btn-sm btn-primary" style="display:none">Create page <i class="fa-solid fa-circle-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="modalSelectFile" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-body" style="height: 80vh;position:relative;">
+                    <div style="height:60px;width:100%;">
+                        <button id="btnSelectFileAndClose" type="button" class="btn btn-sm btn-success" data-bs-dismiss="modal" disabled>Select and Close</button>
+                        <button type="button" class="btn btn-sm btn-primary" data-bs-dismiss="modal">Cancel</button>
+                        <button id="btnClear" type="button" class="btn btn-sm btn-primary" title="Clear list of selected items" style="display:none">Clear Selected</button>
+                        <div id="spinFileMgrLoading" class="btn btn-sm btn-primary mt-1 ms-3 me-3">
+                            <div class="align-items-center text-light">
+                                <strong>Loading...</strong>
+                                <div class="spinner-border spinner-border-sm text-light" role="status"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <iframe id="iframeSelectFile" class="m-fileselector-container" style="height: 100%; width: 100%;"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Full screen modal -->
+    <script>
+
+        function setupFileMgrFrame() {
+            const iframe = document.getElementById("iframeFileMgr");
+            const iframeWin = iframe.contentWindow || iframe.contentDocument.parentWindow;
+            if (iframeWin.document.body) {
+
+                $("#fileMgrModalContent").height = 50 + (window.innerHeight - document.getElementById("ccmsNavMenu").clientHeight);
+
+                // disable all links
+                const contents = $("#iframePreview").contents();
+
+                const anchors = contents.find("a");
+
+                $(anchors).click(function (e) {
+                    e.preventDefault();
+                    alert("Links are disabled while in edit mode.");
+                });
+            }
+        }
+
+    </script>
+
+    <div class="modal fade" id="modalFileMgr" tabindex="-3">
+        <div class="modal-dialog modal-fullscreen">
+            <div id="fileMgrModalContent" class="modal-content">
+                <div class="modal-header bg-dark text-light">
+                    <button type="button" class="btn btn-sm btn-primary" data-bs-dismiss="modal">Close File Manager</button>
+                </div>
+                <div class="modal-body">
+                    <iframe id="iframeFileMgr" class="d-block w-100" onload="setupFileMgrFrame()" style="height:100%"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @RenderBody()
+
+    <script>
+
+        // CONSTANTS
+        // Modal and toast definitions
+        const modalChangeTitle = new bootstrap.Modal(document.getElementById('modalChangeTitle'));
+        const checkFirstModal = new bootstrap.Modal(document.getElementById('checkSaveFirst'));
+        const pickPageModal = new bootstrap.Modal(document.getElementById('pickPageModal'));
+        const modalSelectFile = new bootstrap.Modal(document.getElementById('modalSelectFile'));
+        const modalFileMgr = new bootstrap.Modal(document.getElementById('modalFileMgr'));
+
+        const fileBaseUrl = "@(options.Value.SiteSettings.BlobPublicUrl.TrimEnd('/'))";
+        const errorModal = new bootstrap.Modal(document.getElementById('modalSavingError'));
+
+        // VARIABLES
+        // Function to fire after modal action
+        var next;
+        let comboBoxTimeout = null;
+        let fileMgrPopup = null;
+        let selectedFile = "";
+        let lastPublished = "@(((DateTimeOffset?)ViewData["LastPubDateTime"]))";
+        let autoSaveSwLastStatus;
+        // Sometimes auto save switch is on, but something is going on
+        // where auto save should not save. Example:right in the middle of
+        // changing the "title".
+        // When set to true, autosave works. False means it is temporarily overridden and off.
+        let autoSaveOn = true;
+        // Is this an article model?
+        // If so check to see if title/url can change (not home page)
+        // and if the title needs to be checked prior to save.
+        let isArticle = @((Model != null && (Model.GetType() == typeof(EditCodePostModel) || Model.GetType() == typeof(HtmlEditorViewModel))).ToString().ToLower());
+        // Selected anchor data
+        let selectedAnchorData;
+        let selectFileMode;
+
+        function openSelectFileModal(mode) {
+
+            selectFileMode = mode;
+
+            let id = $("#ArticleNumber").val();
+            let url = "@Url.Action("Index", "FileManager")";
+
+            if (typeof (id) !== "undefined" && id !== null & id !== "") {
+                url += "?target=pub/articles/" + id;
+            } else {
+                url += "?target=";
+            }
+
+            if (mode === "image" || mode === "bannerimage") {
+                $('#iframeSelectFile').attr('src', url + '&selectOne=true&imagesOnly=true&isNewSession=true&');
+            } else {
+                $('#iframeSelectFile').attr('src', url + '&selectOne=true&isNewSession=true&');
+            }
+
+            modalSelectFile.show();
+
+        }
+
+        function getAutoSave() {
+            return $("#swAutoSave").is(":checked") && autoSaveOn;
+        }
+
+        function showSaving() {
+            $("#spSaving").show();
+            $("#btnSavingStatus").removeClass("btn-secondary");
+            $("#btnSavingStatus").addClass("btn-primary");
+            $("#btnSavingText").html("Saving...");
+        }
+
+        function showSaved() {
+            $("#spSaving").hide();
+            $("#btnSavingStatus").removeClass("btn-primary");
+            $("#btnSavingStatus").addClass("btn-success");
+            setTimeout(function () {
+                $("#btnSavingStatus").removeClass("btn-success");
+                $("#btnSavingStatus").addClass("btn-secondary");
+            }, 1500);
+            $("#btnSavingText").html("Saved");
+        }
+
+        function bgEditClick(command) {
+
+            switch (command) {
+                case "pages":
+                    // Note: 'next' is defined in _LayoutEditor.cshtml.
+                    next = function () {
+                        window.location.href = "@Url.Action("Index", "Editor")";
+                    }
+                    $("#divSaveFirstDialog").html("Save page before closing editor?");
+                    checkFirstModal.show();
+                    break;
+                case "Draft":
+                    $("#tbPublished").val("");
+                    $("#btnPublishNow").show();
+                    $("#btnDraftNow").hide();
+                    $("#tbPublished").addClass("is-invalid");
+                    $("#Published").val("");
+                    $("#SaveAsNewVersion").val("true");
+                    $("#frmSave").submit();
+                    break;
+                case "Save":
+                    $("#SaveAsNewVersion").val("false");
+                    $("#frmSave").submit();
+                    break;
+                case "Publish":
+                    if (isAuthor) {
+                        alert("Only Editors and Administratos can publish changes.");
+                    } else {
+                        var now = new Date();
+                        $("#tbPublished").val(now.toLocaleString());
+                        $("#Published").val(now.toLocaleString());
+                        $("#tbPublished").removeClass("is-invalid");
+                        $("#btnPublishNow").hide();
+                        $("#btnDraftNow").show();
+
+                        $("#SaveAsNewVersion").val("false");
+                        $("#frmSave").submit();
+                    }
+                    break
+                case "Files":
+                    var id = $("#ArticleNumber").val();
+                    var url = "@Url.Action("Index", "FileManager")";
+                    if (typeof (id) !== "undefined" && id !== null & id !== "") {
+                        url += "?target=pub/articles/" + id;
+                    }
+                    $("#iframeFileMgr").prop("src", url);
+                    modalFileMgr.show();
+                    modalFileMgr.handleUpdate();
+                    break;
+                case "filemgr":
+                    // Note: 'next' is defined in _LayoutEditor.cshtml.
+                    next = function () {
+                        window.location.href = "@Url.Action("Index", "FileManager")";
+                    }
+                    $("#divSaveFirstDialog").html("Save page before closing editor?");
+                    checkFirstModal.show();
+                    break;
+                default:
+                    // Executes functions specific to this editor
+                    bgEditClickCustom(command);
+                    break;
+            }
+        }
+
+        function saveFirst() {
+            saveChanges();
+            next();
+        }
+
+        function doNotSave() {
+            checkFirstModal.hide();
+            next();
+        }
+
+        function getLocalTimeZone() {
+            const datetime = new Date();
+            const dateTimeString = datetime.toString();
+            const timezone = dateTimeString.substring(dateTimeString.indexOf("(") - 1);
+            return timezone;
+        }
+
+        function savePublishDateTime() {
+            // Save date/time
+            var dateTimeValue = $('#tbPublished').val();
+
+            if ($("#Published").val() !== dateTimeValue) {
+                $("#pendingChangesBadge").show();
+            }
+
+            // Note, this saves the date/time using local time (of the user's computer).
+            // The server stores this as UTC time.
+            if (dateTimeValue !== null && dateTimeValue !== "null" && dateTimeValue !== "") {
+                var datetime = new Date(dateTimeValue);
+                var utcString = datetime.toUTCString();
+                $("#Published").val(utcString);
+                $("#btnPublish").html("Published");
+                $("#tbPublished").removeClass("is-invalid");
+                $("#btnPublishNow").hide();
+                $("#btnDraftNow").show();
+            } else {
+                $("#tbPublished").addClass("is-invalid");
+                $("#btnPublishNow").show();
+                $("#btnDraftNow").hide();
+                $("#btnPublish").html("DRAFT");
+                $("#Published").val("");
+            }
+        }
+
+        function btnChangeTitle() {
+            return false;
+        }
+
+        $(document).ready(function () {
+
+            var startDate;
+            if (lastPublished === "") {
+                startDate = new Date();
+            }
+            else {
+                startDate = new Date(lastPublished);
+            }
+                                             
+            $('#tbPublished').daterangepicker({
+                autoUpdateInput: false,
+                timePicker: true,
+                singleDatePicker: true,
+                showDropdowns: true,
+                minDate: startDate,
+                locale: {
+                    format: 'MM/DD/YYYY hh:mm A'
+                }
+            });
+
+            $('#tbPublished').on('apply.daterangepicker', function (ev, picker) {
+                if (isAuthor) {
+                    alert("Only Editors and Administratos can publish changes.");
+                } else {
+                    $('#tbPublished').val(picker.startDate.format('MM/DD/YYYY hh:mm A'));
+                    $("#Published").val($('#tbPublished').val());
+                    $("#frmSave").submit();
+                }
+            });
+
+            if (isAuthor) {
+                $("#tbPublished").prop("disabled", true);
+            }
+
+            if ($("#Published").val() === null || $("#Published").val() === "") {
+                $("#tbPublished").addClass("is-invalid");
+                $("#btnPublishNow").show();
+                $("#btnDraftNow").hide();
+            } else {
+                $("#btnPublishNow").hide();
+                $("#btnDraftNow").show();
+            }
+
+            $("#swAutoSave").click(function () {
+                if ($("#swAutoSave").is(":checked")) {
+                    $("#lblAutoSave").html("Autosave (on)");
+                    autoSaveOn = true;
+                } else {
+                    $("#lblAutoSave").html("Autosave (off)");
+                    autoSaveOn = false;
+                }
+            });
+
+            $("#divTitleGroup").click(function () {
+                $("#newTitleValidation").html("");
+                $("#newTitleValidation").hide();
+
+                $("#newTitle").val("");
+                $("#currentTitle").html($("#Title").val());
+                autoSaveOn = false;
+                modalChangeTitle.show();
+            });
+
+            $("#btnCancelChgTitle").click(function (e) {
+                autoSaveOn = true;
+            });
+
+            $("#frmChangeTitle").submit(function (e) {
+
+                e.preventDefault();
+
+                let urlPath = $("#UrlPath").val();
+                let title = $("#newTitle").val();
+
+                // Check to see if this is root or home page and check title
+                if (urlPath === "root" && title.includes("/")) {
+                    $("#newTitleValidation").html('The home page cannot contain the character "/" in the title.');
+                    $("#newTitleValidation").show();
+                    return;
+                }
+
+                let articleNumber = $("#ArticleNumber").val();
+                let data = {
+                    "articleNumber": articleNumber,
+                    "title": title
+                };
+
+                $("#newTitleValidation").html("");
+                $("#divTitle").html(title);
+                $("#Title").val(title);
+                modalChangeTitle.hide();
+                saveChanges();
+                autoSaveOn = true;
+            });
+
+            // COMBOBOX
+            $("#combobox").combobox({
+                source: function (request, response) {
+                    $("#btnOpen").prop('disabled', true);
+                    $("#pageStatus").hide();
+                    $("#divLinkDetails").hide();
+                    $("#btnApplyLink").prop('disabled', true);
+                    $("#btnCreatePage").hide();
+                    if (comboBoxTimeout !== null) {
+                        clearTimeout(comboBoxTimeout);
+                    }
+                    $.ajax({
+                        url: "@Url.Action("GetArticleList","Editor")",
+                        dataType: "json",
+                        data: {
+                            term: request.term
+                        },
+                        success: function (data) {
+                            var results = [];
+                            if (data.length === 0) {
+                                comboBoxTimeout = setTimeout(function () {
+                                    $("#btnCreatePage").show();
+                                    const url = "@Url.Action("Create", "Editor")?title=" + $("#combobox").val();
+                                    $("#btnCreatePage").attr("href", url);
+                                }, 1500);
+                            }
+                            $.each(data, function (index, entity) {
+                                var item = { label: entity.Title, value: entity.Title, url: entity.UrlPath, updated: entity.Updated, id: entity.ArticleNumber, published: entity.LastPublished };
+                                results.push(item);
+                            });
+                            response(results);
+                        }
+                    });
+                },
+                focus: function () {
+                    // prevent value inserted on focus
+                    return false;
+                },
+                select: function (event, ui) {
+
+                    if (ui.item.published === null || ui.item.published === "") {
+                        $("#pageStatus").html("Status: - DRAFT - ");
+                        $("#tbPublished").addClass("is-invalid");
+                        $("#btnPublishNow").show();
+                        $("#btnDraftNow").hide();
+                    } else {
+                        const date = new Date(ui.item.published);
+                        $("#pageStatus").html("Publihed: " + date.toUTCString());
+                        $("#tbPublished").removeClass("is-invalid");
+                        $("#btnPublishNow").hide();
+                        $("#btnDraftNow").show();
+                    }
+
+                    var titleArray = ui.item.label.split('/');
+
+                    $("#inputLinkText").val(titleArray[titleArray.length - 1]);
+
+                    $("#pageStatus").show();
+                    $("#divLinkDetails").show();
+                    $("#btnOpenLink").attr("href", "@Url.Action("Versions", "Editor")/" + ui.item.id);
+                    $("#btnApplyLink").prop('disabled', false);
+                    selectedAnchorData = ui.item; // Save this as the last selected item
+                    return true;
+                }
+            });
+
+            $("#btnRefreshList").click(function (e) {
+                e.preventDefault();
+                const value = $("#combobox").val();
+                $("#combobox").autocomplete("search", value);
+            });
+
+            $("#btnOpenLink").click(function (e) {
+                if (openPickPageModal) {
+                    openPickPageModal();
+                }
+                else {
+                    alert("Could not find openPickPageModal().");
+                }
+            });
+
+            $("#btnApplyLink").click(function () {
+                if (insertPageLink) {
+                    insertPageLink();
+                } else {
+                    alert("insertPageLink() not found.");
+                    openSelectFileModal();
+                }
+            });
+
+            $("#inputLinkText").focus(function () {
+                clearFileMgrPaths();
+                $("#inputLinkTextError").hide();
+            });
+
+            $("#iframeSelectFile").on("load", function () {
+                clearFileMgrPaths();
+                $("#spinFileMgrLoading").hide();
+            });
+
+            $("#btnClear").click(function () {
+
+                // 'next' is the function that needs to be executed after close.
+                let iframe = document.getElementById("iframeSelectFile");
+                let iframeWin = iframe.contentWindow || iframe.contentDocument.parentWindow;
+                iframeWin.clearSelection();
+            });
+
+            $("#btnSelectFileAndClose").click(function () {
+
+                // 'next' is the function that needs to be executed after close.
+                let iframe = document.getElementById("iframeSelectFile");
+                let iframeWin = iframe.contentWindow || iframe.contentDocument.parentWindow;
+                let p = iframeWin.paths;
+
+                if (typeof iframeWin.paths === "undefined" || iframeWin.paths === null || iframeWin.paths.length < 1) {
+                    alert("Please select a file.");
+                }
+
+                if (selectFileMode === "file") {
+                    insertFileLink(p[0]);
+                } else if (selectFileMode === "image") {
+                    const url = $("#BannerImage").val();
+                    if (url === null || url === "") {
+                        $("#BannerImage").val(p[0]);
+                    }
+                    insertImage(p[0]); // Live or code editor inserts image
+                } else if (selectFileMode === "bannerimage") {
+                    let imgRoot = "@options.Value.SiteSettings.BlobPublicUrl.TrimEnd('/')";
+                    $("#BannerImage").val(imgRoot + "/" + p[0]);
+                }
+
+                saveChanges();
+                checkBannerImage();
+                return true;
+            });
+
+            $("#btnOpenBannerImage").click(function () {
+                openSelectFileModal("bannerimage");
+            });
+
+            $("#btnClearBannerImage").click(function () {
+                $("#BannerImage").val("");
+                saveChanges();
+                checkBannerImage();
+            });
+
+            checkBannerImage();
+        });
+
+        function closeDropDowns() {
+            $("#btnSave").removeClass("show");
+            $("#ddSave").removeClass("show");
+            $("#btnInsert").removeClass("show");
+            $("#ddInsert").removeClass("show");
+        }
+
+        // Displays a 3 second message in a bootstrap toast.
+        function toastMsg(message) {
+
+        }
+
+        function saving() {
+            //var toast = new bootstrap.Toast(document.getElementById('liveToast'));
+            //$("#liveToastMsg").html("Saving... <img height='36' src='/images/az-busy.gif' >");
+            //toast.show();
+            showSaving();
+        }
+
+        function doneSaving() {
+            showSaved();
+        }
+
+        function clearFileMgrPaths() {
+            let iframe = document.getElementById("iframeSelectFile");
+            let iframeWin = iframe.contentWindow || iframe.contentDocument.parentWindow;
+            iframeWin.clearPaths();
+            iframeWin.reloadPaths();
+        }
+
+        function checkBannerImage() {
+
+            $("#btnOpenBannerImage").removeClass("btn-secondary");
+            $("#btnOpenBannerImage").removeClass("btn-success");
+
+            const url = $("#BannerImage").val();
+            if (url !== null && url !== "") {
+                $("#btnOpenBannerImage").addClass("btn-success");
+                $("#btnOpenBannerImage").attr("title", "Changes the preview image for this page.")
+                $("#btnClearBannerImage").show();
+            } else {
+                $("#btnOpenBannerImage").addClass("btn-secondary");
+                $("#btnOpenBannerImage").attr("title", "Sets the preview image for this page.")
+                $("#btnClearBannerImage").hide();
+            }
+        }
+
+        function setWorkingVersion(versionNumber) {
+            $("#spanWorkingVersionNo").html("Working Version: " + versionNumber);
+        }
+    </script>
+
+    @await RenderSectionAsync("Scripts", false)
+</body>
+</html>

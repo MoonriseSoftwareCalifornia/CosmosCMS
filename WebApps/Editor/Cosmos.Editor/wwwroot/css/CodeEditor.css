@@ -1,0 +1,40 @@
+.m-editor-container {
+    position: absolute;
+    top: 87px;
+    bottom: 1px;
+    left: 1px;
+    right: 1px;
+}
+
+.m-fileselector-container {
+    position: absolute;
+    top: 61px;
+    bottom: 1px;
+    left: 1px;
+    right: 1px;
+}
+
+.code-tabs.navbar {
+    margin-top: 0px;
+    margin-bottom: 0px;
+    padding-top: 2px;
+    height: 3px;
+}
+
+.code-tabs.nav-link {
+    height: 26px;
+    font-size: 0.8em;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    padding-top: 2px;
+    background-color: var(--bs-gray-600);
+    color: white !important;
+    border-color: transparent;
+}
+
+    .code-tabs.nav-link.active {
+        background-color: var(--bs-gray-900);
+        color: white;
+        border-color: black;
+        background-color: black;
+    }

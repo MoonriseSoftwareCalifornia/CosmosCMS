@@ -1,0 +1,27 @@
+﻿@model List<ArticleLogJsonModel>
+@{
+    ViewData["Title"] = "Web Site Edit Logs";
+}
+<div class="cwps-editor-container pt-3">
+<div class="container pt-2">
+    <div class="row">
+        <div class="col">
+            <h3>@ViewData["Title"]</h3>
+            <hr />
+            <p>This is a list of actions taken on this website with regards to editing content.</p>
+
+            @*@(Html.Grid(Model)
+                .Build(column =>
+                {
+                    column.Add(b => b.DateTimeStamp).Filterable(GridFilterType.Double).Titled("Date/Time");
+                    column.Add(b => b.IdentityUserId).Titled("User");
+                    column.Add(b => b.ActivityNotes).Titled("Activity");
+                })
+                .Pageable()
+                .Sortable()
+                .Filterable()
+                )*@
+        </div>
+    </div>
+</div>
+</div>

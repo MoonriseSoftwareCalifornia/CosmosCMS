@@ -1,0 +1,5 @@
+﻿<RuleSet Name="Rules for CDT.Cosmos.Cms" Description="Code analysis rules for ClassLibrary21.csproj." ToolsVersion="15.0">
+   <Rules AnalyzerId="Microsoft.AspNetCore.Mvc.Analyzers.TopLevelParameterNameAnalyzer" RuleNamespace="Microsoft.Rules.Managed">
+     <Rule Id="AD0001" Action="Ignore" />
+   </Rules>
+</RuleSet>

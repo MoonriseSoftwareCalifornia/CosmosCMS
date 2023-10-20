@@ -1,0 +1,112 @@
+﻿@model List<AuthorInfo>
+@inject UserManager<IdentityUser> _userManager
+@using Microsoft.AspNetCore.Identity;
+@{
+    ViewData["Title"] = "User Account Inventory";
+
+    var rowCount = (int)ViewData["RowCount"];
+    var sortOrder = (string)ViewData["sortOrder"];
+    var currentSort = (string)ViewData["currentSort"];
+    var pageNumber = (int)ViewData["pageNo"];
+    var pageSize = (int)ViewData["pageSize"];
+    var user = _userManager.GetUserAsync(User).Result;
+
+    var pagerModel = new GridPagerPartialViewModel(pageNumber, rowCount, pageSize, sortOrder, currentSort, "/Users/Index");
+
+}
+
+<div class="pt-3">
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <h3 class="text-light">@ViewData["Title"]</h3>
+                <div asp-validation-summary="All" class="text-danger"></div>
+            </div>
+        </div>
+        <div class="row cpws-table-pager-row-top">
+            <div class="col-md-6">
+                <div class="btn-group" role="group" aria-label="Page Actions">
+                    <a class="btn btn-sm btn-primary" asp-action="Index" title="User account list.">User List <i class="fa-solid fa-circle-arrow-right"></i></a>
+                </div>
+            </div>
+            <div class="col-md-6 d-flex justify-content-end">
+                <partial name="~/Views/Shared/GridPager/_GridPager.cshtml" model="pagerModel"></partial>
+            </div>
+        </div>
+        <div class="row bg-dark">
+            <div class="col-md-12">
+                <div class="table-responsive custom-table-responsive">
+                    <table class="table custom-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">
+                                    Edit
+                                </th>
+                                <th scope="col">
+                                    Author Name
+                                </th>
+                                <th scope="col">
+                                    Public Email
+                                </th>
+                                <th scope="col">
+                                    About
+                                </th>
+                                <th scope="col">
+                                    Twitter Handle
+                                </th>
+                                <th scope="col">
+                                    Instagram URL
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var row in Model)
+                            {
+                                <tr scope="row">
+                                    <td scope="row" style="width:80px;">
+                                        <a asp-action="AuthorInfoEdit" asp-route-id="@row.UserId"><i class="fa-solid fa-user-pen"></i></a>
+                                    </td>
+                                    <td style="width:30px;">
+                                        @row.AuthorName
+                                    </td>
+                                    <td>
+                                        @row.EmailAddress
+                                    </td>
+                                    <td>
+                                        @row.AuthorDescription
+                                    </td>
+                                    <td>
+                                        @row.TwitterHandle
+                                    </td>
+                                    <td style="width:142px;">
+                                        @row.InstagramUrl
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+        <div class="row cpws-table-pager-row-bottom">
+            <div class="col-md-12 d-flex justify-content-center">
+                <partial name="~/Views/Shared/GridPager/_GridPager.cshtml" model="pagerModel"></partial>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+
+   
+
+    $(document).ready(function () {
+
+        $("body").addClass("cwps-editor-container");
+
+    });
+
+</script>
+

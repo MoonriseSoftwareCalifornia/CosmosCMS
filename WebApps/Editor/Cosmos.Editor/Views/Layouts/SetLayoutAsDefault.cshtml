@@ -1,0 +1,119 @@
+﻿@model Cosmos.Cms.Models.LayoutIndexViewModel
+
+@{
+    ViewData["Title"] = "Set Default Website Design";
+    Layout = "_Layout";
+
+}
+<div class="cwps-editor-container pt-3">
+    <div class="container pt-2">
+        <div class="row">
+            <div class="col">
+                <div class="card bg-dark text-light">
+                    <div class="card-body">
+                        <h3>@ViewData["Title"]</h3>
+                        <hr />
+                        <p>You are about to set the default design for your entire website.</p>
+                        <p>Please note:</p>
+                        <ul>
+                            <li>
+                                Setting this as the default will change how your
+                                entire website looks.
+                                <ul>
+                                    <li>
+                                        Changing designs may cause errors on pages that need to be fixed.
+                                    <li><span class="badge badge-info">Tip:</span> Have a clone of your website made where you can test the change.</li>
+                                </ul>
+                            </li>
+                            <li>
+                                Depending how many pages you have on your website, this may take a while.
+                                <ul>
+                                    <li>Please be patient until the process completes.</li>
+                                    <li><span class="badge badge-info">Tip:</span> Closing this page before completion is highly inadvisable.</li>
+                                </ul>
+                            </li>
+
+                            <li>
+                                After the new design is applied, you will taken to the site publishing page.
+                                <ul>
+                                    <li>Publishing is required to ensure changes are pushed throughout the Internet.</li>
+                                </ul>
+                            </li>
+
+                            <li>
+                                You can always roll back to the previous design by making it the default.
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <div class="card bg-dark text-light">
+                        <div class="card-body">
+                            <p>Layout selected:</p>
+                            <div style="padding: 8px; width: 100%;">
+                                <div class="h2">@Model.LayoutName</div>
+                            </div>
+                            <br />
+                            <br />
+                            <form asp-action="SetLayoutAsDefault" method="post">
+                                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                                <input type="hidden" asp-for="Id" />
+                                <input type="hidden" asp-for="Notes" />
+                                <input type="hidden" asp-for="LayoutName" />
+                                <input type="hidden" asp-for="Notes" />
+                                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                                <div class="form-check form-switch">
+                                    <input id="IsDefault" class="form-check-input" type="checkbox" asp-for="IsDefault">
+                                    <label class="form-check-label" for="IsDefault">Enable design change</label>
+                                </div>
+
+                                <div id="lblWarning" class="form-group" style="display: none">
+                                    <p><span class="badge badge-danger">WARNING!</span> Set default is activated.</p>
+                                    <p>
+                                        <span class="badge badge-warning">PLEASE NOTE:</span>
+                                    </p>
+                                    <ul>
+                                        <li> Do not close this web browser until the process completes.</li>
+                                        <li> When done, you will automatically be taken to the publish website page.</li>
+                                        <li> To see changes right away, publish the site.</li>
+                                    </ul>
+                                    <br />
+                                </div>
+                                <div class="form-group">
+                                    <a asp-action="Index" class="btn btn-primary">Cancel Action</a> &nbsp;&nbsp;&nbsp;
+                                    <input id="btnSubmit" type="submit" value="Set default layout" class="btn btn-primary" style="display: none" />
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @{
+            await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        }
+        <script>
+
+            $(document).ready(function () {
+
+                $("#IsDefault").change(function () {
+                    if ($("#IsDefault").is(':checked')) {
+                        $("#btnSubmit").show();
+                        $("#lblWarning").show();
+                        $("#reset").val("true");
+                    } else {
+                        $("#reset").val("false");
+                        $("#btnSubmit").hide();
+                        $("#lblWarning").hide();
+                    }
+                });
+
+            });
+
+        </script>
+    </div>
+</div>

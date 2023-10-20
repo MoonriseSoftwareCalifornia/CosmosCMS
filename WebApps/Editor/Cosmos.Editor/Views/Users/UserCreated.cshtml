@@ -1,0 +1,86 @@
+﻿@model UserCreatedViewModel
+@{
+    ViewData["Title"] = $"Account Created for: {@Model.EmailAddress}";
+}
+
+<div class="pt-3">
+    <div class="row justify-content-center">
+        <div class="col-md-6 mt-4">
+            <div class="card bg-secondary text-light pb-4">
+                <div class="card-header">
+                    <h1 class="card-title">@ViewData["Title"]</h1>
+                </div>
+                <div class="card-body">
+                    <p>A new account was just created with the information shown below. The password below (if shown) will only display once.</p>
+                    <hr />
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <div class="mb-3">
+                        <label asp-for="EmailAddress"></label>
+                        <input asp-for="EmailAddress" class="form-control" aria-required="true" readonly />
+                        <span asp-validation-for="EmailAddress" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input asp-for="EmailConfirmed" type="checkbox" class="form-check-input" aria-required="true" readonly />
+                        <label asp-for="EmailConfirmed" class="form-check-label"></label>
+                        <span asp-validation-for="EmailConfirmed" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="PhoneNumber"></label>
+                        <input asp-for="PhoneNumber" class="form-control" aria-required="true" readonly />
+                        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input asp-for="PhoneNumberConfirmed" type="checkbox" class="form-check-input" aria-required="true" readonly />
+                        <label asp-for="PhoneNumberConfirmed" class="form-check-label"></label>
+                        <span asp-validation-for="PhoneNumberConfirmed" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3 form-check" style="display:none;">
+                        <input asp-for="GenerateRandomPassword" type="checkbox" class="form-check-input" aria-required="true" readonly />
+                        <label asp-for="GenerateRandomPassword" class="form-check-label"></label>
+                        <span asp-validation-for="GenerateRandomPassword" class="text-danger"></span>
+                    </div>
+
+                    <p>
+                        IMPORTANT: The password below is shown one-time-only.
+                        Do not transmit through email or any other means
+                        where this password can persist.
+                    </p>
+
+                    <div class="mb-3">
+                        <label asp-for="RevealPassword"></label>
+                        <input asp-for="RevealPassword" class="form-control" autocomplete="new-password" aria-required="true" readonly />
+                        <span asp-validation-for="RevealPassword" class="text-danger"></span>
+                    </div>
+
+                    @if (Model.SendResult != null)
+                    {
+                        <div class="mb-3">
+                            @if (Model.SendResult.IsSuccessStatusCode)
+                            {
+                                <i class="fa-solid fa-circle-check alert-success"></i> <p>Confirmation Email Sent.</p>
+                            }
+                            else
+                            {
+                                <i class="fa-solid fa-circle-exclamation alert-danger"></i> <p>Confirmation Email failed:</p>
+
+                                <p>@Model.SendResult.Message</p>
+                            }
+                        </div>
+                    }
+
+                    <a class="btn btn-sm btn-secondary" asp-action="Create">Create Another</a>  <a class="btn btn-sm btn-primary" asp-action="Index">Done <i class="fa-solid fa-circle-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $("body").addClass("cwps-editor-container");
+    });
+</script>

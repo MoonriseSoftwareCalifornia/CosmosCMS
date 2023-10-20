@@ -1,0 +1,96 @@
+﻿@model List<ArticleListItem>
+@{
+    var canEdit = User.IsInRole("Administrators") || User.IsInRole("Editors") || User.IsInRole("Authors");
+
+    ViewData["Title"] = "Trash";
+    var rowCount = (int)ViewData["RowCount"];
+    var sortOrder = (string)ViewData["sortOrder"];
+    var currentSort = (string)ViewData["currentSort"];
+    var pageNumber = (int)ViewData["pageNo"];
+    var pageSize = (int)ViewData["pageSize"];
+
+    var pagerModel = new GridPagerPartialViewModel(pageNumber, rowCount, pageSize, sortOrder, currentSort, "/Editor/Trash");
+}
+<script src="~/js/clipboard.min.js"></script>
+<div class="cwps-editor-container pt-3">
+    <div class="container mt-3">
+        <div class="row">
+            <div class="col">
+                <h3 class="text-light">@ViewData["Title"]</h3>
+            </div>
+            <div class="col-md-6 d-flex justify-content-end">
+            </div>
+        </div>
+        <div class="row cpws-table-pager-row-top">
+            <div class="col-md-6">
+                <div class="btn-group" role="group" aria-label="Actions">
+                    <a title="Return to page list" class="btn btn-sm btn-secondary" href="@Url.Action("Index")">Page list <i class="fa-solid fa-circle-arrow-right"></i></a>
+                </div>
+            </div>
+            <div class="col-md-6 d-flex justify-content-end">
+                <partial name="~/Views/Shared/GridPager/_GridPager.cshtml" model="pagerModel"></partial>
+            </div>
+        </div>
+
+        <div class="row bg-dark">
+            <div class="col-md-12">
+                <div class="table-responsive custom-table-responsive">
+                    <table class="table custom-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Title</th>
+                                <th scope="col">Last Updated</th>
+                                <th scope="col">Restore</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.Count == 0)
+                            {
+                                <tr scope="row">
+                                    <td colspan="4">
+                                        <h4 class="text-light">Trash is empty.</h4>
+                                    </td>
+                                </tr>
+                            }
+                            else foreach (var row in Model)
+                                {
+                                    <tr scope="row">
+                                        <td scope="row">
+                                            @row.ArticleNumber
+                                        </td>
+                                        <td>
+                                            @row.Title
+                                        </td>
+                                        <td>
+                                            <div class='toLocalTimeZone'>@row.Updated</div>
+                                        </td>
+                                        <td>
+                                            @if (canEdit && row.UrlPath != "root")
+                                            {
+                                                <a title="Recover web page from trash" class="btn btn-sm btn-secondary" href="/Editor/Recover/@row.ArticleNumber"><i class="fa-solid fa-trash-can-arrow-up"></i></a>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="row cpws-table-pager-row-bottom">
+            <div class="col-md-12 d-flex justify-content-center">
+                <partial name="~/Views/Shared/GridPager/_GridPager.cshtml" model="pagerModel"></partial>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        $(".toLocalTimeZone").each(function (index, element) {
+            $(element).html(getLocalTime($(element).html()));
+        });
+    });
+</script>

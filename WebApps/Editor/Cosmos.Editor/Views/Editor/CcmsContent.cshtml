@@ -1,0 +1,321 @@
+﻿@model Cosmos.Common.Models.ArticleViewModel
+@{
+    Layout = null;
+    ViewData["Title"] = Model.Title;
+}
+<!DOCTYPE HTML>
+<html lang="@Model.LanguageCode">
+<head>
+    <title>@Model.Title</title>
+    <meta name="cwps-meta-path-title" content="@Model.Title" />
+    <meta name="cwps-meta-path-url" content="@Model.UrlPath" />
+    <meta name="cwps-meta-path-updated" content="@Model.Updated" />
+    <style>
+        figure.media {
+            width: 640px;
+        }
+    </style>
+    @Html.Raw(Model.Layout.Head)
+    @*
+    Page specific header
+    *@
+    @Html.Raw(Model.HeadJavaScript)
+    @*
+    Application Insights Scripts
+    *@
+    @Html.Raw(JavaScriptSnippet.FullScript)
+</head>
+<body>
+    @Html.Raw(Model.Layout.HtmlHeader)
+    <div ccms-content-id="@Model.Id">
+        @Html.Raw(Model.Content)
+    </div>
+    @Html.Raw(Model.Layout.FooterHtmlContent)
+    @*
+    Page specific
+    *@
+    @Html.Raw(Model.FooterJavaScript)
+
+    <script src="/lib/ckeditor/build_20231004.01/ckeditor.js"></script>
+    <script>
+
+        // Create editors
+        var ccms_editors = [];
+        var ccms_editorIds = [];
+        var focusedEditor;
+        var unmoutCkBox;
+        const { BalloonEditor: Editor, EditorWatchdog } = BalloonEditor;
+        const watchdog = new EditorWatchdog(Editor); // Utility that restores crashed editors
+        let autosaveTimeout = null;
+
+        document.addEventListener("DOMContentLoaded", function (event) {
+            ccms_createEditors();
+        });
+
+        document.addEventListener('progress', (event) => {
+            var debugval = event;
+        });
+
+        function ccms_createEditors() {
+
+            // Editor instances
+            const inlineInjectElements = document.querySelectorAll('[data-ccms-ceid]');
+
+            Array.from(inlineInjectElements).forEach(inlineElement => {
+
+                // Define a callback that will create an editor instance and return it.
+                watchdog.setCreator((elementOrData, editorConfig) => {
+                    return Editor
+                        .create(elementOrData, editorConfig)
+                        .then(editor => {
+                            
+                            const imageUploadEditing = editor.plugins.get('ImageUploadEditing');
+                            imageUploadEditing.on('uploadComplete', (evt, { data, imageElement }) => {
+                                parent.ccms_setBannerImage(data.url);
+                            });
+                            window.editor = editor;
+
+                            editor.editing.view.document.on('change:isFocused', (evt, data, isFocused) => {
+                                console.log(`View document is focused: ${isFocused}.`);
+                                if (isFocused) {
+                                    focusedEditor = editor;
+                                    parent.cosmosSignalOthers(editor, "join");
+                                } else {
+                                    focusedEditor = null;
+                                }
+                            });
+
+                            ccms_editors.push(editor);
+                        })
+                });
+
+
+                watchdog.create(inlineElement, {
+                    initialData: inlineElement.innerHTML,
+                    autosave: {
+                        waitingTime: 2800, // in ms
+                        save(editor) {
+                            if (parent.enableAutoSave === true) {
+                                return parent.cosmosSignalOthers(editor, "save");
+                            }
+                        }
+                    },
+                    blockToolbar: [
+                        'pageLink',
+                        'fileLink',
+                        'link',
+                        '|',
+                        'insertImage',
+                        'imageInsert',
+                        'mediaEmbed',
+                        '|',
+                        'vsCodeEditor',
+                        'findAndReplace',
+                        'codeBlock',
+                        '|',
+                        'heading',
+                        '|',
+                        'bold',
+                        'italic',
+                        'fontColor',
+                        'underline',
+                        'fontSize',
+                        'bulletedList',
+                        'numberedList',
+                        '|',
+                        'outdent',
+                        'indent',
+                        'alignment',
+                        '|',
+                        'undo',
+                        'redo',
+                        'horizontalLine',
+                        'highlight',
+                        'blockQuote',
+                        'insertTable',
+                        'removeFormat'
+                    ],
+                    toolbar: {
+                        items: [
+                            'bold',
+                            'italic',
+                            'link'
+                        ]
+                    },
+                    simpleUpload: {
+                        // The URL that the images are uploaded to.
+                        uploadUrl: '/FileManager/SimpleUpload/@Model.ArticleNumber',
+                        // Enable the XMLHttpRequest.withCredentials property.
+                        withCredentials: true
+                    },
+                    image: {
+                        resizeUnit: "%",
+                        resizeOptions: [{
+                            name: 'resizeImage:original',
+                            value: null
+                        },
+                        {
+                            name: 'resizeImage:66',
+                            value: '6'
+                        },
+                        {
+                            name: 'resizeImage:15',
+                            value: '15'
+                        },
+                        {
+                            name: 'resizeImage:25',
+                            value: '25'
+                        },
+                        {
+                            name: 'resizeImage:33',
+                            value: '33'
+                        },
+                        {
+                            name: 'resizeImage:50',
+                            value: '50'
+                        },
+                        {
+                            name: 'resizeImage:75',
+                            value: '75'
+                        }],
+                        toolbar: [
+                            'resizeImage',
+                            'imageTextAlternative',
+                            'imageStyle:inline',
+                            'imageStyle:block',
+                            'imageStyle:side',
+                            'linkImage',
+                            'toggleImageCaption'
+                        ]
+                    },
+                    table: {
+                        contentToolbar: [
+                            'tableColumn',
+                            'tableRow',
+                            'mergeTableCells',
+                            'tableCellProperties',
+                            'tableProperties'
+                        ]
+                    },
+                    // This value must be kept in sync with the language defined in webpack.config.js.
+                    language: 'en',
+                    heading: {
+                        options: [
+                            { model: 'paragraph', title: 'Paragraph' },
+                            { model: 'heading1', view: 'h1', title: 'Page Title' },
+                            { model: 'heading2', view: 'h2', title: 'Heading 1' },
+                            { model: 'heading3', view: 'h3', title: 'Heading 2' },
+                            { model: 'heading4', view: 'h4', title: 'Heading 3' },
+                            { model: 'heading5', view: 'h5', title: 'Heading 4' },
+                            { model: 'heading6', view: 'h6', title: 'Heading 5' }
+                        ]
+                    },
+                    link: {
+                        decorators: {
+                            toggleDownloadable: {
+                                mode: 'manual',
+                                label: 'Downloadable',
+                                attributes: {
+                                    download: 'file'
+                                }
+                            },
+                            openInNewTab: {
+                                mode: 'manual',
+                                label: 'Open in a new tab',
+                                defaultValue: '_self',
+                                attributes: {
+                                    target: '_self'
+                                }
+                            },
+                            btnClass: {
+                                model: 'manual',
+                                label: 'CSS class',
+                                attributes: {
+                                    class: ''
+                                }
+                            }
+                        }
+                    },
+                    htmlSupport: {
+                        allow: [
+                            {
+                                name: "div",
+                                attributes: true,
+                                classes: true,
+                                styles: true
+                            },
+                            {
+                                name: "span",
+                                attributes: true,
+                                classes: true,
+                                styles: true
+                            },
+                            {
+                                name: "a",
+                                attributes: true,
+                                classes: true,
+                                styles: true
+                            },
+                            {
+                                name: "hr",
+                                attributes: true,
+                                classes: true,
+                                styles: true
+                            }
+                        ]
+                    },
+                    mediaEmbed: {
+                    }
+                });
+
+            });
+
+
+        }// End createEditors
+
+        window.addEventListener("click", function () {
+            parent.closeDropDowns();
+        });
+
+        window.addEventListener("keydown", (event) => {
+            if (event.isComposing || event.keyCode === 229) {
+                return;
+            }
+
+            // Handle CTRL-S to save changes
+            if (event.ctrlKey || event.metaKey) {
+                switch (String.fromCharCode(event.which).toLowerCase()) {
+                    case 's':
+                        event.preventDefault();
+
+                        parent.saving();
+
+                        if (editor === null) {
+                            parent.saveChanges();
+                        } else {
+                            parent.saveChanges(editor.getData(), editor.sourceElement.getAttribute("data-ccms-ceid"));
+                        }
+                        break;
+                }
+            }
+        });
+
+
+    </script>
+
+    <script src="@Html.Raw("https://unpkg.com/@popperjs/core@2")"></script>
+    <script src="@Html.Raw("https://unpkg.com/tippy.js@6")"></script>
+    <script>
+        const elements = document.querySelectorAll('[data-ccms-ceid]');
+        elements.forEach(function (el, index) {
+            el.setAttribute("data-tippy-content", "Editable.")
+        });
+
+        // NodeList
+        var __cwps__toolTips = tippy(elements, {
+            placement: "right-start",
+            inlinePositioning: true,
+        }); //data-ccms-ceid
+    </script>
+</body>
+</html>

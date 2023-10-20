@@ -1,0 +1,112 @@
+﻿@model List<UserIndexViewModel>
+@{
+    var roleInfo = (UsersInRoleViewModel)ViewData["RoleInfo"];
+    ViewData["Title"] = roleInfo.RoleName;
+}
+
+<style>
+    .fa-shield {
+        padding-right: 4px;
+    }
+</style>
+<div class="cwps-editor-container pt-3">
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-8">
+            <h3>Role: @ViewData["Title"]</h3> 
+            <hr />
+        </div>
+    </div>
+    <div class="row justify-content-center">
+        <div class="col-8">
+
+            <a class="float-end" asp-action="Index">Back to roles &nbsp;<i class="fas fa-angle-double-right"></i></a>
+            <br />
+            <div class="card bg-dark">
+                <div class="card-body">
+                    <form id="addUsersForm" method="post">
+                        <div asp-validation-summary="All" class="text-danger"></div>
+                            <input type="hidden" name="RoleId" value="@roleInfo.RoleId." />
+                            <input type="hidden" name="RoleName" value="@roleInfo.RoleName." />
+                            <input type="hidden" name="UserIds" value="@roleInfo.UserIds." />
+                        @Html.AntiForgeryToken()
+                        <button id="saveAssignments" type="submit" class="btn btn-sm btn-primary">Save</button>
+                    </form>
+                </div>
+            </div>
+            <div asp-validation-summary="All" class="text-danger"></div>
+        </div>
+    </div>
+    <div class="row justify-content-center">
+        <div class="col-8">
+            <p>Users already in role:</p>
+            <span id="spanChangeNotice" class="text-muted" style="display:none">Remember to click &quot;Save&quot; or &quot;Cancel&quot; when done.</span>
+            @*@(Html.Kendo().Grid<UserIndexViewModel>
+            ().Name("grid")
+            .Columns(col =>
+            {
+            col.Select().Width(50);
+            col.Command(command => { command.Custom("Roles").Click("manageRoles").IconClass("fa fa-shield"); }).Width(124);
+            col.Bound(b => b.UserId).Hidden();
+            col.Bound(b => b.EmailAddress);
+            col.Bound(b => b.PhoneNumber);
+            col.Command(command => { command.Destroy().Text("Remove"); }).Width(124);
+            })
+            .PersistSelection()
+            .Search(t => t.Field("EmailAddress"))
+            .ToolBar(toolbar => { toolbar.Save(); })
+            .Editable(editable => editable.DisplayDeleteConfirmation(true).ConfirmDelete("Warning:This may affect access for this user."))
+            .Pageable(pager => pager.Input(true).Numeric(true).Info(true).PreviousNext(true).Refresh(true))
+            .Navigatable().Sortable().Events(ev => ev.BeforeEdit("onEdit"))
+            .DataSource(dataSource => dataSource.Ajax().Batch(true).PageSize(20).ServerOperation(false)
+            .Events(events => events.Error("error_handler"))
+            .Model(model =>
+            {
+            model.Id(p => p.UserId);
+            model.Field(f => f.UserId).Editable(false);
+            model.Field(f => f.EmailAddress).Editable(true);
+            model.Field(f => f.PhoneNumber).Editable(true);
+            model.Field(f => f.EmailConfirmed).Editable(true);
+            model.Field(f => f.PhoneNumberConfirmed).Editable(true);
+            })
+            .Read("Read_Users", "Home", new { Id = Model.RoleId })
+            .Destroy("Delete_Users", "Roles", new { Id = Model.RoleId })
+            )
+            )*@
+            <a class="float-end" asp-action="Index">Back to roles &nbsp;<i class="fas fa-angle-double-right"></i></a>
+        </div>
+    </div>
+</div>
+</div>
+<script>
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "Errors:\n";
+            $.each(e.errors,
+                function(key, value) {
+                    if ('errors' in value) {
+                        $.each(value.errors,
+                            function() {
+                                message += this + "\n";
+                            });
+                    }
+                });
+            alert(message);
+        }
+    }
+
+    function manageRoles(e) {
+        var dataItem = this.dataItem($(e.currentTarget).closest("tr"));
+        window.location = "@Url.Action("UserRoles", "Home")/" + dataItem.UserId;
+    }
+
+    function onEdit(e) {
+        $("#spanChangeNotice").show();
+    }
+
+    $(document).ready(function () {
+        $("body").addClass("cwps-editor-container");
+    });
+
+</script>

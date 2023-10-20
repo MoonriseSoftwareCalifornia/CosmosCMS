@@ -1,0 +1,533 @@
+﻿@using Newtonsoft.Json
+@model EditCodePostModel
+@{
+    Layout = "_LayoutEditor";
+    ViewData["Title"] = Model.Title;
+    var fields = Model.EditorFields.ToArray();
+    var aclass = "active";
+}
+
+<style>
+    /* Set menu options */
+
+    #btnCcmsCodeEditor,
+    #liBtnVersions {
+        display: none !important;
+    }
+
+</style>
+
+<nav id="navBar" class="code-tabs navbar" style="display:none">
+    <ul class="nav nav-tabs " id="nav-tab">
+        @{
+            foreach (var field in fields)
+            {
+                <li class="nav-item">
+                    <a class="code-tabs nav-link @aclass" title="@field.ToolTip" data-bs-toggle="tooltip" data-bs-placement="bottom" data-ccms-fieldname="@field.FieldName" aria-current="page">@field.FieldName</a>
+                </li>
+                aclass = "";
+            }
+        }
+    </ul>
+</nav>
+<div id="editspace" class="m-editor-container" style="display:none"></div>
+<form id="frmSave" asp-action="EditCode">
+    <input type="hidden" asp-for="Id" value="@Model.Id" />
+    <input type="hidden" asp-for="SaveAsNewVersion" />
+    <input type="hidden" asp-for="VersionNumber" />
+    <input type="hidden" asp-for="ArticleNumber" />
+    <input type="hidden" asp-for="EditingField" />
+    <input type="hidden" asp-for="Content" />
+    <input type="hidden" asp-for="Title" />
+    <input type="hidden" asp-for="Published" />
+    <input type="hidden" asp-for="Updated" />
+    <input type="hidden" asp-for="RoleList" />
+    <input type="hidden" asp-for="UrlPath" />
+    <input type="hidden" asp-for="IsValid" />
+    <input type="hidden" asp-for="HeadJavaScript" />
+    <input type="hidden" asp-for="FooterJavaScript" />
+    <input type="hidden" asp-for="EditorType" />
+    <input type="hidden" asp-for="UpdateExisting" />
+    <input type="hidden" asp-for="BannerImage" />
+</form>
+
+@if (Model != null)
+{
+    <div class="modal" id="versionList" tabindex="-2">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h5 class="modal-title">Article Versions</h5>
+            </div>
+            <div class="modal-body">
+                
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function setupPreviewFrame() {
+            const iframe = document.getElementById("iframePreview");
+            const iframeWin = iframe.contentWindow || iframe.contentDocument.parentWindow;
+            if (iframeWin.document.body) {
+
+                $("#modalContent").height = 50 + (window.innerHeight - document.getElementById("ccmsNavMenu").clientHeight);
+
+                // disable all links
+                const contents = $("#iframePreview").contents();
+
+                const anchors = contents.find("a");
+
+                $(anchors).click(function (e) {
+                    e.preventDefault();
+                    alert("Links are disabled while in edit mode.");
+                });
+            }
+        }
+    </script>
+
+    <!-- Full screen modal -->
+    <div class="modal fade" id="modalPreview" tabindex="-3">
+        <div class="modal-dialog modal-fullscreen">
+            <div id="modalContent" class="modal-content">
+                <div class="modal-header bg-dark text-light">
+                    <button type="button" class="btn btn-sm btn-primary text-light" data-bs-dismiss="modal">Close Preview</button>
+                </div>
+                <div class="modal-body">
+                    <iframe id="iframePreview" class="d-block w-100" onload="setupPreviewFrame()" style="height:100%"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+<script>
+    var editor;
+    var fieldId;
+    var fieldName;
+    var ccmsEditorIsLocked = false;
+    
+    // Current user
+    const ccms_editor_userid = "@this.Context.User.Identity.Name";
+    const isAuthor = @User.IsInRole("Authors").ToString().ToLower();
+    const isReviewer = @User.IsInRole("Reviewers").ToString().ToLower();
+    const hasModel = @((Model != null).ToString().ToLower());
+
+    // Indicates a save is in progress - used to deconflict simultaneous saves
+    var saveInProgress = false;
+    const modalPreview = new bootstrap.Modal(document.getElementById('modalPreview'));
+
+    $("#frmSave").submit(function (e) {
+        e.preventDefault();
+        saveChanges();
+    });
+
+    // Example: var editFields = '[{"FieldId":"HeaderJavaScript","FieldName":"Header JavaScript","EditorMode":0},{"FieldId":"Content","FieldName":"Html Content","EditorMode":1},{"FieldId":"FooterJavaScript","FieldName":"Footer JavaScript","EditorMode":0}]';
+    var editFields = @(Html.Raw(JsonConvert.SerializeObject(Model.EditorFields)));
+
+    function saveExistingLoadNewEditor(id) {
+        if (editor !== null && typeof editor !== "undefined") {
+            $("#" + fieldId).val(editor.getValue());
+        }
+        createAndLoadEditor(id);
+    }
+
+    function checkDisplayLiveEditorButton() {
+        var content = $("#Content").val().toLowerCase();
+        const hasContentEditable = content.indexOf("=contenteditable");
+        const hasCeid = content.indexOf("data-ccms-ceid=");
+
+        if (hasContentEditable > -1 || hasCeid > -1) {
+            $("#btnCcmsHtmlEditor").show();
+        } else {
+            $("#btnCcmsHtmlEditor").hide();
+        }
+    }
+
+    //
+    // Creates and loads a Monaco Editor.
+    //
+    function createAndLoadEditor(id) {
+        if (editor !== null && typeof editor !== "undefined") {
+            if (editor.getModel()) {
+                editor.getModel().dispose();
+            }
+            $("#msgBox").html("Loading...");
+            editor.dispose();
+            editor = null;
+
+        }
+
+        fieldId = null;
+
+        $("#EditingField").val(null);
+
+        // Monaco AMD Editor  - https://microsoft.github.io/monaco-editor/
+        require.config({ paths: { 'vs': '/lib/monaco-editor/min/vs' } });
+
+        //require.config({ paths: { vs: '/lib/node_modules/monaco-editor/dist' } }); // Emmet Abbr.
+
+        require(['vs/editor/editor.main'], function () {
+            fieldName = id;
+
+            var fieldInfo = editFields.find(o => o.FieldName === id);
+            fieldId = fieldInfo.FieldId;
+
+            var mode = null;
+
+            switch (fieldInfo.EditorMode) {
+                case 0:
+                    mode = "javascript"
+                    break;
+                case 1:
+                    mode = "html"
+                    break;
+                case 2:
+                    mode = "css";
+                    break;
+                default:
+                    mode = "html"
+                    break;
+            }
+
+            $("#EditingField").val(fieldId);
+            var hiddenInput = $("#" + fieldId);
+            var code = hiddenInput.val();
+
+            emmetMonaco.emmetHTML(monaco);
+
+            editor = monaco.editor.create(document.getElementById('editspace'),
+                {
+                    language: mode,
+                    theme: "vs-dark",
+                    value: code
+                });
+
+            $("#msgBox").html("");
+
+            // Close loading spiner and display saved status
+            $("#spinLoading").hide();
+            $("#btnSavingStatus").show();
+        });
+    }
+
+    // Save the changes for this editor
+    function saveChanges() {
+
+        if (saveInProgress === true) {
+            return; // A save is already in progress
+        }
+
+        saveInProgress = true;
+
+        saving();
+
+        // Saving publish date with time zone information
+        savePublishDateTime();
+
+        let form = $('#frmSave');
+
+        if (editor) {
+            $("#" + fieldId).val(editor.getValue());
+        }
+
+        const data = form.serialize();
+        $.post("@Url.Action("EditCode")",
+            data,
+            function (response) {
+                saveInProgress = false;
+
+                doneSaving();
+
+                if (response.IsValid) {
+
+                    $("#Id").val(response.Model.Id);
+                    $("#ArticleNumber").val(response.Model.ArticleNumber);
+                    //$("#EditingField").val(response.Model.EditingField); // Don't update
+                    $("#UrlPath").val(response.Model.UrlPath);
+                    $("#VersionNumber").val(response.Model.VersionNumber);
+
+                    setWorkingVersion(response.Model.VersionNumber);
+
+                    $("#Content").val(response.Model.Content);
+                    $("#RoleList").val(response.Model.RoleList);
+                    $("#Title").val(response.Model.Title);
+                    $("#divTitle").html(response.Model.Title);
+                    $("#Published").val(response.Model.Published);
+                    $("#Updated").val(response.Model.Updated);
+                    $("#HeadJavaScript").val(response.Model.HeadJavaScript);
+                    $("#FooterJavaScript").val(response.Model.FooterJavaScript);
+                                       
+                    checkDisplayLiveEditorButton();
+
+                    if (next) {
+                        next();
+                    }
+                } else {
+                    var errorMsg = "Error(s):";
+
+                    // Invalid response.
+                    $.each(response.Errors,
+                        function (index, error) {
+                            errorMsg = "<p>" + error.Key + "</p><ul>";
+                            $.each(error.Errors,
+                                function (index, innerError) {
+                                    errorMsg = errorMsg + "<li>" + innerError.Exception.Message + "</li>";
+                                });
+                            errorMsg = errorMsg + "</ul>";
+                        });
+                    $("#divErrorLog").html(errorMsg);
+                    var errorModal = new bootstrap.Modal(document.getElementById('modalSavingError'));
+                    errorModal.show();
+
+                    checkDisplayLiveEditorButton();
+                }
+            }
+        ).fail(handle_error);
+    }
+
+    function handle_error(xhr, status, error) {
+        saveInProgress = false;
+        doneSaving();
+        $("#divErrorLog").html(xhr.responseText);
+        errorModal.show();
+    }
+
+    function btnSelectField(e) {
+        fieldName = e.target.text();
+        saveExistingLoadNewEditor(e.id);
+    }
+
+    function bgEditClickCustom(command) {
+
+        var modelId = $("#Id").val();
+
+        switch (command) {
+            case "Close":
+                next = function () {
+                    window.location.href = "@Url.Action("Versions", "Editor")/@Model.ArticleNumber";
+                }
+                $("#divSaveFirstDialog").html("Save page before closing editor?");
+                checkFirstModal.show();
+                break;
+            case "Preview":
+                $("#iframePreview").prop("src", "@Url.Action("Preview", "Home")?articleNumber=" + @Model.ArticleNumber);
+                modalPreview.show();
+                modalPreview.handleUpdate();
+                break;
+            case "Html":
+                next = function () {
+                    window.location.href = "@Url.Action("Edit", "Editor")/" + $("#ArticleNumber").val();
+                }
+                $("#divSaveFirstDialog").html("Save page before opening Live editor?");
+                checkFirstModal.show();
+                break;
+        }
+    }
+
+    function getLocalTimeZone() {
+        var datetime = new Date();
+        var dateTimeString = datetime.toString();
+        var timezone = dateTimeString.substring(dateTimeString.indexOf("(") - 1);
+        return timezone;
+    }
+
+    function openPickPageModal() {
+
+        if (typeof editor === "undefined" || editor === null) {
+            alert("Error: Could not open code editor.");
+            return;
+        }
+
+        $("#combobox").val("");
+        const inputLinkText = $("#inputLinkText").val("");
+        const switchNewWindow = $("#switchNewWindow").prop('checked', false);
+        const inputLinkCss = $("#inputLinkCss").val("");
+        const inputLinkStyle = $("#inputLinkStyle").val("");
+
+        pickPageModal.show();
+    }
+
+    function openInsertFileLinkModel() {
+
+        if (typeof editor === "undefined" || editor === null) {
+            alert("Error: Could not open code editor.");
+            return;
+        }
+
+        openSelectFileModal("file");
+
+    }
+
+    function openInsertImageModel() {
+
+        if (typeof editor === "undefined" || editor === null) {
+            alert("Error: Could not open code editor.");
+            return;
+        }
+
+        openSelectFileModal("image");
+    }
+
+    function insertPageLink() {
+
+        const inputLinkText = $("#inputLinkText").val();
+        const switchNewWindow = $("#switchNewWindow").prop('checked');
+        const inputLinkCss = $("#inputLinkCss").val();
+        const inputLinkStyle = $("#inputLinkStyle").val();
+
+        if (typeof (inputLinkText) === "undefined" || inputLinkText === null || inputLinkText === "") {
+            $("#inputLinkTextError").show();
+            return false;
+        }
+
+        pickPageModal.hide();
+
+        const link = "<a target='_blank' href='/" + selectedAnchorData.url + "'>" + inputLinkText + "</a>";
+
+        // insert text here
+        editor.trigger('keyboard', 'type', { text: link });
+    }
+
+    function insertFileLink(path) {
+
+        clearFileMgrPaths();
+
+        const url = fileBaseUrl + "/" + path;
+
+        const link = "<a href='" + url + "'>" + path + "</a>";
+
+        // insert text here
+        editor.trigger('keyboard', 'type', { text: link });
+    }
+
+    function insertImage(path) {
+
+        clearFileMgrPaths();
+
+        const url = fileBaseUrl + "/" + path;
+
+        const image = "<img src='" + url + "' />";
+
+        // insert text here
+        editor.trigger('keyboard', 'type', { text: image });
+    }
+
+    $(document).ready(function () {
+
+        $("body").addClass("cwps-editor-container");
+
+        $("#btnOtherPages").show();
+
+        $("#lblTitle").html("Page URL: ");
+        $("#modalChgTitleHeader").html("Change page URL: ");
+        $("#newTitle").html("New page URL: ");
+
+        if ($("#UrlPath").val() != "root") {
+            $("#divUrlTitleExamples").show();
+        }
+
+        setWorkingVersion(@Model.VersionNumber);
+
+        var fieldId = "@Model.EditingField";
+
+        if (fieldId !== "") {
+            var fieldInfo = editFields.find(o => o.FieldId === fieldId);
+            createAndLoadEditor(fieldInfo.FieldName);
+            // Refresh locks for everyone including self.
+            setTimeout(function () {
+                //ccmsSendSignal("NotifyRoomOfLock");
+            }, 2000);
+        }
+        $("#navBar").show();
+        $("#editspace").show();
+
+        $("[data-ccms-fieldname]").click(function (event) {
+            var name = $(event.target).attr("data-ccms-fieldname");
+            $("[data-ccms-fieldname]").removeClass("active");
+            saveExistingLoadNewEditor(name);
+            $(event.target).addClass("active");
+        });
+
+        $("#liBtnVersions").show();
+
+        $("#divTitleGroup").show();
+        $("#divPublihedTitleGroup").show();
+        $("#liInsert").show();
+
+        $("#btnVersions").attr("href", "/Editor/Versions/" + $("#ArticleNumber").val() + "?versionNumber=" + $("#VersionNumber").val());
+
+        $("#btnOpenLink").click(function (e) {
+            if (openPickPageModal) {
+                openPickPageModal();
+            }
+            else {
+                alert("Could not find openPickPageModal().");
+            }
+        });
+
+        $("#btnOpenInsertFileLink").click(function (e) {
+            if (openInsertFileLinkModel) {
+                openInsertFileLinkModel();
+            }
+            else {
+                alert("Could not find openInsertFileLinkModel().");
+            }
+        });
+
+        $("#btnOpenInsertImage").click(function (e) {
+            if (openInsertImageModel) {
+                openInsertImageModel();
+            }
+            else {
+                alert("Could not find openInsertImageModel().");
+            }
+        });
+
+        if (hasModel && isReviewer === false) {
+            $("#btnArticleAccess").show();
+            $("#btnArticleAccess").attr("href", "@Url.Action("Permissions", "Editor", new { Id = Model.ArticleNumber })");
+        }
+
+        checkDisplayLiveEditorButton();
+    });
+
+    $(document).on("unload", function () {
+        // Close filemanager window if opened
+        if (typeof fileMgrPopup !== "undefined" && fileMgrPopup !== null && fileMgrPopup.location) {
+            fileMgrPopup.close();
+        }
+    });
+
+    $(window).bind('keydown', function (event) {
+        if (event.ctrlKey || event.metaKey) {
+            switch (String.fromCharCode(event.which).toLowerCase()) {
+                case 's':
+                    event.preventDefault();
+                    saveChanges();
+                    break;
+            }
+        }
+    });
+
+    var timeout;
+
+    $(window).bind('keyup', function (event) {
+        // Clear the timeout if it has already been set.
+        // This will prevent the previous task from executing
+        // if it has been less than <MILLISECONDS>
+        clearTimeout(timeout);
+
+        // Make a new timeout set to go off in 1000ms (1 second)
+        timeout = setTimeout(function () {
+            if (getAutoSave()) {
+                saveChanges();
+            }
+        }, 3500);
+    });
+
+</script>
+
+<script src="/lib/monaco-editor/min/vs/loader.js"></script>
+<script src="/lib/emmet-monaco-es/dist/emmet-monaco.min.js"></script>

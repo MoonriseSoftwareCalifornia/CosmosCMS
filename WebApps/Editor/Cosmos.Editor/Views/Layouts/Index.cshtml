@@ -1,0 +1,142 @@
+﻿@model List<LayoutIndexViewModel>
+
+@{
+    ViewData["Title"] = "Website Design Inventory";
+    var showFirstPageBtn = (bool)ViewData["ShowFirstPageBtn"];
+    var showCreateFirstLayout = (bool)ViewData["ShowCreateFirstLayout"];
+
+    var rowCount = (int)ViewData["RowCount"];
+    var sortOrder = (string)ViewData["sortOrder"];
+    var currentSort = (string)ViewData["currentSort"];
+    var pageNumber = (int)ViewData["pageNo"];
+    var pageSize = (int)ViewData["pageSize"];
+
+    var pagerModel = new GridPagerPartialViewModel(pageNumber, rowCount, pageSize, sortOrder, currentSort, "/Layouts/Index");
+
+}
+<div class="pt-3">
+    <div class="container">
+        @if (showCreateFirstLayout)
+        {
+            <div class="row">
+                <div class="col-md-6 text-light">
+                    <h3>Choose a website design bundle</h3>
+                    <p>
+                        Your first step is to choose a &quot;<a target="_blank" href="https://www.moonrise.net/cosmos/documentation/layouts">website design</a>.&quot;
+                        This gives your website a common look and feel across all pages, and each design may contain one or more page templates.
+                    </p>
+                    <p>Note: You can edit your design at any time.</p>
+                    <p>Please choose one option:</p>
+                    <ul>
+                        <li><a class="text-light" asp-action="CommunityLayouts">Import a pre-built design  <i class="fa-solid fa-circle-arrow-right"></i></a></li>
+                        <li><a class="text-light" asp-action="Create">Create your own design <i class="fa-solid fa-circle-arrow-right"></i></a></li>
+                    </ul>
+                    <a class="text-light" href="https://www.moonrise.net/cosmos/documentation/layouts" target="_blank">Open design documentation.</a>
+                </div>
+            </div>
+        }
+        else
+        {
+
+            <div class="row">
+                <div class="col">
+                    <h3 class="text-light">@ViewData["Title"]</h3>
+
+                    @if (showFirstPageBtn && showCreateFirstLayout == false)
+                    {
+                        <a class="btn btn-sm btn-primary" title="Create website home page" href="/Editor/Create">Create Home Page <i class="fa-solid fa-circle-arrow-right"></i></a>
+                    }
+                </div>
+            </div>
+            <div class="row cpws-table-pager-row-top">
+                <div class="col-md-6">
+                    <div class="btn-group" role="group" aria-label="Page Actions">
+                        <a class="btn btn-sm btn-primary" href="@Url.Action("Create")">New design</a>
+                        <a class="btn btn-sm btn-secondary" title="Export the default layout." href="@Url.Action("ExportLayout")">Export blank</a>
+                        <a class="btn btn-sm btn-secondary" title="Export the default layout." href="@Url.Action("ExportLayout")">Export default</a>
+                        <a class="btn btn-sm btn-secondary" title="Import one of the community layouts." href="@Url.Action("CommunityLayouts")">Import design <i class="fa-solid fa-circle-arrow-right"></i></a>
+                        <a title="Return to page list" class="btn btn-sm btn-secondary" href="@Url.Action("Index", "Editor")">Page list <i class="fa-solid fa-circle-arrow-right"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-6 d-flex justify-content-end">
+                    <partial name="~/Views/Shared/GridPager/_GridPager.cshtml" model="pagerModel"></partial>
+                </div>
+            </div>
+            <div class="row bg-dark">
+                <div class="col-md-12">
+                    <div class="table-responsive custom-table-responsive">
+                        <table class="table custom-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col"></th>
+                                    <th scope="col">Actions</th>
+                                    <th scope="col">Design Name</th>
+                                    <th scope="col">Notes</th>
+                                    <th scope="col">Trash</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var row in Model)
+                                {
+                                    <tr>
+                                        <td scope="row">
+                                            @if (row.IsDefault)
+                                            {
+                                                <div class='btn btn-sm btn-success' title='Is now the default design for this website.'><span class='fa fa-check-circle'></span> Default</div>
+                                            }
+                                            else
+                                            {
+                                                <a href="@Url.Action("SetLayoutAsDefault", "Layouts")/@row.Id" title='Set this as the default design.' class='btn btn-sm btn-secondary'><i class='fa-regular fa-circle'></i></a>
+                                            }
+                                        </td>
+                                        <td scope="row">
+                                            <div class="btn-group" role="group" aria-label="Layer actions">
+                                                <a class="btn btn-sm btn-secondary" target="_blank" href="@Url.Action("Preview", "Layouts", new { Id = row.Id})" title="Preview"><span class="fa fa-binoculars"></span></a>
+                                                <a class="btn btn-sm btn-secondary" href="@Url.Action("EditNotes", "Layouts", new { Id = row.Id})" title="Edit Notes"><span class="fa fa-clipboard"></span></a>
+                                                <a class="btn btn-sm btn-secondary" href="@Url.Action("EditCode", "Layouts", new { Id = row.Id})" title="Code editor"><img src="/images/monaco-vscode-logo.png" height="22" /></a>
+                                                <a class="btn btn-sm btn-secondary" href="@Url.Action("ExportLayout", "Layouts", new { Id = row.Id})" title="Export design"><span class="fa-solid fa-cloud-arrow-down"></span></a>
+                                            </div>
+                                        </td>
+                                        <td style="min-width:30%;">
+                                            @row.LayoutName
+                                        </td>
+                                        <td>
+                                            @Html.Raw(row.Notes)
+                                        </td>
+                                        <td>
+                                            @if (row.IsDefault)
+                                            {
+                                                <a class="btn btn-sm btn-secondary" title="Cannot delete default design"> - </a>
+                                            }
+                                            else
+                                            {
+                                                <a class="btn btn-sm btn-secondary" href="@Url.Action("Delete", "Layouts", new { Id = row.Id })" title="Delete design"><span class="fa fa-trash-can"></span></a>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="row cpws-table-pager-row-bottom">
+                <div class="col-md-12 d-flex justify-content-center">
+                    <partial name="~/Views/Shared/GridPager/_GridPager.cshtml" model="pagerModel"></partial>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<form>
+    <input id="selected" type="hidden" />
+</form>
+
+<script>
+    $(document).ready(function () {
+
+        $("body").addClass("cwps-editor-container");
+
+    });
+</script>

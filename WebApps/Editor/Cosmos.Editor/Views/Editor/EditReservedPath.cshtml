@@ -1,0 +1,62 @@
+﻿@model Cosmos.Cms.Models.ReservedPath
+
+<div class="cwps-editor-container pt-3">
+<div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <h3 class="text-light">@ViewData["Title"]</h3>
+        </div>
+    </div>
+
+    <div class="row bg-dark">
+        <div class="col-md-6 d-flex flex-row">
+            <a class="btn btn-sm btn-secondary" asp-action="ReservedPaths">Reserved paths <i class="fa-solid fa-circle-arrow-right"></i></a>
+        </div>
+    </div>
+
+    <div class="row bg-dark">
+        <div class="col-md-6">
+            <form method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div class="form-group">
+                    <input asp-for="Id" type="hidden" />
+                    <span asp-validation-for="Id" class="text-danger"></span>
+                </div>
+                <div class="text-light">
+                    <h5 class="mt-4">Here is example syntax for creating a reserved path:</h5>
+                    <ul>
+                        <li>Jyn Erso</li>
+                        <li>Jyn Erso*</li>
+                    </ul>
+                    <p>In the first example no web page can be named &quot;Jyn Erso&quot;,<br />but it can be named &quot;Jyn Erso Hero&quot;</p>
+                    <p>The second example ends with a star, which means &quot;wildcard.&quot; This means web page or path can start with &quot;Jyn Erso&quot;.</p>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Path" class="text-light control-label"></label>
+                    <input asp-for="Path" class="form-control" />
+                    <span asp-validation-for="Path" class="text-danger"></span>
+                </div>
+                <input type="hidden" asp-for="CosmosRequired" />
+                <div class="form-group">
+                    <label asp-for="Notes" class="text-light control-label"></label>
+                    <input asp-for="Notes" class="form-control" />
+                    <span asp-validation-for="Notes" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <input type="submit" value="Save" class="btn btn-primary" />
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <div class="row bg-dark">
+        <div class="col-md-6 d-flex flex-row mt-4">
+            <a class="btn btn-sm btn-secondary" asp-action="ReservedPaths">Reserved paths <i class="fa-solid fa-circle-arrow-right"></i></a>
+        </div>
+    </div>
+</div>
+</div>
+@{
+    await Html.RenderPartialAsync("_ValidationScriptsPartial");
+}

@@ -1,0 +1,61 @@
+﻿@using Microsoft.Extensions.Options
+@using Cosmos.Cms.Services
+@using Cosmos.Cms.Common.Services.Configurations
+@using Cosmos.Cms.Controllers
+@inject IOptions<CosmosConfig> options
+@model ArticleViewModel
+<!--
+    READ ME:
+    * This file is meant to be edited with a CODE editor.
+    * To see examples of layouts already built, see: https://github.com/CosmosSoftware/Cosmos.Starter.Layouts
+    * Layouts can be custom, or use almost any framework of your choice.
+-->
+<!DOCTYPE HTML>
+<html lang="@Model.LanguageCode">
+<head>
+<!-- NOTE: Cosmos automatically injects the <TITLE> tag -->
+<title>@Model.Title</title>
+<meta name="cwps-meta-path-title" content="@Model.Title" />
+<meta name="cwps-meta-path-url" content="@Model.UrlPath" />
+<meta name="cwps-meta-path-updated" content="@Model.Updated" />
+@Html.Raw(LayoutImportConstants.COSMOS_HEAD_START)
+<!-- 
+
+   LAYOUT HEAD SECTION (EDITABLE)
+   -----------------------------------------------------------------------------------------------------------------------------
+   Everything placed here will appear in the HEAD of every page of your website.
+
+   This is called the "Layout Head Section."
+   
+   Tips:
+      * Keep your layouts "lean."
+      * If your website is using mixed application frameworks such as Angular, jQuery, React, and Vue create
+        a layout that will not have CSS or JavaScript classes and objects with names that conflict with your framework.
+      * Cosmos places no restrictions on what framework you use, so use what makes sense for you.
+
+-->
+@Html.Raw(LayoutImportConstants.COSMOS_HEAD_END)
+
+@Html.Raw(PageImportConstants.COSMOS_HEAD_SCRIPTS_START)
+@Html.Raw(PageImportConstants.COSMOS_HEAD_SCRIPTS_END)
+<!-- Cosmos will inject this section automatically if configured. -->
+@Html.Raw(JavaScriptSnippet.FullScript)
+</head>
+<body>
+@RenderBody()
+
+@if (ViewData["UseGoogleTranslate"] != null && (bool) ViewData["UseGoogleTranslate"])
+{
+@Html.Raw(PageImportConstants.COSMOS_GOOGLE_TRANSLATE_START)
+<!-- Cosmos will inject this section automatically if configured. -->
+<script src="@options.Value.EditorUrls.FirstOrDefault().Url/ccms/js/GoogleTranslations.js" id="ccms-lang-script" data-lang="@Model.LanguageName"></script>
+@Html.Raw(PageImportConstants.COSMOS_GOOGLE_TRANSLATE_END)
+}
+@Html.Raw(PageImportConstants.COSMOS_BODY_END_SCRIPTS_START)
+<!-- Cosmos will inject this section automatically as needed. -->
+@await RenderSectionAsync("Scripts", false)
+@Html.Raw(PageImportConstants.COSMOS_BODY_END_SCRIPTS_END)
+
+@await RenderSectionAsync("Scripts", false)
+</body>
+</html>

@@ -1,0 +1,42 @@
+﻿@addTagHelper *, Kendo.Mvc
+@model PreloadViewModel
+
+@{
+    ViewData["Title"] = "Preload CDN";
+}
+<div class="cwps-editor-container pt-3">
+<div class="container pt-2">
+    <form asp-controller="Editor" asp-action="Preload" method="post">
+        <div class="row">
+            <div class="col">
+                <h3>@ViewData["Title"]</h3>
+                <hr />
+                <p>
+                    Use this tool to preload the Content Distribution Network (CDN) in use for this website.
+                    This can improve website speed for web pages that are not viewed as much as others.
+                </p>
+
+                @if (Model.PageCount.HasValue)
+                {
+                    <h5>Preload Complete</h5>
+                    <p>
+                        Processed @Model.PageCount.Value page(s).
+                    </p>
+                }
+                <div class="form-group">
+                    <label for="PreloadCdn">Preload CDN</label>
+                    <kendo-switch for="PreloadCdn" enabled="true" checked="true">
+                        <messages checked="YES" unchecked="NO" />
+                    </kendo-switch>
+                </div>
+                <p><span class="badge badge-warning">IMPORTANT!</span> For websites with many web pages, this process may take a few minutes to complete.</p>
+                <br />
+                <button id="btnPublish" class="btn btn-sm btn-success" type="submit">Preload Content</button>
+            </div>
+        </div>
+    </form>
+</div>
+</div>
+@{
+    await Html.RenderPartialAsync("_ValidationScriptsPartial");
+}

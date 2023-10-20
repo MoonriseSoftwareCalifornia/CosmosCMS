@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "Cosmos.Tests": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:53781;http://localhost:53782"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+﻿/*html {
+    min-height: 100%;
+    position: relative;
+}
+
+body {
+    font-family: 'Segoe UI', SegoeUI, 'Segoe WP', Tahoma, Arial, sans-serif;*/
+    /* Margin bottom by footer height */
+    /*margin-bottom: 60px;
+}*/
+
+/*.site-header { min-height: 80px; }
+
+.navbar-dark, .bg-dark { background-color: #101085; }*/
+
+/* Sticky footer styles
+-------------------------------------------------- */
+
+/*.footer {
+    background-color: black;
+    bottom: 0;
+    color: #dddde1;*/
+    /* Set the fixed height of the footer here */
+    /*height: 60px;
+    line-height: 60px;*/ /* Vertically center the text there */
+    /*position: absolute;
+    width: 100%;
+}*/

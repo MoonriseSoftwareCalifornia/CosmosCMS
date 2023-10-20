@@ -1,0 +1,211 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+	<PropertyGroup>
+		<TargetFramework>net7.0</TargetFramework>
+		<UserSecretsId>aspnet-CDT.Cosmos.Cms-7EA5716F-3AA0-40C0-B742-C20FE7803177</UserSecretsId>
+		<AnalysisLevel>5.0</AnalysisLevel>
+		<EnableNETAnalyzers>false</EnableNETAnalyzers>
+		<RepositoryUrl>https://github.com/CosmosSoftware/CosmosCms</RepositoryUrl>
+		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+		<Version>7.5.8.1</Version>
+		<AssemblyVersion>7.5.8.1</AssemblyVersion>
+		<FileVersion>7.5.8.1</FileVersion>
+		<RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
+		<Authors></Authors>
+		<ApplicationInsightsResourceId>/subscriptions/9bdb8e29-156f-4fc9-a1fe-1bb6a915a4f0/resourceGroups/CosmosCMS/providers/microsoft.insights/components/edit-cosmos-cms202107021426</ApplicationInsightsResourceId>
+		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<RepositoryType>git</RepositoryType>
+		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<SignAssembly>False</SignAssembly>
+		<EnableSdkContainerSupport>true</EnableSdkContainerSupport>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+	</PropertyGroup>
+	
+	<ItemGroup>
+		<Compile Remove="wwwroot\images\video\**" />
+		<Compile Remove="wwwroot\lib\ckeditor\build_20230104.01\**" />
+		<Compile Remove="wwwroot\lib\ckeditor\build_20230209.01\**" />
+		<Content Remove="wwwroot\images\video\**" />
+		<Content Remove="wwwroot\lib\ckeditor\build_20230104.01\**" />
+		<Content Remove="wwwroot\lib\ckeditor\build_20230209.01\**" />
+		<EmbeddedResource Remove="wwwroot\images\video\**" />
+		<EmbeddedResource Remove="wwwroot\lib\ckeditor\build_20230104.01\**" />
+		<EmbeddedResource Remove="wwwroot\lib\ckeditor\build_20230209.01\**" />
+		<None Remove="wwwroot\images\video\**" />
+		<None Remove="wwwroot\lib\ckeditor\build_20230104.01\**" />
+		<None Remove="wwwroot\lib\ckeditor\build_20230209.01\**" />
+	</ItemGroup>
+	
+	<ItemGroup>
+	  <Content Remove="C:\Users\toiya\.nuget\packages\cdt.cosmos.cms.common\2021.6.23.6\contentFiles\any\net5.0\Views\CCMS_Examples\Index.cshtml" />
+	  <Content Remove="C:\Users\toiya\.nuget\packages\cdt.cosmos.cms.common\2021.6.23.6\contentFiles\any\net5.0\Views\CCMS_Examples\TextFile1.txt" />
+	  <Content Remove="C:\Users\toiya\.nuget\packages\cdt.cosmos.cms.common\2021.6.23.6\contentFiles\any\net5.0\Views\CCMS_Examples\_CosmosLayout.cshtml" />
+	  <Content Remove="C:\Users\toiya\.nuget\packages\cosmos.cms.common\7.0.0.10\contentFiles\any\net6.0\Views\CCMS_Examples\Index.cshtml" />
+	  <Content Remove="C:\Users\toiya\.nuget\packages\cosmos.cms.common\7.0.0.10\contentFiles\any\net6.0\Views\CCMS_Examples\TextFile1.txt" />
+	  <Content Remove="C:\Users\toiya\.nuget\packages\cosmos.cms.common\7.0.0.10\contentFiles\any\net6.0\Views\CCMS_Examples\_CosmosLayout.cshtml" />
+	  <Content Remove="stylecop.json" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Remove="appsettings.json.BAK" />
+		<None Remove="Data\DropAllTables.sql" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<_WebToolingArtifacts Remove="Properties\PublishProfiles\Linux-x64_Single.pubxml" />
+		<_WebToolingArtifacts Remove="Properties\PublishProfiles\Win-x64_Single.pubxml" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <AdditionalFiles Include="stylecop.json" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="..\..\..\.editorconfig" Link=".editorconfig" />
+	  <None Include="Views\Templates\EditCode.cshtml" />
+	  <None Include="Views\Templates\Index.cshtml" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\ckeditor.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\ckeditor.js.map" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\af.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\ar.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\ast.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\az.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\bg.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\bn.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\bs.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\ca.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\cs.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\da.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\de-ch.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\de.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\el.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\en-au.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\en-gb.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\eo.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\es-co.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\es.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\et.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\eu.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\fa.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\fi.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\fr.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\gl.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\gu.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\he.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\hi.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\hr.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\hu.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\hy.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\id.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\it.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\ja.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\jv.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\kk.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\km.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\kn.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\ko.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\ku.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\lt.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\lv.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\ms.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\nb.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\ne.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\nl.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\no.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\oc.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\pl.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\pt-br.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\pt.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\ro.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\ru.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\si.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\sk.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\sl.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\sq.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\sr-latn.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\sr.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\sv.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\th.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\tk.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\tr.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\tt.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\ug.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\uk.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\ur.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\uz.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\vi.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\zh-cn.js" />
+	  <None Include="wwwroot\lib\ckeditor\build_20231004.01\translations\zh.js" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="AspNetCore.Identity.CosmosDb" Version="2.1.4" />
+		<PackageReference Include="Azure.Extensions.AspNetCore.DataProtection.Blobs" Version="1.3.2" />
+		<PackageReference Include="Azure.Extensions.AspNetCore.DataProtection.Keys" Version="1.2.2" />
+		<PackageReference Include="Azure.Identity" Version="1.10.3" />
+		<PackageReference Include="Azure.ResourceManager" Version="1.7.0" />
+		<PackageReference Include="Azure.ResourceManager.Cdn" Version="1.1.0" />
+		<PackageReference Include="Azure.ResourceManager.FrontDoor" Version="1.1.0" />
+		<PackageReference Include="HtmlAgilityPack" Version="1.11.54" />
+		<PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.AzureADB2C.UI" Version="6.0.23" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="7.0.12" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.MicrosoftAccount" Version="7.0.12" />
+		<PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="7.0.12" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="7.0.12" />
+		<PackageReference Include="Microsoft.Azure.SignalR" Version="1.21.7" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.12">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.Extensions.Caching.Cosmos" Version="1.5.0" />
+		<PackageReference Include="Microsoft.Identity.Web" Version="2.15.2" />
+		<PackageReference Include="Microsoft.Identity.Web.UI" Version="2.15.2" />
+		
+		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.5" />
+		<PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="7.0.10" />
+		<PackageReference Include="NUglify" Version="1.21.0" />
+		<PackageReference Include="PasswordGenerator" Version="2.1.0" />
+		<PackageReference Include="SixLabors.ImageSharp" Version="3.0.2" />
+		<PackageReference Include="MimeTypeMapOfficial" Version="1.0.17" />
+		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.0.3" />
+		<PackageReference Include="System.Net.Http" Version="4.3.4" />
+		<PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="7.0.3" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\..\Libraries\Cosmos.BlobService\Cosmos.BlobService\Cosmos.BlobService.csproj" />
+	  <ProjectReference Include="..\..\..\Libraries\Cosmos.Common\Cosmos.Common\Cosmos.Common.csproj" />
+	  <ProjectReference Include="..\..\..\Libraries\Cosmos.EmailServices\Cosmos.EmailServices.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Update="wwwroot\images\logos\logo-white.png">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	  <Content Update="wwwroot\images\logos\primarylogowhite.png">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Areas\MicrosoftIdentity\Data\" />
+	  <Folder Include="Areas\MicrosoftIdentity\Models\" />
+	  <Folder Include="Areas\MicrosoftIdentity\Views\" />
+	</ItemGroup>
+
+	<ProjectExtensions>
+		<VisualStudio>
+			<UserProperties libman_1json__JsonSchema="" />
+		</VisualStudio>
+	</ProjectExtensions>
+
+</Project>

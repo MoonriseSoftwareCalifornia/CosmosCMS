@@ -1,0 +1,54 @@
+﻿@model DuplicateViewModel
+@using Cosmos.Common.Models
+@{
+    ViewData["Title"] = Model.Title;
+    var original = (ArticleViewModel)ViewData["Original"];
+}
+
+<div class="cwps-editor-container container mt-5 pt-2">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h3 class="text-light">Clone Web Page</h3>
+            <h5 class="text-light">Creating clone from: @ViewData["Title"]</h5>
+        </div>
+    </div>
+    <hr />
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <p><a target="_blank" class="text-light" href="@Url.Action("Preview", "Home", new { Id = original.Id})" title="Click to open">Original page: &quot;@original.Title&quot; | Version: &quot;@original.VersionNumber&quot;</a></p>
+        </div>
+    </div>
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-light">
+            <form method="post" asp-action="Clone" asp-controller="Editor" class="g-3 needs-validation">
+                @Html.AntiForgeryToken()
+                <input id="Id" name="Id" type="hidden" value="@Model.Id" />
+                @Html.HiddenFor(m => m.ArticleId)
+                @Html.HiddenFor(m => m.ArticleVersion)
+                @Html.HiddenFor(m => m.ParentPageTitle)
+                <div class="mb-3">
+                    <div asp-validation-summary=All class="text-danger"></div>
+                </div>
+                
+                <div class="mb-3">
+                    <label asp-for="Title" class="form-label"></label><span asp-validation-for="Title" class="text-danger"></span>
+                    <input asp-for="Title" class="form-control" />
+                    <p class="form-text">Note: Web page titles must be unique.</p>
+                    
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Published" class="form-label"></label>
+                    <span asp-validation-for="Published" class="text-danger"></span>
+                    <input asp-for="Published" class="form-control" type="datetime-local" />
+                    <p class="form-text">This is the date/time when this page is published.  Clear this to make this page not visible to the public.</p>
+                </div>
+                <div class="mb-3">
+                    <a class="btn btn-secondary" asp-action="Versions" asp-route-id="@original.ArticleNumber">Cancel</a>
+                    <button class="btn btn-primary" type="submit">Create Duplicate</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<partial name="_ValidationScriptsPartial" />

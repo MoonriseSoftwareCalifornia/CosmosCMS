@@ -1,0 +1,246 @@
+﻿@{
+    // Used for ChatBot
+    var userName = Context.User.Identity.Name;
+
+    /*
+    * This chat component requires a button to be created
+    * somewhere on the webpage with the class "ccms-chat-toast-trigger"
+    * defined.  This button toggles the chat window visibility.
+                                    */
+}
+<script src="/lib/microsoft-signalr/signalr.min.js"></script>
+
+<div id="chat-toast" class="toast show bg-dark" style="position:fixed;top:70px;right:70px;z-index:50000;display:none;">
+    <div class="toast-header">
+        <strong class="me-auto">Chat</strong>
+        <small>11 mins ago</small>
+        <button id="btn-close-chat" type="button" class="btn-close" aria-label="Close"></button>
+    </div>
+    <div class="toast-body">
+       @* @(Html.Kendo().Chat()
+        .Name("ccmsChatWidget")
+        .User(user => user
+        // Each instance of the app will generate a unique username.
+        // In this way, the SignalR Hub "knows" who is the user that sends the message
+        // and who are the clients that have to receive that message.
+        .Name(@userName)
+        .IconUrl("https://demos.telerik.com/kendo-ui/content/chat/avatar.png")
+        )
+        .Events(events => events
+        .TypingStart("onCcmsTypingStart").TypingEnd("onCcmsTypingEnd")
+        .Post("onCcmsChatPost")
+        ).HtmlAttributes(new { style = "width:280px;height:460px;"})
+        )*@
+    </div>
+</div>
+
+<script>
+    // Point to the Hub remote endpoint.
+    window.ccsmsChatHub = new signalR.HubConnectionBuilder().withUrl('/chat').withAutomaticReconnect([0, 2000, 5000, 10000, 15000, 30000]) .build();
+    var myConnectionId;
+    var articleLock = null;
+    var ccmsEditorIsLocked = false;
+    var stopTypingTimeout = null;
+
+    // See: https://docs.microsoft.com/en-us/aspnet/core/signalr/javascript-client?view=aspnetcore-6.0&tabs=visual-studio#bsleep
+    var lockResolver;
+    if (navigator && navigator.locks && navigator.locks.request) {
+        const promise = new Promise((res) => {
+            lockResolver = res;
+        });
+
+        navigator.locks.request('@Guid.NewGuid().ToString()', { mode: "shared" }, () => {
+            return promise;
+        });
+    }
+
+
+    async function ccmsStartSignalR() {
+        try {
+            await ccsmsChatHub.start().then( result => {
+               console.log("SignalR is now connected.");
+            }).then( result => {
+               ccmsSendSignal("JoinRoom");
+            });
+        } catch (err) {
+            console.log(err);
+            setTimeout(ccmsStartSignalR, 5000);
+        }
+    };
+
+    // The `typingStart` will notify the SignallR Hub that the current client is typing.
+    // The Hub, in turn, will notify all the other clients that the user has started typing.
+    async function onCcmsTypingStart(e) {
+        try {
+            await ccsmsChatHub.invoke("sendTyping", ccmsChatWidget.getUser());
+            console.log("Start typing.");
+        } catch (err) {
+            console.log(err);
+            console.log(err);
+        }
+    };
+
+    // Fires when the user clears the chat message box which signals that the user has stopped typing.
+    // The event is also triggered when the user submits the currently typed in message.
+    async function onCcmsTypingEnd(e) {
+        try {
+            await ccsmsChatHub.invoke("stopTyping", ccmsChatWidget.getUser());
+            console.log("Stop typing.");
+        } catch (err) {
+            console.log(err);
+            console.log(err);
+        }
+    }
+
+    // The `post` handler will send the user data and the typed text to the SignalR Hub.
+    // The Hub will then forward that info to the other clients.
+    async function onCcmsChatPost(args) {
+        try {
+            await ccsmsChatHub.invoke("send", ccmsChatWidget.getUser(), args.text);
+            console.log("Send chat.");
+        } catch (err) {
+            console.log(err);
+            console.log(err);
+        }
+    };
+
+    // Sends a signal to server about an action.
+    async function ccmsSendSignal(method) {
+        /// <summary>Sends a signal to the server for the user</summary>
+        /// <param name="method">Signal method to call on server</param>
+        /// <para>
+        /// Valid methods are:
+        /// <list type="bullet">
+        /// <item>ArticleSaved</item>
+        /// <item>JoinRoom</item>
+        /// <item>LeaveRoom</item>
+        /// <item>NotifyRoomOfLock</item>
+        /// <item>RemoveArticleLock</item>
+        /// <item>SetArticleLock</item>
+        /// </list>
+        var id = $("#Id").val();
+
+        if (editorType === null || typeof (editorType) === "undefined" || editorType === "") {
+            editorType = "ArticleEditor";
+        }
+
+        if (id !== null && typeof(id) !== "undefined" && id !== "") {
+            try {
+                await ccsmsChatHub.invoke(method, id, editorType);
+                console.log("Send signal: " + method + ", id: " + id);
+            } catch (err) {
+                console.log(err);
+            }
+            console.log(method + " sent.");
+        }
+    };
+
+    function ccmsEditButtonOnClick(e){
+       var id = $("#Id").val();
+       ccmsSendSignal("AbandonEdits", id);
+    }
+
+    // **************************
+    // Signal R Receivers
+    //
+    // Receives a lock message.
+    ccsmsChatHub.on("ArticleLock", function(message) {
+        console.log("ArticleLock recieved.");
+        articleLock = JSON.parse(message);
+        var btn = $("#ccms-edit-lock-btn");
+        if (typeof(articleLock) !== "undefined" && articleLock !== null && articleLock !== "") {
+
+            btn.removeClass("k-button-solid-base");
+            btn.removeClass("k-button-solid-error");
+            btn.removeClass("k-button-solid-success");
+            ccmsEditorIsLocked = false;
+
+            if (articleLock.ConnectionId === this.connection.connectionId) {
+                
+                btn.html("Edit Mode");
+                btn.addClass("k-button-solid-success");
+                btn.attr ("title", "Click to cancel edit and reload original.");
+            } else if (articleLock.UserEmail !== ""){
+                
+                ccmsEditorIsLocked = true; // Article is locked by another
+                btn.html(articleLock.UserEmail + " is editing");
+                btn.attr ("title", "This user is now editing this document and has it locked.");
+                btn.addClass("k-button-solid-error");
+            } else {
+                
+                btn.html("Ready to Edit");
+                btn.attr ("title", "Click on any editable area to start editing and lock out others from doing the same.");
+                btn.addClass("k-button-solid-base");
+            }
+        }
+    });
+
+    ccsmsChatHub.on("ArticleReload", function(message) {
+        var model = JSON.parse(message);
+        ccmsLoadModel(model); // Found on the *view* (not layout) for the editor (ie HTML view, Code View)
+        console.log("ArticleReload recieved.");
+    });
+
+    function ccmsChatStopTyping () {
+        $(".ccms-chat-toast-trigger").addClass("k-button-solid-base");
+        $(".ccms-chat-toast-trigger").removeClass("k-button-solid-success");
+        $(".ccms-typing-indicator").hide();
+    }
+
+    $(document).ready(function() {
+
+        ccmsStartSignalR();
+
+        myConnectionId = ccsmsChatHub.connection.connectionId;
+
+        window.ccmsChatWidget = $("#ccmsChatWidget").getKendoChat();
+
+        ccsmsChatHub.on("broadcastMessage", function(sender, message) {
+            var message = { type: 'text', text: message };
+
+            // Render the received message in the Chat.
+            ccmsChatWidget.renderMessage(message, sender);
+
+            console.log("broadcastMessage recieved.");
+        });
+
+        ccsmsChatHub.on("typing", function(sender) {
+            // Display the typing notification in the Chat.
+            if (stopTypingTimeout !== null) {
+                clearTimeout(stopTypingTimeout);
+            }
+            ccmsChatWidget.renderMessage({ type: 'typing' }, sender);
+            console.log("typing recieved.");
+
+            $(".ccms-chat-sender").html(sender.name);
+            $(".ccms-chat-toast-trigger").removeClass("k-button-solid-base");
+            $(".ccms-chat-toast-trigger").addClass("k-button-solid-success");
+            $(".ccms-typing-indicator").show();
+        });
+
+        ccsmsChatHub.on("stoptyping", function(sender) {
+            $(".ccms-chat-toast-trigger").addClass("k-button-solid-base");
+            $(".ccms-chat-toast-trigger").removeClass("k-button-solid-success");
+            $(".ccms-typing-indicator").hide();
+            console.log("stoptyping recieved.");
+            stopTypingTimeout = setTimeout(ccmsChatStopTyping, 2000);
+        });
+
+        $(".ccms-chat-toast-trigger").click(function () {
+            $("#chat-toast").show();
+        });
+        $("#btn-close-chat").click(function () {
+            $("#chat-toast").hide();
+        });
+
+        if (navigator && navigator.locks && navigator.locks.request) {
+            const promise = new Promise((res) => {
+                lockResolver = res;
+        });
+
+        navigator.locks.request('unique_lock_name', { mode: "shared" }, () => {
+            return promise;
+        });
+}
+    });
+</script>

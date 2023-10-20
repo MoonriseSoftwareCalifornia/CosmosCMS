@@ -1,0 +1,110 @@
+﻿@addTagHelper *, Kendo.Mvc
+@{
+    Layout = "_LayoutNoToolbar";
+    var articleId = (int)ViewData["ArticleId"];
+}
+<style>
+    body {
+        background-color: #1e1e1e;
+    }
+
+    .k-dropzone {
+        min-height: 200px;
+        vertical-align: top;
+    }
+</style>
+<div class="continer">
+    <div class="row">
+        <div class="col-11">
+            <div class="text-light">Import Page</div>
+        </div>
+        <div class="col-1">
+            <button type="button" id="btnCloseUpload" class="btn btn-secondary" style="margin-right: 6px !important;">Close</button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            @*@(Html.Kendo().Upload()
+            .Name("files")
+            .Async(a => a
+            .Save("ImportPage", "FileManager", new { Id = articleId })
+            .Remove("Remove", "FileManager")
+            .AutoUpload(true)
+            .ChunkSize(5242880) // bytes (5 MB) - AWS S3 multi upload requires 5 MB parts. Last part can be any size
+            )
+            .Events(e =>
+            e.Success("onUploadSuccess")
+            .Error("onError")
+            )
+            )*@
+        </div>
+    </div>
+</div>
+<kendo-dialog name="eventDialog" title="Upload Messages" modal="true" visible="false">
+    <content>
+        <div class="bg-dark text-light" id="divEventMsg" style="min-height: 180px; min-width: 300px;">
+        </div>
+    </content>
+    <actions>
+        <action text="Close">
+        </action>
+    </actions>
+    <popup-animation>
+        <open duration="500" effects="fade:in" />
+        <close duration="500" effects="fade:out" />
+    </popup-animation>
+</kendo-dialog>
+<script>
+    function onUploadSuccess(e) {
+        if (e.response.Errors !== ""){
+            var errors = "<ul>";
+            var errorData = JSON.parse(e.response.Errors);
+            $.each(errorData, function(index, collection) {
+                $.each(collection, function(index, error){
+                    errors += "<li>" + error.ErrorMessage + "</li>";
+                });
+            });
+            errors += "</ul>";
+            errors += "<p>For more information, please see <a class='text-light' href='https://github.com/CosmosSoftware/Cosmos.Cms/blob/main/Documentation/Content/Editors/Creating-with-VS-Code.md#step-3-merge-the-app-with-the-export-page' target='_blank'>documentation</a>.";
+            handleError(errors);
+            $("#files").data("kendoUpload").clearAllFiles();
+        }
+        else {
+            window.opener.ccmsSendSignal("ArticleSaved");
+            window.opener.location.reload(true);
+            window.close();
+        }
+    }
+
+    function onError(e) {
+        handleError("Error: Could not complete request.");
+    }
+
+    function handleError(message) {
+        $("#divEventMsg").html(message);
+        $("#eventDialog").data("kendoDialog").open();
+    }
+
+    function getFileInfo(e) {
+        return $.map(e.files, function (file) {
+            var info = file.name;
+
+            // File size is not available in all browsers
+            if (file.size > 0) {
+                info += " (" + Math.ceil(file.size / 1024) + " KB)";
+            }
+            return info;
+        }).join(", ");
+    }
+
+    $(document).ready(function() {
+
+        $("body").addClass("cwps-editor-container");
+
+        notification = $("#notification").data("kendoNotification");
+        $("#btnCloseUpload").click(function () {
+            window.close();
+        });
+    });
+
+</script>

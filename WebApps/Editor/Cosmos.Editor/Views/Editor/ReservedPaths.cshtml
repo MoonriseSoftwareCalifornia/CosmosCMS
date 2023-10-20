@@ -1,0 +1,92 @@
+﻿@model IEnumerable<Cosmos.Cms.Models.ReservedPath>
+
+@{
+    ViewData["Title"] = "Reserved Paths";
+
+    var rowCount = (int)ViewData["RowCount"];
+    var sortOrder = (string)ViewData["sortOrder"];
+    var currentSort = (string)ViewData["currentSort"];
+    var pageNumber = (int)ViewData["pageNo"];
+    var pageSize = (int)ViewData["pageSize"];
+    var filter = (string)ViewData["Filter"];
+
+    var pagerModel = new GridPagerPartialViewModel(pageNumber, rowCount, pageSize, sortOrder, currentSort, "/Editor/ReservedPaths", filter);
+}
+
+<div class="cwps-editor-container pt-3">
+    <div class="container mt-3">
+        <div class="row">
+            <div class="col-md-12">
+                <h3 class="text-light">@ViewData["Title"]</h3>
+                <p>
+                    <a class="text-light" target="_blank" href="/Cosmos/Documentation/Reserved_Paths">Read about &quot;reserved paths&quot;  <i class="fa-solid fa-circle-arrow-right"></i></a>
+                </p>
+            </div>
+        </div>
+        <div class="row cpws-table-pager-row-top">
+            <div class="col-md-6">
+                <a href="/Editor/CreateReservedPath" title="Go to the page list" class="btn btn-sm btn-primary">Add Path <i class="fa-solid fa-circle-arrow-right"></i></a>
+                <a href="/Editor/Index" title="Go to the page list" class="btn btn-sm btn-secondary">Page list <i class="fa-solid fa-circle-arrow-right"></i></a>
+            </div>
+            <div class="col-md-6 d-flex justify-content-end">
+                <partial name="~/Views/Shared/GridPager/_GridPager.cshtml" model="pagerModel"></partial>
+            </div>
+        </div>
+        <div class="row bg-dark">
+            <div class="col-md-12">
+                <div class="table-responsive custom-table-responsive">
+                    <table class="table custom-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">
+
+                                </th>
+                                <th scope="col">
+                                    @Html.DisplayNameFor(model => model.Path)
+                                </th>
+                                <th scope="col">
+                                    @Html.DisplayNameFor(model => model.Notes)
+                                </th>
+                                <th scope="col"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr scope="row">
+                                    <td>
+                                        @if (item.CosmosRequired)
+                                        {
+                                            <span title="This path is required by Cosmos and cannot be modified">Required path</span>
+                                        }
+                                        else
+                                        {
+                                            <a asp-action="EditReservedPath" asp-route-id="@item.Id" title="Select" class="btn btn-sm btn-secondary">Edit <i class="fa-regular fa-pen-to-square"></i></a>
+                                        }
+                                    </td>
+                                    <td>
+                                        @item.Path
+                                    </td>
+                                    <td>
+                                        @item.Notes
+                                    </td>
+                                    <td>
+                                        @if (!item.CosmosRequired)
+                                        {
+                                            <a title='Send to trash' asp-action="RemoveReservedPath" asp-route-id="@item.Id" class='btn btn-sm btn-secondary'>Delete <i class='fa-solid fa-trash'></i></a>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="row cpws-table-pager-row-bottom">
+            <div class="col-md-12 d-flex justify-content-center">
+                <partial name="~/Views/Shared/GridPager/_GridPager.cshtml" model="pagerModel"></partial>
+            </div>
+        </div>
+    </div>
+</div>

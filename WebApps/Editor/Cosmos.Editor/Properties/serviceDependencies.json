@@ -1,0 +1,16 @@
+{
+  "dependencies": {
+    "secrets1": {
+      "type": "secrets",
+      "connectionId": "CosmosCosmosAzureVaultUrl"
+    },
+    "appInsights1": {
+      "type": "appInsights",
+      "connectionId": "APPINSIGHTS_CONNECTIONSTRING"
+    },
+    "identityapp1": {
+      "type": "identityapp",
+      "dynamicId": null
+    }
+  }
+}

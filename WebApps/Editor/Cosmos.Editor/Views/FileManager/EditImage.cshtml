@@ -1,0 +1,162 @@
+﻿@using Cosmos.Cms.Common.Services.Configurations
+@using Microsoft.Extensions.Options
+@using Newtonsoft.Json
+@using System.IO
+@inject IOptions<CosmosConfig> options
+@{
+    Layout = "_LayoutEditor";
+    ViewData["Title"] = "Image Editor";
+}
+<style>
+    #divAutoSave, #spinLoading {
+        display: none;
+    }
+
+    #editspace {
+        top: 60px;
+    }
+</style>
+<div id="editspace" class="m-editor-container"></div>
+<!--
+
+    //import FilerobotImageEditor from 'filerobot-image-editor'; // Load library from NPM
+    // or load from CDN as following and use (window.FilerobotImageEditor):
+    // <script src="https://scaleflex.cloudimg.io/v7/plugins/filerobot-image-editor/latest/filerobot-image-editor.min.js"></script>
+
+    // NOTE: Using local copies of specific versions to ensure updates to filerobot are tested before deployed.
+-->
+<link rel="stylesheet" type="text/css" href="/css/filerobot-image-editor-4.3.7.css" />
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet" />
+<script src="/js/filerobot-image-editor-4.3.7.min.js"></script>
+
+<script>
+    const publicBlobBaseUrl = '@options.Value.SiteSettings.BlobPublicUrl';
+    const imagePath = '@ViewData["ImageTarget"]';
+    const folder = '@System.IO.Path.GetDirectoryName((string)ViewData["ImageTarget"]).Replace("\\", "/")';
+
+    const { TABS, TOOLS } = window.FilerobotImageEditor;
+    const config = {
+        source: publicBlobBaseUrl + "/" + imagePath,
+        onSave: (editedImageObject, designState) => {
+            showSaving();
+
+            const formData = {
+                name: editedImageObject.name,
+                fullName: editedImageObject.fullName,
+                extension: editedImageObject.extension,
+                mimeType: editedImageObject.mimeType,
+                imageBase64: editedImageObject.imageBase64,
+                mimeType: editedImageObject.mimeType,
+                width: editedImageObject.width,
+                height: editedImageObject.height,
+                folder: folder
+            };
+
+            var jsonData = JSON.stringify(formData);
+
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("EditImage","FileManager")",
+                data: jsonData,
+                contentType: 'application/json',
+                success: function (response) {
+                    showSaved();
+                },
+                failure: function (response) {
+                    alert(response);
+                },
+                error: function (response) {
+                    alert(response);
+                }
+            });
+        },
+        annotationsCommon: {
+            fill: '#ff0000',
+        },
+        Text: { text: 'Filerobot...' },
+        Rotate: { angle: 90, componentType: 'slider' },
+        translations: {
+            profile: 'Profile',
+            coverPhoto: 'Cover photo',
+            facebook: 'Facebook',
+            socialMedia: 'Social Media',
+            fbProfileSize: '180x180px',
+            fbCoverPhotoSize: '820x312px',
+        },
+        Crop: {
+            presetsItems: [
+                {
+                    titleKey: 'classicTv',
+                    descriptionKey: '4:3',
+                    ratio: 4 / 3,
+                    // icon: CropClassicTv, // optional, CropClassicTv is a React Function component. Possible (React Function component, string or HTML Element)
+                },
+                {
+                    titleKey: 'cinemascope',
+                    descriptionKey: '21:9',
+                    ratio: 21 / 9,
+                    // icon: CropCinemaScope, // optional, CropCinemaScope is a React Function component.  Possible (React Function component, string or HTML Element)
+                },
+            ],
+            presetsFolders: [
+                {
+                    titleKey: 'socialMedia', // will be translated into Social Media as backend contains this translation key
+                    // icon: Social, // optional, Social is a React Function component. Possible (React Function component, string or HTML Element)
+                    groups: [
+                        {
+                            titleKey: 'facebook',
+                            items: [
+                                {
+                                    titleKey: 'profile',
+                                    width: 180,
+                                    height: 180,
+                                    descriptionKey: 'fbProfileSize',
+                                },
+                                {
+                                    titleKey: 'coverPhoto',
+                                    width: 820,
+                                    height: 312,
+                                    descriptionKey: 'fbCoverPhotoSize',
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+        },
+        tabsIds: [TABS.ADJUST, TABS.ANNOTATE, TABS.FILTERS, TABS.FINETUNE, TABS.RESIZE, TABS.WATERMARK], // or ['Adjust', 'Annotate', 'Watermark']
+        defaultTabId: TABS.ANNOTATE, // or 'Annotate'
+        defaultToolId: TOOLS.TEXT, // or 'Text'
+    };
+
+    // Assuming we have a div with id="editspace"
+    const filerobotImageEditor = new FilerobotImageEditor(
+        document.querySelector('#editspace'),
+        config,
+    );
+
+    filerobotImageEditor.render({
+        onClose: (closingReason) => {
+            console.log('Closing reason', closingReason);
+            filerobotImageEditor.terminate();
+        },
+    });
+
+    function bgEditClickCustom(command) {
+        switch (command) {
+            case "Close":
+                window.location.href = "/FileManager/Index?target=" + folder;
+                //$("#divSaveFirstDialog").html("Save page before closing editor?");
+                //checkFirstModal.show();
+                break;
+        }
+    }
+
+    $(document).ready(function () {
+        $("#btnSaveAsDraft").hide();
+        $("#btnSaveAndPublish").hide();
+        $("#btnPreview").hide();
+        $("#btnFiles").hide();
+        $("#btnSaveChanges").hide();
+    });
+</script>

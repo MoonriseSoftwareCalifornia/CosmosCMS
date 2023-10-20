@@ -1,0 +1,295 @@
+﻿@using Cosmos.Editor.Models;
+@using Microsoft.AspNetCore.Identity;
+@model List<ArticlePermisionItem>
+@inject UserManager<IdentityUser> _userManager
+@inject RoleManager<IdentityRole> _userManager
+
+@{
+
+    var rowCount = (int)ViewData["RowCount"];
+    var sortOrder = (string)ViewData["sortOrder"];
+    var currentSort = (string)ViewData["currentSort"];
+    var pageNumber = (int)ViewData["pageNo"];
+    var pageSize = (int)ViewData["pageSize"];
+    var filter = (string)ViewData["Filter"];
+    var showingRoles = (bool)ViewData["showingRoles"];
+    var articlePermissions = (List<ArticlePermission>)ViewData["ArticlePermissions"];
+    var articleNumber = (int)ViewData["ArticleNumber"];
+    var allowedUsers = (List<IdentityUser>)ViewData["AllowedUsers"];
+    var allowedRoles = (List<IdentityRole>)ViewData["AllowedRoles"];
+
+    var pagerModel = new GridPagerPartialViewModel(pageNumber, rowCount, pageSize, sortOrder, currentSort, "/Editor/Permissions");
+
+}
+<style>
+    .fa-shield {
+        padding-right: 4px;
+    }
+</style>
+
+<div class="pt-3 text-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-6">
+                @if (showingRoles)
+                {
+                    <h3>Editing role (user group) permissions for:</h3>
+                    <h1 class="mb-3">@ViewData["Title"]</h1>
+                }
+                else
+                {
+                    <h3>Editing user permissions for:</h3>
+                    <h1 class=" mb-3">@ViewData["Title"]</h1>
+                }
+                <div asp-validation-summary="All" class="text-danger"></div>
+            </div>
+
+            <div class="col-6 d-flex justify-content-end">
+                <div class="btn-group" style="max-height: 64px;">
+                    <button id="btnEnableAnyone" class="btn btn-lg btn-secondary" title="Enable anonymous acess." @((articlePermissions.Count == 0) ? "disabled" : "") style="min-width: 80px;"><i class="fa-solid fa-users"></i></button>
+                    <button id="btnSavePermissions" class="btn btn-lg btn-primary" title="Save permission settings." style="min-width: 80px;"><i class="fa-solid fa-floppy-disk"></i></button>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col mb-3">
+                <a title="Return to page list" class="btn btn-sm btn-secondary" href="@Url.Action("Index")">Page list <i class="fa-solid fa-circle-arrow-right"></i></a>
+                <a title="Return to page list" class="btn btn-sm btn-secondary" href="@Url.Action("Versions", "Editor", new { Id = articleNumber })">Version list <i class="fa-solid fa-circle-arrow-right"></i></a>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col mb-3">
+                <p>Restrict access to certain users and roles by selecting them below. Note: This disables anonymous access.</p>
+                @if (articlePermissions.Count == 0)
+                {
+                    <div class="alert alert-secondary d-flex" role="alert">
+                        <i class="fa-solid fa-triangle-exclamation mt-1 me-3"></i>
+                        <b>Current access is set to anonymous.</b>
+                    </div>
+                }
+                else
+                {
+                    var msg = "Current access is limited to these";
+                    if (allowedUsers.Count > 0)
+                    {
+                        msg += " users: " + string.Join(" ", allowedUsers.Select(s => "<span class='badge rounded-pill bg-secondary'>" + s.Email + "</span>"));
+                        if (allowedRoles.Count > 0)
+                        {
+                            msg += " and roles: " + string.Join(" ", allowedRoles.Select(s => "<span class='badge rounded-pill bg-secondary'>" + s.Name + "</span>"));
+                        }
+                        else
+                        {
+                            msg += ".";
+                        }
+                    }
+                    else
+                    {
+                        msg += " roles: " + string.Join(" ", allowedRoles.Select(s => s.Name)) + ".";
+                    }
+                    <div class="accordion" id="permAccordian">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button title="Click to show current permissions." class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                                    Current Permissions
+                                </button>
+                            </h2>
+                            <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#permAccordian">
+                                <div class="accordion-body">
+                                    @Html.Raw(msg)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="row cpws-table-pager-row-top">
+                <div class="col-4">
+                    @if (showingRoles)
+                    {
+                        <a title="Switch to users." href="@Url.Action("Permissions", "Editor", new { Id = articleNumber })?forRoles=false" class="btn btn-sm btn-secondary" style="min-width:100px;">Switch to users <i class="fa-solid fa-circle-arrow-right"></i></a>
+                    }
+                    else
+                    {
+                        <a title="Switch to roles." href="@Url.Action("Permissions", "Editor", new { Id = articleNumber })?forRoles=true" class="btn btn-sm btn-secondary" style="min-width:100px;">Switch to roles <i class="fa-solid fa-circle-arrow-right"></i></a>
+                    }
+                </div>
+                <div class="col-4 justify-content-center">
+                    <partial name="~/Views/Shared/GridPager/_GridPager.cshtml" model="pagerModel"></partial>
+                </div>
+                <div class="col-4 d-flex justify-content-end">
+
+                </div>
+            </div>
+            <div class="row">
+                <div class="col bg-dark">
+                    <div class="table-responsive custom-table-responsive">
+                        <table class="table custom-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">
+                                        Select
+                                    </th>
+                                    <th scope="col">
+                                        @(showingRoles ? "Role Name" : "User Email Address")
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var row in Model)
+                                {
+                                    <tr scope="row" class="row-click-ckbox">
+                                        <td scope="row" style="min-width:80px;">
+                                            <div class="form-check">
+                                                <input class="form-check-input gridCheckBox" data-ccms-userid='@row.IdentityObjectId' type="checkbox">
+                                                <label class="form-check-label">
+                                                    Select
+                                                </label>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <b>@row.Name</b>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="row cpws-table-pager-row-bottom">
+                <div class="col-4">
+                </div>
+                <div class="col-4 justify-content-center">
+                    <partial name="~/Views/Shared/GridPager/_GridPager.cshtml" model="pagerModel"></partial>
+                </div>
+                <div class="col-4">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form id="frmUserIds" asp-action="Index" asp-controller="Roles" method="post">
+        @Html.AntiForgeryToken()
+        <input id="userIds" name="userIds" type="hidden" />
+    </form>
+
+    <script>
+
+        let userIds = [];
+
+        $(document).ready(function () {
+            $("body").addClass("cwps-body");
+            $("body").addClass("cwps-editor-container");
+
+            reloadUserIds();
+
+            $(".row-click-ckbox").click(function (e) {
+                if (e.target.type != 'checkbox' && e.target.tagName != 'A') {
+                    var cb = $(this).find("input[type=checkbox]");
+                    cb.trigger('click');
+                }
+            });
+
+            $(".gridCheckBox").each(function (index, element) {
+
+                if ((userIds.indexOf(getUserId(element)) > -1)) {
+                    $(element).prop('checked', true);
+                    cwpsSelectTableRow(element, true);
+                }
+
+                $(element).on("change", function () {
+
+                    let userId = getUserId(element);
+
+                    let isChecked = $(element).prop('checked');
+
+                    if (isChecked) {
+                        saveUserId(userId);
+                    } else {
+                        removeUserId(userId);
+                    }
+
+                    cwpsSelectTableRow(element, isChecked);
+
+                    resetButtons();
+
+                });
+            });
+
+            $("#btnSavePermissions").click(function (e) {
+                e.preventDefault();
+                savePermissions();
+            });
+
+            $("#btnEnableAnyone").click(function (e) {
+                e.preventDefault();
+                clearUserIds();
+                savePermissions();
+            });
+        });
+
+        function savePermissions() {
+
+            var model = {
+                Id: @articleNumber,
+                IdentityObjectIds: userIds
+            }
+
+            $.post("@Url.Action("Permissions", "Editor")", model, function (data) {
+                clearUserIds();
+                window.location.href = "@Url.Action("Permissions", "Editor", new { Id = articleNumber})";
+            }).fail(function (data) { alert(data); });
+        }
+
+        function saveUserId(userId) {
+            // Avoid duplications
+            if (userIds.indexOf(userId) == -1) {
+                userIds.push(userId);
+            }
+            sessionStorage.setItem("userIds", JSON.stringify(userIds));
+        }
+
+        function removeUserId(userId) {
+            var tmp = userIds.filter(function (value) {
+                return value !== userId
+            });
+            userIds = tmp;
+            sessionStorage.setItem("userIds", JSON.stringify(userIds));
+        }
+
+        function reloadUserIds() {
+            let data = sessionStorage.getItem("userIds");
+            if (typeof (data) === "undefined" || data === null || data === "") {
+                userIds = [@(Html.Raw(string.Join(",", articlePermissions.Select(s => "'" + s.IdentityObjectId + "'").ToArray())))]
+            } else {
+                userIds = JSON.parse(data);
+            }
+        }
+
+        function clearUserIds() {
+            userIds = [];
+            sessionStorage.removeItem("userIds");
+        }
+
+        function getUserId(checkbox) {
+            return $(checkbox).attr("data-ccms-userid");
+        }
+
+        function resetButtons() {
+
+            // Get the array length
+            let arrayLength = userIds.length;
+
+            if (arrayLength > 0) {
+                $("#btnClearUsers").show();
+                $("#btnDeleteUsers").show();
+                $("#btnAddRemoveRoles").hide();
+            } else {
+                $("#btnClearUsers").hide();
+                $("#btnDeleteUsers").hide();
+                $("#btnAddRemoveRoles").hide();
+            }
+
+        }
+
+    </script>

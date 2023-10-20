@@ -1,0 +1,14 @@
+﻿@page
+@model ConfirmEmailModel
+@{
+    ViewData["Title"] = "Confirm email";
+    Html.ViewContext.ViewBag.BrowserTitle = "Confirm email";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<p>@Model.StatusMessage</p>
+
+<p>To continue, please click the login button below.</p>
+
+<a asp-controller="Home" asp-action="Index" class="btn btn-primary">Login</a>

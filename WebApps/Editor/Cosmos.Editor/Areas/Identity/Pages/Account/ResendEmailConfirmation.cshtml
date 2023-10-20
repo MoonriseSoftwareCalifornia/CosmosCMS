@@ -1,0 +1,65 @@
+﻿@page
+@using SendGrid
+@using System.Net
+@model ResendEmailConfirmationModel
+@{
+    ViewData["Title"] = "Resend email confirmation";
+    Html.ViewContext.ViewBag.BrowserTitle = "Resend email confirmation";
+}
+
+<h1>@ViewData["Title"]</h1>
+<hr/>
+<div class="row">
+    @if (ViewData["SendGridResponse"] != null)
+    {
+        var response = (Response) ViewData["SendGridResponse"];
+        <div class="col-md-6">
+            @if (response.StatusCode == HttpStatusCode.Accepted || response.StatusCode == HttpStatusCode.OK)
+            {
+                <h4>Confirmation Email Sent</h4>
+                <p>Our email provider reports that the confirmation email has been sent.</p>
+                <p>If you did not receive an email, please check the following:</p>
+                <ul>
+                    <li>
+                        <p>Check your junk email folder for an email from us.</p>
+                    </li>
+                    <li>
+                        <p>
+                            Please make sure your email system will allow delivery of email from: <br/>
+                            no-reply@state.ca.gov.
+                        </p>
+                    </li>
+                </ul>
+            }
+            else
+            {
+                <h4>Problem Sending Confirmation Email</h4>
+                <p>
+                    Our email provider reports that there is a problem sending email.
+                    Please contact us, and let us know what Email address you used.
+                </p>
+                <p>We apologize for the inconvenience.</p>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="col-md-6">
+            <h4>Enter your email.</h4>
+            <form method="post">
+                <div asp-validation-summary="All" class="text-danger"></div>
+                <div class="form-group">
+                    <label asp-for="Input.Email"></label>
+                    <input asp-for="Input.Email" class="form-control"/>
+                    <span asp-validation-for="Input.Email" class="text-danger"></span>
+                </div>
+                <button type="submit" class="btn btn-primary">Resend</button>
+            </form>
+        </div>
+    }
+</div>
+
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial"/>
+}

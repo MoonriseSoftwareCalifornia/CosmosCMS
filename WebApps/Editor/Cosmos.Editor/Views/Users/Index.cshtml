@@ -1,0 +1,356 @@
+﻿@model List<UserIndexViewModel>
+@inject UserManager<IdentityUser> _userManager
+@using Microsoft.AspNetCore.Identity;
+@{
+    ViewData["Title"] = "User Account Inventory";
+
+    var rowCount = (int)ViewData["RowCount"];
+    var sortOrder = (string)ViewData["sortOrder"];
+    var currentSort = (string)ViewData["currentSort"];
+    var pageNumber = (int)ViewData["pageNo"];
+    var pageSize = (int)ViewData["pageSize"];
+    var user = _userManager.GetUserAsync(User).Result;
+
+    var pagerModel = new GridPagerPartialViewModel(pageNumber, rowCount, pageSize, sortOrder, currentSort, "/Users/Index");
+
+}
+
+<style>
+    .fa-shield {
+        padding-right: 4px;
+    }
+</style>
+
+<div class="pt-3">
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <h3 class="text-light">@ViewData["Title"]</h3>
+                <div asp-validation-summary="All" class="text-danger"></div>
+            </div>
+        </div>
+        <div class="row cpws-table-pager-row-top">
+            <div class="col-md-6">
+                <div class="btn-group" role="group" aria-label="Page Actions">
+                    <a class="btn btn-sm btn-primary" asp-action="Create" title="Create a user account.">New User <i class="fa-solid fa-circle-arrow-right"></i></a>
+                    <a class="btn btn-sm btn-secondary" asp-action="Index" asp-controller="Roles" title="Manage roles created to limit access to specific web pages here.">Role List <i class="fa-solid fa-circle-arrow-right"></i></a>
+                    <a class="btn btn-sm btn-secondary" asp-action="AuthorInfos" asp-controller="Users" title="Public information about article editors and authors.">Author Infos <i class="fa-solid fa-circle-arrow-right"></i></a>
+                </div>
+                <div class="btn-group" role="group" aria-label="Page Actions">
+                    <button id="btnAddRemoveRoles" type="button" onclick="submitUserIds('roles')" class="btn btn-sm btn-secondary" title="Add or remove users from roles." style="display:none">Roles</button>
+                    <button id="btnDeleteUsers" type="button" data-bs-toggle="modal" data-bs-target="#modalConfDelete" class="btn btn-sm btn-secondary" title="Delete users" style="display:none">Delete</button>
+                    <button id="btnClearUsers" type="button" onclick="submitUserIds('clear')" class="btn btn-sm btn-secondary" title="Clear selected users." style="display:none">Clear</button>
+                </div>
+            </div>
+            <div class="col-md-6 d-flex justify-content-end">
+                <partial name="~/Views/Shared/GridPager/_GridPager.cshtml" model="pagerModel"></partial>
+            </div>
+        </div>
+        <div class="row bg-dark">
+            <div class="col-md-12">
+                <div class="table-responsive custom-table-responsive">
+                    <table class="table custom-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">
+                                    Select
+                                </th>
+                                <th scope="col">
+
+                                </th>
+                                <th scope="col">
+
+                                </th>
+                                <th scope="col">
+                                    Email Address
+                                </th>
+                                <th scope="col">
+                                    Role membership
+                                </th>
+                                <th scope="col">
+                                    Phone Number
+                                </th>
+                                <th scope="col">
+                                    2FA Status
+                                </th>
+                                <th>
+                                    Password Reset
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var row in Model)
+                            {
+                                <tr scope="row">
+                                    <td scope="row" style="width:80px;">
+                                        @if (!row.RoleMembership.Contains("Administrators"))
+                                        {
+                                            <div class="form-check">
+                                                <input class="form-check-input gridCheckBox" data-ccms-userid='@row.UserId' type="checkbox">
+                                                <label class="form-check-label">
+                                                    Select
+                                                </label>
+                                            </div>
+                                        }
+                                    </td>
+                                    <td style="width:30px;">
+                                        <button title='Role assignments.' type='button' onclick="manageRoles('@row.UserId')" class='btn btn-sm btn-secondary'><i class="fa-solid fa-users"></i></button>
+                                    </td>
+                                    <td style="width:30px;">
+                                        <button title='Resend verification email.' type='button' onclick="resendEmail('@row.UserId')" class='btn btn-sm'><i class='fas fa-envelope'></i></button>
+                                    </td>
+                                    <td>
+                                        <span class="text-light">@row.EmailAddress</span>
+                                        @if (row.EmailConfirmed)
+                                        {
+                                            <small class="d-block"><span class="badge badge-primary"> (confirmed) </span></small>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span>@(string.Join(", ", row.RoleMembership))</span>
+                                    </td>
+                                    <td>
+                                        @row.PhoneNumber
+                                        @if (row.PhoneNumberConfirmed)
+                                        {
+                                            <br />
+                                            <small class="d-block"><span class="badge badge-primary"> (confirmed) </span></small>
+                                        }
+                                    </td>
+                                    <td style="width:142px;">
+                                        @if (row.TwoFactorEnabled)
+                                        {
+                                            <div class="btn btn-sm btn-success"> 2FA On <i class="fa-solid fa-key"></i></div>
+                                        }
+                                        else
+                                        {
+                                            <div class="btn btn-sm btn-danger">OFF</div>
+                                        }
+                                    </td>
+                                    <td style="width:142px;">
+                                        <button title='Send password reset email.' type='button' onclick="resetPasswordRequest('@row.EmailAddress')" class='btn btn-sm btn-warning'><i class="fa-solid fa-paper-plane"></i></button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+        <div class="row cpws-table-pager-row-bottom">
+            <div class="col-md-12 d-flex justify-content-center">
+                <partial name="~/Views/Shared/GridPager/_GridPager.cshtml" model="pagerModel"></partial>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form id="frmUserIds" asp-action="Index" asp-controller="Roles" method="post">
+    @Html.AntiForgeryToken()
+    <input id="userIds" name="userIds" type="hidden" />
+</form>
+
+<div class="modal fade mt-5" id="modalConfDelete" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-light">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete User(s)</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete user(s)?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel Delete</button>
+                <button type="button" class="btn btn-primary" onclick="submitUserIds('delete')" data-bs-dismiss="modal">Confirm Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    let userIds = [];
+
+    function manageRoles(userId) {
+        window.location = "@Url.Action("UserRoles")/" + userId;
+    }
+
+    function resendEmail(userId) {
+        $.post(
+            "@Url.Action("ResendEmailConfirmation")/" + userId,
+            function (data) {
+                if (data.Success) {
+                    alert("Email confirmation sent.");
+                } else {
+                    alert("Error: " + data.Error);
+                }
+            }
+        );
+    }
+
+    function resetPasswordRequest(emailAddress) {
+        $.get("@Url.Action("SendPasswordReset")?emailAddress=" + emailAddress, function (data) {
+            alert("Password reset sent to: " + emailAddress + ".");
+        });
+    }
+
+    function submitUserIds(action) {
+
+        let data = sessionStorage.getItem("userIds");
+
+        $("#userIds").val(JSON.parse(data));
+
+        switch (action) {
+            case "delete":
+                $("#frmUserIds").attr("action", "/Users/DeleteUsers");
+                $("#frmUserIds").submit();
+                break;
+            case "clear":
+                clearUserIds();
+                $(".gridCheckBox").each(function (index, element) {
+                    $(element).prop('checked', false);
+                    cwpsSelectTableRow(element, false);
+                });
+                resetButtons();
+                break;
+        }
+
+    }
+
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "Errors:\n";
+            $.each(e.errors,
+                function (key, value) {
+                    if ('errors' in value) {
+                        $.each(value.errors,
+                            function () {
+                                message += this + "\n";
+                            });
+                    }
+                });
+            alert(message);
+        }
+    }
+
+    function onEdit(e) {
+        $("#spanChangeNotice").show();
+    }
+
+    function saveUserId(userId) {
+        // Avoid duplications
+        if (userIds.indexOf(userId) == -1) {
+            userIds.push(userId);
+        }
+        sessionStorage.setItem("userIds", JSON.stringify(userIds));
+    }
+
+    function removeUserId(userId) {
+        var tmp = userIds.filter(function (value) {
+            return value !== userId
+        });
+        userIds = tmp;
+        sessionStorage.setItem("userIds", JSON.stringify(userIds));
+    }
+
+    function reloadUserIds() {
+        let data = sessionStorage.getItem("userIds");
+        if (typeof (data) === "undefined" || data === null || data === "") {
+            userIds = []
+        } else {
+            userIds = JSON.parse(data);
+        }
+    }
+
+    function clearUserIds() {
+        userIds = [];
+        sessionStorage.removeItem("userIds");
+    }
+
+    function getUserId(checkbox) {
+        return $(checkbox).attr("data-ccms-userid");
+    }
+
+    $(document).ready(function () {
+
+        $("body").addClass("cwps-editor-container");
+
+        reloadUserIds();
+
+        resetButtons();
+
+        $(".gridCheckBox").each(function (index, element) {
+
+            if ((userIds.indexOf(getUserId(element)) > -1)) {
+                $(element).prop('checked', true);
+                cwpsSelectTableRow(element, true);
+            }
+
+            $(element).on("change", function () {
+
+                let userId = getUserId(element);
+
+                let isChecked = $(element).prop('checked');
+
+                if (isChecked) {
+                    saveUserId(userId);
+                } else {
+                    removeUserId(userId);
+                }
+
+                resetButtons();
+
+            });
+        });
+
+    });
+
+    function resetButtons() {
+
+        // Get the array length
+        let arrayLength = userIds.length;
+
+        if (arrayLength > 0) {
+            $("#btnClearUsers").show();
+            $("#btnDeleteUsers").show();
+            $("#btnAddRemoveRoles").hide();
+        } else {
+            $("#btnClearUsers").hide();
+            $("#btnDeleteUsers").hide();
+            $("#btnAddRemoveRoles").hide();
+        }
+
+    }
+
+    $(document).ready(function () {
+
+        $(".gridCheckBox").each(function (index, element) {
+
+            if ((userIds.indexOf(getUserId(element)) > -1)) {
+                $(element).prop('checked', true);
+            }
+
+            $(element).on("change", function () {
+
+                let userId = getUserId(element);
+
+                let isChecked = $(element).prop('checked');
+
+                if (isChecked) {
+                    saveUserId(userId);
+                    cwpsSelectTableRow(element, true);
+                } else {
+                    removeUserId(userId);
+                    cwpsSelectTableRow(element, false);
+                }
+
+                resetButtons();
+
+            });
+        });
+
+    });
+
+</script>

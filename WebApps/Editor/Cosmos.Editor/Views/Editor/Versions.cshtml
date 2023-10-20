@@ -1,0 +1,273 @@
+﻿@using Cosmos.Cms.Services
+@model List<ArticleVersionViewModel>
+@{
+    // /Views/Editor/Versions
+    ViewData["Title"] = @ViewData["ArticleTitle"] + "Page Versions";
+    var isReviewer = User.IsInRole("Reviewers");
+    var isAuthor = User.IsInRole("Authors");
+
+    var rowCount = (int)ViewData["RowCount"];
+    var sortOrder = (string)ViewData["sortOrder"];
+    var currentSort = (string)ViewData["currentSort"];
+    var pageNumber = (int)ViewData["pageNo"];
+    var pageSize = (int)ViewData["pageSize"];
+    var articleNumber = (int)ViewData["articleNumber"];
+    var lastVersion = (int)ViewData["LastVersion"];
+
+    var pagerModel = new GridPagerPartialViewModel(pageNumber, rowCount, pageSize, sortOrder, currentSort, "/Editor/Versions/" + articleNumber);
+
+    var currentVersion = (int?)ViewData["CurrentVersion"];
+}
+<div class="pt-3">
+    <div class="container mt-3">
+        <div class="row">
+            <div class="col-md-8 text-light">
+                <h3>Versions for: &quot;/@ViewData["ArticleTitle"]&quot;</h3>
+            </div>
+            <div class="col-md-4 d-flex justify-content-end">
+                @if (!isReviewer && !isAuthor)
+                {
+                    <a href='/Editor/Permissions/@articleNumber' title='Set access permissions for users and roles.' id="btnArticleAccess" class='btn btn-secondary'><i class="fa-solid fa-users"></i></a>
+                }
+            </div>
+        </div>
+        <div class="row cpws-table-pager-row-top ">
+            <div class="col-md-6">
+                <div class="btn-group" role="group" aria-label="Page Actions">
+                    @if (!isReviewer)
+                    {
+                        <a id="btnNewVersion" class="btn btn-sm btn-success" title="New draft created from the latest version." asp-action="CreateVersion" asp-route-id="@ViewData["ArticleId"]">New Draft</a>
+                        <button id="btnCompare" class="btn btn-sm btn-secondary" title="Compare two versions." type="button" disabled>Compare</button>
+                        <button id="btnClear" class="btn btn-sm btn-secondary" title="Clear selection." type="button" disabled>Clear</button>
+                        <a title="Return to page list" class="btn btn-sm btn-secondary" href="@Url.Action("Index")">Page list <i class="fa-solid fa-circle-arrow-right"></i></a>
+                    }
+                </div>
+            </div>
+            <div class="col-md-6 d-flex justify-content-end">
+                <partial name="~/Views/Shared/GridPager/_GridPager.cshtml" model="pagerModel"></partial>
+            </div>
+        </div>
+
+        <div class="row bg-dark">
+            <div class="col-md-12">
+                <div class="table-responsive custom-table-responsive">
+                    <table class="table custom-table">
+                        <thead>
+                            <tr>
+                                <th scope="col"></th>
+                                <th scope="col">Select</th>
+                                <th scope="col">#</th>
+                                <th scope="col">Actions</th>
+                                <th scope="col">Updated</th>
+                                <th scope="col">Published</th>
+                                <th scope="col">Expires</th>
+                                <th scope="col">Edited by</th>
+                                <th scope="col">Promote</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var row in Model)
+                            {
+                                <tr scope="row">
+                                    <td scope="row">
+                                        @if (currentVersion != null & currentVersion == row.VersionNumber)
+                                        {
+                                            <div type='button' class='btn btn-sm btn-primary'>Now editing <span class='badge text-bg-secondary'><i class='fa-solid fa-right-long'></i></span></div>
+                                        }
+                                    </td>
+                                    <td scope="row" style="min-width:80px;">
+                                        <div class="form-check">
+                                            <input class="form-check-input gridCheckBox" data-ccms-id='@row.Id' type="checkbox">
+                                            <label class="form-check-label">
+                                                Select
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td scope="row" style="min-width:80px;">
+                                        v.@row.VersionNumber
+                                    </td>
+                                    <td scope="row" style="width:260px">
+                                        <div class="btn-group" role="group" aria-label="Version actions">
+                                            <a class='btn btn-sm btn-secondary' title='Preview' onclick='openPreview(@articleNumber, @row.VersionNumber)'><i class='fas fa-search'></i> Preview</a>
+                                            @if (lastVersion == row.VersionNumber && isReviewer == false)
+                                            {
+                                                @if (isAuthor == false)
+                                                {
+                                                    <a class='btn btn-sm btn-secondary' title='Edit with the code editor' href='/Editor/EditCode/@articleNumber'><img src="/images/monaco-vscode-logo.png" height="14" /> Code</a>
+                                                }
+                                                else
+                                                {
+                                                    <span></span>
+                                                }
+                                                @if (row.UsesHtmlEditor)
+                                                {
+                                                    <a class='btn btn-sm btn-secondary' title="Edit with the live (WYSIWYG) editor" href='/Editor/Edit/@articleNumber'><img src="/images/ckeditor-5-proj-logo.svg" height="18" /> Live</a>
+                                                }
+                                                else
+                                                {
+                                                    <span></span>
+                                                }
+                                            }
+                                            @* @if (isReviewer)
+                                            {
+                                                <a class='btn btn-sm btn-secondary' title='Export version' href='/Editor/ExportPage/@row.Id'><i class='fa-solid fa-cloud-arrow-down'></i></a>
+                                            } *@
+                                        </div>
+                                    </td>
+                                    <td scope="row">
+                                        <div class='toLocalTimeZone'>@row.Updated</div>
+                                    </td>
+                                    <td scope="row">
+                                        <div class='toLocalTimeZone'>@row.Published</div>
+                                    </td>
+                                    <td scope="row">
+                                        <div class='toLocalTimeZone'>@row.Expires</div>
+                                    </td>
+                                    <td scope="row">
+                                        <div class='toLocalTimeZone'>@row.UserId</div>
+                                    </td>
+                                    <td scope="row" style="width:30px">
+                                        @if ((isAuthor && row.Published != null) || (isReviewer))
+                                        {
+                                            <span></span>
+                                        }
+                                        else
+                                        {
+                                            <a class='btn btn-sm btn-secondary' title='Promote this version to the latest version and put it in edit mode' href='/Editor/CreateVersion?id=@ViewData["ArticleId"]&entityId=@row.Id'><i class='fa fa-arrow-circle-up'></i></a>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="row cpws-table-pager-row-bottom">
+            <div class="col-md-12 d-flex justify-content-center">
+                <partial name="~/Views/Shared/GridPager/_GridPager.cshtml" model="pagerModel"></partial>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <a title="Return to page list" class="btn btn-sm btn-secondary mt-2" href="@Url.Action("Index")">Page list <i class="fa-solid fa-circle-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+
+    let ids = [];
+
+    function getId(checkbox) {
+        return $(checkbox).attr('data-ccms-id');
+    }
+
+    function openPreview(articleNumber, versionNumber) {
+        window.open("/Home/Preview?articleNumber=" + articleNumber + "&versionNumber=" + versionNumber);
+    }
+
+    function saveId(id) {
+        // Avoid duplicates
+        if (ids.indexOf(id) == -1) {
+            ids.push(id);
+        }
+        sessionStorage.setItem("ids", JSON.stringify(ids));
+    }
+
+    function removeId(id) {
+        var tmp = ids.filter(function (value) {
+            return value !== id;
+        });
+        ids = tmp;
+        sessionStorage.setItem("ids", JSON.stringify(ids));
+    }
+
+    function clearIds() {
+        ids = [];
+        sessionStorage.removeItem("ids");
+    }
+
+    // Reload selected ids from local storage
+    function reloadIds() {
+        var data = sessionStorage.getItem("ids");
+
+        if (typeof (data) === "undefined" || data === null || data === "") {
+            ids = [];
+        } else {
+            ids = JSON.parse(data);
+        }
+    }
+
+    function resetButtons() {
+
+        $(".gridCheckBox").each(function (index, element) {
+
+            var id = getId(element);
+
+            if ($(element).is(':checked')) {
+                saveId(id);
+            } else {
+                removeId(id);
+            }
+
+        });
+
+        // Get the array length
+        var arrayLength = ids.length;
+
+        if (arrayLength > 0) {
+            $("#btnClear").prop('disabled', false);
+        } else {
+            $("#btnClear").prop('disabled', true);
+        }
+
+        if (arrayLength === 2) {
+            $("#btnCompare").prop('disabled', false);
+        } else {
+            $("#btnCompare").prop('disabled', true);
+        }
+
+    }
+
+
+    $(document).ready(function () {
+
+        $("body").addClass("cwps-editor-container");
+
+        $(".toLocalTimeZone").each(function (index, element) {
+            $(element).html(getLocalTime($(element).html()));
+        });
+
+        $(".gridCheckBox").each(function (index, element) {
+
+            var id = getId(element);
+
+            if ((ids.indexOf(id) > -1)) {
+                $(element).prop('checked', true);
+            }
+
+            $(element).on("change", function () {
+
+                resetButtons();
+            });
+
+        });
+
+        $("#btnClear").click(function () {
+            $(".gridCheckBox").each(function (index, element) {
+                $(element).prop('checked', false);
+            });
+            clearIds();
+            resetButtons();
+        });
+
+
+        $("#btnCompare").click(function () {
+            reloadIds();
+            window.location.href = "/Editor/Compare?leftId=" + ids[0] + "&rightId=" + ids[1];
+        });
+    });
+</script>

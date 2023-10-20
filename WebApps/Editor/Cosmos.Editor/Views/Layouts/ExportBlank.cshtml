@@ -1,0 +1,57 @@
+﻿@using Cosmos.Cms.Services
+@using Microsoft.Extensions.Options;
+@using Cosmos.Cms.Common.Services.Configurations
+@using Cosmos.Cms.Controllers
+@inject IOptions<CosmosConfig> options
+@model ArticleViewModel
+@{
+    Layout = "_LayoutBlank";
+    ViewData["Title"] = Model.Title;
+}
+
+@Html.Raw(LayoutImportConstants.COSMOS_BODY_HEADER_START)
+<cosmos-layout-header>
+    <!-- 
+    LAYOUT BODY HEADER SECTION (EDITABLE WITHIN <cosmos-layout-header></cosmos-layout-header>)
+    -----------------------------------------------------------------------------------------------------------------------------
+    If your website is going to have a <NAV> bar or some other content that at the top of every page, then place that content here.
+
+    This is called they "Layout Body Header Section."
+
+    Tips:
+     * This section is optional--Cosmos does not require it.
+     * Some people surround this section with the <HEADER></HEADER> HTML tag, other decide to use <DIV>,<NAV> or something else.
+     * Also keep this section "lean." Only put here what will appear on every page.
+
+    Information on the web about HEADER tag and where to put it:
+     * https://tinyurl.com/5fhypn6f
+
+-->
+</cosmos-layout-header>
+@Html.Raw(LayoutImportConstants.COSMOS_BODY_HEADER_END)
+
+<!-- 
+    PAGE-SPECIFIC BODY CONTENT WILL BE INSERTED HERE BY COSMOS
+-->
+
+@Html.Raw(LayoutImportConstants.COSMOS_BODY_FOOTER_START)
+<cosmos-layout-footer>
+<!-- 
+    LAYOUT BODY FOOTER SECTION (EDITABLE within <cosmos-layout-footer></cosmos-layout-footer>)
+    -----------------------------------------------------------------------------------------------------------------------------
+    If your website is going to have a FOOTER or some other content that at the bottom of every page, then place that content here.
+
+    This is called they "Layout Body Footer Section."
+
+    Tips:
+     * This section is optional--Cosmos does not require it.
+     * Some people surround this section with the <FOOTER></FOOTER> HTML tag, other decide to use <DIV>,<NAV> or something else.
+     * Also keep this section "lean." Only put here what will appear on every page.
+
+-->
+</cosmos-layout-footer>
+@Html.Raw(PageImportConstants.COSMOS_BODY_FOOTER_END)
+
+<!-- 
+    PAGE-SPECIFIC POST-FOOTER CONTENT WILL BE INSERTED HERE BY COSMOS
+-->

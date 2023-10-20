@@ -1,0 +1,61 @@
+﻿@using Microsoft.AspNetCore.Identity
+@model UserRoleAssignmentsViewModel
+@{
+    ViewData["Title"] = "Role Assignments";
+    var roleList = (List<IdentityRole>)ViewData["RoleList"];
+}
+
+<div class="pt-3">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-sm-10">
+                <h1 class="text-light">@ViewData["Title"]</h1>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-sm-10 bg-dark text-light">
+                <form id="registerForm" method="post">
+                    <a class="btn btn-sm btn-secondary" asp-action="Index">Back to users <i class="fas fa-angle-double-right"></i></a>
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                    @Html.HiddenFor(m => m.Id)
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        <label asp-for="Email"></label>
+                        <input asp-for="Email" class="form-control" aria-required="true" readonly />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3" id="pwdField">
+                        <label asp-for="RoleIds"></label>
+                        @foreach (var role in roleList)
+                        {
+                            <div class="form-check">
+
+                                @if (Model.RoleIds != null && Model.RoleIds.Length > 0 && Model.RoleIds.Contains(role.Id))
+                                {
+                                    <input class="form-check-input" type="checkbox" name="RoleIds" value="@role.Id" checked>
+                                }
+                                else
+                                {
+                                    <input class="form-check-input" type="checkbox" name="RoleIds" value="@role.Id">
+                                }
+                                <label class="form-check-label" for="flexCheckDefault">
+                                    @role.Name
+                                </label>
+                            </div>
+                        }
+                        <span asp-validation-for="RoleIds" class="text-danger"></span>
+                    </div>
+
+                    <button id="saveAssignments" type="submit" class="btn btn-sm btn-primary">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $("body").addClass("cwps-editor-container");
+    });
+</script>

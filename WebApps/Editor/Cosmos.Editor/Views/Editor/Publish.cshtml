@@ -1,0 +1,136 @@
+﻿@model ArticleViewModel
+
+@{
+    ViewData["Title"] = "Publish Website";
+}
+<div class="cwps-editor-container pt-3">
+<div class="container pt-2">
+    <div class="row">
+            <div class="col">
+                <h3>Website Publisher</h3>
+                <hr />
+                <p>
+                    Normally web page changes will become public automatically in a couple minutes as
+                    various caching mechanisms check for new content. This is true even for scheduled
+                    publishing of individual web pages.
+                </p>
+                <p>
+                    Allowing this process to happen naturally ensures new content is displayed in a timely manner and overall website
+                    performance is maintained. However there are times when you may want to trigger a site-wide &quot;publish.&quot;
+                </p>
+                <br />
+                <button id="btnPublish" class="btn btn-sm btn-success" onclick="publish()">Publish Website</button>
+           
+                <div style="padding-bottom: 30px; padding-top: 30px;">
+                    <p>
+                        <span class="badge badge-warning">WARNING: </span>
+                        When publishing, websites with large amounts of content may experience temporary performance degradation
+                        as caching mechanisms reload content.
+                    </p>
+                </div>
+                <div class="row" id="msgBox">
+                    <div class="card-group" style="padding-top: 30px;">
+                        <div id="card1" class="card text-white bg-primary mb-4" style="display:none">
+                            <div class="card-header" id="card1header">
+                                <h6 class="card-title">Date/Time Stamps</h6>
+                            </div>
+                            <div class="card-body" id="card1body">
+                                <div>
+                                    Updaing the &quot;last changed&quot; date and time of when each web page is the primary way caching mechanisms know that a page is updated.
+                                </div>
+                                <div id="spinner1" style="display: none">
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <div id="card3" class="card text-white bg-primary mb-4" style="display:none">
+                            <div class="card-header" id="card3header">
+                                <h6 class="card-title">CDN</h6>
+                            </div>
+                            <div class="card-body" id="card3body">
+                                <div>
+                                    C/CMS can integrate with Content Delivery Networks (CDN) to speed up delivery of web content to users.
+                                </div>
+                                <div id="spinner3" style="display: none">
+                                   Working...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="purgeDetails"></div>
+                </div>
+            </div>
+        </div>
+</div>
+</div>
+<script>
+
+    var counter;
+    var count = 61;
+    var second = 1;
+
+    $("#btnStartCountDown").click(function(e) {
+        e.preventDefault();
+        $("#clearDiv").hide();
+        $("#gaugeDiv").show();
+        $("#resultDiv").hide();
+        counter = setInterval(timer, 200); //1000 will  run it every 1 second
+    });
+
+    function change(e) {
+        $("#gauge").data("kendoRadialGauge").value($("#gauge-value").val());
+    }
+
+    function publish(e) {
+
+        $("#card1header").attr("class", "card-header text-white bg-primary");
+        //e.preventDefault();
+        $("#btnPublish").hide();
+        //$("#msgBox").html("<p>Working, please wait .... </p><ul><li>Beginning publishing process...</li></ul>");
+
+        // Start with updating the time stamps of all published articles
+        $.ajax({
+            type: "POST",
+            url: "@Url.Action("UpdateTimeStamps")",
+            success: function(json0) {
+                $("#spinner1").show();
+                $("#spinner2").show();
+                $("#spinner3").show();
+                $("#card1header").attr("class", "card-header text-white bg-secondary");
+                $("#card2header").attr("class", "card-header text-white bg-primary");
+                $("#card1body").html(
+                    "<p>Time stamps for " +
+                    json0 +
+                    " pages updated.</p><br />" +
+                    "<div class='btn btn-large btn-success'><i class='fa fa-check-square-o' aria-hidden='true'></i></div>"
+                );
+                // Now handle CDN
+                $.ajax({
+                    type: "POST",
+                    url: "@Url.Action("FlushCdn")",
+                    success: function(json2) {
+                        //$("#msgBox").html("<p>Finished publishing.</p><ul><li>REDIS Refreshed</li><li>" + json1.Keys.length + " item(s) flushed.</li><li>CDN Result: " + json2.Detail + "</li></ul>");
+
+                        $("#card3header").attr("class", "card-header text-white bg-secondary");
+                        //$("#msgBox").html("<p>Working, please wait .... </p><ul><li>Redis refreshed</li><li>" + json1.Keys.length + " item(s) flushed.</li><li>Refreshing CDN...</li></ul>");
+                        $("#card3body").html(
+                            "<p>" +
+                            " CDN purge will complete in about " +
+                            json2.EstimatedSeconds +
+                            " seconds.</p>" +
+                            "<div class='btn btn-large btn-success'><i class='fa fa-check-square-o' aria-hidden='true'></i></div>"
+                        );
+                        $("#purgeDetails").html("<p>" + json2.Detail + ".</p>")
+                        $("#btnPublish").show();
+                    },
+                    dataType: "json"
+                });
+            }
+        });
+    }
+
+</script>
+
+@{
+    await Html.RenderPartialAsync("_ValidationScriptsPartial");
+}

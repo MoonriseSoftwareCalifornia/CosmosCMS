@@ -1,0 +1,43 @@
+﻿@model ArticleViewModel
+@using Cosmos.Cms.Controllers
+<!DOCTYPE HTML>
+<html lang="@Model.LanguageCode">
+<head>
+@Html.Raw(PageImportConstants.COSMOS_HEAD_START)
+<meta name="cwps-meta-path-title" content="@Model.Title" />
+<meta name="cwps-meta-path-url" content="@Model.UrlPath" />
+<meta name="cwps-meta-path-updated" content="@Model.Updated" />
+<title>@Model.Title</title>
+@Html.Raw(Model.Layout.Head)
+@Html.Raw(PageImportConstants.COSMOS_HEAD_END)
+
+<!--
+    START: ADD YOUR HEAD CONTENT HERE
+    Note: This comment block can be removed.
+-->
+@Html.Raw(Model.HeadJavaScript)
+
+<!--
+    END: ADD YOUR HEAD CONTENT HERE
+    Note: This comment block can be removed.
+-->
+@Html.Raw(PageImportConstants.COSMOS_HEAD_SCRIPTS_START)
+@Html.Raw(PageImportConstants.COSMOS_HEAD_SCRIPTS_END)
+@Html.Raw(JavaScriptSnippet.FullScript)
+</head>
+<body>
+@RenderBody()
+@Html.Raw(PageImportConstants.COSMOS_BODY_END_SCRIPTS_START)
+@await RenderSectionAsync("Scripts", false)
+@Html.Raw(PageImportConstants.COSMOS_BODY_END_SCRIPTS_END)
+@await RenderSectionAsync("Scripts", false)
+<script>
+window.addEventListener("load", () => {
+    if (window.location === window.parent.location) {
+        var query = "@Html.Raw(Context.Request.QueryString)";
+        location.href = "/Home/CcmsContentIndex" + query;
+    }
+});
+</script>
+</body>
+</html>

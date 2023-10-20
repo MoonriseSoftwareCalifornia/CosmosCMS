@@ -1,0 +1,50 @@
+[
+  {
+    "Name": "ExcelDocument",
+    "Size": 12030,
+    "Path": "Documents/ExcelDocument.xlsx",
+    "Extension": ".xlsx",
+    "IsDirectory": false,
+    "HasDirectories": false,
+    "Created": "2020-12-29T22:22:52.9030108+00:00",
+    "CreatedUtc": "2020-12-29T22:22:52.9030108Z",
+    "Modified": "2020-09-23T21:32:58+00:00",
+    "ModifiedUtc": "2020-09-23T21:32:58Z"
+  },
+  {
+    "Name": "SamplePDF",
+    "Size": 327808,
+    "Path": "Documents/SamplePDF.pdf",
+    "Extension": ".pdf",
+    "IsDirectory": false,
+    "HasDirectories": false,
+    "Created": "2020-12-29T22:22:52.9030108+00:00",
+    "CreatedUtc": "2020-12-29T22:22:52.9030108Z",
+    "Modified": "2020-09-23T21:32:58+00:00",
+    "ModifiedUtc": "2020-09-23T21:32:58Z"
+  },
+  {
+    "Name": "Text",
+    "Size": 0,
+    "Path": "Documents/Text.txt",
+    "Extension": ".txt",
+    "IsDirectory": false,
+    "HasDirectories": false,
+    "Created": "2020-12-29T22:22:52.9030108+00:00",
+    "CreatedUtc": "2020-12-29T22:22:52.9030108Z",
+    "Modified": "2020-09-23T21:32:58+00:00",
+    "ModifiedUtc": "2020-09-23T21:32:58Z"
+  },
+  {
+    "Name": "WordDocument",
+    "Size": 1128611,
+    "Path": "Documents/WordDocument.docx",
+    "Extension": ".docx",
+    "IsDirectory": false,
+    "HasDirectories": false,
+    "Created": "2020-12-29T22:22:52.9030108+00:00",
+    "CreatedUtc": "2020-12-29T22:22:52.9030108Z",
+    "Modified": "2020-09-23T21:32:58+00:00",
+    "ModifiedUtc": "2020-09-23T21:32:58Z"
+  }
+]

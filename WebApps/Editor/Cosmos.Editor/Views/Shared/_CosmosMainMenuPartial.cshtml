@@ -1,0 +1,244 @@
+﻿@model ArticleViewModel
+@inject IOptions<CosmosConfig> options
+@using System.Reflection
+@using Cosmos.Cms.Common.Services.Configurations;
+@using Microsoft.Extensions.Options;
+@{
+    var assemblyName = Assembly.GetExecutingAssembly().GetName();
+    var isEditor = false;
+    var isAdministrator = false;
+    var isAuthor = false;
+    var isReviewer = false;
+
+    if (User != null && User.IsInRole("Editors"))
+    {
+        isEditor = true;
+    }
+
+    if (User != null && User.IsInRole("Administrators"))
+    {
+        isAdministrator = true;
+    }
+
+    if (User != null && User.IsInRole("Authors"))
+    {
+        isAuthor = true;
+    }
+
+    if (User != null && User.IsInRole("Reviewers"))
+    {
+        isReviewer = true;
+    }
+
+    var assemblyVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+}
+<nav id="ccmsNavMenu" class="navbar navbar-expand-sm navbar-dark bg-dark" style="z-index: 20000000;">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">
+            <img src="~/images/logos/logo-white.png" height="30" />
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                @if(User != null && User.Identity != null && (isAdministrator || isEditor || isAuthor || isReviewer))
+                {
+                    <li class="nav-item dropdown">
+                        <a id="btnManage" href="#" role="button" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            Menu
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark" id="ddManageMenu">
+                            <li>
+                                <a class="dropdown-item" title="List of pages on this website." href="/Editor/Index">Pages</a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" title="Open files stored on this website." href="/FileManager/Index">File Manager</a>
+                            </li>
+                            @if (isAdministrator || isEditor)
+                            {
+                                <li>
+                                    <a class="dropdown-item" title="Manage page templates" href="/Templates/Index">Templates</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" title="Manage layouts" href="/Layouts/Index">Site Design</a>
+                                </li>
+                            }
+                            <li>
+                                <a id="btnPublicWebsite" class="dropdown-item" title="Open public (publisher) website" href="" target="_blank">Public Website</a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li style="display:none">
+                                <a class="dropdown-item" title="Internal (non-public) file storage." href="/Code/Index">Internal Files</a>
+                            </li>
+                            @if (isAdministrator || isEditor)
+                            {
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" title="Manage user accounts." href="/Users/Index">Users</a>
+                                </li>
+                            }
+                        </ul>
+                    </li>
+                }
+                @if (Model != null && isReviewer != true)
+                {
+                    <li id="editorDropDown" class="nav-item dropdown" style="display: none;">
+                        <a id="navbarEditDropdown" onclick="loadDdEditMenu()" data-ccms-urlpath="@Model.UrlPath" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Edit
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark" id="ddEditMenu">
+                            <li><a class="dropdown-item" href="#">Choose version to edit:</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                        </ul>
+                    </li>
+                }
+                <li class="nav-item"><span title="Cosmos Version" class="nav-link text-mute">@assemblyVersion.ToString()</span></li>
+                @if (Context.Request.Path.Equals("/home/preview", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    <li class="nav-item"><a class="btn btn-sm btn-primary mt-2" title="Close preview" href="javascript:closePreview()">Close Preview</a></li>
+                }
+            </ul>
+
+            <div class="d-flex">
+                <partial name="_LoginPartial" />
+            </div>
+        </div>
+    </div>
+</nav>
+<script>
+
+    var isAuthor = @(isAuthor.ToString().ToLower());
+
+    function closePreview() {
+        if (window.opener) {
+            window.close();
+        } else {
+            location.href = "/Editor/Versions/@Context.Request.Query["ArticleNumber"]";
+        }
+    }
+
+    function loadDdEditMenu() {
+        const ddMenu = $("#ddEditMenu");
+
+        ddMenu.html("Loading...");
+
+        //var urlPath = $("#navbarEditDropdown").attr("data-ccms-urlpath");
+
+        const iframe = document.getElementById("iFrameWebPage");
+        const iframeWin = iframe.contentWindow || iframe.contentDocument.parentWindow;
+
+        const urlPath = iframeWin.ccmsUrlPath;
+
+        let loadList = @((Model != null).ToString().ToLower());
+
+        let showEditDropDown = false;
+
+        if (loadList) {
+            $.get("/Home/EditList?target=" + urlPath, function (data) {
+
+                ddMenu.html("");
+                $.each(data, function (index, element) {
+                    var div = "<li>";
+                    div += "<div class='dropdown-item'>";
+
+                    div += "<div class='btn-group btn-group-sm' role='group'>";
+
+                    // if (element.UsesHtmlEditor === true) {
+                    //     div += "<a class='btn btn-sm btn-secondary' title='Use the live view editor' href='/Editor/Edit/" + element.ArticleNumber + "' style='width:90px;'>";
+                    // } else if (isAuthor === false) {
+                    //     div += "<a class='btn btn-sm btn-secondary' title='Code editor' href='/Editor/EditCode/" + element.ArticleNumber + "' style='width:90px;'>";
+                    // }
+
+                    if (element.Published === null && element.Published !== "") {
+                        div += "<span class='badge text-bg-secondary'>v." + element.VersionNumber + " DRAFT</span>";
+                    } else {
+
+                        var pDate = new Date(element.Published);
+                        var today = new Date();
+
+                        if (pDate > today) {
+                            div += "<span class='badge text-bg-primary'>v." + element.VersionNumber + " Future</span>";
+                        } else {
+                            div += "<span class='badge text-bg-success'>v." + element.VersionNumber + " Published</span>";
+                        }
+
+                    }
+
+                    div += "</a>";
+
+                    if (isAuthor === false) {
+                        showEditDropDown = true;
+                        div += "<a class='btn btn-sm btn-secondary' title='Code editor' href='/Editor/EditCode/" + element.ArticleNumber + "'><img src='/images/monaco-vscode-logo.png' height='22' />  Code editor</a>";
+                    }
+
+                    if (element.UsesHtmlEditor === true) {
+                        showEditDropDown = true;
+                        div += "<a class='btn btn-sm btn-secondary' title='Live editor' href='/Editor/Edit/" + element.ArticleNumber + "'><img src='/images/ckeditor-5-proj-logo.svg' height='22' /> Live editor</a>";
+                    } else {
+                        div += "<a class='btn btn-sm btn-secondary' href='#' style='width:109px;'></a>";
+                    }
+                    div += "</div>";
+                    div += "</div>";
+                    div += "</li>";
+                    ddMenu.append(div);
+                });
+
+
+                var endDiv = "<li><hr class='dropdown-divider'></li>";
+                endDiv += "<a class='btn btn-sm btn-secondary ms-3' href='/Editor/Versions/" + data[0].ArticleNumber + "' class='dropdown-item'>All versions <i class='fa-solid fa-circle-right'></i></a>";
+                ddMenu.append(endDiv);
+
+                if (showEditDropDown) {
+                    $("#editorDropDown").show();
+                } else {
+                    $("#editorDropDown").hide();
+                }
+            });
+        }
+    }
+
+    function closeDropDowns() {
+        $("#navbarEditDropdown").removeClass("show");
+        $("#ddEditMenu").removeClass("show");
+        $("#btnManage").removeClass("show");
+        $("#ddManageMenu").removeClass("show");
+    }
+
+    $(document).ready(function () {
+        setPublicSiteUrl();
+    });
+
+    function setPublicSiteUrl() {
+
+        let publicBaseUrl = "@options.Value.SiteSettings.PublisherUrl.TrimEnd('/')";
+
+        const iframe = document.getElementById("iFrameWebPage");
+
+        if (typeof iframe !== "undefined" && iframe !== null) {
+            var url = new URL(iframe.src);
+            publicBaseUrl += url.pathname + url.search + url.hash;
+        }
+
+        $("#btnPublicWebsite").attr("href", publicBaseUrl);
+    }
+</script>
+
+<!-- Modal -->
+<div class="mt-5 modal fade" id="modalContactUs" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-secondary" style="height:700px;">
+            <div class="modal-body">
+                <iframe id="iframeContactSupport" style="position: absolute; height: 100%; width:90%; border: none"></iframe>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $("#btnGetHelp").click(function () {
+        $("#iframeContactSupport").attr("src", "/Ccms__ContactUs/Index");
+    });
+</script>

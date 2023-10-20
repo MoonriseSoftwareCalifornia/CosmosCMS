@@ -1,0 +1,68 @@
+﻿@model ConfigureIndexViewModel
+@{
+    ViewData["Title"] = "Website Configuration Check";
+}
+<form id="wizard">
+    <input type="hidden" />
+</form>
+<div class="cwps-editor-container pt-3">
+<div class="container pt-2">
+    <div class="row">
+        <div class="col">
+            <h3>@ViewData["Title"]</h3>
+            <hr />
+            <p>Click the &quot;Check&quot; button below to validate database, file storage, and CDN connection settings.</p>
+            <p>If check is successful, the &quot;Build&quot; button will appear. Click on it to generate the configuration.</p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <button id="btnCheck" type="button" class="btn btn-primary" onclick="btnCheckOnClick(event)">Check</button>
+            <div id="loader1"></div>
+            <button id="btnBuild" type="submit" class="btn btn-sm btn-success" style="display:none">Build</button>
+            <br />
+            <br />
+            <div id="testStatus"></div>
+            <table id="resultsTbl" class="table table-dark" style="width: 100%;display:none;">
+                <thead>
+                    <tr>
+                        <th scope="col">Status</th>
+                        <th scope="col">Service</th>
+                        <th scope="col">Description</th>
+                    </tr>
+                </thead>
+                <tbody id="resultTblBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+</div>
+<script>
+
+    function btnCheckOnClick(e) {
+        e.preventDefault();
+        $("#resultsTbl").show();
+        $("#resultTblBody").html("");
+        $("#testStatus").html("");
+        var data = $("#wizard").serialize();
+
+        var loader = $('#loader1').kendoLoader({
+            themeColor: 'primary'
+        }).data("kendoLoader");
+        loader.setOptions({ type: "converging-spinner" });
+        loader.show();
+
+        chkValid = true; // reset to true.
+
+        callTest("@Url.Action("TestSql", "Setup")", data, "Testing DB connection(s)...");
+        callTest("@Url.Action("TestStorage", "Setup")", data, "Testing storage connection(s)...");
+        callTest("@Url.Action("TestCdn", "Setup")", data, "Testing CDN connection...");
+        callTest("@Url.Action("TestTrans", "Setup")", data, "Testing Google translate connection...");
+        callTest("@Url.Action("TestSendGrid", "Setup")", data, "Testing SendGrid (Email) connection...");
+
+        // Wrap up tests here.
+        loader.hide();
+    }
+
+</script>

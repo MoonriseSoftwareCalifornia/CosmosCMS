@@ -1,0 +1,699 @@
+<?xml version="1.0"?>
+
+<doc>
+	<assembly>
+		<name>Cosmos.Cms</name>
+	</assembly>
+	<members>
+		<!-- Badly formed XML comment ignored for member "F:Cosmos.Cms.Areas.Identity.Pages.Account.Manage.EmailModel._userManager" -->
+		<member
+			name="M:Cosmos.Cms.Controllers.BaseController.Article_Get(System.Nullable{System.Int32},Cosmos.Cms.Common.Controllers.EnumControllerName,System.Boolean,System.Boolean)">
+			<summary>
+				Gets an article or template to edit, or creates a new <see cref="T:CDT.Cosmos.Common.Data.Article" /> if id is null.
+			</summary>
+			<param name="id">Article or Template ID</param>
+			<param name="controllerName"><see cref="T:CDT.Cosmos.Cms.Common.Controllers.EnumControllerName" />Controller Name</param>
+			<param name="editMode"></param>
+			<param name="defaultView"></param>
+			<returns>
+				<para>
+					Using method
+					<see
+						cref="M:CDT.Cosmos.Common.Data.Logic.ArticleLogic.Get(System.Nullable{System.Int32},CDT.Cosmos.Cms.Common.Controllers.EnumControllerName)" />
+					to return an
+					instance of <see cref="T:Microsoft.AspNetCore.Mvc.ViewResult" /> where the model is of type
+					<see cref="T:CDT.Cosmos.Common.Models.ArticleViewModel" />. Additionally:
+				</para>
+				<list type="bullet">
+					<item>
+						ViewData["PageUrls"] set as a list of type <see cref="T:Microsoft.AspNetCore.Mvc.Rendering.SelectListItem" />
+					</item>
+					<item>
+						ViewData["WireFrames"] set as a list of type <see cref="T:Microsoft.AspNetCore.Mvc.Rendering.SelectListItem" />
+					</item>
+					<item>
+						Sets <see cref="P:CDT.Cosmos.Common.Models.ArticleViewModel.EditModeOn" /> to true.
+					</item>
+				</list>
+			</returns>
+			<remarks>
+				Exceptions are logged with <see cref="P:CDT.Cosmos.Cms.Controllers.BaseController.Logger" />.
+			</remarks>
+			<exception cref="M:Microsoft.AspNetCore.Mvc.ControllerBase.Unauthorized"></exception>
+		</member>
+		<member
+			name="M:CDT.Cosmos.Cms.Controllers.BaseController.Article_Post(CDT.Cosmos.Common.Models.ArticleViewModel,CDT.Cosmos.Cms.Common.Controllers.EnumControllerName,System.String)">
+			<summary>
+				Method saves an edit session for an <see cref="T:CDT.Cosmos.Common.Data.Article" /> or
+				<see cref="T:CDT.Cosmos.Common.Data.Template" />.
+			</summary>
+			<param name="model"></param>
+			<param name="controllerName"></param>
+			<param name="blobStorageRoot"></param>
+			<returns></returns>
+			<remarks>
+				<para>
+					This method is used by <see cref="!:EditorController.Edit(ArticleViewModel)" /> and
+					<see cref="T:Microsoft.CodeAnalysis.Differencing.Edit`1" />
+					methods.
+				</para>
+				<para>
+					Data is saved using method
+					<see
+						cref="M:CDT.Cosmos.Cms.Controllers.BaseController.SaveArticleChanges(CDT.Cosmos.Common.Models.ArticleViewModel,CDT.Cosmos.Cms.Common.Controllers.EnumControllerName)" />
+					and the model is reloaded
+					using <see cref="!:Common.Data.Logic.ArticleLogic.Get(int, EnumControllerName)" />.
+				</para>
+			</remarks>
+			<exception cref="M:Microsoft.AspNetCore.Mvc.ControllerBase.Unauthorized"></exception>
+			<exception cref="M:Microsoft.AspNetCore.Mvc.ControllerBase.NotFound"></exception>
+		</member>
+		<member
+			name="M:CDT.Cosmos.Cms.Controllers.BaseController.Article_AjaxPost(CDT.Cosmos.Common.Models.ArticleViewModel,CDT.Cosmos.Cms.Common.Controllers.EnumControllerName,System.String)">
+			<summary>
+				Handles AJAX post of either an <see cref="T:CDT.Cosmos.Common.Data.Article" /> or a
+				<see cref="T:CDT.Cosmos.Common.Data.Template" />.
+			</summary>
+			<param name="model"></param>
+			<param name="controllerName"></param>
+			<param name="blobStorageRoot"></param>
+			<returns>
+				Returns <see cref="T:Microsoft.AspNetCore.Mvc.JsonResult" /> with model being of type
+				<see cref="T:CDT.Cosmos.Cms.Models.SaveResultJsonModel" />.
+			</returns>
+			<remarks>
+				<para>
+					This method is used by
+					<see cref="M:CDT.Cosmos.Cms.Controllers.EditorController.SaveHtml(CDT.Cosmos.Common.Models.ArticleViewModel)" />
+					and
+					<see
+						cref="M:CDT.Cosmos.Cms.Controllers.BaseController.Article_AjaxPost(CDT.Cosmos.Common.Models.ArticleViewModel,CDT.Cosmos.Cms.Common.Controllers.EnumControllerName,System.String)" />
+					methods.
+				</para>
+				<para>
+					Content is saved to the database using
+					<see
+						cref="M:CDT.Cosmos.Cms.Controllers.BaseController.SaveArticleChanges(CDT.Cosmos.Common.Models.ArticleViewModel,CDT.Cosmos.Cms.Common.Controllers.EnumControllerName)" />
+					.
+				</para>
+				<para>
+					Errors are recorded using <see cref="P:CDT.Cosmos.Cms.Controllers.BaseController.Logger" /> and with
+					<see cref="T:Microsoft.AspNetCore.Mvc.ModelBinding.ModelStateDictionary" />.
+				</para>
+			</remarks>
+			<exception cref="M:Microsoft.AspNetCore.Mvc.ControllerBase.Unauthorized"> is returned if not in edit mode.</exception>
+			<exception cref="M:Microsoft.AspNetCore.Mvc.ControllerBase.NotFound"> is returned if post model is null.</exception>
+		</member>
+		<member
+			name="M:CDT.Cosmos.Cms.Controllers.BaseController.ValidateHtml(System.String,System.String,Microsoft.AspNetCore.Mvc.ModelBinding.ModelStateDictionary)">
+			<summary>
+				Server-side validation of HTML.
+			</summary>
+			<param name="fieldName"></param>
+			<param name="inputHtml"></param>
+			<param name="modelState"></param>
+			<returns>HTML content</returns>
+			<remarks>
+				<para>
+					The purpose of this method is to validate HTML prior to be saved to the database.
+					It uses an instance of <see cref="T:HtmlAgilityPack.HtmlDocument" /> to check HTML formatting.
+				</para>
+				<para>
+					Errors are recorded using <see cref="P:CDT.Cosmos.Cms.Controllers.BaseController.Logger" /> and with
+					<see cref="T:Microsoft.AspNetCore.Mvc.ModelBinding.ModelStateDictionary" />.
+				</para>
+			</remarks>
+		</member>
+		<member
+			name="M:CDT.Cosmos.Cms.Controllers.BaseController.SaveArticleChanges(CDT.Cosmos.Common.Models.ArticleViewModel,CDT.Cosmos.Cms.Common.Controllers.EnumControllerName)">
+			<summary>
+				Private, internal method that saves changes to an article.
+			</summary>
+			<param name="model"></param>
+			<param name="controllerName"></param>
+			<returns></returns>
+			<remarks>
+				<para>If a user is a member of the 'Team Members' role, ensures that user has ability to save article.</para>
+				<para>
+					This method is used by
+					<see
+						cref="M:CDT.Cosmos.Cms.Controllers.BaseController.Article_Post(CDT.Cosmos.Common.Models.ArticleViewModel,CDT.Cosmos.Cms.Common.Controllers.EnumControllerName,System.String)" />
+					and the AJAX posting method
+					<see
+						cref="M:CDT.Cosmos.Cms.Controllers.BaseController.Article_AjaxPost(CDT.Cosmos.Common.Models.ArticleViewModel,CDT.Cosmos.Cms.Common.Controllers.EnumControllerName,System.String)" />
+					.
+				</para>
+				<para>
+					If this is an article (or regular page) content being saved, the method
+					<see
+						cref="M:CDT.Cosmos.Common.Data.Logic.ArticleLogic.UpdateOrInsert(CDT.Cosmos.Common.Models.ArticleViewModel,System.String,System.Nullable{System.Int32})" />
+					is used. Saving a template uses method
+					<see
+						cref="M:CDT.Cosmos.Cms.Controllers.BaseController.SaveTemplateChanges(CDT.Cosmos.Common.Models.ArticleViewModel)" />
+					.
+				</para>
+				<para>
+					Errors are recorded using <see cref="P:CDT.Cosmos.Cms.Controllers.BaseController.Logger" /> and with
+					<see cref="P:Microsoft.AspNetCore.Mvc.ControllerBase.ModelState" />.
+				</para>
+			</remarks>
+		</member>
+		<member
+			name="M:CDT.Cosmos.Cms.Controllers.BaseController.SaveTemplateChanges(CDT.Cosmos.Common.Models.ArticleViewModel)">
+			<summary>
+				This private method is used by
+				<see
+					cref="M:CDT.Cosmos.Cms.Controllers.BaseController.SaveArticleChanges(CDT.Cosmos.Common.Models.ArticleViewModel,CDT.Cosmos.Cms.Common.Controllers.EnumControllerName)" />
+				to save a <see cref="T:CDT.Cosmos.Common.Data.Template" />.
+			</summary>
+			<param name="model"></param>
+			<returns>
+				<para>Returns an <see cref="T:CDT.Cosmos.Common.Models.ArticleViewModel" /> where:</para>
+				<para></para>
+				<para>
+					* <see cref="P:CDT.Cosmos.Common.Models.ArticleViewModel.ReadWriteMode" /> is set using
+					<see cref="T:Microsoft.Extensions.Options.IOptions`1" /> injected into
+					<see cref="T:CDT.Cosmos.Cms.Controllers.BaseController" />.
+				</para>
+				<para>
+					Errors are recorded using <see cref="P:CDT.Cosmos.Cms.Controllers.BaseController.Logger" /> and with
+					<see cref="P:Microsoft.AspNetCore.Mvc.ControllerBase.ModelState" />.
+				</para>
+			</returns>
+		</member>
+		<member name="M:CDT.Cosmos.Cms.Controllers.BaseController.LoadMenuIntoViewData">
+			<summary>
+				Not all pages use an <see cref="T:CDT.Cosmos.Common.Models.ArticleViewModel" />, so these pages need menu loaded into view data.
+			</summary>
+			<returns></returns>
+		</member>
+		<member name="M:CDT.Cosmos.Cms.Controllers.EditorController.Create">
+			<summary>
+				Creates a <see cref="T:CDT.Cosmos.Cms.Models.CreatePageViewModel" /> used to create a new article.
+			</summary>
+			<returns></returns>
+		</member>
+		<member name="M:CDT.Cosmos.Cms.Controllers.EditorController.Create(CDT.Cosmos.Cms.Models.CreatePageViewModel)">
+			<summary>
+				Uses
+				<see cref="M:CDT.Cosmos.Common.Data.Logic.ArticleLogic.Create(System.String,System.Nullable{System.Int32})" />
+				to create an <see cref="T:CDT.Cosmos.Common.Models.ArticleViewModel" /> that is saved to
+				the database with
+				<see
+					cref="M:CDT.Cosmos.Common.Data.Logic.ArticleLogic.UpdateOrInsert(CDT.Cosmos.Common.Models.ArticleViewModel,System.String,System.Nullable{System.Int32})" />
+				ready for editing.
+			</summary>
+			<param name="model"></param>
+			<returns></returns>
+		</member>
+		<member
+			name="M:CDT.Cosmos.Cms.Controllers.EditorController.CreateVersion(System.Int32,System.Nullable{System.Int32})">
+			<summary>
+				Creates a new version for an article and redirects to editor.
+			</summary>
+			<param name="id">Article ID</param>
+			<param name="entityId">Entity Id to use as new version</param>
+			<returns></returns>
+		</member>
+		<member name="M:CDT.Cosmos.Cms.Controllers.EditorController.NewHome(System.Int32)">
+			<summary>
+				Creates a <see cref="T:CDT.Cosmos.Cms.Models.CreatePageViewModel" /> used to create a new article.
+			</summary>
+			<returns></returns>
+		</member>
+		<member name="M:CDT.Cosmos.Cms.Controllers.EditorController.Versions(System.Nullable{System.Int32})">
+			<summary>
+				Gets all the versions for an article
+			</summary>
+			<param name="id">Article number</param>
+			<returns></returns>
+		</member>
+		<member name="M:CDT.Cosmos.Cms.Controllers.EditorController.SaveHtml(CDT.Cosmos.Common.Models.ArticleViewModel)">
+			<summary>
+				Saves an article via HTTP POST.
+			</summary>
+			<param name="model"></param>
+			<returns></returns>
+			<remarks>
+			</remarks>
+		</member>
+		<member name="M:CDT.Cosmos.Cms.Controllers.EditorController.EditCode(CDT.Cosmos.Cms.Models.EditCodePostModel)">
+			<summary>
+				Saves the code and html of the page.
+			</summary>
+			<param name="model"></param>
+			<returns></returns>
+			<remarks>
+				This method saves page code to the database.  <see cref="P:CDT.Cosmos.Cms.Models.EditCodePostModel.Content" /> is validated using method
+				<see
+					cref="M:CDT.Cosmos.Cms.Controllers.BaseController.ValidateHtml(System.String,System.String,Microsoft.AspNetCore.Mvc.ModelBinding.ModelStateDictionary)" />
+				.
+				HTML formatting errors that could not be automatically fixed are logged with
+				<see cref="P:Microsoft.AspNetCore.Mvc.ControllerBase.ModelState" /> and
+				the code is not saved in the database.
+			</remarks>
+			<exception cref="T:Microsoft.AspNetCore.Mvc.NotFoundResult"></exception>
+			<exception cref="T:Microsoft.AspNetCore.Mvc.UnauthorizedResult"></exception>
+		</member>
+		<member name="M:CDT.Cosmos.Cms.Controllers.EditorController.Get_Articles(Kendo.Mvc.UI.DataSourceRequest)">
+			<summary>
+				Get list of articles
+			</summary>
+			<param name="request"></param>
+			<returns></returns>
+			<remarks>
+				Note: This method cannot retrieve articles that are in the trash.
+			</remarks>
+		</member>
+		<member name="M:CDT.Cosmos.Cms.Controllers.EditorController.Get_TrashedArticles(Kendo.Mvc.UI.DataSourceRequest)">
+			<summary>
+				Get list of articles that are in the trash bin.
+			</summary>
+			<param name="request"></param>
+			<returns></returns>
+		</member>
+		<member name="M:CDT.Cosmos.Cms.Controllers.FileManagerController.GetTeamsForUser">
+			<summary>
+				Gets the list of teams for the current logged in user.
+			</summary>
+			<returns></returns>
+		</member>
+		<member name="M:CDT.Cosmos.Cms.Controllers.FileManagerController.EnsureRootFoldersExist">
+			<summary>
+				Makes sure all root folders exist.
+			</summary>
+			<returns></returns>
+		</member>
+		<member name="M:CDT.Cosmos.Cms.Controllers.FileManagerController.UrlEncode(System.String)">
+			<summary>
+				Encodes a URL
+			</summary>
+			<param name="path"></param>
+			<returns></returns>
+			<remarks>
+				For more information, see
+				<a
+					href="https://docs.microsoft.com/en-us/rest/api/storageservices/Naming-and-Referencing-Containers--Blobs--and-Metadata#blob-names">
+					documentation
+				</a>
+				.
+			</remarks>
+		</member>
+		<member
+			name="M:CDT.Cosmos.Cms.Controllers.FileManagerController.Create(System.String,Kendo.Mvc.UI.FileManagerEntry,System.Nullable{System.Int32})">
+			<summary>
+				Creates a new entry, using relative path-ing, and normalizes entry name to lower case.
+			</summary>
+			<param name="target"></param>
+			<param name="entry"></param>
+			<param name="teamId"></param>
+			<returns><see cref="T:Microsoft.AspNetCore.Mvc.JsonResult" />(<see cref="T:Kendo.Mvc.UI.FileManagerEntry" />)</returns>
+			<remarks>
+				Uses
+				<see
+					cref="M:CDT.Cosmos.Cms.Controllers.FileManagerController.GetFileManagerEntry``1(``0,System.Boolean,System.Nullable{System.Int32})" />
+				to build the file manager entry.
+			</remarks>
+		</member>
+		<member
+			name="M:CDT.Cosmos.Cms.Controllers.FileManagerController.Destroy(Kendo.Mvc.UI.FileManagerEntry,System.Nullable{System.Int32})">
+			<summary>
+				Deletes a folder, normalizes entry to lower case.
+			</summary>
+			<param name="entry">Item to delete using relative path</param>
+			<param name="teamId"></param>
+			<returns></returns>
+		</member>
+		<member name="M:CDT.Cosmos.Cms.Controllers.FileManagerController.Read(System.String,System.Nullable{System.Int32})">
+			<summary>
+				Read files for a given path, retuning <see cref="T:Azure.Storage.Blobs.Specialized.AppendBlobClient" />, not
+				<see cref="T:Azure.Storage.Blobs.Specialized.BlockBlobClient" />.
+			</summary>
+			<param name="target"></param>
+			<param name="teamId"></param>
+			<returns>List of items found at target search, relative</returns>
+		</member>
+		<member
+			name="M:CDT.Cosmos.Cms.Controllers.FileManagerController.Update(Kendo.Mvc.UI.FileManagerEntry,System.Nullable{System.Int32})">
+			<summary>
+				Updates the name an entry with a given entry, normalize names to lower case.
+			</summary>
+			<param name="entry">The entry.</param>
+			<param name="teamId"></param>
+			<returns>An empty <see cref="T:Microsoft.AspNetCore.Mvc.ContentResult" />.</returns>
+			<exception cref="T:System.Exception">Forbidden</exception>
+		</member>
+		<member
+			name="M:CDT.Cosmos.Cms.Controllers.FileManagerController.GetFileManagerEntry``1(``0,System.Boolean,System.Nullable{System.Int32})">
+			<summary>
+				Takes information from a <see cref="T:Azure.Storage.Blobs.BlobClient" />, file name and path, and returns a
+				<see cref="T:Kendo.Mvc.UI.FileManagerEntry" />.
+			</summary>
+			<param name="blobClient"></param>
+			<param name="isDirectory"></param>
+			<param name="teamId"></param>
+			<returns></returns>
+			<remarks>
+				Local times are set to Pacific Standard Time.
+			</remarks>
+		</member>
+		<member
+			name="M:CDT.Cosmos.Cms.Controllers.FileManagerController.GetAbsolutePath(System.Nullable{System.Int32},System.String[])">
+			<summary>
+				Conversion of a file manager relative path to a full path used by the blob client..
+			</summary>
+			<param name="teamId"></param>
+			<param name="pathParts">Relative path parts</param>
+			<returns></returns>
+		</member>
+		<member
+			name="M:CDT.Cosmos.Cms.Controllers.FileManagerController.GetRelativePath(System.Nullable{System.Int32},System.String[])">
+			<summary>
+				Converts the full path from a blob, to a relative one useful for the file manager.
+			</summary>
+			<param name="fullPath"></param>
+			<param name="teamId"></param>
+			<returns></returns>
+		</member>
+		<member name="M:CDT.Cosmos.Cms.Controllers.FileManagerController.GetBlobRootUrl(System.Nullable{System.Int32})">
+			<summary>
+				Gets the public URL of the blob.
+			</summary>
+			<param name="teamId"></param>
+			<returns></returns>
+		</member>
+		<member name="M:CDT.Cosmos.Cms.Controllers.FileManagerController.ParsePath(System.String[])">
+			<summary>
+				Parses out a path into a string array.
+			</summary>
+			<param name="pathParts"></param>
+			<returns></returns>
+		</member>
+		<member name="M:CDT.Cosmos.Cms.Controllers.FileManagerController.TrimPathPart(System.String)">
+			<summary>
+				Trims leading and trailing slashes and white space from a path part.
+			</summary>
+			<param name="part"></param>
+			<returns></returns>
+		</member>
+		<member
+			name="M:CDT.Cosmos.Cms.Controllers.FileManagerController.Upload(System.Collections.Generic.IEnumerable{Microsoft.AspNetCore.Http.IFormFile},System.String,System.String,System.Nullable{System.Int32})">
+			<summary>
+				Used to upload files, one chunk at a time, and normalizes the blob name to lower case.
+			</summary>
+			<param name="files"></param>
+			<param name="metaData"></param>
+			<param name="path"></param>
+			<param name="teamId"></param>
+			<returns></returns>
+		</member>
+		<member
+			name="M:CDT.Cosmos.Cms.Controllers.FileManagerController.AppendBlobAsync(System.Collections.Generic.IEnumerable{Microsoft.AspNetCore.Http.IFormFile},System.String,System.String)">
+			<summary>
+				Appends chunks to a blob, whose name is normalized to lower case.
+			</summary>
+			<param name="files"></param>
+			<param name="metaData"></param>
+			<param name="blobRelativePath"></param>
+			<returns></returns>
+		</member>
+		<member
+			name="M:CDT.Cosmos.Cms.Controllers.FileManagerController.SaveAsync(System.Collections.Generic.IEnumerable{Microsoft.AspNetCore.Http.IFormFile},System.String)">
+			<summary>
+				Uploads a file to a blob in a single transaction.  Blob name is normalized to lower case.
+			</summary>
+			<param name="files"></param>
+			<param name="relativePath"></param>
+			<returns></returns>
+		</member>
+		<member name="M:CDT.Cosmos.Cms.Controllers.HomeController.Preview(System.Int32)">
+			<summary>
+				Gets an article by its ID (or row key).
+			</summary>
+			<param name="id"></param>
+			<returns></returns>
+		</member>
+		<member
+			name="M:CDT.Cosmos.Cms.Controllers.LayoutsController.EditCode(System.Int32,CDT.Cosmos.Cms.Models.LayoutCodeViewModel)">
+			<summary>
+				Saves the code and html of the page.
+			</summary>
+			<param name="id"></param>
+			<param name="layout"></param>
+			<returns></returns>
+			<remarks>
+				<para>
+					This method saves page code to the database. The following properties are validated with method
+					<see
+						cref="M:CDT.Cosmos.Cms.Controllers.BaseController.ValidateHtml(System.String,System.String,Microsoft.AspNetCore.Mvc.ModelBinding.ModelStateDictionary)" />
+					:
+				</para>
+				<list type="bullet">
+					<item>
+						<see cref="P:CDT.Cosmos.Cms.Models.LayoutCodeViewModel.Head" />
+					</item>
+					<item>
+						<see cref="P:CDT.Cosmos.Cms.Models.LayoutCodeViewModel.HtmlHeader" />
+					</item>
+					<item>
+						<see cref="P:CDT.Cosmos.Cms.Models.LayoutCodeViewModel.FooterHtmlContent" />
+					</item>
+				</list>
+				<para>
+					HTML formatting errors that could not be automatically fixed by
+					<see
+						cref="M:CDT.Cosmos.Cms.Controllers.BaseController.ValidateHtml(System.String,System.String,Microsoft.AspNetCore.Mvc.ModelBinding.ModelStateDictionary)" />
+					are logged with <see cref="P:Microsoft.AspNetCore.Mvc.ControllerBase.ModelState" />.
+				</para>
+			</remarks>
+			<exception cref="T:Microsoft.AspNetCore.Mvc.NotFoundResult"></exception>
+			<exception cref="T:Microsoft.AspNetCore.Mvc.UnauthorizedResult"></exception>
+		</member>
+		<member
+			name="M:CDT.Cosmos.Cms.Controllers.LayoutsController.SetLayoutAsDefault(CDT.Cosmos.Cms.Models.LayoutIndexViewModel)">
+			<summary>
+				Sets a layout as the default layout
+			</summary>
+			<param name="model"></param>
+			<returns></returns>
+		</member>
+		<member name="M:CDT.Cosmos.Cms.Controllers.LayoutsController.Read_Layouts(Kendo.Mvc.UI.DataSourceRequest)">
+			<summary>
+				Gets a list of layouts
+			</summary>
+			<param name="request"></param>
+			<returns></returns>
+		</member>
+		<member
+			name="M:CDT.Cosmos.Cms.Controllers.LayoutsController.Update_Layout(Kendo.Mvc.UI.DataSourceRequest,CDT.Cosmos.Cms.Models.LayoutIndexViewModel)">
+			<summary>
+				Updates a layout
+			</summary>
+			<param name="request"></param>
+			<param name="model"></param>
+			<returns></returns>
+		</member>
+		<member
+			name="M:CDT.Cosmos.Cms.Controllers.LayoutsController.Destroy_Layout(Kendo.Mvc.UI.DataSourceRequest,CDT.Cosmos.Cms.Models.LayoutIndexViewModel)">
+			<summary>
+				Removes a layout
+			</summary>
+			<param name="request"></param>
+			<param name="model"></param>
+			<returns></returns>
+		</member>
+		<member
+			name="M:CDT.Cosmos.Cms.Controllers.TeamsController.TeamMembers_Create(Kendo.Mvc.UI.DataSourceRequest,System.Collections.Generic.IEnumerable{CDT.Cosmos.Cms.Models.TeamMemberViewModel},System.Int32)">
+			<summary>
+				Adds members to a team.
+			</summary>
+			<param name="request">DataSourceRequest</param>
+			<param name="members">New member list</param>
+			<param name="id">Team ID</param>
+			<returns></returns>
+		</member>
+		<member
+			name="M:CDT.Cosmos.Cms.Controllers.TemplatesController.EditingInline_Create(Kendo.Mvc.UI.DataSourceRequest,CDT.Cosmos.Cms.Models.TemplateIndexViewModel)">
+			<summary>
+				Creates a new template
+			</summary>
+			<param name="request"></param>
+			<param name="template"></param>
+			<returns></returns>
+		</member>
+		<member name="M:CDT.Cosmos.Cms.Controllers.TemplatesController.Templates_Read(Kendo.Mvc.UI.DataSourceRequest)">
+			<summary>
+				Reads the list of templates
+			</summary>
+			<param name="request">Data source request</param>
+			<returns>JsonResult</returns>
+		</member>
+		<member name="P:CDT.Cosmos.Cms.Models.ArticleLogJsonModel.DateTimeStamp">
+			<summary>
+				Date and Time (UTC by default)
+			</summary>
+		</member>
+		<member name="P:CDT.Cosmos.Cms.Models.TeamMemberViewModel.TeamRole">
+			<summary>
+				The role ID of this team member as defined by <see cref="T:CDT.Cosmos.Common.Models.TeamRoleEnum" />
+			</summary>
+		</member>
+		<member name="M:CDT.Cosmos.Cms.Services.AzureBlobService.CopyBlob(System.String,System.String)">
+			<summary>
+				Copies a single blob and returns it's <see cref="T:Azure.Storage.Blobs.BlobClient" />.
+			</summary>
+			<param name="source"></param>
+			<param name="destination"></param>
+			<returns>The destination or new <see cref="T:Azure.Storage.Blobs.BlobClient" />.</returns>
+			<remarks>
+				Tip: After operation, check the returned blob object to see if it exists.
+			</remarks>
+		</member>
+		<member name="M:CDT.Cosmos.Cms.Services.AzureBlobService.GetBlobClient(System.String)">
+			<summary>
+				Gets a client for a blob.
+			</summary>
+			<param name="target"></param>
+			<returns></returns>
+		</member>
+		<member name="M:CDT.Cosmos.Cms.Services.AzureBlobService.GetBlobName(System.String,System.String)">
+			<summary>
+				Encodes the file name for blob storage, and prepends the name with the folder path.
+			</summary>
+			<param name="folderName"></param>
+			<param name="fileName"></param>
+			<returns></returns>
+		</member>
+		<member name="M:CDT.Cosmos.Cms.Services.AzureBlobService.GetAppendBlobClient(System.String)">
+			<summary>
+				Gets an append blob client, used for chunk uploads.
+			</summary>
+			<param name="target"></param>
+			<returns></returns>
+		</member>
+		<member name="M:CDT.Cosmos.Cms.Services.AzureBlobService.DeleteBlob(System.String,System.String)">
+			<summary>
+				Deletes a file (blob).
+			</summary>
+			<param name="folderName"></param>
+			<param name="fileName"></param>
+			<returns></returns>
+		</member>
+		<member name="M:CDT.Cosmos.Cms.Services.AzureBlobService.DeleteBlob(System.String)">
+			<summary>
+				Deletes a file (blob).
+			</summary>
+			<param name="target"></param>
+			<returns></returns>
+		</member>
+		<member name="M:CDT.Cosmos.Cms.Services.AzureBlobService.Search(System.String,System.Nullable{System.Int32})">
+			<summary>
+				Gets a list of blobs or prefixes (virtual folders) at a given path.
+			</summary>
+			<param name="path">Search Path</param>
+			<param name="segmentSize"></param>
+			<returns></returns>
+			<remarks>
+				<para>IMPORTANT:  If root, use empty string.</para>
+				<list type="bullet">
+					<item>
+						Do not lead with '/' in the prefix (path).
+					</item>
+					<item>
+						Use format: file/folder1/ (note slash at end).
+					</item>
+				</list>
+			</remarks>
+			<example>
+				<code>Search("files/", null)</code>
+			</example>
+		</member>
+		<member name="M:CDT.Cosmos.Cms.Services.AzureBlobService.CreateFolder(System.String)">
+			<summary>
+				Creates a folder if it does not yet exists.
+			</summary>
+			<param name="path">Full path to folder to create</param>
+			<returns></returns>
+			<exception cref="T:System.Exception">Folder creation failure.</exception>
+		</member>
+		<member
+			name="M:CDT.Cosmos.Cms.Services.AzureBlobService.ListBlobsHierarchicalListing(System.String,System.Nullable{System.Int32},Azure.Storage.Blobs.BlobContainerClient)">
+			<summary>
+				Finds a hierarchical of blobs by "Name" using a "starts with" filter.
+			</summary>
+			<param name="startsWith"></param>
+			<param name="segmentSize">Default is 5000</param>
+			<param name="container">Optional</param>
+			<returns></returns>
+			<remarks>
+				<para>Starts with parameter uses absolute pathing, not relative to the website.</para>
+				<para>
+					This function is taken from
+					<a href="https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blobs-list?tabs=dotnet">this example</a>.
+				</para>
+			</remarks>
+		</member>
+		<member
+			name="M:CDT.Cosmos.Cms.Services.AzureBlobService.Read(System.String,Kendo.Mvc.UI.FileBrowserEntryType,System.Collections.Generic.List{System.String})">
+			<summary>
+				Reads the files found in the given path for <see cref="!:Controllers.FileBrowserController.Read" /> or
+				<see cref="!:Controllers.ImageBrowserController.Read" />.
+			</summary>
+			<param name="path">Full path to folder to read</param>
+			<param name="entryType"></param>
+			<param name="extensionFilter"></param>
+			<returns></returns>
+			<example>
+				<code>
+					AzureBlobService("/pictures", <see cref="F:Kendo.Mvc.UI.FileBrowserEntryType.Directory" />, new [] { ".txt", ".doc", ".pdf" });
+					AzureBlobService("/pictures/MyPicture.png", <see cref="F:Kendo.Mvc.UI.FileBrowserEntryType.File" />, new [] { ".txt", ".doc", ".pdf" });
+				</code>
+			</example>
+		</member>
+		<member
+			name="M:CDT.Cosmos.Cms.Services.AzureBlobService.UploadFile``1(System.String,Microsoft.AspNetCore.Http.IFormFile)">
+			<summary>
+				Uploads file and returns either type <see cref="T:Kendo.Mvc.UI.FileBrowserEntry" /> or
+				<see cref="T:Azure.Storage.Blobs.BlobClient" />.
+			</summary>
+			<typeparam name="T">
+				<see cref="T:Kendo.Mvc.UI.FileBrowserEntry" /> | <see cref="T:Azure.Storage.Blobs.BlobClient" />
+			</typeparam>
+			<param name="folderName"></param>
+			<param name="file"></param>
+			<returns></returns>
+		</member>
+		<member name="M:CDT.Cosmos.Cms.Services.AzureBlobService.Destroy(System.String,Kendo.Mvc.UI.FileBrowserEntry)">
+			<summary>
+				Destroys a directory or a file for <see cref="!:Controllers.FileBrowserController.Destroy" /> and
+				<see cref="!:Controllers.ImageBrowserController.Destroy" />.
+			</summary>
+			<param name="path"></param>
+			<param name="entry"></param>
+			<returns></returns>
+			<remarks>
+				<para>Note:</para>
+				<list type="bullet">
+					<item>
+						When destroying a directory, path parameter must be the full path to the directory.
+						In this case, <see cref="P:Kendo.Mvc.UI.FileBrowserEntry.Name" /> is ignored.
+					</item>
+					<item>
+						When destroying a file, the path parameter leads to the file, then
+						<see cref="P:Kendo.Mvc.UI.FileBrowserEntry.Name" /> is
+						used.
+					</item>
+				</list>
+				Internally uses <see cref="M:CDT.Cosmos.Cms.Services.AzureBlobService.DeleteBlob(System.String,System.String)" />
+				to do its work.
+			</remarks>
+		</member>
+		<member name="M:CDT.Cosmos.Cms.Services.AzureCdnService.Purge(System.String[])">
+			<summary>
+				Purges one or more end paths on a CDN.
+			</summary>
+			<param name="paths"></param>
+			<returns></returns>
+		</member>
+	</members>
+</doc>

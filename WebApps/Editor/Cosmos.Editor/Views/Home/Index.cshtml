@@ -1,0 +1,76 @@
+﻿@using Microsoft.AspNetCore.Antiforgery;
+@model Cosmos.Common.Models.ArticleViewModel
+@inject IAntiforgery antiForgery
+@{
+    Layout = null;
+    ViewData["Title"] = Model.Title;
+    @functions {
+        public string TokenHeaderValue()
+        {
+            var tokens = antiForgery.GetTokens(Context);
+            return tokens.CookieToken + ":" + tokens.RequestToken;
+            // return cookieToken + ":" + formToken;
+        }
+    }
+}
+
+<!doctype html>
+<html lang="@Model.LanguageCode">
+<head>
+    <title>@Model.Title</title>
+    <meta name="og:title" content="@Model.Title" />
+    <meta name="og:url" content="@Model.UrlPath" />
+    <meta property="og:type" content="article" />
+    <meta property="og:image" content="@Model.BannerImage" />
+    <meta property="article:modified_time" content="@Model.Updated.ToString("u")">
+    <meta name="cwps-meta-path-url" content="@Model.UrlPath" />
+    <meta name="cwps-meta-path-updated" content="@Model.Updated" />
+    <meta name="cwps-meta-path-title" content="@Model.Title" />
+    <meta name="cwps-meta-author-info" content="@Model.AuthorInfo" />
+    @Html.Raw(Model.Layout.Head)
+    @*
+    Page specific header
+    *@
+    @Html.Raw(Model.HeadJavaScript)
+    @*
+    Application Insights Scripts
+    *@
+    @Html.Raw(JavaScriptSnippet.FullScript)
+</head>
+<body>
+    @Html.Raw(Model.Layout.HtmlHeader)
+    @Html.Raw(Model.Content)
+    @Html.Raw(Model.Layout.FooterHtmlContent)
+    @Html.Raw(Model.FooterJavaScript)
+
+    <script>
+        var ccmsXrefToken = "@TokenHeaderValue()";
+        var ccmsUrlPath = "@Model.UrlPath";
+        window.addEventListener("load", () => {
+            if (window.location === window.parent.location) {
+                location.href = "/Home/CcmsContentIndex?target=@Model.UrlPath";
+            } else {
+                window.parent.setupIframe();
+                // Need to handle external links
+                var anchors = document.querySelectorAll("a");
+                anchors.forEach(function (a) {
+                    a.addEventListener("click", function (event) {
+                        const url = a.href.toLowerCase();
+                        if (url.startsWith("http:") || url.startsWith("https:")) {
+                            event.preventDefault();
+                            // Possible external URL
+                            window.parent.location.href = url;
+                        }
+                    });
+                });
+
+            }
+        });
+
+        window.addEventListener("click", function () {
+            parent.closeDropDowns();
+        });
+
+    </script>
+</body>
+</html>

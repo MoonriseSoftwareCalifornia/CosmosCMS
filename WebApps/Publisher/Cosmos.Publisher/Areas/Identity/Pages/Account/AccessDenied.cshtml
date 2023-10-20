@@ -1,0 +1,16 @@
+﻿@page
+@model AccessDeniedModel
+@{
+    ViewData["Title"] = "Access denied";
+    Html.ViewContext.ViewBag.BrowserTitle = "Access denied";
+}
+
+<header>
+    <h1 class="text-danger">@ViewData["Title"]</h1>
+    <p class="text-danger">You do not have access to this resource. 
+        Please contact the website administrator to let them know you need access.</p>
+    <p>Meanwhile, please &quot;logout&quot until access has been granted.</p>
+    <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new {area = ""})">
+        <button type="submit" class="btn btn-sm bg-dark text-light" style="margin-top:-2px;">Logout</button>
+    </form>
+</header>

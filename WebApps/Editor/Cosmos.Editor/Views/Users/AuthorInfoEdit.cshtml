@@ -1,0 +1,66 @@
+﻿@model Cosmos.Common.Data.AuthorInfo
+@{
+    ViewData["Title"] = "Editor/Author Information";
+}
+
+<div class="pt-3">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card bg-secondary text-light pb-4">
+                <div class="card-header">
+                    <h3 class="card-title">@ViewData["Title"]</h3>
+                </div>
+                <div class="card-body">
+                    <form id="frmAuthInfo" action="@Url.Action("AuthorInfoEdit")" method="post">
+                        <h2>Public Information</h2>
+                        <hr />
+                        <p>Below is the public information about the editor or author.</p>
+                        <div asp-validation-summary="All" class="text-danger"></div>
+
+                        @Html.HiddenFor(m => m.UserId)
+
+                        <div class="mb-3">
+                            <label asp-for="AuthorName"></label>
+                            <input class="form-control" asp-for="AuthorName" />
+                            <span asp-validation-for="AuthorName" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="EmailAddress"></label>
+                            <input class="form-control" asp-for="EmailAddress" />
+                            <span asp-validation-for="EmailAddress" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="AuthorDescription"></label>
+                            @Html.TextAreaFor(m => m.AuthorDescription, new { @class = "form-control"})
+                            <span asp-validation-for="AuthorDescription" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="TwitterHandle" class="form-check-label"></label>
+                            <input class="form-control" asp-for="TwitterHandle" />
+                            <span asp-validation-for="TwitterHandle" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="InstagramUrl" class="form-check-label"></label>
+                            <input class="form-control" asp-for="InstagramUrl" />
+                            <span asp-validation-for="InstagramUrl" class="text-danger"></span>
+                        </div>
+
+                        <button id="registerSubmit" type="submit" class="btn btn-sm btn-primary">Save</button>
+                        <a asp-action="AuthorInfos" class="btn btn-sm btn-secondary">Cancel <i class="fa-solid fa-circle-arrow-right"></i></a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $("body").addClass("cwps-editor-container");
+    });
+</script>
+
+<partial name="_ValidationScriptsPartial" />
