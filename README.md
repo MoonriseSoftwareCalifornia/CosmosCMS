@@ -1,5 +1,7 @@
 # Cosmos CMS
 
+Welcome to our newly revamped Open Source Repository for Cosmos!
+
 Cosmos CMS is a modern content management system that is "out of the box" fast, secure, open, and easy to use.  Its cloud-first design comes with built-in integration with Content Distribution Networks (CDN) and Web Application Firewalls (WAF), and supports regional replication redundancy.
 
 ## About
