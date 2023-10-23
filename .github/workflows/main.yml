@@ -1,0 +1,20 @@
+name: ACR Editor Image
+
+on:
+  workflow_dispatch
+  # push:
+  #   branches: [ "master" ]
+  # pull_request:
+  #   branches: [ "master" ]
+ 
+steps:
+  - name: Log in to Azure
+    uses: azure/login@v1
+    with:
+      creds: ${{ secrets.ACR_CREDENTIALS_MOONRISE }}
+
+  - name: Build and deploy Container App
+    uses: azure/container-apps-deploy-action@v1
+    with:
+      appSourcePath: ${{ github.workspace }}/WebApps/Editor/Cosmos.Editor/
+      acrName: moonrise
