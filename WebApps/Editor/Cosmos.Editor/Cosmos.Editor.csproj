@@ -7,9 +7,9 @@
 		<EnableNETAnalyzers>false</EnableNETAnalyzers>
 		<RepositoryUrl>https://github.com/CosmosSoftware/CosmosCms</RepositoryUrl>
 		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-		<Version>7.5.8.1</Version>
-		<AssemblyVersion>7.5.8.1</AssemblyVersion>
-		<FileVersion>7.5.8.1</FileVersion>
+		<Version>7.5.8.2</Version>
+		<AssemblyVersion>7.5.8.2</AssemblyVersion>
+		<FileVersion>7.5.8.2</FileVersion>
 		<RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
 		<Authors></Authors>
 		<ApplicationInsightsResourceId>/subscriptions/9bdb8e29-156f-4fc9-a1fe-1bb6a915a4f0/resourceGroups/CosmosCMS/providers/microsoft.insights/components/edit-cosmos-cms202107021426</ApplicationInsightsResourceId>
@@ -163,8 +163,8 @@
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Microsoft.Extensions.Caching.Cosmos" Version="1.5.0" />
-		<PackageReference Include="Microsoft.Identity.Web" Version="2.15.2" />
-		<PackageReference Include="Microsoft.Identity.Web.UI" Version="2.15.2" />
+		<PackageReference Include="Microsoft.Identity.Web" Version="2.15.3" />
+		<PackageReference Include="Microsoft.Identity.Web.UI" Version="2.15.3" />
 		
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.5" />
 		<PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="7.0.10" />
@@ -200,6 +200,7 @@
 	  <Folder Include="Areas\MicrosoftIdentity\Data\" />
 	  <Folder Include="Areas\MicrosoftIdentity\Models\" />
 	  <Folder Include="Areas\MicrosoftIdentity\Views\" />
+	  <Folder Include="wwwroot\lib\cosmos\" />
 	</ItemGroup>
 
 	<ProjectExtensions>

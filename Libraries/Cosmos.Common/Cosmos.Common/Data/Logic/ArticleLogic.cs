@@ -215,7 +215,7 @@ namespace Cosmos.Common.Data.Logic
             {
                 var entity = await DbContext.Pages.WithPartitionKey(urlPath)
                .Where(a => a.Published <= DateTimeOffset.UtcNow)
-               .OrderByDescending(o => o.VersionNumber).FirstOrDefaultAsync();
+               .OrderByDescending(o => o.VersionNumber).AsNoTracking().FirstOrDefaultAsync();
 
                 if (entity == null)
                 {
@@ -231,7 +231,7 @@ namespace Cosmos.Common.Data.Logic
             {
                 var data = await DbContext.Pages.WithPartitionKey(urlPath)
                    .Where(a => a.Published <= DateTimeOffset.UtcNow)
-                   .OrderByDescending(o => o.VersionNumber).FirstOrDefaultAsync();
+                   .OrderByDescending(o => o.VersionNumber).AsNoTracking().FirstOrDefaultAsync();
 
                 if (data == null)
                 {
@@ -268,7 +268,7 @@ namespace Cosmos.Common.Data.Logic
 
             if (model == null)
             {
-                var entity = await DbContext.Layouts.FirstOrDefaultAsync(a => a.IsDefault);
+                var entity = await DbContext.Layouts.AsNoTracking().FirstOrDefaultAsync(a => a.IsDefault);
                 DbContext.Entry(entity).State = EntityState.Detached;
                 model = new LayoutViewModel(entity);
                 memoryCache.Set("defLayout", model, layoutCache.Value);
@@ -295,7 +295,7 @@ namespace Cosmos.Common.Data.Logic
         /// </returns>
         protected async Task<ArticleViewModel> BuildArticleViewModel(Article article, string lang)
         {
-            var authorInfo = await DbContext.AuthorInfos.FirstOrDefaultAsync(f => f.UserId == article.UserId);
+            var authorInfo = await DbContext.AuthorInfos.AsNoTracking().FirstOrDefaultAsync(f => f.UserId == article.UserId);
 
             return new ArticleViewModel
             {

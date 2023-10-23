@@ -16,9 +16,9 @@
 		<AnalysisLevel>5.0</AnalysisLevel>
 		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
 		<PackageIcon>B2C_BrandIcon_Black.png</PackageIcon>
-		<Version>7.5.8.1</Version>
-		<AssemblyVersion>7.5.8.1</AssemblyVersion>
-		<FileVersion>7.5.8.1</FileVersion>
+		<Version>7.5.8.2</Version>
+		<AssemblyVersion>7.5.8.2</AssemblyVersion>
+		<FileVersion>7.5.8.2</FileVersion>
 		<UserSecretsId>498e495c-d772-4d44-870d-92009f01de57</UserSecretsId>
 		<PackageProjectUrl>https://www.cosmoswps.com</PackageProjectUrl>
 		<NeutralLanguage></NeutralLanguage>
