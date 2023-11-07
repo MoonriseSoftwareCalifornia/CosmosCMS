@@ -44,15 +44,10 @@ namespace Cosmos.Publisher.Controllers
         /// <returns>Returns an <see cref="IActionResult"/>.</returns>
         public async Task<IActionResult> Index()
         {
-            if (options.Value.SiteSettings.PublisherRequiresAuthentication)
+            if (options.Value.SiteSettings.CosmosRequiresAuthentication)
             {
                 // If the user is not logged in, have them login first.
                 if (User.Identity == null || User.Identity?.IsAuthenticated == false)
-                {
-                    return Redirect("~/Identity/Account/Login?returnUrl=" + Request.Path);
-                }
-
-                if (User.IsInRole(options.Value.SiteSettings.CosmosRequiredPublisherRole) == false)
                 {
                     return Unauthorized();
                 }

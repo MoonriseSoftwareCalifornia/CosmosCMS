@@ -12,6 +12,7 @@ namespace Cosmos.Cms.Models
     using System.ComponentModel.DataAnnotations;
     using Cosmos.Cms.Data;
     using Cosmos.Cms.Models.Interfaces;
+    using Cosmos.Common.Data;
     using Cosmos.Common.Models;
 
     /// <summary>
@@ -138,5 +139,10 @@ namespace Cosmos.Cms.Models
         /// Gets or sets article Banner Image.
         /// </summary>
         public string BannerImage { get; set; }
+
+        /// <summary>
+        /// Gets or sets the article permissions properity.
+        /// </summary>
+        public List<ArticlePermission> ArticlePermissions { get; set; }
     }
 }

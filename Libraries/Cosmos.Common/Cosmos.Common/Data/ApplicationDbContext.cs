@@ -118,7 +118,7 @@ namespace Cosmos.Common.Data
                 .HasPartitionKey(a => a.ArticleNumber)
                 .HasKey(article => article.Id);
 
-            modelBuilder.Entity<Article>().OwnsMany(o => o.ArticlePermissions);
+            modelBuilder.Entity<CatalogEntry>().OwnsMany(o => o.ArticlePermissions);
 
             modelBuilder.Entity<ArticleLock>()
                 .ToContainer("ArticleLocks")
@@ -148,8 +148,6 @@ namespace Cosmos.Common.Data
                 .ToContainer("Pages")
                 .HasPartitionKey(a => a.UrlPath)
                 .HasKey(article => article.Id);
-
-            modelBuilder.Entity<PublishedPage>().OwnsMany(o => o.ArticlePermissions);
 
             modelBuilder.Entity<Setting>()
                 .ToContainer("Settings")

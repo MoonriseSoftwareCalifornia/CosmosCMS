@@ -7,19 +7,17 @@
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<Company>Moonrise Software LLC</Company>
-		<Version>7.5.8.2</Version>
-		<AssemblyVersion>7.5.8.2</AssemblyVersion>
-		<FileVersion>7.5.8.2</FileVersion>
+		<Version>7.6.1.1</Version>
+		<AssemblyVersion>7.6.1.1</AssemblyVersion>
+		<FileVersion>7.6.1.1</FileVersion>
 		<PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
 		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-		<PackageIcon>B2C_BrandIcon_Black.png</PackageIcon>
 		<RepositoryUrl>https://github.com/MoonriseSoftwareCalifornia/AspNetCore.Identity.Services.EmailProviders</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PackageTags>SMTP, SendGrid, Azure Email, Email Provider, Identity</PackageTags>
 		<Description>This is a SendGrid, SMTP, and Azure Communications Email Provider for ASP.NET Core Identity.</Description>
 		<PackageProjectUrl>https://github.com/MoonriseSoftwareCalifornia/AspNetCore.Identity.Services.EmailProviders</PackageProjectUrl>
 		<PackageReleaseNotes>Documentation dependencies updated.</PackageReleaseNotes>
-		<PackageReadmeFile>Readme.md</PackageReadmeFile>
 		<Title>Cosmos CMS IEmail Services</Title>
 		<Copyright>Copyright 2023 (c) Moonrise Software, LLC.</Copyright>
 	</PropertyGroup>
@@ -32,27 +30,15 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
-		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="7.0.12" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="7.0.13" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Remove="B2C_BrandIcon_Black.png" />
 	  <None Remove="stylecop.json" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <AdditionalFiles Include="stylecop.json" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Content Include="B2C_BrandIcon_Black.png">
-	    <Pack>True</Pack>
-	    <PackagePath>\</PackagePath>
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </Content>
-	  <Content Include="Readme.md">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </Content>
 	</ItemGroup>
 
 	<ItemGroup>

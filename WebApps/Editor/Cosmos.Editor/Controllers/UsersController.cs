@@ -230,15 +230,6 @@ namespace Cosmos.Cms.Controllers
                 }
             }
 
-            if (_options.Value.SiteSettings.PublisherRequiresAuthentication && (await _roleManager.RoleExistsAsync(_options.Value.SiteSettings.CosmosRequiredPublisherRole)) == false)
-            {
-                await _roleManager.CreateAsync(new IdentityRole()
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    Name = _options.Value.SiteSettings.CosmosRequiredPublisherRole
-                });
-            }
-
             query = query.Skip(pageNo * pageSize).Take(pageSize);
 
             var data = await query.ToListAsync();
@@ -271,7 +262,7 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Create a user.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Returns a new View with a new <see cref="UserCreateViewModel"/>.</returns>
         public IActionResult Create()
         {
             return View(new UserCreateViewModel());
@@ -333,7 +324,7 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Creates a single user account.
         /// </summary>
-        /// <param name="model"></param>
+        /// <param name="model">New user view model.</param>
         /// <param name="isBatchJob">Email verifications work flows are different for users created in batch.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         private async Task<BulkUserCreatedResult> CreateAccount(UserCreateViewModel model, bool isBatchJob = false)

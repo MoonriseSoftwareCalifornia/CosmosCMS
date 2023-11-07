@@ -8,11 +8,23 @@
 namespace Cosmos.Common.Data
 {
     using System;
+    using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
 
     /// <summary>
-    /// Article list item.
+    /// This is the catalog entry for an article.
     /// </summary>
+    /// <remarks>
+    /// This is the single point of truth for the following:
+    /// <list type="bullet">
+    /// <item>Title</item>
+    /// <item>Status</item>
+    /// <item>Last updated</item>
+    /// <item>When published</item>
+    /// <item>URL Path</item>
+    /// <item>Article permissions</item>
+    /// </list>
+    /// </remarks>
     public class CatalogEntry
     {
         /// <summary>
@@ -51,5 +63,10 @@ namespace Cosmos.Common.Data
         /// </summary>
         [Display(Name = "Url")]
         public string UrlPath { get; set; }
+
+        /// <summary>
+        /// Gets or sets article permissions.
+        /// </summary>
+        public List<ArticlePermission> ArticlePermissions { get; set; } = new List<ArticlePermission>();
     }
 }

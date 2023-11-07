@@ -13,6 +13,11 @@ namespace Cosmos.Common.Data
     public class ArticlePermission
     {
         /// <summary>
+        /// Gets or sets the article number.
+        /// </summary>
+        public int ArticleId { get; set; }
+
+        /// <summary>
         /// Gets or sets role or user ID.
         /// </summary>
         public string IdentityObjectId { get; set; }

@@ -31,40 +31,44 @@
     <div class="container">
         <div class="row">
             <div class="col-6">
+                <h2>Page Permissions Editor</h2>
                 @if (showingRoles)
                 {
-                    <h3>Editing role (user group) permissions for:</h3>
-                    <h1 class="mb-3">@ViewData["Title"]</h1>
+                    <h5>Now editing <span class="badge bg-secondary">user group</span> permissions for:</h5>
                 }
                 else
                 {
-                    <h3>Editing user permissions for:</h3>
-                    <h1 class=" mb-3">@ViewData["Title"]</h1>
+                    <h5>Now editing <span class="badge bg-secondary">individual user</span> permissions for:</h5>
+                }
+                <h1 class=" mb-3">@ViewData["Title"]</h1>
+                @if (showingRoles)
+                {
+                    <a title="Switch to individual users." href="@Url.Action("Permissions", "Editor", new { Id = articleNumber })?forRoles=false" class="btn btn-sm btn-secondary" style="min-width:100px;">Switch to individual users <i class="fa-solid fa-circle-arrow-right"></i></a>
+                }
+                else
+                {
+                    <a title="Switch to user groups." href="@Url.Action("Permissions", "Editor", new { Id = articleNumber })?forRoles=true" class="btn btn-sm btn-secondary" style="min-width:100px;">Switch to user groups <i class="fa-solid fa-circle-arrow-right"></i></a>
                 }
                 <div asp-validation-summary="All" class="text-danger"></div>
-            </div>
-
-            <div class="col-6 d-flex justify-content-end">
-                <div class="btn-group" style="max-height: 64px;">
-                    <button id="btnEnableAnyone" class="btn btn-lg btn-secondary" title="Enable anonymous acess." @((articlePermissions.Count == 0) ? "disabled" : "") style="min-width: 80px;"><i class="fa-solid fa-users"></i></button>
-                    <button id="btnSavePermissions" class="btn btn-lg btn-primary" title="Save permission settings." style="min-width: 80px;"><i class="fa-solid fa-floppy-disk"></i></button>
-                </div>
             </div>
         </div>
         <div class="row">
             <div class="col mb-3">
+                <button id="btnSavePermissions" class="btn btn-sm btn-primary" title="Save permissions.">Save</button>
+                <button id="btnSavePermissionAndClose" class="btn btn-sm btn-primary" style="display:none;" title="Save permissions.">Save and Close</button>
+                <button id="btnClearPermissions" class="btn btn-sm btn-secondary" title="Clear all access settings.">Clear</button>
                 <a title="Return to page list" class="btn btn-sm btn-secondary" href="@Url.Action("Index")">Page list <i class="fa-solid fa-circle-arrow-right"></i></a>
                 <a title="Return to page list" class="btn btn-sm btn-secondary" href="@Url.Action("Versions", "Editor", new { Id = articleNumber })">Version list <i class="fa-solid fa-circle-arrow-right"></i></a>
             </div>
         </div>
         <div class="row">
             <div class="col mb-3">
-                <p>Restrict access to certain users and roles by selecting them below. Note: This disables anonymous access.</p>
+                <p>Restrict access to certain users and roles by selecting them below.</p>
                 @if (articlePermissions.Count == 0)
                 {
                     <div class="alert alert-secondary d-flex" role="alert">
                         <i class="fa-solid fa-triangle-exclamation mt-1 me-3"></i>
-                        <b>Current access is set to anonymous.</b>
+                        <b>No one yet has access to this page.</b>
                     </div>
                 }
                 else
@@ -104,20 +108,11 @@
             </div>
             <div class="row cpws-table-pager-row-top">
                 <div class="col-4">
-                    @if (showingRoles)
-                    {
-                        <a title="Switch to users." href="@Url.Action("Permissions", "Editor", new { Id = articleNumber })?forRoles=false" class="btn btn-sm btn-secondary" style="min-width:100px;">Switch to users <i class="fa-solid fa-circle-arrow-right"></i></a>
-                    }
-                    else
-                    {
-                        <a title="Switch to roles." href="@Url.Action("Permissions", "Editor", new { Id = articleNumber })?forRoles=true" class="btn btn-sm btn-secondary" style="min-width:100px;">Switch to roles <i class="fa-solid fa-circle-arrow-right"></i></a>
-                    }
                 </div>
                 <div class="col-4 justify-content-center">
                     <partial name="~/Views/Shared/GridPager/_GridPager.cshtml" model="pagerModel"></partial>
                 </div>
                 <div class="col-4 d-flex justify-content-end">
-
                 </div>
             </div>
             <div class="row">
@@ -130,7 +125,7 @@
                                         Select
                                     </th>
                                     <th scope="col">
-                                        @(showingRoles ? "Role Name" : "User Email Address")
+                                        @(showingRoles ? "User Group Name" : "User Email Address")
                                     </th>
                                 </tr>
                             </thead>
@@ -140,7 +135,7 @@
                                     <tr scope="row" class="row-click-ckbox">
                                         <td scope="row" style="min-width:80px;">
                                             <div class="form-check">
-                                                <input class="form-check-input gridCheckBox" data-ccms-userid='@row.IdentityObjectId' type="checkbox">
+                                                <input class="form-check-input gridCheckBox" data-ccms-idenid='@row.IdentityObjectId' type="checkbox">
                                                 <label class="form-check-label">
                                                     Select
                                                 </label>
@@ -167,129 +162,169 @@
             </div>
         </div>
     </div>
+</div>
+<form id="frmUserIds" asp-action="Index" asp-controller="Roles" method="post">
+    @Html.AntiForgeryToken()
+    <input id="identityObjectIds" name="identityObjectIds" type="hidden" />
+</form>
+<div class="modal" id="modalSaving" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Saving...</h5>
+            </div>
+            <div class="modal-body">
+                <p>Permissions are being saved...</p>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
 
-    <form id="frmUserIds" asp-action="Index" asp-controller="Roles" method="post">
-        @Html.AntiForgeryToken()
-        <input id="userIds" name="userIds" type="hidden" />
-    </form>
+<script>
 
-    <script>
+    let identityObjectIds = [];
 
-        let userIds = [];
+    const modalSaving = new bootstrap.Modal(document.getElementById('modalSaving'));
 
-        $(document).ready(function () {
-            $("body").addClass("cwps-body");
-            $("body").addClass("cwps-editor-container");
+    $(document).ready(function () {
 
-            reloadUserIds();
+        // ccmsNavMenu
+        $("body").addClass("cwps-body");
+        $("body").addClass("cwps-editor-container");
 
-            $(".row-click-ckbox").click(function (e) {
-                if (e.target.type != 'checkbox' && e.target.tagName != 'A') {
-                    var cb = $(this).find("input[type=checkbox]");
-                    cb.trigger('click');
+        reloadIdentityObjectIds();
+
+        $(".row-click-ckbox").click(function (e) {
+            if (e.target.type != 'checkbox' && e.target.tagName != 'A') {
+                var cb = $(this).find("input[type=checkbox]");
+                cb.trigger('click');
+            }
+        });
+
+        $(".gridCheckBox").each(function (index, element) {
+
+            if ((identityObjectIds.indexOf(getIdentityObjectIds(element)) > -1)) {
+                $(element).prop('checked', true);
+                cwpsSelectTableRow(element, true);
+            }
+
+            $(element).on("change", function () {
+
+                let userId = getIdentityObjectIds(element);
+
+                let isChecked = $(element).prop('checked');
+
+                if (isChecked) {
+                    saveIdentityObjectId(userId);
+                } else {
+                    removeIdentityObjectId(userId);
                 }
-            });
 
-            $(".gridCheckBox").each(function (index, element) {
+                cwpsSelectTableRow(element, isChecked);
 
-                if ((userIds.indexOf(getUserId(element)) > -1)) {
-                    $(element).prop('checked', true);
-                    cwpsSelectTableRow(element, true);
-                }
+                resetButtons();
 
-                $(element).on("change", function () {
-
-                    let userId = getUserId(element);
-
-                    let isChecked = $(element).prop('checked');
-
-                    if (isChecked) {
-                        saveUserId(userId);
-                    } else {
-                        removeUserId(userId);
-                    }
-
-                    cwpsSelectTableRow(element, isChecked);
-
-                    resetButtons();
-
-                });
-            });
-
-            $("#btnSavePermissions").click(function (e) {
-                e.preventDefault();
-                savePermissions();
-            });
-
-            $("#btnEnableAnyone").click(function (e) {
-                e.preventDefault();
-                clearUserIds();
-                savePermissions();
             });
         });
 
-        function savePermissions() {
+        $("#btnSavePermissions").click(function (e) {
+            e.preventDefault();
+            savePermissions();
+        });
 
-            var model = {
-                Id: @articleNumber,
-                IdentityObjectIds: userIds
-            }
+        $("#btnClearPermissions").click(function (e) {
+            e.preventDefault();
+            clearIdentityObjectIds();
 
-            $.post("@Url.Action("Permissions", "Editor")", model, function (data) {
-                clearUserIds();
-                window.location.href = "@Url.Action("Permissions", "Editor", new { Id = articleNumber})";
-            }).fail(function (data) { alert(data); });
-        }
-
-        function saveUserId(userId) {
-            // Avoid duplications
-            if (userIds.indexOf(userId) == -1) {
-                userIds.push(userId);
-            }
-            sessionStorage.setItem("userIds", JSON.stringify(userIds));
-        }
-
-        function removeUserId(userId) {
-            var tmp = userIds.filter(function (value) {
-                return value !== userId
+            $(".gridCheckBox").each(function (index, element) {
+                $(element).prop('checked', false);
+                cwpsSelectTableRow(element, false);
             });
-            userIds = tmp;
-            sessionStorage.setItem("userIds", JSON.stringify(userIds));
+
+        });
+    });
+
+    function savePermissions() {
+
+        modalSaving.show();
+
+        var model = {
+            Id: @articleNumber,
+            IdentityObjectIds: identityObjectIds
         }
 
-        function reloadUserIds() {
-            let data = sessionStorage.getItem("userIds");
-            if (typeof (data) === "undefined" || data === null || data === "") {
-                userIds = [@(Html.Raw(string.Join(",", articlePermissions.Select(s => "'" + s.IdentityObjectId + "'").ToArray())))]
-            } else {
-                userIds = JSON.parse(data);
-            }
+        $.post("@Url.Action("Permissions", "Editor")", model, function (data) {
+            // clearIdentityObjectIds();
+            //window.location.href = "@Url.Action("Permissions", "Editor", new { Id = articleNumber})";
+
+            // If applicable, let the parent know what happened.
+            try {
+                if (typeof (parent.hasPermissionsSet) !== "undefined") {
+                    if (identityObjectIds == null || identityObjectIds.length < 1) {
+                        parent.hasPermissionsSet = false;
+                    } else {
+                        parent.hasPermissionsSet = true;
+                    }
+                    parent.checkForSetPermissions();
+                }
+            } catch { }
+            modalSaving.hide();
+        }).fail(function (data) { modalSaving.hide(); alert(data); });
+
+    }
+
+    function saveIdentityObjectId(userId) {
+        // Avoid duplications
+        if (identityObjectIds.indexOf(userId) == -1) {
+            identityObjectIds.push(userId);
+        }
+        sessionStorage.setItem("identityObjectIds", JSON.stringify(identityObjectIds));
+    }
+
+    function removeIdentityObjectId(userId) {
+        var tmp = identityObjectIds.filter(function (value) {
+            return value !== userId
+        });
+        identityObjectIds = tmp;
+        sessionStorage.setItem("identityObjectIds", JSON.stringify(identityObjectIds));
+    }
+
+    function reloadIdentityObjectIds() {
+        let data = sessionStorage.getItem("identityObjectIds");
+        if (typeof (data) === "undefined" || data === null || data === "") {
+            identityObjectIds = [@(Html.Raw(string.Join(",", articlePermissions.Select(s => "'" + s.IdentityObjectId + "'").ToArray())))]
+        } else {
+            identityObjectIds = JSON.parse(data);
+        }
+    }
+
+    function clearIdentityObjectIds() {
+        identityObjectIds = [];
+        sessionStorage.removeItem("identityObjectIds");
+        sessionStorage.setItem("identityObjectIds", JSON.stringify(identityObjectIds));
+    }
+
+    function getIdentityObjectIds(checkbox) {
+        return $(checkbox).attr("data-ccms-idenid");
+    }
+
+    function resetButtons() {
+
+        // Get the array length
+        let arrayLength = identityObjectIds.length;
+
+        if (arrayLength > 0) {
+            $("#btnClearUsers").show();
+            $("#btnDeleteUsers").show();
+            $("#btnAddRemoveRoles").hide();
+        } else {
+            $("#btnClearUsers").hide();
+            $("#btnDeleteUsers").hide();
+            $("#btnAddRemoveRoles").hide();
         }
 
-        function clearUserIds() {
-            userIds = [];
-            sessionStorage.removeItem("userIds");
-        }
+    }
 
-        function getUserId(checkbox) {
-            return $(checkbox).attr("data-ccms-userid");
-        }
-
-        function resetButtons() {
-
-            // Get the array length
-            let arrayLength = userIds.length;
-
-            if (arrayLength > 0) {
-                $("#btnClearUsers").show();
-                $("#btnDeleteUsers").show();
-                $("#btnAddRemoveRoles").hide();
-            } else {
-                $("#btnClearUsers").hide();
-                $("#btnDeleteUsers").hide();
-                $("#btnAddRemoveRoles").hide();
-            }
-
-        }
-
-    </script>
+</script>

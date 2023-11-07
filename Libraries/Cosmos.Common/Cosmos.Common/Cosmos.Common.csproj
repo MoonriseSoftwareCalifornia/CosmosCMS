@@ -15,10 +15,9 @@
 		<SignAssembly>false</SignAssembly>
 		<AnalysisLevel>5.0</AnalysisLevel>
 		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-		<PackageIcon>B2C_BrandIcon_Black.png</PackageIcon>
-		<Version>7.5.8.2</Version>
-		<AssemblyVersion>7.5.8.2</AssemblyVersion>
-		<FileVersion>7.5.8.2</FileVersion>
+		<Version>7.6.1.1</Version>
+		<AssemblyVersion>7.6.1.1</AssemblyVersion>
+		<FileVersion>7.6.1.1</FileVersion>
 		<UserSecretsId>498e495c-d772-4d44-870d-92009f01de57</UserSecretsId>
 		<PackageProjectUrl>https://www.cosmoswps.com</PackageProjectUrl>
 		<NeutralLanguage></NeutralLanguage>
@@ -63,7 +62,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Remove="B2C_BrandIcon_Black.png" />
 		<None Remove="nuget.config" />
 		<None Remove="stylecop.json" />
 	</ItemGroup>
@@ -73,23 +71,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Content Include="B2C_BrandIcon_Black.png">
-	    <Pack>True</Pack>
-	    <PackagePath>\</PackagePath>
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </Content>
-	  <Content Include="readme.md">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </Content>
-	</ItemGroup>
-
-	<ItemGroup>
 		<PackageReference Include="AspNetCore.Identity.CosmosDb" Version="2.1.4" />
 		<PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.2.2" />
-		<PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="7.0.12" />
-		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="7.0.12" />
-		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="7.0.12" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.12" />
+		<PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="7.0.13" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="7.0.13" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="7.0.13" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.13" />
 		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

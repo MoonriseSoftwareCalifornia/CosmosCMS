@@ -42,14 +42,14 @@ namespace Cosmos.Cms.Controllers
     public class FileManagerController : BaseController
     {
         // Private fields
-        private readonly ApplicationDbContext _dbContext;
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly ArticleEditLogic _articleLogic;
-        private readonly Uri _blobPublicAbsoluteUrl;
-        private readonly IViewRenderService _viewRenderService;
+        private readonly ApplicationDbContext dbContext;
+        private readonly UserManager<IdentityUser> userManager;
+        private readonly ArticleEditLogic articleLogic;
+        private readonly Uri blobPublicAbsoluteUrl;
+        private readonly IViewRenderService viewRenderService;
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="FileManagerController"/> class.
         /// </summary>
         /// <param name="options"></param>
         /// <param name="logger"></param>
@@ -66,33 +66,33 @@ namespace Cosmos.Cms.Controllers
             UserManager<IdentityUser> userManager,
             ArticleEditLogic articleLogic,
             IWebHostEnvironment hostEnvironment,
-            IViewRenderService viewRenderService) : base(
+            IViewRenderService viewRenderService)
+            : base(
             dbContext,
             userManager,
             articleLogic,
-            options
-        )
+            options)
         {
             _options = options;
             _logger = logger;
             _storageContext = storageContext;
             _hostEnvironment = hostEnvironment;
-            _userManager = userManager;
-            _articleLogic = articleLogic;
-            _dbContext = dbContext;
+            this.userManager = userManager;
+            this.articleLogic = articleLogic;
+            this.dbContext = dbContext;
 
             var htmlUtilities = new HtmlUtilities();
 
             if (htmlUtilities.IsAbsoluteUri(options.Value.SiteSettings.BlobPublicUrl))
             {
-                _blobPublicAbsoluteUrl = new Uri(options.Value.SiteSettings.BlobPublicUrl);
+                blobPublicAbsoluteUrl = new Uri(options.Value.SiteSettings.BlobPublicUrl);
             }
             else
             {
-                _blobPublicAbsoluteUrl = new Uri(options.Value.SiteSettings.PublisherUrl.TrimEnd('/') + "/" + options.Value.SiteSettings.BlobPublicUrl.TrimStart('/'));
+                blobPublicAbsoluteUrl = new Uri(options.Value.SiteSettings.PublisherUrl.TrimEnd('/') + "/" + options.Value.SiteSettings.BlobPublicUrl.TrimStart('/'));
             }
 
-            _viewRenderService = viewRenderService;
+            this.viewRenderService = viewRenderService;
         }
 
         /// <summary>
@@ -127,7 +127,7 @@ namespace Cosmos.Cms.Controllers
                 var split = target.Trim('/').Split('/');
                 if (split.Length > 2 && int.TryParse(split[2], out var articleNumber))
                 {
-                    var article = await _dbContext.ArticleCatalog.Select(s => new { s.ArticleNumber, s.Title }).FirstOrDefaultAsync(f => f.ArticleNumber == articleNumber);
+                    var article = await dbContext.ArticleCatalog.Select(s => new { s.ArticleNumber, s.Title }).FirstOrDefaultAsync(f => f.ArticleNumber == articleNumber);
                     articleTitle = article.Title;
                 }
             }
@@ -156,7 +156,7 @@ namespace Cosmos.Cms.Controllers
             IQueryable<FileManagerEntry> query;
             if (target.Trim('/') == "pub/articles")
             {
-                var model = _dbContext.ArticleCatalog.Select(s => new FileManagerEntry()
+                var model = dbContext.ArticleCatalog.Select(s => new FileManagerEntry()
                 {
                     Created = s.Updated.DateTime,
                     CreatedUtc = s.Updated.UtcDateTime,
@@ -657,9 +657,9 @@ namespace Cosmos.Cms.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    var article = await _articleLogic.Get(Id, EnumControllerName.Edit, User.Identity.Name);
+                    var article = await articleLogic.Get(Id, EnumControllerName.Edit, User.Identity.Name);
 
-                    var originalHtml = await _articleLogic.ExportArticle(article, _blobPublicAbsoluteUrl, _viewRenderService);
+                    var originalHtml = await articleLogic.ExportArticle(article, blobPublicAbsoluteUrl, viewRenderService);
                     var originalHtmlDoc = new HtmlAgilityPack.HtmlDocument();
                     originalHtmlDoc.LoadHtml(originalHtml);
 
@@ -749,9 +749,9 @@ namespace Cosmos.Cms.Controllers
                     article.FooterJavaScript = bodyHtmlBelowFooter.ToString().Trim(trims);
 
                     // Get the user's ID for logging.
-                    var user = await _userManager.GetUserAsync(User);
+                    var user = await userManager.GetUserAsync(User);
 
-                    await _articleLogic.Save(article, user.Id);
+                    await articleLogic.Save(article, user.Id);
                 }
                 else
                 {

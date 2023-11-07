@@ -2,6 +2,7 @@
 @{
     Layout = "_LayoutEditor";
     ViewData["Title"] = "Editing: " + Model.Title;
+    var hasPermissionsSet = Model.ArticlePermissions.Any();
 }
 
 <form class="d-flex" id="frmSave" autocomplete="off">
@@ -11,7 +12,6 @@
     <input type="hidden" asp-for="ArticleNumber" />
     <input type="hidden" asp-for="UrlPath" />
     <input type="hidden" asp-for="VersionNumber" />
-    <input type="hidden" asp-for="RoleList" />
     <input type="hidden" asp-for="Content" />
     <input type="hidden" asp-for="Title" />
     <input type="hidden" asp-for="Published" />
@@ -99,6 +99,8 @@
     const isAuthor = @User.IsInRole("Authors").ToString().ToLower();
     const isReviewer = @User.IsInRole("Reviewers").ToString().ToLower();
     const hasModel = @((Model != null).ToString().ToLower());
+    // This needs global scope, so using var
+    var hasPermissionsSet = @hasPermissionsSet.ToString().ToLower();
 
     // Editable areas
     let ccms_editibleAreas = [];
@@ -341,9 +343,8 @@
             $("#btnSave").removeClass("show");
         });
 
-        if (hasModel && isReviewer === false) {
-            $("#btnArticleAccess").show();
-            $("#btnArticleAccess").attr("href", "@Url.Action("Permissions", "Editor", new { Id = Model.ArticleNumber })");
+        if (hasModel && isReviewer === false && isAuthor === false && requiresAuthentication) {
+            $(".perm").show();
         }
 
     });
@@ -705,6 +706,11 @@
     // Saves changes to page title, publishing, not content.
     function saveChanges(data, editorId) {
 
+        if (validatePermissions() === false) {
+            // Need permissions set before going any further.
+            return;
+        }
+
         // Signal to the user that saving has started.
         saving();
         saveInProgress = true;
@@ -715,6 +721,7 @@
         // Build the post payload
         var id = $("#Id").val();
         var published = $("#Published").val();
+
         var updated = $("#Updated").val();
         var articleNumber = $("#ArticleNumber").val();
 

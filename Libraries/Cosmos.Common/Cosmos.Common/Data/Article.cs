@@ -107,16 +107,5 @@ namespace Cosmos.Common.Data
         /// Gets or sets article author.
         /// </summary>
         public string UserId { get; set; }
-
-        /// <summary>
-        /// Gets or sets article permissions.
-        /// </summary>
-        public List<ArticlePermission> ArticlePermissions { get; set; } = new List<ArticlePermission>();
-
-        /// <summary>
-        ///     Gets or sets a comma delimited list of roles that can access this article. If blank the assumption is anonymous access.
-        /// </summary>
-        [MaxLength(512)]
-        public string RoleList { get; set; } = string.Empty;
     }
 }

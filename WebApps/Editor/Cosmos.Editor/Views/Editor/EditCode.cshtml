@@ -5,6 +5,7 @@
     ViewData["Title"] = Model.Title;
     var fields = Model.EditorFields.ToArray();
     var aclass = "active";
+    var hasPermissionsSet = Model.ArticlePermissions.Any();
 }
 
 <style>
@@ -113,6 +114,8 @@
     const isAuthor = @User.IsInRole("Authors").ToString().ToLower();
     const isReviewer = @User.IsInRole("Reviewers").ToString().ToLower();
     const hasModel = @((Model != null).ToString().ToLower());
+    // This needs global scope, so using var
+    var hasPermissionsSet = @hasPermissionsSet.ToString().ToLower();
 
     // Indicates a save is in progress - used to deconflict simultaneous saves
     var saveInProgress = false;
@@ -214,6 +217,11 @@
 
     // Save the changes for this editor
     function saveChanges() {
+
+        if (validatePermissions() === false) {
+            // Need permissions set before going any further.
+            return;
+        }
 
         if (saveInProgress === true) {
             return; // A save is already in progress
@@ -485,9 +493,8 @@
             }
         });
 
-        if (hasModel && isReviewer === false) {
-            $("#btnArticleAccess").show();
-            $("#btnArticleAccess").attr("href", "@Url.Action("Permissions", "Editor", new { Id = Model.ArticleNumber })");
+        if (hasModel && isReviewer === false && isAuthor === false && requiresAuthentication) {
+            $(".perm").show();
         }
 
         checkDisplayLiveEditorButton();

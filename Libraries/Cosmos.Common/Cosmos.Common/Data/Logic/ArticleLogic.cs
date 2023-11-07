@@ -203,7 +203,7 @@ namespace Cosmos.Common.Data.Logic
         ///     </para>
         ///     <para>NOTE: Cannot access articles that have been deleted.</para>
         /// </remarks>
-        public virtual async Task<ArticleViewModel> GetByUrl(string urlPath, string lang = "", TimeSpan? cacheSpan = null, TimeSpan? layoutCache = null)
+        public virtual async Task<ArticleViewModel> GetPublishedPageByUrl(string urlPath, string lang = "", TimeSpan? cacheSpan = null, TimeSpan? layoutCache = null)
         {
             urlPath = urlPath?.ToLower().Trim(new char[] { ' ', '/' });
             if (string.IsNullOrEmpty(urlPath) || urlPath.Trim() == "/")
@@ -315,11 +315,9 @@ namespace Cosmos.Common.Data.Logic
                 FooterJavaScript = article.FooterJavaScript,
                 Layout = await GetDefaultLayout(),
                 ReadWriteMode = isEditor,
-                RoleList = article.RoleList,
                 Expires = article.Expires ?? null,
                 BannerImage = article.BannerImage,
-                AuthorInfo = JsonConvert.SerializeObject(authorInfo).Replace("\"", "'"),
-                ArticlePermissions = article.ArticlePermissions
+                AuthorInfo = JsonConvert.SerializeObject(authorInfo).Replace("\"", "'")
             };
         }
 
@@ -361,10 +359,8 @@ namespace Cosmos.Common.Data.Logic
                 FooterJavaScript = article.FooterJavaScript,
                 Layout = await GetDefaultLayout(layoutCache),
                 ReadWriteMode = isEditor,
-                RoleList = article.RoleList,
                 Expires = article.Expires ?? null,
-                AuthorInfo = article.AuthorInfo,
-                ArticlePermissions = article.ArticlePermissions
+                AuthorInfo = article.AuthorInfo
             };
         }
     }

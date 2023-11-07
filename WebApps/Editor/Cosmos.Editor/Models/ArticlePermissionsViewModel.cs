@@ -8,6 +8,7 @@
 namespace Cosmos.Editor.Models
 {
     using System;
+    using Cosmos.Common.Data;
     using Cosmos.Common.Models;
 
     /// <summary>
@@ -16,29 +17,23 @@ namespace Cosmos.Editor.Models
     public class ArticlePermissionsViewModel
     {
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="ArticlePermissionsViewModel"/> class.
         /// </summary>
         public ArticlePermissionsViewModel()
         {
         }
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="ArticlePermissionsViewModel"/> class.
         /// </summary>
-        /// <param name="article"></param>
-        /// <param name="forRoles"></param>
-        public ArticlePermissionsViewModel(ArticleViewModel article, bool forRoles = true)
+        /// <param name="entry">Catalog entry.</param>
+        /// <param name="forRoles">Updating roles?</param>
+        public ArticlePermissionsViewModel(CatalogEntry entry, bool forRoles = true)
         {
-            Id = article.Id;
-            Title = article.Title;
-            Published = article.Published;
+            Title = entry.Title;
+            Published = entry.Published;
             ShowingRoles = forRoles;
         }
-
-        /// <summary>
-        /// Gets or sets specific article version we are setting the permissions for.
-        /// </summary>
-        public Guid Id { get; set; }
 
         /// <summary>
         /// Gets or sets article number.

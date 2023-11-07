@@ -7,7 +7,8 @@
 //      On the web page this is loaded, set this variable prior to loading the script:
 //      const breadCrumbId = "olCrumbs";
 //      This is the ID of the element that will contain the li elements.
-//      
+//
+
 document.addEventListener("DOMContentLoaded", function () {
 
     const breadCrumbs = document.getElementById(breadCrumbId);

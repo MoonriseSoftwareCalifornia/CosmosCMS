@@ -7,6 +7,7 @@
     var title = (string)@ViewData["PageTitle"];
     var assemblyVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
     var isAuthor = User.IsInRole("Authors");
+    var requiresAuth = options.Value.SiteSettings.CosmosRequiresAuthentication;
 }
 <!DOCTYPE HTML>
 <html>
@@ -33,6 +34,12 @@
 
     <!-- http://www.daterangepicker.com/ -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <style>
+        .perm {
+            display: none;
+        }
+        /*default for permissions tools*/
+    </style>
 
     <script src="~/lib/microsoft-signalr/signalr.min.js"></script>
     @Html.Raw(JavaScriptSnippet.FullScript)
@@ -68,11 +75,15 @@
                             <li>
                                 <a class="dropdown-item" onclick="bgEditClick('Close')">Close</a>
                             </li>
+                            <li class="perm"><hr class="dropdown-divider"></li>
+                            <li class="perm" id="btnPreview">
+                                <a title='Set which users and roles can access this page.' class="dropdown-item" onclick="bgEditClick('permissions')">Permissions</a>
+                            </li>
                             <li><hr class="dropdown-divider"></li>
                             <li id="btnPreview">
                                 <a class="dropdown-item" onclick="bgEditClick('Preview')">Preview</a>
                             </li>
-                           <li id="btnFiles">
+                            <li id="btnFiles">
                                 <a class="dropdown-item" title="Files that are uploaded to this page." onclick="bgEditClick('Files')">Files (this page)</a>
                             </li>
                             <li>
@@ -149,6 +160,7 @@
                     </li>
                     <li class="nav-item">
                         <div id="divPublihedTitleGroup" class="input-group input-group-sm mt-1 ms-3 me-3" style="display:none">
+                            <a title='Set which users and roles can access this page.' id="btnArticleAccess" class='btn btn-sm perm' href="javascript:bgEditClick('permissions')"><i class="fa-solid fa-users"></i></a>
                             <div id="lblPublished" class="input-group-text" style="height:31px;">Published:</div>
                             <input autocomplete="off" class="form-control text-truncate" name="tbPublished" id="tbPublished" placeholder="DRAFT (not published)" value="@((DateTimeOffset?)ViewData["Published"])" />
                             <button class="btn btn-danger" title="Clicking this button publishes this page version immediately." type="button" id="btnPublishNow" onclick="bgEditClick('Publish')" style="display:none">Publish Now</button>
@@ -165,12 +177,11 @@
             </div>
             <div class="d-flex">
                 <a target="_blank" title="Open Cosmos documentation" class="btn btn-sm btn-secondary" aria-current="page" href="https://www.moonrise.net/cosmos/documentation"><i class="fa-solid fa-circle-info"></i></a>
-                <a title='Set access permissions for users and roles.' id="btnArticleAccess" class='btn btn-sm btn-secondary' style="display:none"><i class="fa-solid fa-users"></i></a>           
             </div>
         </div>
     </nav>
 
-    <div class="modal" id="checkSaveFirst" tabindex="-1">
+    <div class="modal" id="modalCheckSaveFirst" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -182,6 +193,23 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="saveFirst()" data-bs-dismiss="modal">Yes</button>
                     <button type="button" class="btn btn-secondary" onclick="doNotSave()" data-bs-dismiss="modal">No</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="modalCheckPermissions" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">No Permissions Set</h5>
+                </div>
+                <div class="modal-body">
+                    <p>ALERT: Permissions are required prior to publishing a page.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="bgEditClick('permissions')" data-bs-dismiss="modal">Set Permissions</button>
                 </div>
             </div>
         </div>
@@ -335,6 +363,13 @@
             }
         }
 
+        function setupPermMgrFrame() {
+            const iframe = document.getElementById("iframePermMgr");
+            const iframeWin = iframe.contentWindow || iframe.contentDocument.parentWindow;
+            if (iframeWin.document.body) {
+                $("#permMgrModalContent").height = 50 + (window.innerHeight - document.getElementById("ccmsNavMenu").clientHeight);
+            }
+        }
     </script>
 
     <div class="modal fade" id="modalFileMgr" tabindex="-3">
@@ -350,17 +385,35 @@
         </div>
     </div>
 
+    <div class="modal fade" id="modalPermMgr" tabindex="-4">
+        <div class="modal-dialog modal-fullscreen">
+            <div id="permMgrModalContent" class="modal-content">
+                <div class="modal-header bg-dark text-light">
+                    <button type="button" class="btn btn-sm btn-primary" data-bs-dismiss="modal">Close Permissions Manager</button>
+                </div>
+                <div class="modal-body">
+                    <iframe id="iframePermMgr" class="d-block w-100" onload="setupPermMgrFrame()" style="height:100%"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Must have global scope so using var
+        var requiresAuthentication = @requiresAuth.ToString().ToLower();
+    </script>
+
     @RenderBody()
 
     <script>
 
-        // CONSTANTS
-        // Modal and toast definitions
         const modalChangeTitle = new bootstrap.Modal(document.getElementById('modalChangeTitle'));
-        const checkFirstModal = new bootstrap.Modal(document.getElementById('checkSaveFirst'));
+        const modalCheckSaveFirst = new bootstrap.Modal(document.getElementById('modalCheckSaveFirst'));
         const pickPageModal = new bootstrap.Modal(document.getElementById('pickPageModal'));
         const modalSelectFile = new bootstrap.Modal(document.getElementById('modalSelectFile'));
         const modalFileMgr = new bootstrap.Modal(document.getElementById('modalFileMgr'));
+        const modalPermMgr = new bootstrap.Modal(document.getElementById('modalPermMgr'));
+        const modalCheckPermissions = new bootstrap.Modal(document.getElementById('modalCheckPermissions'));
 
         const fileBaseUrl = "@(options.Value.SiteSettings.BlobPublicUrl.TrimEnd('/'))";
         const errorModal = new bootstrap.Modal(document.getElementById('modalSavingError'));
@@ -440,7 +493,7 @@
                         window.location.href = "@Url.Action("Index", "Editor")";
                     }
                     $("#divSaveFirstDialog").html("Save page before closing editor?");
-                    checkFirstModal.show();
+                    modalCheckSaveFirst.show();
                     break;
                 case "Draft":
                     $("#tbPublished").val("");
@@ -480,13 +533,23 @@
                     modalFileMgr.show();
                     modalFileMgr.handleUpdate();
                     break;
+                case "permissions":
+                    var id = $("#ArticleNumber").val();
+                    var url = "@Url.Action("Permissions", "Editor")";
+                    if (typeof (id) !== "undefined" && id !== null & id !== "") {
+                        url += "/" + id;
+                        $("#iframePermMgr").prop("src", url);
+                        modalPermMgr.show();
+                        modalPermMgr.handleUpdate();
+                    }
+                    break;
                 case "filemgr":
                     // Note: 'next' is defined in _LayoutEditor.cshtml.
                     next = function () {
                         window.location.href = "@Url.Action("Index", "FileManager")";
                     }
                     $("#divSaveFirstDialog").html("Save page before closing editor?");
-                    checkFirstModal.show();
+                    modalCheckSaveFirst.show();
                     break;
                 default:
                     // Executes functions specific to this editor
@@ -501,7 +564,7 @@
         }
 
         function doNotSave() {
-            checkFirstModal.hide();
+            modalCheckSaveFirst.hide();
             next();
         }
 
@@ -513,7 +576,6 @@
         }
 
         function savePublishDateTime() {
-            // Save date/time
             var dateTimeValue = $('#tbPublished').val();
 
             if ($("#Published").val() !== dateTimeValue) {
@@ -543,7 +605,36 @@
             return false;
         }
 
+        function validatePermissions() {
+            const publishedValue = $('#tbPublished').val();
+            if (typeof (publishedValue) !== "undefined" && publishedValue !== "" && requiresAuthentication && hasPermissionsSet === false) {
+                $('#tbPublished').val("");
+                const rolelist = $("#RoleList").val();
+                modalCheckPermissions.show();
+                return false;
+            } else {
+                return true;
+            }
+        }
+
+        function checkForSetPermissions() {
+            // Has permissions set?
+            if (requiresAuthentication && typeof (hasPermissionsSet) !== "undefined") {
+                if (hasPermissionsSet) {
+                    $("#btnArticleAccess").removeClass("btn-danger");
+                    $("#btnArticleAccess").addClass("btn-success");
+                } else {
+                    $("#btnArticleAccess").removeClass("btn-success");
+                    $("#btnArticleAccess").addClass("btn-danger");
+                }
+            }
+        }
+
         $(document).ready(function () {
+
+            // Sets the color of the permissions button to
+            // success for permissions exist, or danger for not.
+            checkForSetPermissions();
 
             var startDate;
             if (lastPublished === "") {
@@ -552,7 +643,7 @@
             else {
                 startDate = new Date(lastPublished);
             }
-                                             
+
             $('#tbPublished').daterangepicker({
                 autoUpdateInput: false,
                 timePicker: true,

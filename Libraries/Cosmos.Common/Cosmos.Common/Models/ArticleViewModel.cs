@@ -22,14 +22,6 @@ namespace Cosmos.Common.Models
     public class ArticleViewModel
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ArticleViewModel"/> class.
-        /// </summary>
-        public ArticleViewModel()
-        {
-            ArticlePermissions = new List<ArticlePermission>();
-        }
-
-        /// <summary>
         ///     Gets or sets entity key for the article.
         /// </summary>
         [Key]
@@ -101,12 +93,6 @@ namespace Cosmos.Common.Models
         public LayoutViewModel Layout { get; set; }
 
         /// <summary>
-        ///     Gets or sets roles allowed to view this page.
-        /// </summary>
-        /// <remarks>If this value is null, it assumes page can be viewed anonymously.</remarks>
-        public string RoleList { get; set; }
-
-        /// <summary>
         ///     Gets or sets date and time of when this article was last updated.
         /// </summary>
         [Display(Name = "Article last saved")]
@@ -167,10 +153,5 @@ namespace Cosmos.Common.Models
         /// Gets or sets article banner image.
         /// </summary>
         public string BannerImage { get; set; }
-
-        /// <summary>
-        /// Gets article permissions.
-        /// </summary>
-        public List<ArticlePermission> ArticlePermissions { get; internal set; }
     }
 }

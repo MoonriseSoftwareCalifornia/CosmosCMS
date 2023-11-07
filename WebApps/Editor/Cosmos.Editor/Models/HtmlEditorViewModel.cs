@@ -8,8 +8,10 @@
 namespace Cosmos.Cms.Models
 {
     using System;
+    using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
     using Cosmos.Cms.Data;
+    using Cosmos.Common.Data;
     using Cosmos.Common.Models;
     using Microsoft.AspNetCore.Mvc;
 
@@ -19,26 +21,27 @@ namespace Cosmos.Cms.Models
     public class HtmlEditorViewModel
     {
         /// <summary>
-        ///     Constructor.
+        /// Initializes a new instance of the <see cref="HtmlEditorViewModel"/> class.
         /// </summary>
         public HtmlEditorViewModel()
         {
         }
 
         /// <summary>
-        ///     Constructor.
+        /// Initializes a new instance of the <see cref="HtmlEditorViewModel"/> class.
         /// </summary>
-        /// <param name="model"></param>
-        public HtmlEditorViewModel(ArticleViewModel model)
+        /// <param name="model">Article view model.</param>
+        /// <param name="catalogEntry">Article catalog entry.</param>
+        public HtmlEditorViewModel(ArticleViewModel model, CatalogEntry catalogEntry)
         {
             Id = model.Id;
             ArticleNumber = model.ArticleNumber;
+            ArticlePermissions = catalogEntry.ArticlePermissions;
             UrlPath = model.UrlPath;
             VersionNumber = model.VersionNumber;
             this.Published = model.Published;
             Title = model.Title;
             Content = model.Content;
-            RoleList = model.RoleList;
             Updated = model.Updated;
             BannerImage = model.BannerImage;
         }
@@ -92,7 +95,7 @@ namespace Cosmos.Cms.Models
         ///     Gets or sets roles allowed to view this page.
         /// </summary>
         /// <remarks>If this value is null, it assumes page can be viewed anonymously.</remarks>
-        public string RoleList { get; set; }
+        public List<ArticlePermission> ArticlePermissions { get; set; }
 
         /// <summary>
         ///     Gets or sets date and time of when this was published.

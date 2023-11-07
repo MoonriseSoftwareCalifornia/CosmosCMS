@@ -92,12 +92,7 @@ namespace Cosmos.Cms.Common.Services.Configurations
         /// <summary>
         /// Gets or sets a value indicating whether publisher requires authentication.
         /// </summary>
-        public bool PublisherRequiresAuthentication { get; set; } = false;
-
-        /// <summary>
-        /// Gets or sets required user role membership to access the publisher website.
-        /// </summary>
-        public string CosmosRequiredPublisherRole { get; set; } = string.Empty;
+        public bool CosmosRequiresAuthentication { get; set; } = false;
 
         /// <summary>
         /// Gets or sets x-Frame-Options.

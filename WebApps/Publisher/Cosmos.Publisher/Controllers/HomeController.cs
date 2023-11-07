@@ -60,7 +60,7 @@ namespace Cosmos.Cms.Publisher.Controllers
             {
                 ArticleViewModel article;
 
-                if (options.Value.SiteSettings.PublisherRequiresAuthentication)
+                if (options.Value.SiteSettings.CosmosRequiresAuthentication)
                 {
                     // If the user is not logged in, have them login first.
                     if (User.Identity == null || User.Identity?.IsAuthenticated == false)
@@ -68,12 +68,7 @@ namespace Cosmos.Cms.Publisher.Controllers
                         return Redirect("~/Identity/Account/Login?returnUrl=" + Request.Path);
                     }
 
-                    if (User.IsInRole(options.Value.SiteSettings.CosmosRequiredPublisherRole) == false)
-                    {
-                        return Unauthorized();
-                    }
-
-                    article = await articleLogic.GetByUrl(HttpContext.Request.Path, HttpContext.Request.Query["lang"], TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(20)); // ?? await _articleLogic.GetByUrl(id, langCookie);
+                    article = await articleLogic.GetPublishedPageByUrl(HttpContext.Request.Path, HttpContext.Request.Query["lang"], TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(20)); // ?? await _articleLogic.GetByUrl(id, langCookie);
 
                     if (!await CosmosUtilities.AuthUser(dbContext, User, article.ArticleNumber))
                     {
@@ -84,7 +79,7 @@ namespace Cosmos.Cms.Publisher.Controllers
                 }
                 else
                 {
-                    article = await articleLogic.GetByUrl(HttpContext.Request.Path, HttpContext.Request.Query["lang"], TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(20)); // ?? await _articleLogic.GetByUrl(id, langCookie);
+                    article = await articleLogic.GetPublishedPageByUrl(HttpContext.Request.Path, HttpContext.Request.Query["lang"], TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(20)); // ?? await _articleLogic.GetByUrl(id, langCookie);
                     if (article != null)
                     {
                         Response.Headers.Expires = article.Expires.HasValue ? article.Expires.Value.ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'") : DateTimeOffset.UtcNow.AddMinutes(30).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
@@ -209,15 +204,10 @@ namespace Cosmos.Cms.Publisher.Controllers
                 return Json("[]");
             }
 
-            if (options.Value.SiteSettings.PublisherRequiresAuthentication)
+            if (options.Value.SiteSettings.CosmosRequiresAuthentication)
             {
                 // If the user is not logged in, have them login first.
                 if (User.Identity == null || User.Identity?.IsAuthenticated == false)
-                {
-                    return Unauthorized();
-                }
-
-                if (!string.IsNullOrEmpty(options.Value.SiteSettings.CosmosRequiredPublisherRole) && !User.IsInRole(options.Value.SiteSettings.CosmosRequiredPublisherRole))
                 {
                     return Unauthorized();
                 }

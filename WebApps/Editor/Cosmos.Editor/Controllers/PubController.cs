@@ -44,27 +44,25 @@ namespace Cosmos.Publisher.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> Index()
         {
-            if (_options.Value.SiteSettings.PublisherRequiresAuthentication)
+            if (_options.Value.SiteSettings.CosmosRequiresAuthentication)
             {
                 // If the user is not logged in, have them login first.
                 if (User.Identity == null || User.Identity?.IsAuthenticated == false)
                 {
-                    return Redirect("~/Identity/Account/Login?returnUrl=" + Request.Path);
-                }
-
-                if (User.IsInRole(_options.Value.SiteSettings.CosmosRequiredPublisherRole) == false)
-                {
                     return Unauthorized();
                 }
 
+                // Gets a path to file.
                 var path = HttpContext.Request.Path.ToString().ToLower();
 
+                // See if the article is in protected storage.
                 if (path.StartsWith("/pub/articles/"))
                 {
                     var id = path.TrimStart('/').Split('/')[2];
 
                     if (int.TryParse(id, out var articleNumber))
                     {
+                        // Check for user authorization.
                         if (!await CosmosUtilities.AuthUser(_dbContext, User, articleNumber))
                         {
                             return Unauthorized();

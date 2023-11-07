@@ -34,27 +34,39 @@ namespace Cosmos.Common
             List<ArticlePermission> permissions = null;
             try
             {
-                permissions = dbContext.Pages.LastOrDefault(l => l.ArticleNumber == articleNumber).ArticlePermissions;
+                permissions = dbContext.ArticleCatalog.FirstOrDefault(l => l.ArticleNumber == articleNumber).ArticlePermissions;
+                if (permissions == null || permissions.Count == 0)
+                {
+                    return false; // No one can access this page.
+                }
             }
             catch (Exception ex)
             {
                 var message = ex.Message; // Debugging
+                return false;
             }
 
-            if (permissions == null || !permissions.Any())
+            // Check for anonymous user access.
+            if (permissions.Any(a => a.IsRoleObject && a.Permission.Equals("anonymous", StringComparison.CurrentCultureIgnoreCase)))
             {
-                return true;
+                return true; // Anonymous users can view, so that means everyone.
             }
 
-            var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+            // At this point, only authenticated users have access.
+            if (!user.Identity.IsAuthenticated)
+            {
+                return false;
+            }
 
+            // Get the current user ID and see if this person has user-specific access.
+            var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
             if (permissions.Any(a => a.IdentityObjectId.Equals(userId, StringComparison.OrdinalIgnoreCase)))
             {
-                return true;
+                return true; // Current user has access.
             }
 
+            // Finally, if a user has role permissions, grant access here.
             var objectIds = permissions.Where(w => w.IsRoleObject).Select(s => s.IdentityObjectId).ToArray();
-
             return (await dbContext.UserRoles.CountAsync(a => a.UserId == userId && objectIds.Contains(a.RoleId))) > 0;
         }
 
@@ -88,7 +100,13 @@ namespace Cosmos.Common
             var objectIds = await dbcontext.UserRoles.Where(w => w.UserId == userId).Select(s => s.RoleId).ToListAsync();
             objectIds.Add(userId);
 
-            var data = await dbcontext.Pages.Where(w => w.ArticlePermissions.Any() == false || w.ArticlePermissions.Any(a => objectIds.Contains(a.IdentityObjectId)))
+            var articleNumbers = await dbcontext.ArticleCatalog
+                .Where(
+                    w => w.ArticlePermissions.Any() == false ||
+                    w.ArticlePermissions.Any(a => objectIds.Contains(a.IdentityObjectId)))
+                .Select(s => s.ArticleNumber).ToArrayAsync();
+
+            var data = await dbcontext.Pages.Where(w => articleNumbers.Contains(w.ArticleNumber))
                 .Select(s => new TableOfContentsItem()
                 {
                     AuthorInfo = s.AuthorInfo,

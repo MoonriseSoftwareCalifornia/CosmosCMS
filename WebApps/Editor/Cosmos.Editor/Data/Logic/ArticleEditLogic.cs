@@ -789,7 +789,6 @@ namespace Cosmos.Cms.Data.Logic
                     Content = model.Content,
                     Id = model.Id,
                     Published = model.Published,
-                    RoleList = model.RoleList,
                     Title = model.Title,
                     VersionNumber = model.VersionNumber,
                     UrlPath = model.UrlPath,
@@ -802,7 +801,6 @@ namespace Cosmos.Cms.Data.Logic
 
                 entity.Published = model.Published;
                 entity.Title = model.Title;
-                entity.RoleList = model.RoleList;
                 entity.VersionNumber = model.VersionNumber;
                 entity.Content = model.Content;
             }
@@ -813,8 +811,8 @@ namespace Cosmos.Cms.Data.Logic
         /// <summary>
         ///     Updates an existing article, or inserts a new one.
         /// </summary>
-        /// <param name="model"></param>
-        /// <param name="userId"></param>
+        /// <param name="model">Article view model.</param>
+        /// <param name="userId">ID of the current user.</param>
         /// <remarks>
         ///     <para>
         ///         If the article number is '0', a new article is inserted.  If a version number is '0', then
@@ -892,7 +890,6 @@ namespace Cosmos.Cms.Data.Logic
             article.Updated = DateTimeOffset.UtcNow;
             article.HeaderJavaScript = model.HeadJavaScript;
             article.FooterJavaScript = model.FooterJavaScript;
-            article.RoleList = model.RoleList;
             article.BannerImage = model.BannerImage;
 
             #endregion
@@ -934,8 +931,8 @@ namespace Cosmos.Cms.Data.Logic
         /// <summary>
         /// Performs a global search and replace (except items in trash).
         /// </summary>
-        /// <param name="model"></param>
-        /// <param name="userId"></param>
+        /// <param name="model">Search and replace view model.</param>
+        /// <param name="userId">ID of the current user for logs.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task SearchAndReplace(SearchAndReplaceViewModel model, string userId)
         {
@@ -967,7 +964,8 @@ namespace Cosmos.Cms.Data.Logic
 
                 foreach (var articleNumber in articleNumbers)
                 {
-                    await ArticleSearchAndReplace(new SearchAndReplaceViewModel()
+                    await ArticleSearchAndReplace(
+                        new SearchAndReplaceViewModel()
                     {
                         ArticleNumber = articleNumber,
                         FindValue = model.FindValue,
@@ -1149,7 +1147,7 @@ namespace Cosmos.Cms.Data.Logic
         /// <summary>
         /// Updates the published pages collection by article number.
         /// </summary>
-        /// <param name="articleNumber"></param>
+        /// <param name="articleNumber">Article number to publish.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         private async Task<ArmOperation> UpdatePublishedPages(int articleNumber)
         {
@@ -1177,6 +1175,9 @@ namespace Cosmos.Cms.Data.Logic
                 {
                     var authorInfo = await DbContext.AuthorInfos.FirstOrDefaultAsync(f => f.UserId == item.UserId && f.AuthorName != string.Empty);
 
+                    // Carry over the permissions for this page.
+                    var catalogEntry = await DbContext.ArticleCatalog.FirstOrDefaultAsync(f => f.ArticleNumber == item.ArticleNumber);
+
                     var newPage = new PublishedPage()
                     {
                         ArticleNumber = item.ArticleNumber,
@@ -1187,15 +1188,13 @@ namespace Cosmos.Cms.Data.Logic
                         HeaderJavaScript = item.HeaderJavaScript,
                         Id = Guid.NewGuid(), // Use a new GUID
                         Published = item.Published,
-                        RoleList = item.RoleList,
                         StatusCode = item.StatusCode,
                         Title = item.Title,
                         Updated = item.Updated,
                         UrlPath = item.UrlPath,
                         ParentUrlPath = item.UrlPath.Substring(0, Math.Max(item.UrlPath.LastIndexOf('/'), 0)),
                         VersionNumber = item.VersionNumber,
-                        AuthorInfo = JsonConvert.SerializeObject(authorInfo).Replace("\"", "'"),
-                        ArticlePermissions = item.ArticlePermissions
+                        AuthorInfo = JsonConvert.SerializeObject(authorInfo).Replace("\"", "'")
                     };
 
                     // Check for duplicate
@@ -1774,7 +1773,7 @@ namespace Cosmos.Cms.Data.Logic
         {
             if (publishedOnly && onlyActive)
             {
-                return await base.GetByUrl(urlPath, lang);
+                return await base.GetPublishedPageByUrl(urlPath, lang);
             }
 
             var activeStatusCodes =

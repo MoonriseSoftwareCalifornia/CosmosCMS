@@ -97,9 +97,7 @@ namespace Cosmos.Cms.Common.Services.Configurations
             cosmosConfig.SiteSettings.AllowConfigEdit = GetValue<bool>("CosmosAllowConfigEdit");
             cosmosConfig.SiteSettings.AllowReset = GetValue<bool>("CosmosAllowReset");
 
-            cosmosConfig.SiteSettings.CosmosRequiredPublisherRole = GetValue<string>("CosmosRequiredPublisherRole");
-
-            cosmosConfig.SiteSettings.PublisherRequiresAuthentication = string.IsNullOrEmpty(cosmosConfig.SiteSettings.CosmosRequiredPublisherRole) == false;
+            cosmosConfig.SiteSettings.CosmosRequiresAuthentication = GetValue<bool?>("CosmosRequiresAuthentication") ?? false;
 
             var localLogin = GetValue<bool?>("AllowLocalAccounts");
             if (localLogin.HasValue)
