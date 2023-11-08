@@ -29,7 +29,10 @@ namespace Cosmos.Common
         /// <param name="user">Claims identity principle.</param>
         /// <param name="articleNumber">Article number.</param>
         /// <returns>Indicates a user is authenticated as a <see cref="bool"/>.</returns>
-        public static async Task<bool> AuthUser(ApplicationDbContext dbContext, ClaimsPrincipal user, int articleNumber)
+        public static async Task<bool> AuthUser(
+            ApplicationDbContext dbContext,
+            ClaimsPrincipal user,
+            int articleNumber)
         {
             List<ArticlePermission> permissions = null;
             try

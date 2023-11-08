@@ -58,33 +58,7 @@ namespace Cosmos.Cms.Publisher.Controllers
         {
             try
             {
-                ArticleViewModel article;
-
-                if (options.Value.SiteSettings.CosmosRequiresAuthentication)
-                {
-                    // If the user is not logged in, have them login first.
-                    if (User.Identity == null || User.Identity?.IsAuthenticated == false)
-                    {
-                        return Redirect("~/Identity/Account/Login?returnUrl=" + Request.Path);
-                    }
-
-                    article = await articleLogic.GetPublishedPageByUrl(HttpContext.Request.Path, HttpContext.Request.Query["lang"], TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(20)); // ?? await _articleLogic.GetByUrl(id, langCookie);
-
-                    if (!await CosmosUtilities.AuthUser(dbContext, User, article.ArticleNumber))
-                    {
-                        return Unauthorized();
-                    }
-
-                    Response.Headers.Expires = DateTimeOffset.UtcNow.ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
-                }
-                else
-                {
-                    article = await articleLogic.GetPublishedPageByUrl(HttpContext.Request.Path, HttpContext.Request.Query["lang"], TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(20)); // ?? await _articleLogic.GetByUrl(id, langCookie);
-                    if (article != null)
-                    {
-                        Response.Headers.Expires = article.Expires.HasValue ? article.Expires.Value.ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'") : DateTimeOffset.UtcNow.AddMinutes(30).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
-                    }
-                }
+                var article = await articleLogic.GetPublishedPageByUrl(HttpContext.Request.Path, HttpContext.Request.Query["lang"], TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(20)); // ?? await _articleLogic.GetByUrl(id, langCookie);
 
                 if (article == null)
                 {
@@ -102,6 +76,23 @@ namespace Cosmos.Cms.Publisher.Controllers
                     }
                 }
 
+                if (options.Value.SiteSettings.CosmosRequiresAuthentication)
+                {
+                    // If the user is not logged in, have them login first.
+                    if (User.Identity == null || User.Identity?.IsAuthenticated == false)
+                    {
+                        return Redirect("~/Identity/Account/Login?returnUrl=" + Request.Path);
+                    }
+
+                    if (!await CosmosUtilities.AuthUser(dbContext, User, article.ArticleNumber))
+                    {
+                        return Unauthorized();
+                    }
+                }
+
+                Response.Headers.Expires = article.Expires.HasValue ?
+                    article.Expires.Value.ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'") :
+                    DateTimeOffset.UtcNow.AddMinutes(3).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
                 Response.Headers.ETag = article.Id.ToString();
                 Response.Headers.LastModified = article.Updated.ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
 

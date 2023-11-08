@@ -10,12 +10,14 @@ namespace Cosmos.IdentityManagement.Website.Controllers
     using System;
     using System.Linq;
     using System.Threading.Tasks;
+    using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Cms.Models;
     using Cosmos.Common.Data;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Options;
 
     /// <summary>
     /// Role management controller.
@@ -24,25 +26,29 @@ namespace Cosmos.IdentityManagement.Website.Controllers
     [Authorize(Roles = "Administrators")]
     public class RolesController : Controller
     {
-        private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly ApplicationDbContext _dbContext;
+        private readonly RoleManager<IdentityRole> roleManager;
+        private readonly UserManager<IdentityUser> userManager;
+        private readonly ApplicationDbContext dbContext;
+        private readonly IOptions<CosmosConfig> options;
 
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="RolesController"/> class.
         /// </summary>
+        /// <param name="options"></param>
         /// <param name="userManager"></param>
         /// <param name="roleManager"></param>
         /// <param name="dbContext"></param>
         public RolesController(
             UserManager<IdentityUser> userManager,
             RoleManager<IdentityRole> roleManager,
+            IOptions<CosmosConfig> options,
             ApplicationDbContext dbContext
             )
         {
-            _userManager = userManager;
-            _roleManager = roleManager;
-            _dbContext = dbContext;
+            this.options = options;
+            this.userManager = userManager;
+            this.roleManager = roleManager;
+            this.dbContext = dbContext;
         }
 
         /// <summary>
@@ -59,14 +65,14 @@ namespace Cosmos.IdentityManagement.Website.Controllers
                 return BadRequest("Rule name is required.");
             }
 
-            if (await _roleManager.RoleExistsAsync(RoleName))
+            if (await roleManager.RoleExistsAsync(RoleName))
             {
                 return BadRequest($"Role '{RoleName}' already exists");
             }
 
             try
             {
-                await _roleManager.CreateAsync(new IdentityRole()
+                await roleManager.CreateAsync(new IdentityRole()
                 {
                     Id = Guid.NewGuid().ToString(),
                     Name = RoleName
@@ -91,6 +97,11 @@ namespace Cosmos.IdentityManagement.Website.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> Index([Bind("ids")] string ids, string sortOrder = "asc", string currentSort = "Name", int pageNo = 0, int pageSize = 10)
         {
+            if (options.Value.SiteSettings.CosmosRequiresAuthentication && (await roleManager.RoleExistsAsync("Anonymous")) == false)
+            {
+                await roleManager.CreateAsync(new IdentityRole("Anonymous"));
+            }
+
             if (string.IsNullOrEmpty(ids))
             {
                 ViewData["Ids"] = null;
@@ -105,7 +116,7 @@ namespace Cosmos.IdentityManagement.Website.Controllers
             ViewData["pageNo"] = pageNo;
             ViewData["pageSize"] = pageSize;
 
-            var query = _roleManager.Roles.AsQueryable();
+            var query = roleManager.Roles.AsQueryable();
 
             ViewData["RowCount"] = await query.CountAsync();
 
@@ -150,16 +161,16 @@ namespace Cosmos.IdentityManagement.Website.Controllers
         {
             var safeRoles = new string[] { "authors", "administrators", "authors", "editors", "reviewers" };
 
-            var roles = await _roleManager.Roles
+            var roles = await roleManager.Roles
                 .Where(w => safeRoles.Contains(w.Name.ToLower()) == false && roleIds.Contains(w.Id)).ToListAsync();
 
             if (roles != null && ModelState.IsValid)
             {
                 foreach (var role in roles)
                 {
-                    var identityRole = await _roleManager.FindByIdAsync(role.Id);
+                    var identityRole = await roleManager.FindByIdAsync(role.Id);
 
-                    await _roleManager.DeleteAsync(identityRole);
+                    await roleManager.DeleteAsync(identityRole);
                 }
             }
 
@@ -173,7 +184,7 @@ namespace Cosmos.IdentityManagement.Website.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> GetUsers(string startsWith)
         {
-            var query = _userManager.Users.OrderBy(o => o.Email)
+            var query = userManager.Users.OrderBy(o => o.Email)
                 .Select(
                   s => new
                   {
@@ -204,7 +215,7 @@ namespace Cosmos.IdentityManagement.Website.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> UsersInRole(string id, string Id = "", string sortOrder = "asc", string currentSort = "EmailAddress", int pageNo = 0, int pageSize = 10)
         {
-            var role = await _roleManager.FindByIdAsync(id);
+            var role = await roleManager.FindByIdAsync(id);
             if (role == null)
             {
                 return NotFound();
@@ -220,13 +231,13 @@ namespace Cosmos.IdentityManagement.Website.Controllers
             ViewData["pageNo"] = pageNo;
             ViewData["pageSize"] = pageSize;
 
-            var usersInRole = await _userManager.GetUsersInRoleAsync(role.Name);
+            var usersInRole = await userManager.GetUsersInRoleAsync(role.Name);
 
-            var query = _dbContext.Users.AsQueryable();
+            var query = dbContext.Users.AsQueryable();
 
             if (!string.IsNullOrEmpty(Id))
             {
-                var identityRole = await _roleManager.FindByIdAsync(Id);
+                var identityRole = await roleManager.FindByIdAsync(Id);
 
                 var ids = usersInRole.Select(s => s.Id).ToArray();
                 query = query.Where(w => ids.Contains(w.Id));
@@ -287,9 +298,9 @@ namespace Cosmos.IdentityManagement.Website.Controllers
             }).ToList();
 
             // Now get the role for these people
-            var roles = await _dbContext.Roles.ToListAsync();
+            var roles = await dbContext.Roles.ToListAsync();
             var userIds = await query.Select(s => s.Id).ToListAsync();
-            var links = await _dbContext.UserRoles.Where(ur => userIds.Contains(ur.UserId)).ToListAsync();
+            var links = await dbContext.UserRoles.Where(ur => userIds.Contains(ur.UserId)).ToListAsync();
 
             foreach (var user in users)
             {
@@ -314,8 +325,8 @@ namespace Cosmos.IdentityManagement.Website.Controllers
             {
                 foreach (var id in model.UserIds)
                 {
-                    var user = await _userManager.FindByIdAsync(id);
-                    await _userManager.AddToRoleAsync(user, model.RoleName);
+                    var user = await userManager.FindByIdAsync(id);
+                    await userManager.AddToRoleAsync(user, model.RoleName);
                 }
 
                 model.UserIds = null;
@@ -324,7 +335,7 @@ namespace Cosmos.IdentityManagement.Website.Controllers
             }
 
             // Not valid, return the selected users.
-            model.Users = await _userManager.Users.Where(w => model.UserIds.Contains(w.Id))
+            model.Users = await userManager.Users.Where(w => model.UserIds.Contains(w.Id))
                 .Select(
                 s => new SelectedUserViewModel()
                 {
@@ -346,25 +357,25 @@ namespace Cosmos.IdentityManagement.Website.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RemoveUsers(string roleId, string[] userIds)
         {
-            var role = await _roleManager.FindByIdAsync(roleId);
+            var role = await roleManager.FindByIdAsync(roleId);
 
             foreach (var userId in userIds)
             {
-                var identityUser = await _userManager.FindByIdAsync(userId);
+                var identityUser = await userManager.FindByIdAsync(userId);
 
                 // Make sure there is at least one administrator remaining
                 if (role.Name.Equals("User Administrators", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    var administrators = await _userManager.GetUsersInRoleAsync("User Administrators");
+                    var administrators = await userManager.GetUsersInRoleAsync("User Administrators");
 
                     if (administrators.Count() > 0)
                     {
-                        await _userManager.RemoveFromRoleAsync(identityUser, role.Name);
+                        await userManager.RemoveFromRoleAsync(identityUser, role.Name);
                     }
                 }
                 else
                 {
-                    var result = await _userManager.RemoveFromRoleAsync(identityUser, role.Name);
+                    var result = await userManager.RemoveFromRoleAsync(identityUser, role.Name);
                     var t = result;
                 }
             }

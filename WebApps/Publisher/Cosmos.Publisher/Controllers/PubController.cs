@@ -44,6 +44,7 @@ namespace Cosmos.Publisher.Controllers
         /// <returns>Returns an <see cref="IActionResult"/>.</returns>
         public async Task<IActionResult> Index()
         {
+            // Is authentication required?
             if (options.Value.SiteSettings.CosmosRequiresAuthentication)
             {
                 // If the user is not logged in, have them login first.
@@ -54,6 +55,7 @@ namespace Cosmos.Publisher.Controllers
 
                 var path = HttpContext.Request.Path.ToString().ToLower();
 
+                // Protected path is /pub/articles, so if we are getting a file from here, check permissions.
                 if (path.StartsWith("/pub/articles/"))
                 {
                     var id = path.TrimStart('/').Split('/')[2];

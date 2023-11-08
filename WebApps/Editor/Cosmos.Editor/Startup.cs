@@ -39,9 +39,9 @@ namespace Cosmos.Cms
     public class Startup
     {
         /// <summary>
-        ///     Constructor.
+        /// Initializes a new instance of the <see cref="Startup"/> class.
         /// </summary>
-        /// <param name="configuration"></param>
+        /// <param name="configuration">Website <see cref="IConfiguration"/>.</param>
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -55,7 +55,7 @@ namespace Cosmos.Cms
         /// <summary>
         ///     Method configures services for the website.
         /// </summary>
-        /// <param name="services"></param>
+        /// <param name="services">Website <see cref="IServiceCollection"/>.</param>
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
@@ -123,18 +123,13 @@ namespace Cosmos.Cms
             {
                 services.AddDbContext<ApplicationDbContext>(options =>
                 {
-                    options.UseCosmos(connectionString: connectionString, databaseName: cosmosIdentityDbName,
-                        cosmosOps =>
-                        {
-                            cosmosOps.Region(cosmosRegionName);
-                        });
+                    options.UseCosmos(connectionString: connectionString, databaseName: cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
                 });
             }
 
             // Add Cosmos Identity here
             services.AddCosmosIdentity<ApplicationDbContext, IdentityUser, IdentityRole>(
-                  options => options.SignIn.RequireConfirmedAccount = true
-                )
+                  options => options.SignIn.RequireConfirmedAccount = true)
                 .AddDefaultUI() // Use this if Identity Scaffolding added
                 .AddDefaultTokenProviders();
 
@@ -260,13 +255,13 @@ namespace Cosmos.Cms
 
             services.AddCors(options =>
             {
-                options.AddPolicy("AllCors",
+                options.AddPolicy(
+                    "AllCors",
                     policy =>
                     {
                         policy.AllowAnyOrigin().AllowAnyMethod();
                     });
             });
-
 
             // Add this before identity
             // See also: https://learn.microsoft.com/en-us/aspnet/core/performance/caching/response?view=aspnetcore-7.0
@@ -292,6 +287,7 @@ namespace Cosmos.Cms
                 options.Preload = true;
                 options.IncludeSubDomains = true;
                 options.MaxAge = TimeSpan.FromDays(365);
+
                 // options.ExcludedHosts.Add("example.com");
                 // options.ExcludedHosts.Add("www.example.com");
             });
@@ -341,12 +337,14 @@ namespace Cosmos.Cms
             {
                 options.ForwardedHeaders = ForwardedHeaders.XForwardedFor |
                                            ForwardedHeaders.XForwardedProto;
+
                 // Only loopback proxies are allowed by default.
                 // Clear that restriction because forwarders are enabled by explicit
                 // configuration.
                 options.KnownNetworks.Clear();
                 options.KnownProxies.Clear();
             });
+
             // END
             services.AddResponseCaching();
 
@@ -375,8 +373,8 @@ namespace Cosmos.Cms
         /// <summary>
         ///     This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         /// </summary>
-        /// <param name="app"></param>
-        /// <param name="env"></param>
+        /// <param name="app">Website <see cref="IApplicationBuilder"/>.</param>
+        /// <param name="env">Website <see cref="IWebHostEnvironment"/>.</param>
         public void Configure(
             IApplicationBuilder app,
             IWebHostEnvironment env)
@@ -384,6 +382,7 @@ namespace Cosmos.Cms
             // BEGIN
             // https://seankilleen.com/2020/06/solved-net-core-azure-ad-in-docker-container-incorrectly-uses-an-non-https-redirect-uri/
             app.UseForwardedHeaders();
+
             // END
             if (env.IsDevelopment())
             {
@@ -392,6 +391,7 @@ namespace Cosmos.Cms
             else
             {
                 app.UseExceptionHandler("/Home/Error");
+
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
@@ -421,9 +421,10 @@ namespace Cosmos.Cms
                     "MyArea",
                     "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
-                endpoints.MapControllerRoute(name: "pub",
-                                pattern: "pub/{*index}",
-                                defaults: new { controller = "Pub", action = "Index" });
+                endpoints.MapControllerRoute(
+                    name: "pub",
+                    pattern: "pub/{*index}",
+                    defaults: new { controller = "Pub", action = "Index" });
 
                 endpoints.MapControllerRoute(
                         "default",
