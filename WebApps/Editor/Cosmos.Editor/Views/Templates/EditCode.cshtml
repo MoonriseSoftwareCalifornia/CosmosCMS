@@ -186,14 +186,14 @@
                     window.location.href = "@Url.Action("Index", "Templates")";
                 }
                 $("#divSaveFirstDialog").html("Save page before closing editor?");
-                checkFirstModal.show();
+                modalCheckSaveFirst.show();
                 break;
             case "Preview":
                 next = function () {
                     window.open("@Url.Action("Preview", "Templates", new {Model?.Id})");
                 }
                 $("#divSaveFirstDialog").html("Save page before opening preview?");
-                checkFirstModal.show();
+                modalCheckSaveFirst.show();
                 break;
         }
     }

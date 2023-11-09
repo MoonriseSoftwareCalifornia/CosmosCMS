@@ -49,8 +49,10 @@ namespace Cosmos.Common
                 return false;
             }
 
+            var roleIds = permissions.Where(w => w.IsRoleObject).Select(s => s.IdentityObjectId).ToArray();
+
             // Check for anonymous user access.
-            if (permissions.Any(a => a.IsRoleObject && a.Permission.Equals("anonymous", StringComparison.CurrentCultureIgnoreCase)))
+            if (await dbContext.Roles.Where(w => roleIds.Contains(w.Id) && w.NormalizedName == "ANONYMOUS").CosmosAnyAsync())
             {
                 return true; // Anonymous users can view, so that means everyone.
             }
@@ -69,8 +71,7 @@ namespace Cosmos.Common
             }
 
             // Finally, if a user has role permissions, grant access here.
-            var objectIds = permissions.Where(w => w.IsRoleObject).Select(s => s.IdentityObjectId).ToArray();
-            return (await dbContext.UserRoles.CountAsync(a => a.UserId == userId && objectIds.Contains(a.RoleId))) > 0;
+            return (await dbContext.UserRoles.CountAsync(a => a.UserId == userId && roleIds.Contains(a.RoleId))) > 0;
         }
 
         /// <summary>

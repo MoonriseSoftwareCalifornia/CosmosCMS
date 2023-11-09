@@ -317,7 +317,7 @@
                     window.location.href = "@Url.Action("Versions", "Editor")/@Model.ArticleNumber";
                 }
                 $("#divSaveFirstDialog").html("Save page before closing editor?");
-                checkFirstModal.show();
+                modalCheckSaveFirst.show();
                 break;
             case "Preview":
                 $("#iframePreview").prop("src", "@Url.Action("Preview", "Home")?articleNumber=" + @Model.ArticleNumber);
@@ -329,7 +329,7 @@
                     window.location.href = "@Url.Action("Edit", "Editor")/" + $("#ArticleNumber").val();
                 }
                 $("#divSaveFirstDialog").html("Save page before opening Live editor?");
-                checkFirstModal.show();
+                modalCheckSaveFirst.show();
                 break;
         }
     }

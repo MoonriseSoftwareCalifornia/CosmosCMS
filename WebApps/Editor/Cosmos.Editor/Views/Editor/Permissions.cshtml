@@ -194,6 +194,8 @@
         $("body").addClass("cwps-body");
         $("body").addClass("cwps-editor-container");
 
+        // Clear and reload permissions
+        clearIdentityObjectIds();
         reloadIdentityObjectIds();
 
         $(".row-click-ckbox").click(function (e) {

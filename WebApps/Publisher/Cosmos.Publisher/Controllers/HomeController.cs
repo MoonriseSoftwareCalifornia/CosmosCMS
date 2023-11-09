@@ -21,6 +21,7 @@ namespace Cosmos.Cms.Publisher.Controllers
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Options;
+    using SendGrid.Helpers.Mail;
 
     /// <summary>
     /// Home page controller.
@@ -78,15 +79,9 @@ namespace Cosmos.Cms.Publisher.Controllers
 
                 if (options.Value.SiteSettings.CosmosRequiresAuthentication)
                 {
-                    // If the user is not logged in, have them login first.
-                    if (User.Identity == null || User.Identity?.IsAuthenticated == false)
-                    {
-                        return Redirect("~/Identity/Account/Login?returnUrl=" + Request.Path);
-                    }
-
                     if (!await CosmosUtilities.AuthUser(dbContext, User, article.ArticleNumber))
                     {
-                        return Unauthorized();
+                        return Redirect("~/Identity/Account/Login");
                     }
                 }
 

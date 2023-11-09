@@ -8,6 +8,9 @@
 namespace Cosmos.Cms
 {
     using System;
+    using System.Security.Cryptography;
+    using System.Security.Policy;
+    using System.Text;
     using System.Threading.Tasks;
     using System.Web;
     using AspNetCore.Identity.CosmosDb.Extensions;
@@ -361,13 +364,35 @@ namespace Cosmos.Cms
             }
             else
             {
+                var appUli = new Uri(option.Value.SiteSettings.PublisherUrl);
                 var endpoint = new Microsoft.Azure.SignalR.ServiceEndpoint(signalRConnection);
+                var appName = GetHashString(appUli.DnsSafeHost);
+
                 services.AddSignalR().AddAzureSignalR(config =>
                 {
                     config.Endpoints = new[] { endpoint };
-                    config.ApplicationName = cosmosIdentityDbName;
+                    config.ApplicationName = $"H{appName}";
                 });
             }
+        }
+
+        private static byte[] GetHash(string inputString)
+        {
+            using (HashAlgorithm algorithm = SHA256.Create())
+            {
+                return algorithm.ComputeHash(Encoding.UTF8.GetBytes(inputString));
+            }
+        }
+
+        private static string GetHashString(string inputString)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (byte b in GetHash(inputString))
+            {
+                sb.Append(b.ToString("X2"));
+            }
+
+            return sb.ToString();
         }
 
         /// <summary>

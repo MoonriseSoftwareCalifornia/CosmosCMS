@@ -36,12 +36,12 @@ namespace Cosmos.Cms.Controllers
     [Authorize(Roles = "Administrators")]
     public class UsersController : Controller
     {
-        private readonly ILogger<UsersController> _logger;
-        private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly AzureCommunicationEmailSender _emailSender;
-        private readonly ApplicationDbContext _dbContext;
-        private readonly IOptions<CosmosConfig> _options;
+        private readonly ILogger<UsersController> logger;
+        private readonly RoleManager<IdentityRole> roleManager;
+        private readonly UserManager<IdentityUser> userManager;
+        private readonly SendGridEmailSender emailSender;
+        private readonly ApplicationDbContext dbContext;
+        private readonly IOptions<CosmosConfig> options;
 
         /// <summary>
         /// Constructor.
@@ -60,12 +60,12 @@ namespace Cosmos.Cms.Controllers
             ApplicationDbContext dbContext,
             IOptions<CosmosConfig> options)
         {
-            _logger = logger;
-            _userManager = userManager;
-            _roleManager = roleManager;
-            _emailSender = (AzureCommunicationEmailSender)emailSender;
-            _dbContext = dbContext;
-            _options = options;
+            this.logger = logger;
+            this.userManager = userManager;
+            this.roleManager = roleManager;
+            this.emailSender = (SendGridEmailSender)emailSender;
+            this.dbContext = dbContext;
+            this.options = options;
         }
 
         /// <summary>
@@ -84,14 +84,14 @@ namespace Cosmos.Cms.Controllers
             ViewData["pageSize"] = pageSize;
 
             // Get the current list of infos
-            var ids = await _dbContext.AuthorInfos.Select(s => s.UserId).ToArrayAsync();
-            var check = await _dbContext.Users.Select(s => new AuthorInfo { UserId = s.Id, EmailAddress = s.Email }).ToListAsync();
+            var ids = await dbContext.AuthorInfos.Select(s => s.UserId).ToArrayAsync();
+            var check = await dbContext.Users.Select(s => new AuthorInfo { UserId = s.Id, EmailAddress = s.Email }).ToListAsync();
             var missing = check.Where(w => ids.Contains(w.UserId) == false).ToList();
             // Get missing infos and add them
-            _dbContext.AuthorInfos.AddRange(missing);
-            await _dbContext.SaveChangesAsync();
+            dbContext.AuthorInfos.AddRange(missing);
+            await dbContext.SaveChangesAsync();
 
-            var query = _dbContext.AuthorInfos.AsQueryable();
+            var query = dbContext.AuthorInfos.AsQueryable();
 
             // Get count
             ViewData["RowCount"] = await query.CountAsync();
@@ -141,7 +141,7 @@ namespace Cosmos.Cms.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> AuthorInfoEdit(string Id)
         {
-            return View(await _dbContext.AuthorInfos.FindAsync(Id));
+            return View(await dbContext.AuthorInfos.FindAsync(Id));
         }
 
         /// <summary>
@@ -154,8 +154,8 @@ namespace Cosmos.Cms.Controllers
         {
             if (ModelState.IsValid)
             {
-                _dbContext.Entry(model).State = EntityState.Modified;
-                await _dbContext.SaveChangesAsync();
+                dbContext.Entry(model).State = EntityState.Modified;
+                await dbContext.SaveChangesAsync();
                 return RedirectToAction("AuthorInfos");
             }
 
@@ -178,13 +178,13 @@ namespace Cosmos.Cms.Controllers
             ViewData["pageNo"] = pageNo;
             ViewData["pageSize"] = pageSize;
 
-            var query = _dbContext.Users.AsQueryable();
+            var query = dbContext.Users.AsQueryable();
 
             if (!string.IsNullOrEmpty(Id))
             {
-                var identityRole = await _roleManager.FindByIdAsync(Id);
+                var identityRole = await roleManager.FindByIdAsync(Id);
 
-                var usersInRole = await _userManager.GetUsersInRoleAsync(identityRole.Name);
+                var usersInRole = await userManager.GetUsersInRoleAsync(identityRole.Name);
 
                 var ids = usersInRole.Select(s => s.Id).ToArray();
                 query = query.Where(w => ids.Contains(w.Id));
@@ -245,9 +245,9 @@ namespace Cosmos.Cms.Controllers
             }).ToList();
 
             // Now get the role for these people
-            var roles = await _dbContext.Roles.ToListAsync();
+            var roles = await dbContext.Roles.ToListAsync();
             var userIds = await query.Select(s => s.Id).ToListAsync();
-            var links = await _dbContext.UserRoles.Where(ur => userIds.Contains(ur.UserId)).ToListAsync();
+            var links = await dbContext.UserRoles.Where(ur => userIds.Contains(ur.UserId)).ToListAsync();
 
             foreach (var user in users)
             {
@@ -268,7 +268,6 @@ namespace Cosmos.Cms.Controllers
             return View(new UserCreateViewModel());
         }
 
-        #region CREATE USER METHODS
 
         /// <summary>
         /// Create a user.
@@ -301,7 +300,7 @@ namespace Cosmos.Cms.Controllers
                     }
                     else
                     {
-                        return View("UserCreated", new UserCreatedViewModel(result.UserCreateViewModel, _emailSender.SendResult));
+                        return View("UserCreated", new UserCreatedViewModel(result.UserCreateViewModel, result.SendResult));
                     }
                 }
 
@@ -314,12 +313,11 @@ namespace Cosmos.Cms.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError(e.Message, e);
+                logger.LogError(e.Message, e);
                 throw;
             }
         }
 
-        #endregion
 
         /// <summary>
         /// Creates a single user account.
@@ -359,15 +357,15 @@ namespace Cosmos.Cms.Controllers
                 PhoneNumberConfirmed = model.PhoneNumberConfirmed
             };
 
-            result.IdentityResult = await _userManager.CreateAsync(user, model.Password);
+            result.IdentityResult = await userManager.CreateAsync(user, model.Password);
 
             if (result.IdentityResult.Succeeded)
             {
                 if (model.EmailConfirmed)
                 {
                     // Confirm email if set.
-                    var emailCode = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                    var result2 = await _userManager.ConfirmEmailAsync(user,
+                    var emailCode = await userManager.GenerateEmailConfirmationTokenAsync(user);
+                    var result2 = await userManager.ConfirmEmailAsync(user,
                         Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(emailCode)));
                 }
 
@@ -377,7 +375,7 @@ namespace Cosmos.Cms.Controllers
                     // Always send a reset password email in this case
                     // For more information on how to enable account confirmation and password reset please
                     // visit https://go.microsoft.com/fwlink/?LinkID=532713
-                    var code = await _userManager.GeneratePasswordResetTokenAsync(user);
+                    var code = await userManager.GeneratePasswordResetTokenAsync(user);
                     code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
                     var callbackUrl = Url.Page(
                         "/Account/ResetPassword",
@@ -385,14 +383,19 @@ namespace Cosmos.Cms.Controllers
                         values: new { area = "Identity", code },
                         protocol: Request.Scheme);
 
-                    var identityUser = await _userManager.GetUserAsync(User);
+                    var identityUser = await userManager.GetUserAsync(User);
 
-                    await _emailSender.SendEmailAsync(
+                    await emailSender.SendEmailAsync(
                         user.Email,
                         "Create Password",
                         $"A new user account was created for you by {identityUser.Email}. Now we need you to create a password for your account by  <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
 
-                    result.SendResult = _emailSender.SendResult;
+                    result.SendResult = new SendResult()
+                    {
+                        Message = await emailSender.Response.Body.ReadAsStringAsync(),
+                        StatusCode = emailSender.Response.StatusCode
+                    };
+
                     result.UserCreateViewModel = model;
 
                     if (!result.SendResult.IsSuccessStatusCode)
@@ -403,7 +406,7 @@ namespace Cosmos.Cms.Controllers
                 else
                 {
                     // Send an email confirmation if required.
-                    var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                    var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
                     code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
                     var callbackUrl = Url.Page(
                         "/Account/ConfirmEmail",
@@ -411,10 +414,17 @@ namespace Cosmos.Cms.Controllers
                         values: new { area = "Identity", userId = user.Id, code, returnUrl = "/" },
                         protocol: Request.Scheme);
 
-                    await _emailSender.SendEmailAsync(user.Email, "Confirm your email",
-                        $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+                    await emailSender.SendEmailAsync(
+                        user.Email,
+                        "Confirm your email",
+                        htmlMessage: $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
 
-                    result.SendResult = _emailSender.SendResult;
+                    result.SendResult = new SendResult()
+                    {
+                        Message = await emailSender.Response.Body.ReadAsStringAsync(),
+                        StatusCode = emailSender.Response.StatusCode
+                    };
+
                     result.UserCreateViewModel = model;
 
                     if (!result.SendResult.IsSuccessStatusCode)
@@ -472,7 +482,7 @@ namespace Cosmos.Cms.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteUsers(string userIds)
         {
-            if (_userManager.Users.Count() < 2)
+            if (userManager.Users.Count() < 2)
             {
                 ModelState.AddModelError(string.Empty, "Cannot delete the last user account.");
             }
@@ -481,9 +491,9 @@ namespace Cosmos.Cms.Controllers
 
             foreach (var id in ids)
             {
-                var identityUser = await _userManager.FindByIdAsync(id);
+                var identityUser = await userManager.FindByIdAsync(id);
 
-                var roles = await _userManager.GetRolesAsync(identityUser);
+                var roles = await userManager.GetRolesAsync(identityUser);
 
                 if (roles.Any(a => a.Equals("Administrators", StringComparison.InvariantCultureIgnoreCase)))
                 {
@@ -491,7 +501,7 @@ namespace Cosmos.Cms.Controllers
                 }
                 else
                 {
-                    await _userManager.DeleteAsync(identityUser);
+                    await userManager.DeleteAsync(identityUser);
                 }
             }
 
@@ -545,11 +555,11 @@ namespace Cosmos.Cms.Controllers
         private async Task<UserRoleAssignmentsViewModel> GetRoleAssignmentsForUser(string id)
         {
             var roles = new List<IdentityRole>();
-            var user = await _userManager.FindByIdAsync(id);
-            var roleNames = await _userManager.GetRolesAsync(user);
+            var user = await userManager.FindByIdAsync(id);
+            var roleNames = await userManager.GetRolesAsync(user);
             foreach (var name in roleNames)
             {
-                roles.Add(await _roleManager.FindByNameAsync(name));
+                roles.Add(await roleManager.FindByNameAsync(name));
             }
 
             return new UserRoleAssignmentsViewModel()
@@ -566,7 +576,7 @@ namespace Cosmos.Cms.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> GetRoles(string text)
         {
-            var query = _roleManager.Roles.OrderBy(o => o.Name).Select(s => new
+            var query = roleManager.Roles.OrderBy(o => o.Name).Select(s => new
             {
                 s.Id,
                 s.Name
@@ -589,7 +599,7 @@ namespace Cosmos.Cms.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> RoleMembership([Bind("id")] string id)
         {
-            var user = await _userManager.FindByIdAsync(id);
+            var user = await userManager.FindByIdAsync(id);
 
             if (user == null)
             {
@@ -598,7 +608,7 @@ namespace Cosmos.Cms.Controllers
 
             ViewData["saved"] = null;
 
-            var roleList = (await _userManager.GetRolesAsync(await _userManager.FindByIdAsync(id))).ToList();
+            var roleList = (await userManager.GetRolesAsync(await userManager.FindByIdAsync(id))).ToList();
 
             return View();
         }
@@ -611,7 +621,7 @@ namespace Cosmos.Cms.Controllers
         [HttpPost]
         public async Task<IActionResult> ResendEmailConfirmation(string Id)
         {
-            var user = await _userManager.FindByIdAsync(Id);
+            var user = await userManager.FindByIdAsync(Id);
             if (user == null)
             {
                 return NotFound();
@@ -621,7 +631,7 @@ namespace Cosmos.Cms.Controllers
 
             try
             {
-                var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
                 code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
                 var callbackUrl = Url.Page(
                     "/Account/ConfirmEmail",
@@ -629,20 +639,26 @@ namespace Cosmos.Cms.Controllers
                     values: new { userId = Id, code },
                     protocol: Request.Scheme);
 
-                await _emailSender.SendEmailAsync(
+                await emailSender.SendEmailAsync(
                     user.Email,
                     "Confirm your email",
                     $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
 
-                if (_emailSender.SendResult != null)
+                var sendResult = new SendResult()
                 {
-                    if (_emailSender.SendResult.IsSuccessStatusCode)
+                    Message = await emailSender.Response.Body.ReadAsStringAsync(),
+                    StatusCode = emailSender.Response.StatusCode
+                };
+
+                if (sendResult != null)
+                {
+                    if (sendResult.IsSuccessStatusCode)
                     {
                         result.Success = true;
                     }
                     else
                     {
-                        result.Error = _emailSender.SendResult.Message.ToString();
+                        result.Error = sendResult.Message;
                     }
                 }
             }
@@ -657,11 +673,11 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Manages the role assignments for a user.
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="id">User Id.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> UserRoles(string id)
         {
-            ViewData["RoleList"] = await _roleManager.Roles.OrderBy(o => o.Name).ToListAsync();
+            ViewData["RoleList"] = await roleManager.Roles.OrderBy(o => o.Name).ToListAsync();
 
             var model = await GetRoleAssignmentsForUser(id);
 
@@ -671,12 +687,12 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Sends a password reset to an account holder.
         /// </summary>
-        /// <param name="emailAddress"></param>
+        /// <param name="emailAddress">User email address.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [HttpGet]
         public async Task<IActionResult> SendPasswordReset(string emailAddress)
         {
-            var user = await _userManager.FindByEmailAsync(emailAddress);
+            var user = await userManager.FindByEmailAsync(emailAddress);
             if (user == null)
             {
                 return NotFound();
@@ -684,7 +700,7 @@ namespace Cosmos.Cms.Controllers
 
             // For more information on how to enable account confirmation and password reset please 
             // visit https://go.microsoft.com/fwlink/?LinkID=532713
-            var code = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var code = await userManager.GeneratePasswordResetTokenAsync(user);
             code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
 
             var callbackUrl = Url.Page(
@@ -693,7 +709,7 @@ namespace Cosmos.Cms.Controllers
                 new { area = "Identity", code },
                 Request.Scheme);
 
-            await _emailSender.SendEmailAsync(
+            await emailSender.SendEmailAsync(
                 emailAddress,
                 "Reset Password",
                 $"Please reset your password by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
@@ -710,11 +726,11 @@ namespace Cosmos.Cms.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UserRoles(UserRoleAssignmentsViewModel model)
         {
-            var user = await _userManager.FindByIdAsync(model.Id);
+            var user = await userManager.FindByIdAsync(model.Id);
 
-            var exisitingRoles = await _userManager.GetRolesAsync(user);
+            var exisitingRoles = await userManager.GetRolesAsync(user);
 
-            ViewData["RoleList"] = await _roleManager.Roles.OrderBy(o => o.Name).ToListAsync();
+            ViewData["RoleList"] = await roleManager.Roles.OrderBy(o => o.Name).ToListAsync();
 
             // First, remove from all roles
             foreach (var name in exisitingRoles)
@@ -722,16 +738,16 @@ namespace Cosmos.Cms.Controllers
                 if (name.Equals("Administrators", StringComparison.InvariantCultureIgnoreCase))
                 {
                     // Make sure there is at least one administrator remaining
-                    var administrators = await _userManager.GetUsersInRoleAsync("Administrators");
+                    var administrators = await userManager.GetUsersInRoleAsync("Administrators");
 
                     if (administrators.Count() > 1)
                     {
-                        await _userManager.RemoveFromRoleAsync(user, name);
+                        await userManager.RemoveFromRoleAsync(user, name);
                     }
                 }
                 else
                 {
-                    await _userManager.RemoveFromRoleAsync(user, name);
+                    await userManager.RemoveFromRoleAsync(user, name);
                 }
             }
 
@@ -739,13 +755,13 @@ namespace Cosmos.Cms.Controllers
 
             foreach (var roleId in model.RoleIds)
             {
-                roles.Add(await _roleManager.FindByIdAsync(roleId));
+                roles.Add(await roleManager.FindByIdAsync(roleId));
             }
 
             // Now add back the new assignments
             foreach (var role in roles)
             {
-                await _userManager.AddToRoleAsync(user, role.Name);
+                await userManager.AddToRoleAsync(user, role.Name);
             }
 
             return View(await GetRoleAssignmentsForUser(model.Id));

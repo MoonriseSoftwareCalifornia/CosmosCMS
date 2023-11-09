@@ -1,11 +1,11 @@
 ﻿@model List<IdentityRole>
 @using Microsoft.AspNetCore.Identity
 @{
-    var userIds = (string[])ViewData["UserIds"];
+    var roleIds = (string[])ViewData["RoleIds"];
 
     ViewData["Title"] = "Role Inventory";
 
-    var protectedRoles = new string[] { "administrators", "editors", "authors", "reviewers" };
+    var protectedRoles = new string[] { "administrators", "editors", "authors", "reviewers", "anonymous" };
 
     var rowCount = (int)ViewData["RowCount"];
     var sortOrder = (string)ViewData["sortOrder"];
@@ -31,8 +31,8 @@
                         <div class="col-md-4">
                             <div class="btn-group" role="group" aria-label="Page Actions">
                                 <a class="btn btn-sm btn-secondary" asp-action="Index" asp-controller="Users" title="Manage users.">User List <i class="fa-solid fa-circle-arrow-right"></i></a>
-                                <button id="btnDeleteUsers" type="button" onclick="deleteRole()" class="btn btn-sm btn-secondary" title="Delete the selected role." style="display:none">Delete</button>
-                                <button id="btnClearUsers" type="button" onclick="clearSelection()" class="btn btn-sm btn-secondary" title="Clear selected users." style="display:none">Clear</button>
+                                <button id="btnDeleteRoles" type="button" class="btn btn-sm btn-secondary" title="Delete the selected role." style="display:none">Delete</button>
+                                <button id="btnClearSelection" type="button" onclick="clearSelection()" class="btn btn-sm btn-secondary" title="Clear selected roles." style="display:none">Clear</button>
                             </div>
                         </div>
                         <div class="col-md-4 justify-content-center">
@@ -71,7 +71,7 @@
                                         @if (protectedRoles.Contains(row.Name.ToLower()) == false)
                                         {
                                             <div class="form-check">
-                                                <input class="form-check-input gridCheckBox" data-ccms-roleid='@row.Id' data-ccms-rolename="@row.Name" type="checkbox">
+                                                <input class="form-check-input gridCheckBox" data-ccms-id='@row.Id' data-ccms-rolename="@row.Name" type="checkbox">
                                                 <label class="form-check-label">
                                                     Select
                                                 </label>
@@ -98,10 +98,69 @@
         </div>
     </div>
 </div>
+
+
+<form id="frmDeleteRoleIds" asp-action="Delete" asp-controller="Roles" method="post">
+    @Html.AntiForgeryToken()
+    <input id="roleIds" name="roleIds" type="hidden" />
+</form>
+
 <script>
     var selectedIds;
 
     let roleIds = [];
+
+    function removeRoleId(roleId) {
+        var tmp = roleIds.filter(function (value) {
+            return value !== roleId
+        });
+        roleIds = tmp;
+        sessionStorage.setItem("roleIds", JSON.stringify(roleIds));
+    }
+
+    function clearRoleIds() {
+        roleIds = [];
+        sessionStorage.removeItem("roleIds");
+    }
+
+    function saveRoleId(roleId) {
+        // Avoid duplications
+        if (roleIds.indexOf(roleId) == -1) {
+            roleIds.push(roleId);
+        }
+        sessionStorage.setItem("roleIds", JSON.stringify(roleIds));
+    }
+
+    function removeRoleId(roleId) {
+        var tmp = roleIds.filter(function (value) {
+            return value !== roleId
+        });
+        roleIds = tmp;
+        sessionStorage.setItem("roleIds", JSON.stringify(roleIds));
+    }
+
+    function getRoleId(checkbox) {
+        return $(checkbox).attr("data-ccms-id");
+    }
+
+    function clearSelection() {
+        $(".gridCheckBox").each(function (index, element) {
+            $(element).prop('checked', false);
+            cwpsSelectTableRow(element, false);
+        });
+
+        clearRoleIds();
+        resetButtons()
+    }
+
+    function reloadRoleIds() {
+        let data = sessionStorage.getItem("roleIds");
+        if (typeof (data) === "undefined" || data === null || data === "") {
+            roleIds = []
+        } else {
+            roleIds = JSON.parse(data);
+        }
+    }
 
     function error_handler(e) {
         if (e.errors) {
@@ -128,9 +187,11 @@
         if (selectedIds.length > 0) {
             $("#btnAddToRoles").show();
             $("#btnRemoveFromRoles").show();
+            $("#btnDeleteRoles").show();
         } else {
             $("#btnAddToRoles").hide();
             $("#btnRemoveFromRoles").hide();
+            $("#btnDeleteRoles").hide();
         }
     }
 
@@ -138,8 +199,51 @@
         window.location = "@Url.Action("UsersInRole")/" + roleId;
     }
 
+    function resetButtons() {
+        // Get the array length
+        let arrayLength = roleIds.length;
+
+        if (arrayLength > 0) {
+            $("#btnDeleteRoles").show();
+            $("#btnClearSelection").show();
+        } else {
+            $("#btnDeleteRoles").hide();
+            $("#btnClearSelection").hide();
+        }
+    }
+
     $(document).ready(function () {
+
         $("body").addClass("cwps-editor-container");
+
+        reloadRoleIds();
+
+        resetButtons();
+
+        $(".gridCheckBox").each(function (index, element) {
+
+            if ((roleIds.indexOf(getRoleId(element)) > -1)) {
+                $(element).prop('checked', true);
+                cwpsSelectTableRow(element, true);
+            }
+
+            $(element).on("change", function () {
+
+                let roleId = getRoleId(element);
+
+                let isChecked = $(element).prop('checked');
+
+                if (isChecked) {
+                    saveRoleId(roleId);
+                } else {
+                    removeRoleId(roleId);
+                }
+                cwpsSelectTableRow(element, isChecked);
+
+                resetButtons();
+
+            });
+        });
 
         $(".row-click-ckbox").click(function (e) {
             if (e.target.type != 'checkbox' && e.target.tagName != 'A') {
@@ -158,72 +262,24 @@
                 alert(errorMsg.responseText);
             });
         });
-    });
 
-    function savePath(path) {
-        // Avoid duplicates
-        if (paths.indexOf(path) == -1) {
-            paths.push(path);
-        }
-        sessionStorage.setItem("paths", JSON.stringify(paths));
-    }
+        $("#frmDeleteRoleIds").submit(function (e) {
 
-    function removePath(path) {
-        var tmp = paths.filter(function (value) {
-            return value !== path;
-        });
-        paths = tmp;
-        sessionStorage.setItem("paths", JSON.stringify(paths));
-    }
+            e.preventDefault();
 
-    // Reload selected paths from local storage
-    function reloadPaths() {
-        var data = sessionStorage.getItem("paths");
+            var model = { ids: roleIds };
 
-        if (typeof (data) === "undefined" || data === null || data === "") {
-            paths = []
-        } else {
-            paths = JSON.parse(data);
-        }
-    }
-
-    function clearPaths() {
-        paths = [];
-        sessionStorage.removeItem("paths");
-    }
-
-    function getItemsToMove() {
-        var items = JSON.parse(sessionStorage.getItem("itemsToMove"));
-        return items;
-    }
-
-    function getPath(checkbox) {
-
-        var isDirectory = $(checkbox).attr('data-ccms-isdir');
-
-        if (isDirectory === "True") {
-            return $(checkbox).attr('data-ccms-blob') + "/";
-        }
-        else {
-            return $(checkbox).attr('data-ccms-blob');
-        }
-    }
-
-    $(".gridCheckBox").each(function (index, element) {
-
-        var isChecked = $(element).prop('checked');
-
-        cwpsSelectTableRow(element, isChecked);
-
-        $(element).on("change", function () {
-
-            var isChecked = $(element).prop('checked');
-
-            $(element).prop('checked', isChecked);
-            cwpsSelectTableRow(element, isChecked);
-
-            resetButtons();
+            var jqxhr = $.post("@Url.Action("Delete")", model, function () {
+                clearRoleIds();
+                window.location = "@Url.Action("Index")";
+            }).fail(function (errorMsg) {
+                alert(errorMsg.responseText);
+            });
         });
 
+        $("#btnDeleteRoles").click(function () {
+            $("#frmDeleteRoleIds").submit();
+        });
     });
+
 </script>

@@ -189,7 +189,7 @@
                     window.location.href = "/Layouts/Index";
                 }
                 $("#divSaveFirstDialog").html("Save page before closing editor?");
-                checkFirstModal.show();
+                modalCheckSaveFirst.show();
                 break;
             case "Preview":
                 window.open("@Url.Action("Preview", "Layouts", new {Model.Id})");

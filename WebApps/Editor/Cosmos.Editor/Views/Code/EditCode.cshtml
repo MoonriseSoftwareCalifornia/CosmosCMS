@@ -205,17 +205,17 @@
                     window.location.href = "/Code/Source?target=@(System.IO.Path.GetDirectoryName(Model.Path).Replace("\\", "/"))";
                 }
                 $("#divSaveFirstDialog").html("Save page before closing editor?");
-                checkFirstModal.show();
+                modalCheckSaveFirst.show();
                 break;
         }
     }
 
     function saveFirst() {
-        saveChanges(checkFirstModal, next);
+        saveChanges(modalCheckSaveFirst, next);
     }
 
     function doNotSave() {
-        checkFirstModal.hide();
+        modalCheckSaveFirst.hide();
         next();
     }
 

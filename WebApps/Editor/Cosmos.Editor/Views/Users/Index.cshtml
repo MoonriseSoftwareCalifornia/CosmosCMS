@@ -173,6 +173,36 @@
 
     let userIds = [];
 
+    function clearUserIds() {
+        userIds = [];
+        sessionStorage.removeItem("userIds");
+    }
+
+    function saveUserId(userId) {
+        // Avoid duplications
+        if (userIds.indexOf(userId) == -1) {
+            userIds.push(userId);
+        }
+        sessionStorage.setItem("userIds", JSON.stringify(userIds));
+    }
+
+    function removeUserId(userId) {
+        var tmp = userIds.filter(function (value) {
+            return value !== userId
+        });
+        userIds = tmp;
+        sessionStorage.setItem("userIds", JSON.stringify(userIds));
+    }
+
+    function reloadUserIds() {
+        let data = sessionStorage.getItem("userIds");
+        if (typeof (data) === "undefined" || data === null || data === "") {
+            userIds = []
+        } else {
+            userIds = JSON.parse(data);
+        }
+    }
+
     function manageRoles(userId) {
         window.location = "@Url.Action("UserRoles")/" + userId;
     }
@@ -237,36 +267,6 @@
 
     function onEdit(e) {
         $("#spanChangeNotice").show();
-    }
-
-    function saveUserId(userId) {
-        // Avoid duplications
-        if (userIds.indexOf(userId) == -1) {
-            userIds.push(userId);
-        }
-        sessionStorage.setItem("userIds", JSON.stringify(userIds));
-    }
-
-    function removeUserId(userId) {
-        var tmp = userIds.filter(function (value) {
-            return value !== userId
-        });
-        userIds = tmp;
-        sessionStorage.setItem("userIds", JSON.stringify(userIds));
-    }
-
-    function reloadUserIds() {
-        let data = sessionStorage.getItem("userIds");
-        if (typeof (data) === "undefined" || data === null || data === "") {
-            userIds = []
-        } else {
-            userIds = JSON.parse(data);
-        }
-    }
-
-    function clearUserIds() {
-        userIds = [];
-        sessionStorage.removeItem("userIds");
     }
 
     function getUserId(checkbox) {
@@ -340,11 +340,10 @@
 
                 if (isChecked) {
                     saveUserId(userId);
-                    cwpsSelectTableRow(element, true);
                 } else {
                     removeUserId(userId);
-                    cwpsSelectTableRow(element, false);
                 }
+                cwpsSelectTableRow(element, isChecked);
 
                 resetButtons();
 

@@ -438,7 +438,7 @@
     </div>
 </div>
 
-<div class="modal mt-5" id="checkFirstModal" tabindex="-1">
+<div class="modal mt-5" id="modalCheckSaveFirst" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content bg-dark text-light">
             <div class="modal-header">
@@ -517,7 +517,7 @@
     // MODALS
     let busyModal = new bootstrap.Modal(document.getElementById('busyModal'));
     let renameModal = new bootstrap.Modal(document.getElementById('renameModal'));
-    let checkFirstModal = new bootstrap.Modal(document.getElementById('checkFirstModal'));
+    let modalCheckSaveFirst = new bootstrap.Modal(document.getElementById('modalCheckSaveFirst'));
     let showSelectedModal = new bootstrap.Modal(document.getElementById('showSelectedModal'));
     const isNewSession = @isNewSession.ToString().ToLower();
 
@@ -552,7 +552,7 @@
             case "checkFirst":
                 $("#checkFirstTitle").html(title);
                 $("#checkFirstDialog").html(message);
-                checkFirstModal.show();
+                modalCheckSaveFirst.show();
                 break;
         }
     }
@@ -561,7 +561,7 @@
     function hideModals() {
         busyModal.hide();
         renameModal.hide();
-        checkFirstModal.hide();
+        modalCheckSaveFirst.hide();
     }
 
     //

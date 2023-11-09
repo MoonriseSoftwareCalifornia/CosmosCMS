@@ -16,10 +16,10 @@ namespace Cosmos.Cms.Models
     public class UserCreatedViewModel
     {
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="UserCreatedViewModel"/> class.
         /// </summary>
-        /// <param name="model"></param>
-        /// <param name="sendResult"></param>
+        /// <param name="model">Create user view model.</param>
+        /// <param name="sendResult">Send result.</param>
         public UserCreatedViewModel(UserCreateViewModel model, SendResult sendResult)
         {
             EmailAddress = model.EmailAddress;

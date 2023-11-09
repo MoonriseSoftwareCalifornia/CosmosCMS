@@ -140,14 +140,14 @@
                     window.location.href = "@Url.Action("Versions", "Editor")/@Model.ArticleNumber";
                 }
                 $("#divSaveFirstDialog").html("Save page before closing editor?");
-                checkFirstModal.show();
+                modalCheckSaveFirst.show();
                 break;
             case "Code":
                 next = function () {
                     window.location.href = "@Url.Action("EditCode", "Editor")/" + $("#ArticleNumber").val();
                 }
                 $("#divSaveFirstDialog").html("Save before opening code editor?");
-                checkFirstModal.show();
+                modalCheckSaveFirst.show();
                 break;
             case "Preview":
                 $("#iframePreview").prop("src", "@Url.Action("Preview", "Home")?articleNumber=" + @Model.ArticleNumber);

@@ -18,6 +18,7 @@ namespace Cosmos.IdentityManagement.Website.Controllers
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Options;
+    using Newtonsoft.Json;
 
     /// <summary>
     /// Role management controller.
@@ -153,28 +154,30 @@ namespace Cosmos.IdentityManagement.Website.Controllers
         /// <summary>
         /// Deletes roles.
         /// </summary>
-        /// <param name="roleIds"></param>
+        /// <param name="ids">IDs of roles to delete.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> DeleteRoles(string[] roleIds)
+        public async Task<ActionResult> Delete(string[] ids)
         {
-            var safeRoles = new string[] { "authors", "administrators", "authors", "editors", "reviewers" };
+            var safeRoles = new string[] { "authors", "administrators", "authors", "editors", "reviewers", "anonymous" };
 
             var roles = await roleManager.Roles
-                .Where(w => safeRoles.Contains(w.Name.ToLower()) == false && roleIds.Contains(w.Id)).ToListAsync();
+                .Where(w => ids.Contains(w.Id)).ToListAsync();
 
             if (roles != null && ModelState.IsValid)
             {
                 foreach (var role in roles)
                 {
-                    var identityRole = await roleManager.FindByIdAsync(role.Id);
+                    if (!safeRoles.Contains(role.Name.ToLower()))
+                    {
+                        var identityRole = await roleManager.FindByIdAsync(role.Id);
 
-                    await roleManager.DeleteAsync(identityRole);
+                        await roleManager.DeleteAsync(identityRole);
+                    }
                 }
             }
 
-            return RedirectToAction("Index");
+            return Ok();
         }
 
         /// <summary>
