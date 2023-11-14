@@ -15,8 +15,10 @@
     var showingRoles = (bool)ViewData["showingRoles"];
     var articlePermissions = (List<ArticlePermission>)ViewData["ArticlePermissions"];
     var articleNumber = (int)ViewData["ArticleNumber"];
+
     var allowedUsers = (List<IdentityUser>)ViewData["AllowedUsers"];
     var allowedRoles = (List<IdentityRole>)ViewData["AllowedRoles"];
+    var ids = showingRoles ? allowedRoles.Select(s => s.Id).ToArray() : allowedUsers.Select(s => s.Id).ToArray();
 
     var pagerModel = new GridPagerPartialViewModel(pageNumber, rowCount, pageSize, sortOrder, currentSort, "/Editor/Permissions");
 
@@ -31,29 +33,34 @@
     <div class="container">
         <div class="row">
             <div class="col-6">
-                <h2>Page Permissions Editor</h2>
                 @if (showingRoles)
                 {
-                    <h5>Now editing <span class="badge bg-secondary">user group</span> permissions for:</h5>
+                    <h5>Selecting which <span class="badge bg-secondary">user group</span> can access:</h5>
                 }
                 else
                 {
-                    <h5>Now editing <span class="badge bg-secondary">individual user</span> permissions for:</h5>
+                    <h5>Selecting which <span class="badge bg-secondary">users</span> can access:</h5>
                 }
-                <h1 class=" mb-3">@ViewData["Title"]</h1>
+                <h2 class=" mb-3">&quot;@ViewData["Title"]&quot;</h2>
+                <a title="Click to switch to individual users." class="btn btn-sm btn-secondary" href="@Url.Action("Permissions", "Editor", new { Id = articleNumber })?forRoles=false">
+                    Users selected: <span id="userCount" class="badge bg-light text-dark">0</span>
+                </a>
+                <a title="Click to switch to user groups." class="btn btn-sm btn-secondary" href="@Url.Action("Permissions", "Editor", new { Id = articleNumber })?forRoles=true">
+                    Groups selected: <span id="groupCount" class="badge bg-light text-dark">0</span>
+                </a>
                 @if (showingRoles)
                 {
-                    <a title="Switch to individual users." href="@Url.Action("Permissions", "Editor", new { Id = articleNumber })?forRoles=false" class="btn btn-sm btn-secondary" style="min-width:100px;">Switch to individual users <i class="fa-solid fa-circle-arrow-right"></i></a>
+                    <a title="Switch to individual users." href="@Url.Action("Permissions", "Editor", new { Id = articleNumber })?forRoles=false" class="btn btn-sm btn-primary" style="min-width:100px;">Switch to users <i class="fa-solid fa-circle-arrow-right"></i></a>
                 }
                 else
                 {
-                    <a title="Switch to user groups." href="@Url.Action("Permissions", "Editor", new { Id = articleNumber })?forRoles=true" class="btn btn-sm btn-secondary" style="min-width:100px;">Switch to user groups <i class="fa-solid fa-circle-arrow-right"></i></a>
+                    <a title="Switch to user groups." href="@Url.Action("Permissions", "Editor", new { Id = articleNumber })?forRoles=true" class="btn btn-sm btn-primary" style="min-width:100px;">Switch to groups <i class="fa-solid fa-circle-arrow-right"></i></a>
                 }
                 <div asp-validation-summary="All" class="text-danger"></div>
             </div>
         </div>
         <div class="row">
-            <div class="col mb-3">
+            <div class="col-6 mb-3">
                 <button id="btnSavePermissions" class="btn btn-sm btn-primary" title="Save permissions.">Save</button>
                 <button id="btnSavePermissionAndClose" class="btn btn-sm btn-primary" style="display:none;" title="Save permissions.">Save and Close</button>
                 <button id="btnClearPermissions" class="btn btn-sm btn-secondary" title="Clear all access settings.">Clear</button>
@@ -62,102 +69,60 @@
             </div>
         </div>
         <div class="row">
-            <div class="col mb-3">
-                <p>Restrict access to certain users and roles by selecting them below.</p>
-                @if (articlePermissions.Count == 0)
-                {
-                    <div class="alert alert-secondary d-flex" role="alert">
-                        <i class="fa-solid fa-triangle-exclamation mt-1 me-3"></i>
-                        <b>No one yet has access to this page.</b>
+            <div class="col">
+                <div class="row cpws-table-pager-row-top">
+                    <div class="col-4">
                     </div>
-                }
-                else
-                {
-                    var msg = "Current access is limited to these";
-                    if (allowedUsers.Count > 0)
-                    {
-                        msg += " users: " + string.Join(" ", allowedUsers.Select(s => "<span class='badge rounded-pill bg-secondary'>" + s.Email + "</span>"));
-                        if (allowedRoles.Count > 0)
-                        {
-                            msg += " and roles: " + string.Join(" ", allowedRoles.Select(s => "<span class='badge rounded-pill bg-secondary'>" + s.Name + "</span>"));
-                        }
-                        else
-                        {
-                            msg += ".";
-                        }
-                    }
-                    else
-                    {
-                        msg += " roles: " + string.Join(" ", allowedRoles.Select(s => s.Name)) + ".";
-                    }
-                    <div class="accordion" id="permAccordian">
-                        <div class="accordion-item">
-                            <h2 class="accordion-header">
-                                <button title="Click to show current permissions." class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
-                                    Current Permissions
-                                </button>
-                            </h2>
-                            <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#permAccordian">
-                                <div class="accordion-body">
-                                    @Html.Raw(msg)
-                                </div>
-                            </div>
+                    <div class="col-4 justify-content-center">
+                        <partial name="~/Views/Shared/GridPager/_GridPager.cshtml" model="pagerModel"></partial>
+                    </div>
+                    <div class="col-4 d-flex justify-content-end">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col bg-dark">
+                        <div class="table-responsive custom-table-responsive">
+                            <table class="table custom-table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">
+                                            Select
+                                        </th>
+                                        <th scope="col">
+                                            @(showingRoles ? "User Group Name" : "User Email Address")
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var row in Model)
+                                    {
+                                        <tr scope="row" class="row-click-ckbox">
+                                            <td scope="row" style="min-width:80px;">
+                                                <div class="form-check">
+                                                    <input class="form-check-input gridCheckBox" data-ccms-idenid='@row.IdentityObjectId' type="checkbox">
+                                                    <label class="form-check-label">
+                                                        Select
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <b>@row.Name</b>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-                }
-            </div>
-            <div class="row cpws-table-pager-row-top">
-                <div class="col-4">
                 </div>
-                <div class="col-4 justify-content-center">
-                    <partial name="~/Views/Shared/GridPager/_GridPager.cshtml" model="pagerModel"></partial>
-                </div>
-                <div class="col-4 d-flex justify-content-end">
-                </div>
-            </div>
-            <div class="row">
-                <div class="col bg-dark">
-                    <div class="table-responsive custom-table-responsive">
-                        <table class="table custom-table">
-                            <thead>
-                                <tr>
-                                    <th scope="col">
-                                        Select
-                                    </th>
-                                    <th scope="col">
-                                        @(showingRoles ? "User Group Name" : "User Email Address")
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var row in Model)
-                                {
-                                    <tr scope="row" class="row-click-ckbox">
-                                        <td scope="row" style="min-width:80px;">
-                                            <div class="form-check">
-                                                <input class="form-check-input gridCheckBox" data-ccms-idenid='@row.IdentityObjectId' type="checkbox">
-                                                <label class="form-check-label">
-                                                    Select
-                                                </label>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <b>@row.Name</b>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
+                <div class="row cpws-table-pager-row-bottom">
+                    <div class="col-4">
                     </div>
-                </div>
-            </div>
-            <div class="row cpws-table-pager-row-bottom">
-                <div class="col-4">
-                </div>
-                <div class="col-4 justify-content-center">
-                    <partial name="~/Views/Shared/GridPager/_GridPager.cshtml" model="pagerModel"></partial>
-                </div>
-                <div class="col-4">
+                    <div class="col-4 justify-content-center">
+                        <partial name="~/Views/Shared/GridPager/_GridPager.cshtml" model="pagerModel"></partial>
+                    </div>
+                    <div class="col-4">
+                    </div>
                 </div>
             </div>
         </div>
@@ -184,7 +149,9 @@
 
 <script>
 
-    let identityObjectIds = [];
+    let selectedUserIds = [];
+    let selectedRoleIds = [];
+    const showingRoles = @showingRoles.ToString().ToLower();
 
     const modalSaving = new bootstrap.Modal(document.getElementById('modalSaving'));
 
@@ -194,10 +161,6 @@
         $("body").addClass("cwps-body");
         $("body").addClass("cwps-editor-container");
 
-        // Clear and reload permissions
-        clearIdentityObjectIds();
-        reloadIdentityObjectIds();
-
         $(".row-click-ckbox").click(function (e) {
             if (e.target.type != 'checkbox' && e.target.tagName != 'A') {
                 var cb = $(this).find("input[type=checkbox]");
@@ -205,23 +168,27 @@
             }
         });
 
+        // Reload IDs from session storage if present, or from the server.
+        const ids = retrieveSelectedIds();
+
         $(".gridCheckBox").each(function (index, element) {
 
-            if ((identityObjectIds.indexOf(getIdentityObjectIds(element)) > -1)) {
+
+            if ((ids.indexOf(getIdFromChkBox(element)) > -1)) {
                 $(element).prop('checked', true);
                 cwpsSelectTableRow(element, true);
             }
 
             $(element).on("change", function () {
 
-                let userId = getIdentityObjectIds(element);
+                let id = getIdFromChkBox(element); id
 
                 let isChecked = $(element).prop('checked');
 
                 if (isChecked) {
-                    saveIdentityObjectId(userId);
+                    saveIdentityObjectId(id);
                 } else {
-                    removeIdentityObjectId(userId);
+                    removeIdentityObjectId(id);
                 }
 
                 cwpsSelectTableRow(element, isChecked);
@@ -246,20 +213,22 @@
             });
 
         });
+
+        refreshCounts();
     });
 
     function savePermissions() {
 
         modalSaving.show();
-
+        const identityObjectIds = selectedUserIds.concat(selectedRoleIds);
         var model = {
             Id: @articleNumber,
             IdentityObjectIds: identityObjectIds
         }
 
         $.post("@Url.Action("Permissions", "Editor")", model, function (data) {
-            // clearIdentityObjectIds();
-            //window.location.href = "@Url.Action("Permissions", "Editor", new { Id = articleNumber})";
+            clearIdentityObjectIds();
+            window.location.href = "@Url.Action("Permissions", "Editor", new { Id = articleNumber})";
 
             // If applicable, let the parent know what happened.
             try {
@@ -279,44 +248,100 @@
 
     function saveIdentityObjectId(userId) {
         // Avoid duplications
-        if (identityObjectIds.indexOf(userId) == -1) {
-            identityObjectIds.push(userId);
-        }
-        sessionStorage.setItem("identityObjectIds", JSON.stringify(identityObjectIds));
-    }
-
-    function removeIdentityObjectId(userId) {
-        var tmp = identityObjectIds.filter(function (value) {
-            return value !== userId
-        });
-        identityObjectIds = tmp;
-        sessionStorage.setItem("identityObjectIds", JSON.stringify(identityObjectIds));
-    }
-
-    function reloadIdentityObjectIds() {
-        let data = sessionStorage.getItem("identityObjectIds");
-        if (typeof (data) === "undefined" || data === null || data === "") {
-            identityObjectIds = [@(Html.Raw(string.Join(",", articlePermissions.Select(s => "'" + s.IdentityObjectId + "'").ToArray())))]
+        if (showingRoles) {
+            if (selectedRoleIds.indexOf(userId) == -1) {
+                selectedRoleIds.push(userId);
+            }
+            sessionStorage.setItem("selectedRoleIds", JSON.stringify(selectedRoleIds));
         } else {
-            identityObjectIds = JSON.parse(data);
+            if (selectedUserIds.indexOf(userId) == -1) {
+                selectedUserIds.push(userId);
+            }
+            sessionStorage.setItem("selectedUserIds", JSON.stringify(selectedUserIds));
+        }
+        refreshCounts();
+    }
+
+    function removeIdentityObjectId(id) {
+        if (showingRoles) {
+            var tmp = selectedRoleIds.filter(function (value) {
+                return value !== id
+            });
+            selectedRoleIds = tmp;
+            sessionStorage.setItem("selectedRoleIds", JSON.stringify(selectedRoleIds));
+        } else {
+            var tmp = selectedUserIds.filter(function (value) {
+                return value !== id
+            });
+            selectedUserIds = tmp;
+            sessionStorage.setItem("selectedUserIds", JSON.stringify(selectedUserIds));
+        }
+        refreshCounts();
+    }
+
+    function retrieveSelectedIds() {
+        reloadIdentityObjectIds();
+        if (showingRoles) {
+            return selectedRoleIds;
+        } else {
+            return selectedUserIds;
+        }
+    }
+
+    function refreshCounts() {
+        $("#groupCount").html(selectedRoleIds.length);
+        $("#userCount").html(selectedUserIds.length);
+    }
+
+    /**
+     * Reloads the variables selectedRoleIds and selectedUserIds
+     * from web browser sessionStorage. If storage is empty, reloads what is selected
+     * server-side.
+     */
+    function reloadIdentityObjectIds() {
+
+        const roles = sessionStorage.getItem("selectedRoleIds");
+        // Reload roles
+        if (typeof (roles) === "undefined" || roles === null || roles === "") {
+            selectedRoleIds = [@(Html.Raw(string.Join(",", articlePermissions.Where(w => w.IsRoleObject == true).Select(s => "'" + s.IdentityObjectId + "'").ToArray())))]
+        } else {
+            selectedRoleIds = JSON.parse(roles);
+        }
+
+        // Ensure this is an array if no data.
+        if (typeof (selectedRoleIds) === "undefined" || selectedRoleIds === null || selectedRoleIds === "") {
+            selectedRoleIds = [];
+        }
+
+        // Reload users
+        const users = sessionStorage.getItem("selectedUserIds");
+        if (typeof (users) === "undefined" && users === null && users === "") {
+            selectedRoleIds = [@(Html.Raw(string.Join(",", articlePermissions.Where(w => w.IsRoleObject == false).Select(s => "'" + s.IdentityObjectId + "'").ToArray())))]
+        } else {
+            selectedUserIds = JSON.parse(users);
+        }
+
+        // Ensure this is an array if no data.
+        if (typeof (selectedUserIds) === "undefined" || selectedUserIds === null || selectedUserIds === "") {
+            selectedUserIds = [];
         }
     }
 
     function clearIdentityObjectIds() {
-        identityObjectIds = [];
-        sessionStorage.removeItem("identityObjectIds");
-        sessionStorage.setItem("identityObjectIds", JSON.stringify(identityObjectIds));
+        selectedUserIds = [];
+        selectedRoleIds = [];
+        sessionStorage.removeItem("selectedUserIds");
+        sessionStorage.removeItem("selectedRoleIds");
+        refreshCounts();
     }
 
-    function getIdentityObjectIds(checkbox) {
+    function getIdFromChkBox(checkbox) {
         return $(checkbox).attr("data-ccms-idenid");
     }
 
     function resetButtons() {
-
         // Get the array length
-        let arrayLength = identityObjectIds.length;
-
+        let arrayLength = selectedUserIds.length + selectedRoleIds.length;
         if (arrayLength > 0) {
             $("#btnClearUsers").show();
             $("#btnDeleteUsers").show();
@@ -326,7 +351,7 @@
             $("#btnDeleteUsers").hide();
             $("#btnAddRemoveRoles").hide();
         }
-
+        refreshCounts();
     }
 
 </script>
