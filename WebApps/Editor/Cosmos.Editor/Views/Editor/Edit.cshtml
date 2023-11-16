@@ -1,7 +1,7 @@
 ﻿@model HtmlEditorViewModel
 @{
     Layout = "_LayoutEditor";
-    ViewData["Title"] = "Editing: " + Model.Title;
+    ViewData["Title"] = $"Editing '{Model.Title}' with the Live Editor.";
     var hasPermissionsSet = Model.ArticlePermissions.Any();
 }
 

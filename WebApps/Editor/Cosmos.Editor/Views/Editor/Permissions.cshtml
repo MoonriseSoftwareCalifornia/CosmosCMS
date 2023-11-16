@@ -35,19 +35,28 @@
             <div class="col-6">
                 @if (showingRoles)
                 {
-                    <h5>Selecting which <span class="badge bg-secondary">user group</span> can access:</h5>
+                    <h5>Selecting which <span class="badge bg-secondary">user groups</span> can access:</h5>
                 }
                 else
                 {
                     <h5>Selecting which <span class="badge bg-secondary">users</span> can access:</h5>
                 }
                 <h2 class=" mb-3">&quot;@ViewData["Title"]&quot;</h2>
-                <a title="Click to switch to individual users." class="btn btn-sm btn-secondary" href="@Url.Action("Permissions", "Editor", new { Id = articleNumber })?forRoles=false">
+                <a id="btnUserCount" title="Click to switch to individual users." class="btn btn-sm btn-secondary" href="@Url.Action("Permissions", "Editor", new { Id = articleNumber })?forRoles=false">
                     Users selected: <span id="userCount" class="badge bg-light text-dark">0</span>
                 </a>
-                <a title="Click to switch to user groups." class="btn btn-sm btn-secondary" href="@Url.Action("Permissions", "Editor", new { Id = articleNumber })?forRoles=true">
+                <a id="btnGroupCount" title="Click to switch to user groups." class="btn btn-sm btn-secondary" href="@Url.Action("Permissions", "Editor", new { Id = articleNumber })?forRoles=true">
                     Groups selected: <span id="groupCount" class="badge bg-light text-dark">0</span>
                 </a>
+
+                <div asp-validation-summary="All" class="text-danger"></div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <button id="btnSavePermissions" class="btn btn-sm btn-secondary" title="Save permissions." disabled>Save Changes</button>
+                <button id="btnCancel" class="btn btn-sm btn-secondary" title="Clear all access settings.">Cancel Changes</button>
+                <button id="btnClearPermissions" class="btn btn-sm btn-secondary" title="Clear all access settings.">Clear</button>
                 @if (showingRoles)
                 {
                     <a title="Switch to individual users." href="@Url.Action("Permissions", "Editor", new { Id = articleNumber })?forRoles=false" class="btn btn-sm btn-primary" style="min-width:100px;">Switch to users <i class="fa-solid fa-circle-arrow-right"></i></a>
@@ -56,16 +65,10 @@
                 {
                     <a title="Switch to user groups." href="@Url.Action("Permissions", "Editor", new { Id = articleNumber })?forRoles=true" class="btn btn-sm btn-primary" style="min-width:100px;">Switch to groups <i class="fa-solid fa-circle-arrow-right"></i></a>
                 }
-                <div asp-validation-summary="All" class="text-danger"></div>
             </div>
-        </div>
-        <div class="row">
-            <div class="col-6 mb-3">
-                <button id="btnSavePermissions" class="btn btn-sm btn-primary" title="Save permissions.">Save</button>
-                <button id="btnSavePermissionAndClose" class="btn btn-sm btn-primary" style="display:none;" title="Save permissions.">Save and Close</button>
-                <button id="btnClearPermissions" class="btn btn-sm btn-secondary" title="Clear all access settings.">Clear</button>
-                <a title="Return to page list" class="btn btn-sm btn-secondary" href="@Url.Action("Index")">Page list <i class="fa-solid fa-circle-arrow-right"></i></a>
-                <a title="Return to page list" class="btn btn-sm btn-secondary" href="@Url.Action("Versions", "Editor", new { Id = articleNumber })">Version list <i class="fa-solid fa-circle-arrow-right"></i></a>
+            <div class="col-md-6 d-flex flex-row-reverse mb-3">
+                <a id="btnGoPageList" title="Return to page list" class="btn btn-sm btn-secondary" href="@Url.Action("Index")">Page list <i class="fa-solid fa-circle-arrow-right"></i></a>
+                <a id="btnGoVersions" title="Return to page list" class="btn btn-sm btn-secondary" href="@Url.Action("Versions", "Editor", new { Id = articleNumber })">Version list <i class="fa-solid fa-circle-arrow-right"></i></a>
             </div>
         </div>
         <div class="row">
@@ -151,15 +154,52 @@
 
     let selectedUserIds = [];
     let selectedRoleIds = [];
+    const origUserIds = [@(Html.Raw(string.Join(",", articlePermissions.Where(w => w.IsRoleObject == false).Select(s => "'" + s.IdentityObjectId + "'").ToArray())))];
+    const origRoleIds = [@(Html.Raw(string.Join(",", articlePermissions.Where(w => w.IsRoleObject == true).Select(s => "'" + s.IdentityObjectId + "'").ToArray())))];
+
+
+    function checkForChanges() {
+
+        $("#btnSavePermissions").removeClass("btn-primary");
+        $("#btnSavePermissions").removeClass("btn-secondary");
+        $("#btnCancel").removeClass("btn-primary");
+        $("#btnCancel").removeClass("btn-secondary");
+        if (
+            $(origUserIds).not(selectedUserIds).length === 0 &&
+            $(selectedUserIds).not(origUserIds).length === 0 &&
+            $(origRoleIds).not(selectedRoleIds).length === 0 &&
+            $(selectedRoleIds).not(origRoleIds).length === 0
+        ) {
+            $("#btnSavePermissions").addClass("btn-secondary");
+            $("#btnCancel").addClass("btn-secondary");
+            $("#btnSavePermissions").attr("disabled");
+
+        } else {
+            $("#btnSavePermissions").addClass("btn-primary");
+            $("#btnCancel").addClass("btn-primary");
+            $("#btnSavePermissions").removeAttr("disabled");
+        }
+    }
+
     const showingRoles = @showingRoles.ToString().ToLower();
 
     const modalSaving = new bootstrap.Modal(document.getElementById('modalSaving'));
 
     $(document).ready(function () {
+        reloadIdentityObjectIds();
+        checkForChanges();
+        refreshCounts();
+        resetCheckBoxes();
 
         // ccmsNavMenu
         $("body").addClass("cwps-body");
         $("body").addClass("cwps-editor-container");
+
+        // Disable certain buttons if this is in an IFRAME.
+        if (typeof (parent.hasPermissionsSet) !== "undefined") {
+            $("#btnGoPageList").hide();
+            $("#btnGoVersions").hide();
+        }
 
         $(".row-click-ckbox").click(function (e) {
             if (e.target.type != 'checkbox' && e.target.tagName != 'A') {
@@ -168,17 +208,7 @@
             }
         });
 
-        // Reload IDs from session storage if present, or from the server.
-        const ids = retrieveSelectedIds();
-
         $(".gridCheckBox").each(function (index, element) {
-
-
-            if ((ids.indexOf(getIdFromChkBox(element)) > -1)) {
-                $(element).prop('checked', true);
-                cwpsSelectTableRow(element, true);
-            }
-
             $(element).on("change", function () {
 
                 let id = getIdFromChkBox(element); id
@@ -193,7 +223,8 @@
 
                 cwpsSelectTableRow(element, isChecked);
 
-                resetButtons();
+                checkForChanges();
+                refreshCounts()
 
             });
         });
@@ -203,19 +234,46 @@
             savePermissions();
         });
 
+        /**
+         * Clears all selected users and roles. This is NOT the same as cancel changes.
+         */
         $("#btnClearPermissions").click(function (e) {
             e.preventDefault();
             clearIdentityObjectIds();
-
+            // Uncheck everything!
             $(".gridCheckBox").each(function (index, element) {
                 $(element).prop('checked', false);
                 cwpsSelectTableRow(element, false);
             });
-
+            checkForChanges();
         });
 
-        refreshCounts();
+        /**
+         * This cancels the current changes, and reverts back to what the settings were before.
+         */
+        $("#btnCancel").click(function (e) {
+            e.preventDefault();
+            clearIdentityObjectIds();
+            reloadIdentityObjectIds();
+            checkForChanges();
+            refreshCounts();
+            resetCheckBoxes();
+        });
     });
+
+    function resetCheckBoxes() {
+        $(".gridCheckBox").each(function (index, element) {
+            // Reload IDs from session storage if present, or from the server.
+            const ids = selectedUserIds.concat(selectedRoleIds);
+            if ((ids.indexOf(getIdFromChkBox(element)) > -1)) {
+                $(element).prop('checked', true);
+                cwpsSelectTableRow(element, true);
+            } else {
+                $(element).prop('checked', false);
+                cwpsSelectTableRow(element, false);
+            }
+        });
+    }
 
     function savePermissions() {
 
@@ -228,6 +286,7 @@
 
         $.post("@Url.Action("Permissions", "Editor")", model, function (data) {
             clearIdentityObjectIds();
+            checkForChanges();
             window.location.href = "@Url.Action("Permissions", "Editor", new { Id = articleNumber})";
 
             // If applicable, let the parent know what happened.
@@ -260,6 +319,7 @@
             sessionStorage.setItem("selectedUserIds", JSON.stringify(selectedUserIds));
         }
         refreshCounts();
+        checkForChanges();
     }
 
     function removeIdentityObjectId(id) {
@@ -277,10 +337,10 @@
             sessionStorage.setItem("selectedUserIds", JSON.stringify(selectedUserIds));
         }
         refreshCounts();
+        checkForChanges();
     }
 
     function retrieveSelectedIds() {
-        reloadIdentityObjectIds();
         if (showingRoles) {
             return selectedRoleIds;
         } else {
@@ -289,8 +349,25 @@
     }
 
     function refreshCounts() {
-        $("#groupCount").html(selectedRoleIds.length);
+        // Reset button color
+        $("#btnUserCount").removeClass("btn-primary");
+        $("#btnUserCount").removeClass("btn-secondary");
+        $("#btnGroupCount").removeClass("btn-primary");
+        $("#btnGroupCount").removeClass("btn-secondary");
+        // Update counts
         $("#userCount").html(selectedUserIds.length);
+        $("#groupCount").html(selectedRoleIds.length);
+        // Set button color
+        if (selectedUserIds.length > 0) {
+            $("#btnUserCount").addClass("btn-primary");
+        } else {
+            $("#btnUserCount").addClass("btn-secondary");
+        }
+        if (selectedRoleIds.length > 0) {
+            $("#btnGroupCount").addClass("btn-primary");
+        } else {
+            $("#btnGroupCount").addClass("btn-secondary");
+        }
     }
 
     /**
@@ -299,31 +376,20 @@
      * server-side.
      */
     function reloadIdentityObjectIds() {
-
-        const roles = sessionStorage.getItem("selectedRoleIds");
         // Reload roles
+        const roles = sessionStorage.getItem("selectedRoleIds");
         if (typeof (roles) === "undefined" || roles === null || roles === "") {
-            selectedRoleIds = [@(Html.Raw(string.Join(",", articlePermissions.Where(w => w.IsRoleObject == true).Select(s => "'" + s.IdentityObjectId + "'").ToArray())))]
+            selectedRoleIds = [@(Html.Raw(string.Join(",", articlePermissions.Where(w => w.IsRoleObject == true).Select(s => "'" + s.IdentityObjectId + "'").ToArray())))];
         } else {
             selectedRoleIds = JSON.parse(roles);
         }
 
-        // Ensure this is an array if no data.
-        if (typeof (selectedRoleIds) === "undefined" || selectedRoleIds === null || selectedRoleIds === "") {
-            selectedRoleIds = [];
-        }
-
         // Reload users
         const users = sessionStorage.getItem("selectedUserIds");
-        if (typeof (users) === "undefined" && users === null && users === "") {
-            selectedRoleIds = [@(Html.Raw(string.Join(",", articlePermissions.Where(w => w.IsRoleObject == false).Select(s => "'" + s.IdentityObjectId + "'").ToArray())))]
+        if (typeof (users) === "undefined" || users === null || users === "") {
+            selectedUserIds = [@(Html.Raw(string.Join(",", articlePermissions.Where(w => w.IsRoleObject == false).Select(s => "'" + s.IdentityObjectId + "'").ToArray())))];
         } else {
             selectedUserIds = JSON.parse(users);
-        }
-
-        // Ensure this is an array if no data.
-        if (typeof (selectedUserIds) === "undefined" || selectedUserIds === null || selectedUserIds === "") {
-            selectedUserIds = [];
         }
     }
 
@@ -332,7 +398,6 @@
         selectedRoleIds = [];
         sessionStorage.removeItem("selectedUserIds");
         sessionStorage.removeItem("selectedRoleIds");
-        refreshCounts();
     }
 
     function getIdFromChkBox(checkbox) {
@@ -351,7 +416,6 @@
             $("#btnDeleteUsers").hide();
             $("#btnAddRemoveRoles").hide();
         }
-        refreshCounts();
     }
 
 </script>

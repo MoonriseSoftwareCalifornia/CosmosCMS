@@ -4,16 +4,16 @@
 @inject IOptions<CosmosConfig> options
 @{
     var assemblyName = Assembly.GetExecutingAssembly().GetName();
-    var title = (string)@ViewData["PageTitle"];
     var assemblyVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
     var isAuthor = User.IsInRole("Authors");
+    var title = ViewData["Title"];
     var requiresAuth = options.Value.SiteSettings.CosmosRequiresAuthentication;
 }
 <!DOCTYPE HTML>
 <html>
 <head>
     <meta name="viewport" content="width=device-width" />
-
+    <title>@ViewData["Title"]</title>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
 
     <link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" />

@@ -2,7 +2,7 @@
 @model EditCodePostModel
 @{
     Layout = "_LayoutEditor";
-    ViewData["Title"] = Model.Title;
+    ViewData["Title"] = $"Editing '{Model.Title}' with the Code Editor.";
     var fields = Model.EditorFields.ToArray();
     var aclass = "active";
     var hasPermissionsSet = Model.ArticlePermissions.Any();
