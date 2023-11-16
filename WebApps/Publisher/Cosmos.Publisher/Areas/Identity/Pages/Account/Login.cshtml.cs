@@ -87,7 +87,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
 
             if (User.Identity.IsAuthenticated)
             {
-                return RedirectToAction(returnUrl);
+                return LocalRedirect(returnUrl);
             }
 
             // Clear the existing external cookie to ensure a clean login process
@@ -117,7 +117,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
-            returnUrl = returnUrl ?? Url.Content("~/Home/CcmsContentIndex?target=root");
+            returnUrl = returnUrl ?? Url.Content("/");
 
             ExternalLogins = (await signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 

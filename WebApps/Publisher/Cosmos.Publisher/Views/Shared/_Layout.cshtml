@@ -1,4 +1,7 @@
-﻿<!DOCTYPE html>
+﻿@using Cosmos.Cms.Common.Services.Configurations;
+@using Microsoft.Extensions.Options;
+@inject IOptions<CosmosConfig> options;
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -20,8 +23,11 @@
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
-                      
                     </ul>
+                    @if (options.Value.SiteSettings.CosmosRequiresAuthentication)
+                    {
+                        <partial name="_LoginPartial" />
+                    }
                 </div>
             </div>
         </nav>

@@ -8,7 +8,9 @@
 namespace Cosmos.Cms.Publisher.Controllers
 {
     using System.Diagnostics;
+    using System.Net;
     using System.Text;
+    using System.Web;
     using Cosmos.BlobService;
     using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Cms.Publisher.Models;
@@ -66,14 +68,15 @@ namespace Cosmos.Cms.Publisher.Controllers
                     if (!await dbContext.Pages.CosmosAnyAsync())
                     {
                         // No pages published yet
-                        return View("UnderConstruction");
+                        return View("__UnderConstruction");
                     }
 
                     HttpContext.Response.StatusCode = 404;
 
                     if (article == null)
                     {
-                        return NotFound();
+                        Response.StatusCode = (int)HttpStatusCode.NotFound;
+                        return View("__NotFound");
                     }
                 }
 
@@ -81,7 +84,12 @@ namespace Cosmos.Cms.Publisher.Controllers
                 {
                     if (!await CosmosUtilities.AuthUser(dbContext, User, article.ArticleNumber))
                     {
-                        return Redirect("~/Identity/Account/Login");
+                        if (User.Identity.IsAuthenticated)
+                        {
+                            return View("__NeedPermission");
+                        }
+
+                        return Redirect("~/Identity/Account/Login?returnUrl=" + HttpUtility.UrlEncode(Request.Path));
                     }
                 }
 
@@ -108,8 +116,8 @@ namespace Cosmos.Cms.Publisher.Controllers
                 {
                     return NotFound();
                 }
-
-                return View("UnderConstruction");
+                Response.StatusCode = (int)HttpStatusCode.NotFound;
+                return View("__NotFound");
             }
             catch (Exception e)
             {
@@ -121,7 +129,8 @@ namespace Cosmos.Cms.Publisher.Controllers
                     return NotFound();
                 }
 
-                return View("UnderConstruction");
+                Response.StatusCode = (int)HttpStatusCode.NotFound;
+                return View("__NotFound");
             }
         }
 
