@@ -18,26 +18,28 @@
     <div class="container">
         @if (showCreateFirstLayout)
         {
-            <div class="row">
-                <div class="col-md-6 text-light">
-                    <h3>Choose a website design bundle</h3>
+            <div class="row justify-content-center">
+                <div class="col-md-10 text-light">
+                    <h1>Select a Website Design</h1>
                     <p>
-                        Your first step is to choose a &quot;<a target="_blank" href="https://www.moonrise.net/cosmos/documentation/layouts">website design</a>.&quot;
-                        This gives your website a common look and feel across all pages, and each design may contain one or more page templates.
+                        Your first step is to choose a &quot;website design.&quot;
+                        This gives your website a common look and feel across all pages.
                     </p>
-                    <p>Note: You can edit your design at any time.</p>
-                    <p>Please choose one option:</p>
-                    <ul>
-                        <li><a class="text-light" asp-action="CommunityLayouts">Import a pre-built design  <i class="fa-solid fa-circle-arrow-right"></i></a></li>
-                        <li><a class="text-light" asp-action="Create">Create your own design <i class="fa-solid fa-circle-arrow-right"></i></a></li>
-                    </ul>
-                    <a class="text-light" href="https://www.moonrise.net/cosmos/documentation/layouts" target="_blank">Open design documentation.</a>
+                    <h4>Choose a pre-built design (recommended)</h4>
+                    <div class="ms-5 mb-5">
+                        <p class="mb-3">These designs are ready for use and some are designed for non-technical users.  The is the recommened choice for most users.</p>
+                        <a class="btn btn-sm btn-primary" asp-action="CommunityLayouts">Choose pre-built <i class="fa-solid fa-circle-arrow-right"></i></a>
+                    </div>
+                    <h4>Build your own design (advanced)</h4>
+                    <div class="ms-5 mb-3">
+                        <p>If you are working with a web developer with at least basic HTML, CSS and JavaScript experience, you can choose to build a design from scratch that meets your specific needs.</p>
+                        <a class="btn btn-small btn-primary" asp-action="Create">Choose custom <i class="fa-solid fa-circle-arrow-right"></i></a>
+                    </div>
                 </div>
             </div>
         }
         else
         {
-
             <div class="row">
                 <div class="col">
                     <h3 class="text-light">@ViewData["Title"]</h3>

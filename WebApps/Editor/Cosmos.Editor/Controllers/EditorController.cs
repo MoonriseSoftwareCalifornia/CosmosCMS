@@ -99,9 +99,30 @@ namespace Cosmos.Cms.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> Index(string sortOrder, string currentSort, int pageNo = 0, int pageSize = 10, string filter = "")
         {
+            if (await dbContext.Articles.CosmosAnyAsync() == false)
+            {
+                var template = await dbContext.Templates.Where(w => w.Title.ToLower().Contains("home page")).FirstOrDefaultAsync();
+
+                if (template == null)
+                {
+                    ViewData["ShowFirstPageBtn"] = true;
+                }
+                else
+                {
+                    return View(viewName: "__NewHomePage", model:
+                        new CreatePageViewModel()
+                        {
+                            TemplateId = template.Id,
+                            Title = string.Empty,
+                            ArticleNumber = 1,
+                            Id = Guid.NewGuid()
+                        });
+                }
+            }
+
             ViewData["HomePageArticleNumber"] = await dbContext.Pages.Where(f => f.UrlPath == "root").Select(s => s.ArticleNumber).FirstOrDefaultAsync();
             ViewData["PublisherUrl"] = options.Value.SiteSettings.PublisherUrl;
-            ViewData["ShowFirstPageBtn"] = await dbContext.Articles.CosmosAnyAsync() == false;
+
             ViewData["ShowNotFoundBtn"] = await dbContext.ArticleCatalog.Where(w => w.UrlPath == "not_found").CosmosAnyAsync() == false;
 
             if (!string.IsNullOrEmpty(filter))
@@ -517,6 +538,27 @@ namespace Cosmos.Cms.Controllers
         [Authorize(Roles = "Administrators, Editors, Authors, Team Members")]
         public async Task<IActionResult> Create(string title = "", string sortOrder = "asc", string currentSort = "Title", int pageNo = 0, int pageSize = 20)
         {
+            if (await dbContext.Articles.CosmosAnyAsync() == false)
+            {
+                var template = await dbContext.Templates.Where(w => w.Title.ToLower().Contains("home page")).FirstOrDefaultAsync();
+
+                if (template == null)
+                {
+                    ViewData["ShowFirstPageBtn"] = true;
+                }
+                else
+                {
+                    return View(viewName: "__NewHomePage", model:
+                        new CreatePageViewModel()
+                        {
+                            TemplateId = template.Id,
+                            Title = string.Empty,
+                            ArticleNumber = 1,
+                            Id = Guid.NewGuid()
+                        });
+                }
+            }
+
             var defautLayout = await dbContext.Layouts.FirstOrDefaultAsync(l => l.IsDefault);
 
             ViewData["Layouts"] = await BaseGetLayoutListItems();
@@ -850,6 +892,53 @@ namespace Cosmos.Cms.Controllers
             await articleLogic.NewHomePage(model, user.Email);
 
             return RedirectToAction("Index");
+        }
+
+        /// <summary>
+        /// Creates a new home page.
+        /// </summary>
+        /// <param name="model">Model used to create a the first home page.</param>
+        /// <returns>Returns <see cref="IActionResult"/>.</returns>
+        [HttpPost]
+        [ValidateAntiForgeryToken()]
+        public async Task<IActionResult> CreateInitialHomePage(CreatePageViewModel model)
+        {
+            if (model == null)
+            {
+                return NotFound();
+            }
+
+            if (ModelState.IsValid)
+            {
+                if (await dbContext.Articles.CosmosAnyAsync())
+                {
+                    ModelState.AddModelError("Title", "This can only be used to create a website's first home page.");
+                }
+
+                model.Title = model.Title.TrimStart('/');
+
+                var validTitle = await articleLogic.ValidateTitle(model.Title, null);
+
+                if (!validTitle)
+                {
+                    ModelState.AddModelError("Title", $"Title: {model.Title} conflicts with another article title or reserved word.");
+                    return View(viewName: "__NewHomePage", model: model);
+                }
+
+                try
+                {
+                    _ = await articleLogic.Create(model.Title, await GetUserEmail(), model.TemplateId);
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("Title", ex.Message);
+                    return View(viewName: "__NewHomePage", model: model);
+                }
+
+                return Redirect("/");
+            }
+
+            return View(viewName: "__NewHomePage", model: model);
         }
 
         /// <summary>

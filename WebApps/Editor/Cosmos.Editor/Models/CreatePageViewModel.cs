@@ -19,7 +19,7 @@ namespace Cosmos.Cms.Models
     public class CreatePageViewModel
     {
         /// <summary>
-        /// Constructor.
+        /// Initializes a new instance of the <see cref="CreatePageViewModel"/> class.
         /// </summary>
         public CreatePageViewModel()
         {

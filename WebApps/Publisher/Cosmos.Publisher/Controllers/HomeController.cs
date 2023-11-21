@@ -116,6 +116,7 @@ namespace Cosmos.Cms.Publisher.Controllers
                 {
                     return NotFound();
                 }
+
                 Response.StatusCode = (int)HttpStatusCode.NotFound;
                 return View("__NotFound");
             }

@@ -4,54 +4,54 @@
     ViewData["Title"] = "Set Home Page";
 }
 <div class="cwps-editor-container pt-3">
-<div class="container pt-2">
-    <div class="row">
-        <div class="card bg-dark text-light">
-            <div class="card-body">
-                <h3 class="card-title">@ViewData["Title"] </h3>
-                <hr />
-                <p>Web page selected: <u>@Model.Title</u></p>
-                <p>
-                    This will become the new &quot;Home Page&quot; of this website and the old
-                    home page will become a regular page with a new URL.
-                </p>
-                <p>
-                    Flip the switch below to enable the change.
-                </p>
-                <form asp-action="NewHome">
-                    <input asp-for="Id" type="hidden" />
-                    <input asp-for="ArticleNumber" type="hidden" />
-                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="container pt-2">
+        <div class="row">
+            <div class="card bg-dark text-light">
+                <div class="card-body">
+                    <h3 class="card-title">@ViewData["Title"] </h3>
+                    <hr />
+                    <p>Web page selected: <u>@Model.Title</u></p>
+                    <p>
+                        This will become the new &quot;Home Page&quot; of this website and the old
+                        home page will become a regular page with a new URL.
+                    </p>
+                    <p>
+                        Flip the switch below to enable the change.
+                    </p>
+                    <form asp-action="NewHome">
+                        <input asp-for="Id" type="hidden" />
+                        <input asp-for="ArticleNumber" type="hidden" />
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" asp-for="IsNewHomePage">
-                        <label class="form-check-label" for="IsNewHomePage">Enable home page change.</label>
-                    </div>
-                    <div id="lblWarning" class="form-group" style="display: none">
-                        <p><span class="badge badge-danger">Note:</span> Set new home page is activated.</p>
-                        <p>
-                            <span class="badge badge-warning">Tips:</span>
-                        </p>
-                        <ul>
-                            <li> Do not close this web browser until the process completes.</li>
-                            <li> When done, you will automatically be taken to the page list.</li>
-                            <li> To see changes right away, publish the site.</li>
-                        </ul>
-                        <br />
-                    </div>
-                    <div class="form-group">
-                        <a asp-action="Index" class="btn btn-primary">Cancel Action</a> &nbsp;&nbsp;&nbsp;
-                        <input type="submit" id="btnSubmit" value="Set new home page" class="btn btn-primary" style="display: none" />
-                    </div>
-                </form>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" asp-for="IsNewHomePage">
+                            <label class="form-check-label" for="IsNewHomePage">Enable home page change.</label>
+                        </div>
+                        <div id="lblWarning" class="form-group" style="display: none">
+                            <p><span class="badge badge-danger">Note:</span> Set new home page is activated.</p>
+                            <p>
+                                <span class="badge badge-warning">Tips:</span>
+                            </p>
+                            <ul>
+                                <li> Do not close this web browser until the process completes.</li>
+                                <li> When done, you will automatically be taken to the page list.</li>
+                                <li> To see changes right away, publish the site.</li>
+                            </ul>
+                            <br />
+                        </div>
+                        <div class="form-group">
+                            <a asp-action="Index" class="btn btn-primary">Cancel Action</a> &nbsp;&nbsp;&nbsp;
+                            <input type="submit" id="btnSubmit" value="Set new home page" class="btn btn-primary" style="display: none" />
+                        </div>
+                    </form>
+                </div>
             </div>
+
         </div>
-        
+        <div class="col-md-6">
+            <div id="divNotes"></div>
+        </div>
     </div>
-    <div class="col-md-6">
-        <div id="divNotes"></div>
-    </div>
-</div>
 </div>
 <script>
     "use strict";
