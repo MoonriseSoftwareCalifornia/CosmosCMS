@@ -43,13 +43,12 @@
 
                     <div class="form-group">
                         <button type="button" id="previewBtn" style="display:none" class="btn btn-primary" onclick="openPreview()">Full Page Preview</button>
-
                     </div>
                 </form>
             </div>
         </div>
         <div class="row">
-            <div class="col"><h5 class="text-light">Quick start page templates:</h5></div>
+            <div class="col"><h5 class="text-light">Page templates:</h5></div>
         </div>
         <div class="row cpws-table-pager-row-top">
             <div class="col-md-12 d-flex justify-content-center">
@@ -165,6 +164,11 @@
     });
 
     function validateTitle(title) {
+        if (title.indexOf("{New Page Name}") > -1) {
+            $("#divSaveFirstDialog").html("Please replace {New Page Name} with the name of your page.");
+            modalAlert.show();
+            return false;
+        }
         var isValid = true;
         //
         if (title.indexOf(",") > -1 || 

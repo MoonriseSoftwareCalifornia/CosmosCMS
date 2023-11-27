@@ -2,8 +2,8 @@
 
 	<PropertyGroup>
 		<TargetFramework>net7.0</TargetFramework>
-		<AssemblyVersion>7.6.1.5</AssemblyVersion>
-		<FileVersion>7.6.1.5</FileVersion>
+		<AssemblyVersion>7.6.1.6</AssemblyVersion>
+		<FileVersion>7.6.1.6</FileVersion>
 		<Nullable>disable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<UserSecretsId>aspnet-Cosmos.Cms.Publisher-F1D91233-1093-41F8-B23F-43E81E1454FF</UserSecretsId>
@@ -67,6 +67,13 @@
 
 	<ItemGroup>
 	  <Folder Include="wwwroot\lib\cosmos\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Update="wwwroot\lib\cosmos\toc.js">
+	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+	  </Content>
 	</ItemGroup>
 
 </Project>

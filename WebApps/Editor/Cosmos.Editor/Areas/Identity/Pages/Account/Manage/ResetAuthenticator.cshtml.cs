@@ -18,11 +18,12 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account.Manage
     /// </summary>
     public class ResetAuthenticatorModel : PageModel
     {
-        private readonly ILogger<ResetAuthenticatorModel> _logger;
-        private readonly SignInManager<IdentityUser> _signInManager;
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly ILogger<ResetAuthenticatorModel> logger;
+        private readonly SignInManager<IdentityUser> signInManager;
+        private readonly UserManager<IdentityUser> userManager;
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="ResetAuthenticatorModel"/> class.
         /// Constructor.
         /// </summary>
         /// <param name="userManager"></param>
@@ -33,9 +34,9 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account.Manage
             SignInManager<IdentityUser> signInManager,
             ILogger<ResetAuthenticatorModel> logger)
         {
-            _userManager = userManager;
-            _signInManager = signInManager;
-            _logger = logger;
+            this.userManager = userManager;
+            this.signInManager = signInManager;
+            this.logger = logger;
         }
 
         /// <summary>
@@ -50,10 +51,10 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account.Manage
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> OnGet()
         {
-            var user = await _userManager.GetUserAsync(User);
+            var user = await userManager.GetUserAsync(User);
             if (user == null)
             {
-                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+                return NotFound($"Unable to load user with ID '{userManager.GetUserId(User)}'.");
             }
 
             return Page();
@@ -65,17 +66,17 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account.Manage
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> OnPostAsync()
         {
-            var user = await _userManager.GetUserAsync(User);
+            var user = await userManager.GetUserAsync(User);
             if (user == null)
             {
-                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+                return NotFound($"Unable to load user with ID '{userManager.GetUserId(User)}'.");
             }
 
-            await _userManager.SetTwoFactorEnabledAsync(user, false);
-            await _userManager.ResetAuthenticatorKeyAsync(user);
-            _logger.LogInformation("User with ID '{UserId}' has reset their authentication app key.", user.Id);
+            await userManager.SetTwoFactorEnabledAsync(user, false);
+            await userManager.ResetAuthenticatorKeyAsync(user);
+            logger.LogInformation("User with ID '{UserId}' has reset their authentication app key.", user.Id);
 
-            await _signInManager.RefreshSignInAsync(user);
+            await signInManager.RefreshSignInAsync(user);
             StatusMessage =
                 "Your authenticator app key has been reset, you will need to configure your authenticator app using the new key.";
 

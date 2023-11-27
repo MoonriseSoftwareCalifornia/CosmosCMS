@@ -30,6 +30,7 @@ namespace Cosmos.Cms.Services
         private readonly ImageResizer resizer;
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="ThumbnailCreator"/> class.
         /// Constructor.
         /// </summary>
         public ThumbnailCreator()

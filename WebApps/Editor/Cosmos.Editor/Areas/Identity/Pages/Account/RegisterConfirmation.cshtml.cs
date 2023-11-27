@@ -20,18 +20,19 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     [AllowAnonymous]
     public class RegisterConfirmationModel : PageModel
     {
-        private readonly IEmailSender _sender;
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly IEmailSender sender;
+        private readonly UserManager<IdentityUser> userManager;
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="RegisterConfirmationModel"/> class.
         /// Constructor.
         /// </summary>
         /// <param name="userManager"></param>
         /// <param name="sender"></param>
         public RegisterConfirmationModel(UserManager<IdentityUser> userManager, IEmailSender sender)
         {
-            _userManager = userManager;
-            _sender = sender;
+            this.userManager = userManager;
+            this.sender = sender;
         }
 
         /// <summary>
@@ -62,7 +63,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                 return RedirectToPage("/Index");
             }
 
-            var user = await _userManager.FindByEmailAsync(email);
+            var user = await userManager.FindByEmailAsync(email);
             if (user == null)
             {
                 return NotFound($"Unable to load user with email '{email}'.");

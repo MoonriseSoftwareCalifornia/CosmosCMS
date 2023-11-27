@@ -24,18 +24,19 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     [AllowAnonymous]
     public class ResetPasswordModel : PageModel
     {
-        private readonly IOptions<SiteSettings> _options;
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly IOptions<SiteSettings> options;
+        private readonly UserManager<IdentityUser> userManager;
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="ResetPasswordModel"/> class.
         /// Constructor.
         /// </summary>
         /// <param name="userManager"></param>
         /// <param name="options"></param>
         public ResetPasswordModel(UserManager<IdentityUser> userManager, IOptions<SiteSettings> options)
         {
-            _userManager = userManager;
-            _options = options;
+            this.userManager = userManager;
+            this.options = options;
         }
 
         /// <summary>
@@ -74,14 +75,14 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                 return Page();
             }
 
-            var user = await _userManager.FindByEmailAsync(Input.Email);
+            var user = await userManager.FindByEmailAsync(Input.Email);
             if (user == null)
             {
                 // Don't reveal that the user does not exist
                 return RedirectToPage("./ResetPasswordConfirmation");
             }
 
-            var result = await _userManager.ResetPasswordAsync(user, Input.Code, Input.Password);
+            var result = await userManager.ResetPasswordAsync(user, Input.Code, Input.Password);
             if (result.Succeeded)
             {
                 return RedirectToPage("./ResetPasswordConfirmation");

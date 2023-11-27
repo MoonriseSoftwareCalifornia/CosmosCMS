@@ -16,6 +16,7 @@ namespace Cosmos.Cms.Models
     public class SignalResult
     {
         /// <summary>
+        /// Initializes a new instance of the <see cref="SignalResult"/> class.
         /// Constructor.
         /// </summary>
         public SignalResult()

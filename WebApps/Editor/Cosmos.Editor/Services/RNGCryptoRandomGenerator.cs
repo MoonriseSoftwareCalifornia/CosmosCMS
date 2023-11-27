@@ -16,6 +16,7 @@ namespace Cosmos.Cms.Services
     public class RNGCryptoRandomGenerator
     {
         /// <summary>
+        /// Initializes a new instance of the <see cref="RNGCryptoRandomGenerator"/> class.
         /// Constructor.
         /// </summary>
         public RNGCryptoRandomGenerator()

@@ -53,6 +53,9 @@
                                 <a class="dropdown-item" title="List of pages on this website." href="/Editor/Index">Pages</a>
                             </li>
                             <li>
+                                <a id="btnNewPage" class="ms-2 fw-lighter dropdown-item" title="Creates new page using this one as it's parent." style="font-size:inherit.8rem">New page <i class="fa-solid fa-circle-arrow-right"></i></a>
+                            </li>
+                            <li>
                                 <a class="dropdown-item" title="Open files stored on this website." href="/FileManager/Index">File Manager</a>
                             </li>
                             @if (isAdministrator || isEditor)
@@ -109,6 +112,9 @@
 
     var isAuthor = @(isAuthor.ToString().ToLower());
 
+    let pageTitle = "";
+    let pagePath = "";
+
     function closePreview() {
         if (window.opener) {
             window.close();
@@ -126,6 +132,9 @@
 
         const iframe = document.getElementById("iFrameWebPage");
         const iframeWin = iframe.contentWindow || iframe.contentDocument.parentWindow;
+
+        pageTitle = iframeWin.document.head.querySelector("meta[name='cwps-meta-path-title']").content;
+        pagePath = iframeWin.document.head.querySelector("meta[name='cwps-meta-path-url']").content;
 
         const urlPath = iframeWin.ccmsUrlPath;
 
@@ -239,5 +248,12 @@
 <script>
     $("#btnGetHelp").click(function () {
         $("#iframeContactSupport").attr("src", "/Ccms__ContactUs/Index");
+    });
+    $("#btnNewPage").click(function (e) {
+        if (pagePath === "root") {
+            window.location.href = "@Url.Action("Create", "Editor")?title={New Page Name}";
+        } else {
+            window.location.href = "@Url.Action("Create", "Editor")?title=" + pageTitle + "/{New Page Name}";
+        }
     });
 </script>

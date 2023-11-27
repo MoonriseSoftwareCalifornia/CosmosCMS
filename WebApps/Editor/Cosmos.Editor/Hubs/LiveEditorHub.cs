@@ -21,8 +21,8 @@ namespace Cosmos.Cms.Hubs
     /// [Authorize(Roles = "Reviewers, Administrators, Editors, Authors")]
     public class LiveEditorHub : Hub
     {
-        private readonly ArticleEditLogic _articleLogic;
-        private readonly ILogger<LiveEditorHub> _logger;
+        private readonly ArticleEditLogic articleLogic;
+        private readonly ILogger<LiveEditorHub> logger;
 
         private string GetArticleGroupName(int articleNumber)
         {
@@ -35,14 +35,15 @@ namespace Cosmos.Cms.Hubs
         }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="LiveEditorHub"/> class.
         /// Constructor.
         /// </summary>
         /// <param name="articleLogic"></param>
         /// <param name="logger"></param>
         public LiveEditorHub(ArticleEditLogic articleLogic, ILogger<LiveEditorHub> logger)
         {
-            _articleLogic = articleLogic;
-            _logger = logger;
+            this.articleLogic = articleLogic;
+            this.logger = logger;
         }
 
         /// <summary>
@@ -83,7 +84,7 @@ namespace Cosmos.Cms.Hubs
             }
             catch (Exception e)
             {
-                _logger.LogError($"{e.Message}", e);
+                logger.LogError($"{e.Message}", e);
             }
         }
 

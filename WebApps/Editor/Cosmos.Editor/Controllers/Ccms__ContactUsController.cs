@@ -24,13 +24,14 @@ namespace Cosmos.Editor.Controllers
     /// </summary>
     public class Ccms__ContactUsController : Controller
     {
-        private readonly ArticleEditLogic _articleLogic;
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly AzureCommunicationEmailSender _emailSender;
-        private readonly ILogger<Ccms__ContactUsController> _logger;
-        private readonly IOptions<CosmosConfig> _cosmosOptions;
+        private readonly ArticleEditLogic articleLogic;
+        private readonly UserManager<IdentityUser> userManager;
+        private readonly AzureCommunicationEmailSender emailSender;
+        private readonly ILogger<Ccms__ContactUsController> logger;
+        private readonly IOptions<CosmosConfig> cosmosOptions;
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="Ccms__ContactUsController"/> class.
         /// Constructor.
         /// </summary>
         /// <param name="cosmosOptions"></param>
@@ -45,11 +46,11 @@ namespace Cosmos.Editor.Controllers
             ArticleEditLogic articleLogic,
             UserManager<IdentityUser> userManager)
         {
-            _cosmosOptions = cosmosOptions;
-            _logger = logger;
-            _emailSender = (AzureCommunicationEmailSender)emailSender;
-            _articleLogic = articleLogic;
-            _userManager = userManager;
+            this.cosmosOptions = cosmosOptions;
+            this.logger = logger;
+            this.emailSender = (AzureCommunicationEmailSender)emailSender;
+            this.articleLogic = articleLogic;
+            this.userManager = userManager;
         }
 
         /// <summary>
@@ -58,7 +59,7 @@ namespace Cosmos.Editor.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> Index()
         {
-            var user = await _userManager.GetUserAsync(User);
+            var user = await userManager.GetUserAsync(User);
 
             return View(new EmailMessageViewModel()
             {
@@ -78,16 +79,16 @@ namespace Cosmos.Editor.Controllers
             {
                 try
                 {
-                    var user = await _userManager.GetUserAsync(User);
+                    var user = await userManager.GetUserAsync(User);
 
-                    await _emailSender.SendEmailAsync(user.Email,
+                    await emailSender.SendEmailAsync(user.Email,
                         model.Subject, $"<h5>{model.FromEmail} sent the following message:</h5><br />{model.Content}");
 
                     model.SendSuccess = true;
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError(e.Message, e);
+                    logger.LogError(e.Message, e);
                 }
             }
 

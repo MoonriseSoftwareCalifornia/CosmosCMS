@@ -71,6 +71,7 @@ namespace Cosmos.Cms.Data.Logic
         }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="LayoutUtilities"/> class.
         /// Constructor.
         /// </summary>
         public LayoutUtilities()

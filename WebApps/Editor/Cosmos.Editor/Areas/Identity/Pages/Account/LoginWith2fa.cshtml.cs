@@ -22,18 +22,19 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     [AllowAnonymous]
     public class LoginWith2faModel : PageModel
     {
-        private readonly ILogger<LoginWith2faModel> _logger;
-        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly ILogger<LoginWith2faModel> logger;
+        private readonly SignInManager<IdentityUser> signInManager;
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="LoginWith2faModel"/> class.
         /// Constructor.
         /// </summary>
         /// <param name="signInManager"></param>
         /// <param name="logger"></param>
         public LoginWith2faModel(SignInManager<IdentityUser> signInManager, ILogger<LoginWith2faModel> logger)
         {
-            _signInManager = signInManager;
-            _logger = logger;
+            this.signInManager = signInManager;
+            this.logger = logger;
         }
 
         /// <summary>
@@ -62,7 +63,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         public async Task<IActionResult> OnGetAsync(bool rememberMe, string returnUrl = null)
         {
             // Ensure the user has gone through the username & password screen first
-            var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
+            var user = await signInManager.GetTwoFactorAuthenticationUserAsync();
 
             if (user == null)
             {
@@ -91,7 +92,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
 
             returnUrl = returnUrl ?? Url.Content("~/");
 
-            var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
+            var user = await signInManager.GetTwoFactorAuthenticationUserAsync();
             if (user == null)
             {
                 throw new InvalidOperationException("Unable to load two-factor authentication user.");
@@ -100,22 +101,22 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
             var authenticatorCode = Input.TwoFactorCode.Replace(" ", string.Empty).Replace("-", string.Empty);
 
             var result =
-                await _signInManager.TwoFactorAuthenticatorSignInAsync(authenticatorCode, rememberMe,
+                await signInManager.TwoFactorAuthenticatorSignInAsync(authenticatorCode, rememberMe,
                     Input.RememberMachine);
 
             if (result.Succeeded)
             {
-                _logger.LogInformation("User with ID '{UserId}' logged in with 2fa.", user.Id);
+                logger.LogInformation("User with ID '{UserId}' logged in with 2fa.", user.Id);
                 return LocalRedirect(returnUrl);
             }
 
             if (result.IsLockedOut)
             {
-                _logger.LogWarning("User with ID '{UserId}' account locked out.", user.Id);
+                logger.LogWarning("User with ID '{UserId}' account locked out.", user.Id);
                 return RedirectToPage("./Lockout");
             }
 
-            _logger.LogWarning("Invalid authenticator code entered for user with ID '{UserId}'.", user.Id);
+            logger.LogWarning("Invalid authenticator code entered for user with ID '{UserId}'.", user.Id);
             ModelState.AddModelError(string.Empty, "Invalid authenticator code.");
             return Page();
         }

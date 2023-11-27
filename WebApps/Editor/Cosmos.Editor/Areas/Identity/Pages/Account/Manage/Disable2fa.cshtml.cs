@@ -19,10 +19,11 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account.Manage
     /// </summary>
     public class Disable2faModel : PageModel
     {
-        private readonly ILogger<Disable2faModel> _logger;
+        private readonly ILogger<Disable2faModel> logger;
         private readonly UserManager<IdentityUser> _userManager;
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="Disable2faModel"/> class.
         /// Constructor.
         /// </summary>
         /// <param name="userManager"></param>
@@ -32,7 +33,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account.Manage
             ILogger<Disable2faModel> logger)
         {
             _userManager = userManager;
-            _logger = logger;
+            this.logger = logger;
         }
 
         /// <summary>
@@ -83,7 +84,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account.Manage
                     $"Unexpected error occurred disabling 2FA for user with ID '{_userManager.GetUserId(User)}'.");
             }
 
-            _logger.LogInformation("User with ID '{UserId}' has disabled 2fa.", _userManager.GetUserId(User));
+            logger.LogInformation("User with ID '{UserId}' has disabled 2fa.", _userManager.GetUserId(User));
             StatusMessage = "2fa has been disabled. You can reenable 2fa when you setup an authenticator app";
             return RedirectToPage("./TwoFactorAuthentication");
         }

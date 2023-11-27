@@ -99,6 +99,8 @@ namespace Cosmos.Cms.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> Index(string sortOrder, string currentSort, int pageNo = 0, int pageSize = 10, string filter = "")
         {
+            ViewData["ShowFirstPageBtn"] = false; // Default unless changed below.
+
             if (await dbContext.Articles.CosmosAnyAsync() == false)
             {
                 var template = await dbContext.Templates.Where(w => w.Title.ToLower().Contains("home page")).FirstOrDefaultAsync();

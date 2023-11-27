@@ -31,11 +31,12 @@ namespace CDT.Cosmos.Cms.Controllers
     [Authorize(Roles = "Administrators, Editors")]
     public class TemplatesController : BaseController
     {
-        private readonly ArticleEditLogic _articleLogic;
-        private readonly ApplicationDbContext _dbContext;
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly ArticleEditLogic articleLogic;
+        private readonly ApplicationDbContext dbContext;
+        private readonly UserManager<IdentityUser> userManager;
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="TemplatesController"/> class.
         /// Constructor.
         /// </summary>
         /// <param name="logger"></param>
@@ -49,9 +50,9 @@ namespace CDT.Cosmos.Cms.Controllers
             ArticleEditLogic articleLogic) :
             base(dbContext, userManager, articleLogic, options)
         {
-            _userManager = userManager;
-            _dbContext = dbContext;
-            _articleLogic = articleLogic;
+            this.userManager = userManager;
+            this.dbContext = dbContext;
+            this.articleLogic = articleLogic;
         }
 
         /// <summary>
@@ -60,7 +61,7 @@ namespace CDT.Cosmos.Cms.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> Index(string sortOrder = "asc", string currentSort = "Title", int pageNo = 0, int pageSize = 10)
         {
-            var defautLayout = await _dbContext.Layouts.FirstOrDefaultAsync(f => f.IsDefault);
+            var defautLayout = await dbContext.Layouts.FirstOrDefaultAsync(f => f.IsDefault);
 
             ViewData["Layouts"] = await BaseGetLayoutListItems();
 
@@ -69,7 +70,7 @@ namespace CDT.Cosmos.Cms.Controllers
             ViewData["pageNo"] = pageNo;
             ViewData["pageSize"] = pageSize;
 
-            var query = _dbContext.Templates.OrderBy(t => t.Title)
+            var query = dbContext.Templates.OrderBy(t => t.Title)
                 .Where(w => w.LayoutId == defautLayout.Id)
                 .Select(s => new TemplateIndexViewModel
                 {
@@ -128,18 +129,18 @@ namespace CDT.Cosmos.Cms.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> Create()
         {
-            var defautLayout = await _dbContext.Layouts.FirstOrDefaultAsync(f => f.IsDefault);
+            var defautLayout = await dbContext.Layouts.FirstOrDefaultAsync(f => f.IsDefault);
 
             var entity = new Template
             {
-                Title = "New Template " + await _dbContext.Templates.CountAsync(),
+                Title = "New Template " + await dbContext.Templates.CountAsync(),
                 Description = "<p>New template, please add descriptive and helpful information here.</p>",
                 Content = "<p>" + LoremIpsum.SubSection1 + "</p>",
                 LayoutId = defautLayout?.Id,
                 CommunityLayoutId = defautLayout?.CommunityLayoutId
             };
-            _dbContext.Templates.Add(entity);
-            await _dbContext.SaveChangesAsync();
+            dbContext.Templates.Add(entity);
+            await dbContext.SaveChangesAsync();
             return RedirectToAction("EditCode", "Templates", new { entity.Id });
         }
 
@@ -150,7 +151,7 @@ namespace CDT.Cosmos.Cms.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> Edit(Guid Id)
         {
-            var template = await _dbContext.Templates.FirstOrDefaultAsync(f => f.Id == Id);
+            var template = await dbContext.Templates.FirstOrDefaultAsync(f => f.Id == Id);
             ViewData["Title"] = template.Title;
 
             var model = new TemplateEditViewModel()
@@ -175,11 +176,11 @@ namespace CDT.Cosmos.Cms.Controllers
 
             if (ModelState.IsValid)
             {
-                var template = await _dbContext.Templates.FirstOrDefaultAsync(f => f.Id == model.Id);
+                var template = await dbContext.Templates.FirstOrDefaultAsync(f => f.Id == model.Id);
                 template.Title = model.Title;
                 template.Description = model.Description;
 
-                await _dbContext.SaveChangesAsync();
+                await dbContext.SaveChangesAsync();
 
                 return RedirectToAction("Index");
             }
@@ -194,7 +195,7 @@ namespace CDT.Cosmos.Cms.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> EditCode(Guid Id)
         {
-            var entity = await _dbContext.Templates.FirstOrDefaultAsync(f => f.Id == Id);
+            var entity = await dbContext.Templates.FirstOrDefaultAsync(f => f.Id == Id);
 
             var model = new TemplateCodeEditorViewModel
             {
@@ -232,12 +233,12 @@ namespace CDT.Cosmos.Cms.Controllers
         {
             if (ModelState.IsValid)
             {
-                var entity = await _dbContext.Templates.FirstOrDefaultAsync(f => f.Id == model.Id);
+                var entity = await dbContext.Templates.FirstOrDefaultAsync(f => f.Id == model.Id);
 
                 entity.Title = model.Title;
                 entity.Content = model.Content;
 
-                await _dbContext.SaveChangesAsync();
+                await dbContext.SaveChangesAsync();
 
                 model = new TemplateCodeEditorViewModel
                 {
@@ -274,11 +275,11 @@ namespace CDT.Cosmos.Cms.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> Trash(Guid Id)
         {
-            var entity = await _dbContext.Templates.FirstOrDefaultAsync(f => f.Id == Id);
+            var entity = await dbContext.Templates.FirstOrDefaultAsync(f => f.Id == Id);
 
-            _dbContext.Templates.Remove(entity);
+            dbContext.Templates.Remove(entity);
 
-            await _dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
 
             return RedirectToAction("Index");
         }
@@ -290,7 +291,7 @@ namespace CDT.Cosmos.Cms.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> Preview(Guid Id)
         {
-            var entity = await _dbContext.Templates.FirstOrDefaultAsync(f => f.Id == Id);
+            var entity = await dbContext.Templates.FirstOrDefaultAsync(f => f.Id == Id);
 
             var guid = Guid.NewGuid();
 
@@ -301,7 +302,7 @@ namespace CDT.Cosmos.Cms.Controllers
                 LanguageCode = string.Empty,
                 LanguageName = string.Empty,
                 CacheDuration = 10,
-                Content = _articleLogic.Ensure_ContentEditable_IsMarked(entity.Content),
+                Content = articleLogic.Ensure_ContentEditable_IsMarked(entity.Content),
                 StatusCode = StatusCodeEnum.Active,
                 Id = entity.Id,
                 Published = DateTimeOffset.UtcNow,
@@ -311,7 +312,7 @@ namespace CDT.Cosmos.Cms.Controllers
                 VersionNumber = 1,
                 HeadJavaScript = string.Empty,
                 FooterJavaScript = string.Empty,
-                Layout = await _articleLogic.GetDefaultLayout()
+                Layout = await articleLogic.GetDefaultLayout()
             };
 
             ViewData["UseGoogleTranslate"] = false;

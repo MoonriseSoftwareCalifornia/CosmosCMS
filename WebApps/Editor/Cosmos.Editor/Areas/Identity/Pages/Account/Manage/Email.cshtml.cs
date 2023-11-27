@@ -22,13 +22,14 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account.Manage
     /// </summary>
     public class EmailModel : PageModel
     {
-        private readonly IEmailSender _emailSender;
+        private readonly IEmailSender emailSender;
 
         /// private readonly SignInManager
         /// IdentityUser _signInManager;
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly UserManager<IdentityUser> userManager;
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="EmailModel"/> class.
         /// Constructor.
         /// </summary>
         /// <param name="userManager"></param>
@@ -38,9 +39,9 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account.Manage
             // SignInManager<IdentityUser> signInManager,
             IEmailSender emailSender)
         {
-            _userManager = userManager;
+            this.userManager = userManager;
             // _signInManager = signInManager;
-            _emailSender = emailSender;
+            this.emailSender = emailSender;
         }
 
         /// <summary>
@@ -77,7 +78,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account.Manage
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         private async Task LoadAsync(IdentityUser user)
         {
-            var email = await _userManager.GetEmailAsync(user);
+            var email = await userManager.GetEmailAsync(user);
             Email = email;
 
             Input = new InputModel
@@ -85,7 +86,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account.Manage
                 NewEmail = email
             };
 
-            IsEmailConfirmed = await _userManager.IsEmailConfirmedAsync(user);
+            IsEmailConfirmed = await userManager.IsEmailConfirmedAsync(user);
         }
 
         /// <summary>
@@ -94,10 +95,10 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account.Manage
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> OnGetAsync()
         {
-            var user = await _userManager.GetUserAsync(User);
+            var user = await userManager.GetUserAsync(User);
             if (user == null)
             {
-                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+                return NotFound($"Unable to load user with ID '{userManager.GetUserId(User)}'.");
             }
 
             await LoadAsync(user);
@@ -110,10 +111,10 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account.Manage
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> OnPostChangeEmailAsync()
         {
-            var user = await _userManager.GetUserAsync(User);
+            var user = await userManager.GetUserAsync(User);
             if (user == null)
             {
-                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+                return NotFound($"Unable to load user with ID '{userManager.GetUserId(User)}'.");
             }
 
             if (!ModelState.IsValid)
@@ -122,17 +123,17 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account.Manage
                 return Page();
             }
 
-            var email = await _userManager.GetEmailAsync(user);
+            var email = await userManager.GetEmailAsync(user);
             if (Input.NewEmail != email)
             {
-                var userId = await _userManager.GetUserIdAsync(user);
-                var code = await _userManager.GenerateChangeEmailTokenAsync(user, Input.NewEmail);
+                var userId = await userManager.GetUserIdAsync(user);
+                var code = await userManager.GenerateChangeEmailTokenAsync(user, Input.NewEmail);
                 var callbackUrl = Url.Page(
                     "/Account/ConfirmEmailChange",
                     null,
                     new { userId, email = Input.NewEmail, code },
                     Request.Scheme);
-                await _emailSender.SendEmailAsync(
+                await emailSender.SendEmailAsync(
                     Input.NewEmail,
                     "Confirm your email",
                     $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
@@ -151,10 +152,10 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account.Manage
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> OnPostSendVerificationEmailAsync()
         {
-            var user = await _userManager.GetUserAsync(User);
+            var user = await userManager.GetUserAsync(User);
             if (user == null)
             {
-                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+                return NotFound($"Unable to load user with ID '{userManager.GetUserId(User)}'.");
             }
 
             if (!ModelState.IsValid)
@@ -163,16 +164,16 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account.Manage
                 return Page();
             }
 
-            var userId = await _userManager.GetUserIdAsync(user);
-            var email = await _userManager.GetEmailAsync(user);
-            var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var userId = await userManager.GetUserIdAsync(user);
+            var email = await userManager.GetEmailAsync(user);
+            var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
             code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
             var callbackUrl = Url.Page(
                 "/Account/ConfirmEmail",
                 null,
                 new { area = "Identity", userId, code },
                 Request.Scheme);
-            await _emailSender.SendEmailAsync(
+            await emailSender.SendEmailAsync(
                 email,
                 "Confirm your email",
                 $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");

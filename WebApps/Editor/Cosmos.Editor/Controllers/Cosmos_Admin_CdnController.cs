@@ -32,10 +32,10 @@ namespace Cosmos.Cms.Controllers
     [Authorize(Roles = "Administrators, Editors")]
     public class Cosmos_Admin_CdnController : Controller
     {
-        private readonly ILogger<Cosmos_Admin_CdnController> _logger;
-        private readonly ApplicationDbContext _dbContext;
-        private readonly IOptions<CosmosConfig> _options;
-        private readonly AzureSubscription _azureSubscription;
+        private readonly ILogger<Cosmos_Admin_CdnController> logger;
+        private readonly ApplicationDbContext dbContext;
+        private readonly IOptions<CosmosConfig> options;
+        private readonly AzureSubscription azureSubscription;
 
         /// <summary>
         /// CDN Service Name.
@@ -43,6 +43,7 @@ namespace Cosmos.Cms.Controllers
         public static string CDNSERVICENAME = "CDN";
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="Cosmos_Admin_CdnController"/> class.
         /// Constructor.
         /// </summary>
         /// <param name="logger"></param>
@@ -55,10 +56,10 @@ namespace Cosmos.Cms.Controllers
            AzureSubscription azureSubscription
         )
         {
-            _logger = logger;
-            _dbContext = dbContext;
-            _options = options;
-            _azureSubscription = azureSubscription;
+            this.logger = logger;
+            this.dbContext = dbContext;
+            this.options = options;
+            this.azureSubscription = azureSubscription;
         }
 
         /// <summary>
@@ -67,7 +68,7 @@ namespace Cosmos.Cms.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> Index()
         {
-            var model = await _dbContext.Settings.FirstOrDefaultAsync(f => f.Name == CDNSERVICENAME);
+            var model = await dbContext.Settings.FirstOrDefaultAsync(f => f.Name == CDNSERVICENAME);
 
             if (model == null)
             {
@@ -83,12 +84,12 @@ namespace Cosmos.Cms.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> DisableCdn()
         {
-            var oldSetting = await _dbContext.Settings.FirstOrDefaultAsync(f => f.Name == CDNSERVICENAME);
+            var oldSetting = await dbContext.Settings.FirstOrDefaultAsync(f => f.Name == CDNSERVICENAME);
 
             if (oldSetting != null)
             {
-                _dbContext.Settings.Remove(oldSetting);
-                await _dbContext.SaveChangesAsync();
+                dbContext.Settings.Remove(oldSetting);
+                await dbContext.SaveChangesAsync();
             }
 
             return RedirectToAction("Index");
@@ -110,11 +111,11 @@ namespace Cosmos.Cms.Controllers
 
             try
             {
-                var url = new Uri(_options.Value.SiteSettings.PublisherUrl);
+                var url = new Uri(options.Value.SiteSettings.PublisherUrl);
                 ViewData["Publisher"] = url;
 
                 // var sub = client.GetDefaultSubscriptionAsync();
-                SubscriptionResource subscription = _azureSubscription.Subscription;
+                SubscriptionResource subscription = azureSubscription.Subscription;
                 ResourceGroupCollection resourceGroups = subscription.GetResourceGroups();
 
                 var data = resourceGroups.GetAllAsync();
@@ -146,7 +147,7 @@ namespace Cosmos.Cms.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message, ex);
+                logger.LogError(ex.Message, ex);
             }
 
             return model;
@@ -169,12 +170,12 @@ namespace Cosmos.Cms.Controllers
                 return NotFound();
             }
 
-            var oldSetting = await _dbContext.Settings.FirstOrDefaultAsync(f => f.Name == CDNSERVICENAME);
+            var oldSetting = await dbContext.Settings.FirstOrDefaultAsync(f => f.Name == CDNSERVICENAME);
 
             if (oldSetting != null)
             {
-                _dbContext.Settings.Remove(oldSetting);
-                await _dbContext.SaveChangesAsync();
+                dbContext.Settings.Remove(oldSetting);
+                await dbContext.SaveChangesAsync();
             }
 
             var cdnSetting = new Setting()
@@ -186,8 +187,8 @@ namespace Cosmos.Cms.Controllers
                 Value = JsonConvert.SerializeObject(endpoint)
             };
 
-            _dbContext.Settings.Add(cdnSetting);
-            await _dbContext.SaveChangesAsync();
+            dbContext.Settings.Add(cdnSetting);
+            await dbContext.SaveChangesAsync();
 
             return RedirectToAction("Index");
         }

@@ -28,11 +28,12 @@ namespace Cosmos.Cms.Hubs
     [Authorize]
     public class ChatHub : Hub
     {
-        private readonly ApplicationDbContext _dbContext;
-        private readonly ArticleEditLogic _articleLogic;
-        private readonly StorageContext _storageContext;
+        private readonly ApplicationDbContext dbContext;
+        private readonly ArticleEditLogic articleLogic;
+        private readonly StorageContext storageContext;
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="ChatHub"/> class.
         /// Constructor.
         /// </summary>
         /// <param name="dbContext"></param>
@@ -40,9 +41,9 @@ namespace Cosmos.Cms.Hubs
         /// <param name="storageContext"></param>
         public ChatHub(ApplicationDbContext dbContext, ArticleEditLogic articleLogic, StorageContext storageContext)
         {
-            _dbContext = dbContext;
-            _articleLogic = articleLogic;
-            _storageContext = storageContext;
+            this.dbContext = dbContext;
+            this.articleLogic = articleLogic;
+            this.storageContext = storageContext;
         }
 
         #region CHAT METHODS
@@ -136,7 +137,7 @@ namespace Cosmos.Cms.Hubs
             {
                 case "ScriptEditor":
                     {
-                        var model = await _dbContext.NodeScripts.FindAsync(Guid.Parse(id));
+                        var model = await dbContext.NodeScripts.FindAsync(Guid.Parse(id));
                         return JsonConvert.SerializeObject(model);
                     }
 
@@ -145,7 +146,7 @@ namespace Cosmos.Cms.Hubs
                         // Open a stream
                         await using var memoryStream = new MemoryStream();
 
-                        await using (var stream = await _storageContext.OpenBlobReadStreamAsync(id))
+                        await using (var stream = await storageContext.OpenBlobReadStreamAsync(id))
                         {
                             // Load into memory and release the blob stream right away
                             await stream.CopyToAsync(memoryStream);
@@ -165,19 +166,19 @@ namespace Cosmos.Cms.Hubs
 
                 case "LayoutEditor":
                     {
-                        var model = await _dbContext.Layouts.FindAsync(Guid.Parse(id));
+                        var model = await dbContext.Layouts.FindAsync(Guid.Parse(id));
                         return JsonConvert.SerializeObject(model);
                     }
 
                 case "TemplateEditor":
                     {
-                        var model = await _dbContext.Templates.FindAsync(Guid.Parse(id));
+                        var model = await dbContext.Templates.FindAsync(Guid.Parse(id));
                         return JsonConvert.SerializeObject(model);
                     }
 
                 default:
                     {
-                        var model = await _articleLogic.Get(Guid.Parse(id), Controllers.EnumControllerName.Edit, string.Empty);
+                        var model = await articleLogic.Get(Guid.Parse(id), Controllers.EnumControllerName.Edit, string.Empty);
                         return JsonConvert.SerializeObject(model);
                     }
             }
@@ -206,7 +207,7 @@ namespace Cosmos.Cms.Hubs
         public async Task NotifyRoomOfLock(string id, string editorType)
         {
             var idno = Guid.Parse(id);
-            var model = await _dbContext.ArticleLocks.Where(w => w.ArticleId == idno).Select(l => new ArticleLockViewModel()
+            var model = await dbContext.ArticleLocks.Where(w => w.ArticleId == idno).Select(l => new ArticleLockViewModel()
             {
                 ArticleRecordId = l.ArticleId,
                 Id = l.Id,
@@ -229,16 +230,16 @@ namespace Cosmos.Cms.Hubs
             var connectionId = Context.ConnectionId;
             var idno = Guid.Parse(id);
 
-            var articleLocks = await _dbContext.ArticleLocks.Where(
+            var articleLocks = await dbContext.ArticleLocks.Where(
                 w => w.ConnectionId == connectionId || w.ArticleId == idno).ToListAsync();
 
             if (articleLocks.Any())
             {
                 var ids = articleLocks.Select(s => s.ArticleId);
 
-                _dbContext.ArticleLocks.RemoveRange(articleLocks);
+                dbContext.ArticleLocks.RemoveRange(articleLocks);
 
-                await _dbContext.SaveChangesAsync();
+                await dbContext.SaveChangesAsync();
             }
 
             string message = JsonConvert.SerializeObject(new ArticleLockViewModel());
@@ -257,10 +258,10 @@ namespace Cosmos.Cms.Hubs
             {
                 await Groups.AddToGroupAsync(Context.ConnectionId, id);
                 var idno = Guid.Parse(id);
-                var articleLock = await _dbContext.ArticleLocks.FirstOrDefaultAsync(a => a.ArticleId == idno);
+                var articleLock = await dbContext.ArticleLocks.FirstOrDefaultAsync(a => a.ArticleId == idno);
                 if (articleLock == null)
                 {
-                    var identityUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.UserName == Context.User.Identity.Name);
+                    var identityUser = await dbContext.Users.FirstOrDefaultAsync(u => u.UserName == Context.User.Identity.Name);
                     articleLock = new ArticleLock()
                     {
                         Id = Guid.NewGuid(),
@@ -269,8 +270,8 @@ namespace Cosmos.Cms.Hubs
                         LockSetDateTime = System.DateTimeOffset.UtcNow,
                         ConnectionId = Context.ConnectionId
                     };
-                    _dbContext.ArticleLocks.Add(articleLock);
-                    await _dbContext.SaveChangesAsync();
+                    dbContext.ArticleLocks.Add(articleLock);
+                    await dbContext.SaveChangesAsync();
                 }
 
                 await NotifyRoomOfLock(id, editorType);
@@ -289,7 +290,7 @@ namespace Cosmos.Cms.Hubs
             var connectionId = Context.ConnectionId;
             try
             {
-                var articleLocks = await _dbContext.ArticleLocks.Where(w => w.ConnectionId == connectionId).ToListAsync();
+                var articleLocks = await dbContext.ArticleLocks.Where(w => w.ConnectionId == connectionId).ToListAsync();
 
                 if (articleLocks.Any())
                 {
@@ -297,8 +298,8 @@ namespace Cosmos.Cms.Hubs
                     {
                         var id = item.ArticleId;
                         await Groups.RemoveFromGroupAsync(connectionId, item.ArticleId.ToString());
-                        _dbContext.ArticleLocks.RemoveRange(articleLocks);
-                        await _dbContext.SaveChangesAsync();
+                        dbContext.ArticleLocks.RemoveRange(articleLocks);
+                        await dbContext.SaveChangesAsync();
                         await NotifyRoomOfLock(id.ToString(), item.EditorType);
                     }
                 }

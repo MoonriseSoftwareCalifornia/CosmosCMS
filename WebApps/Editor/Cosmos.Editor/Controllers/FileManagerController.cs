@@ -73,10 +73,10 @@ namespace Cosmos.Cms.Controllers
             articleLogic,
             options)
         {
-            _options = options;
-            _logger = logger;
+            this.options = options;
+            this.logger = logger;
             _storageContext = storageContext;
-            _hostEnvironment = hostEnvironment;
+            this.hostEnvironment = hostEnvironment;
             this.userManager = userManager;
             this.articleLogic = articleLogic;
             this.dbContext = dbContext;
@@ -464,7 +464,7 @@ namespace Cosmos.Cms.Controllers
             catch (Exception e)
             {
                 // var t = e; // For debugging
-                _logger.LogError(e.Message, e);
+                logger.LogError(e.Message, e);
                 throw;
             }
 
@@ -487,7 +487,7 @@ namespace Cosmos.Cms.Controllers
 
             var directory = $"/pub/articles/{Id}/";
             // var extension = Path.GetExtension(file.FileName);c
-            var blobEndPoint = _options.Value.SiteSettings.BlobPublicUrl.TrimEnd('/');
+            var blobEndPoint = options.Value.SiteSettings.BlobPublicUrl.TrimEnd('/');
 
             var fileName = $"{Guid.NewGuid().ToString().ToLower()}.png";
 
@@ -517,7 +517,7 @@ namespace Cosmos.Cms.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError(e.Message, e);
+                logger.LogError(e.Message, e);
                 return Json(ReturnSimpleErrorMessage(e.Message));
             }
         }
@@ -761,7 +761,7 @@ namespace Cosmos.Cms.Controllers
             catch (Exception e)
             {
                 ModelState.AddModelError("file", e.Message);
-                _logger.LogError("Web page import failed.", e);
+                logger.LogError("Web page import failed.", e);
                 uploadResult.Errors = SerializeErrors(ModelState);
             }
 
@@ -870,10 +870,10 @@ namespace Cosmos.Cms.Controllers
 
         #region PRIVATE FIELDS AND METHODS
 
-        private readonly ILogger<FileManagerController> _logger;
+        private readonly ILogger<FileManagerController> logger;
         private readonly StorageContext _storageContext;
-        private readonly IWebHostEnvironment _hostEnvironment;
-        private readonly IOptions<CosmosConfig> _options;
+        private readonly IWebHostEnvironment hostEnvironment;
+        private readonly IOptions<CosmosConfig> options;
 
         #endregion
 
@@ -1144,7 +1144,7 @@ namespace Cosmos.Cms.Controllers
             {
                 var extension = Path.GetExtension(path.ToLower());
 
-                var filter = _options.Value.SiteSettings.AllowedFileTypes.Split(',');
+                var filter = options.Value.SiteSettings.AllowedFileTypes.Split(',');
                 var editorField = new EditorField
                 {
                     FieldId = "Content",
@@ -1218,7 +1218,7 @@ namespace Cosmos.Cms.Controllers
             }
             catch (Exception e)
             {
-                _logger.LogError(e.Message, e);
+                logger.LogError(e.Message, e);
                 throw;
             }
         }
@@ -1234,7 +1234,7 @@ namespace Cosmos.Cms.Controllers
         {
             var extension = Path.GetExtension(model.Path.ToLower());
 
-            var filter = _options.Value.SiteSettings.AllowedFileTypes.Split(',');
+            var filter = options.Value.SiteSettings.AllowedFileTypes.Split(',');
             var editorField = new EditorField
             {
                 FieldId = "Content",
@@ -1569,7 +1569,7 @@ namespace Cosmos.Cms.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message, ex);
+                logger.LogError(ex.Message, ex);
                 throw ex;
             }
         }

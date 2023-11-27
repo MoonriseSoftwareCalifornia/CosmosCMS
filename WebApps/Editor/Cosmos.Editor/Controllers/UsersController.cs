@@ -44,6 +44,7 @@ namespace Cosmos.Cms.Controllers
         private readonly IOptions<CosmosConfig> options;
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="UsersController"/> class.
         /// Constructor.
         /// </summary>
         /// <param name="logger"></param>

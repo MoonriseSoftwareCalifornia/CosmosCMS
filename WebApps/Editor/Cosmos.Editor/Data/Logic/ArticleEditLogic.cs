@@ -41,11 +41,12 @@ namespace Cosmos.Cms.Data.Logic
     /// </remarks>
     public class ArticleEditLogic : ArticleLogic
     {
-        private readonly ILogger<ArticleEditLogic> _logger;
-        private readonly AzureSubscription _azureSubscription;
-        private readonly FrontdoorConnection _adfConnection;
+        private readonly ILogger<ArticleEditLogic> logger;
+        private readonly AzureSubscription azureSubscription;
+        private readonly FrontdoorConnection adfConnection;
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="ArticleEditLogic"/> class.
         ///     Constructor.
         /// </summary>
         /// <param name="dbContext"></param>
@@ -64,9 +65,9 @@ namespace Cosmos.Cms.Data.Logic
             base(dbContext,
                 config, memoryCache, true)
         {
-            _logger = logger;
-            _azureSubscription = azureSubscription;
-            _adfConnection = adfConnection;
+            this.logger = logger;
+            this.azureSubscription = azureSubscription;
+            this.adfConnection = adfConnection;
         }
 
         /// <summary>
@@ -1223,7 +1224,7 @@ namespace Cosmos.Cms.Data.Logic
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError("CDN Error:", e);
+                    logger.LogError("CDN Error:", e);
                 }
             }
 
@@ -1235,16 +1236,16 @@ namespace Cosmos.Cms.Data.Logic
             purgeUrls = purgeUrls.Distinct().Select(s => s.Trim('/')).Select(s => s.Equals("root") ? "/" : "/" + s).ToList();
 
             // Check for Azure Frontdoor, if available use that.
-            if (_adfConnection.IsConfigured())
+            if (adfConnection.IsConfigured())
             {
-                var token = new ClientSecretCredential(_adfConnection.TenantId, _adfConnection.ClientId, _adfConnection.ClientSecret);
+                var token = new ClientSecretCredential(adfConnection.TenantId, adfConnection.ClientId, adfConnection.ClientSecret);
                 ArmClient client = new ArmClient(token);
 
-                var frontendEndpointResourceId = FrontDoorEndpointResource.CreateResourceIdentifier(_adfConnection.SubscriptionId, _adfConnection.ResourceGroupName, _adfConnection.FrontDoorName, _adfConnection.EndpointName);
+                var frontendEndpointResourceId = FrontDoorEndpointResource.CreateResourceIdentifier(adfConnection.SubscriptionId, adfConnection.ResourceGroupName, adfConnection.FrontDoorName, adfConnection.EndpointName);
                 var frontDoor = client.GetFrontDoorEndpointResource(frontendEndpointResourceId);
 
                 var purgeContent = new FrontDoorPurgeContent(purgeUrls);
-                var domains = _adfConnection.DnsNames.Split(',');
+                var domains = adfConnection.DnsNames.Split(',');
                 foreach (var domain in domains)
                 {
                     purgeContent.Domains.Add(domain);
@@ -1259,13 +1260,13 @@ namespace Cosmos.Cms.Data.Logic
                 // Check for CDN
                 var cdnSetting = await DbContext.Settings.FirstOrDefaultAsync(f => f.Name == Cosmos_Admin_CdnController.CDNSERVICENAME);
 
-                if (cdnSetting != null && _azureSubscription.Subscription != null)
+                if (cdnSetting != null && azureSubscription.Subscription != null)
                 {
                     try
                     {
                         var azureCdnEndpoint = JsonConvert.DeserializeObject<AzureCdnEndpoint>(cdnSetting.Value);
 
-                        SubscriptionResource subscription = _azureSubscription.Subscription;
+                        SubscriptionResource subscription = azureSubscription.Subscription;
 
                         var group = await subscription.GetResourceGroupAsync(azureCdnEndpoint.ResourceGroupName);
 
@@ -1319,7 +1320,7 @@ namespace Cosmos.Cms.Data.Logic
                     }
                     catch (Exception e)
                     {
-                        _logger.LogError($"Failed to refresh CDN for {string.Join(",", purgeUrls)} the following reason:", e);
+                        logger.LogError($"Failed to refresh CDN for {string.Join(",", purgeUrls)} the following reason:", e);
                     }
                 }
             }

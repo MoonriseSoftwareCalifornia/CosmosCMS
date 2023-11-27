@@ -20,10 +20,11 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account.Manage
     /// </summary>
     public class GenerateRecoveryCodesModel : PageModel
     {
-        private readonly ILogger<GenerateRecoveryCodesModel> _logger;
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly ILogger<GenerateRecoveryCodesModel> logger;
+        private readonly UserManager<IdentityUser> userManager;
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="GenerateRecoveryCodesModel"/> class.
         /// Conostructor.
         /// </summary>
         /// <param name="userManager"></param>
@@ -32,8 +33,8 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account.Manage
             UserManager<IdentityUser> userManager,
             ILogger<GenerateRecoveryCodesModel> logger)
         {
-            _userManager = userManager;
-            _logger = logger;
+            this.userManager = userManager;
+            this.logger = logger;
         }
 
         /// <summary>
@@ -55,16 +56,16 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account.Manage
         /// <exception cref="InvalidOperationException"></exception>
         public async Task<IActionResult> OnGetAsync()
         {
-            var user = await _userManager.GetUserAsync(User);
+            var user = await userManager.GetUserAsync(User);
             if (user == null)
             {
-                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+                return NotFound($"Unable to load user with ID '{userManager.GetUserId(User)}'.");
             }
 
-            var isTwoFactorEnabled = await _userManager.GetTwoFactorEnabledAsync(user);
+            var isTwoFactorEnabled = await userManager.GetTwoFactorEnabledAsync(user);
             if (!isTwoFactorEnabled)
             {
-                var userId = await _userManager.GetUserIdAsync(user);
+                var userId = await userManager.GetUserIdAsync(user);
                 throw new InvalidOperationException(
                     $"Cannot generate recovery codes for user with ID '{userId}' because they do not have 2FA enabled.");
             }
@@ -79,24 +80,24 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account.Manage
         /// <exception cref="InvalidOperationException"></exception>
         public async Task<IActionResult> OnPostAsync()
         {
-            var user = await _userManager.GetUserAsync(User);
+            var user = await userManager.GetUserAsync(User);
             if (user == null)
             {
-                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+                return NotFound($"Unable to load user with ID '{userManager.GetUserId(User)}'.");
             }
 
-            var isTwoFactorEnabled = await _userManager.GetTwoFactorEnabledAsync(user);
-            var userId = await _userManager.GetUserIdAsync(user);
+            var isTwoFactorEnabled = await userManager.GetTwoFactorEnabledAsync(user);
+            var userId = await userManager.GetUserIdAsync(user);
             if (!isTwoFactorEnabled)
             {
                 throw new InvalidOperationException(
                     $"Cannot generate recovery codes for user with ID '{userId}' as they do not have 2FA enabled.");
             }
 
-            var recoveryCodes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
+            var recoveryCodes = await userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
             RecoveryCodes = recoveryCodes.ToArray();
 
-            _logger.LogInformation("User with ID '{UserId}' has generated new 2FA recovery codes.", userId);
+            logger.LogInformation("User with ID '{UserId}' has generated new 2FA recovery codes.", userId);
             StatusMessage = "You have generated new recovery codes.";
             return RedirectToPage("./ShowRecoveryCodes");
         }

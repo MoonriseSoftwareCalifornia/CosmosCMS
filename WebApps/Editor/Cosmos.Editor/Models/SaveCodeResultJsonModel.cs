@@ -17,6 +17,7 @@ namespace Cosmos.Cms.Models
     public class SaveCodeResultJsonModel
     {
         /// <summary>
+        /// Initializes a new instance of the <see cref="SaveCodeResultJsonModel"/> class.
         ///     Constructor.
         /// </summary>
         public SaveCodeResultJsonModel()

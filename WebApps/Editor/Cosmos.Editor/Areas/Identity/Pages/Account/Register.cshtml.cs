@@ -32,14 +32,15 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     [AllowAnonymous]
     public class RegisterModel : PageModel
     {
-        private readonly IEmailSender _emailSender;
-        private readonly ILogger<RegisterModel> _logger;
-        private readonly IOptions<SiteSettings> _options;
-        private readonly SignInManager<IdentityUser> _signInManager;
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly IEmailSender emailSender;
+        private readonly ILogger<RegisterModel> logger;
+        private readonly IOptions<SiteSettings> options;
+        private readonly SignInManager<IdentityUser> signInManager;
+        private readonly UserManager<IdentityUser> userManager;
+        private readonly RoleManager<IdentityRole> roleManager;
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="RegisterModel"/> class.
         /// Constructor.
         /// </summary>
         /// <param name="userManager"></param>
@@ -56,12 +57,12 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
             IEmailSender emailSender,
             IOptions<SiteSettings> options)
         {
-            _userManager = userManager;
-            _roleManager = roleManager;
-            _signInManager = signInManager;
-            _logger = logger;
-            _emailSender = emailSender;
-            _options = options;
+            this.userManager = userManager;
+            this.roleManager = roleManager;
+            this.signInManager = signInManager;
+            this.logger = logger;
+            this.emailSender = emailSender;
+            this.options = options;
         }
 
         /// <summary>
@@ -88,9 +89,9 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         public async Task<IActionResult> OnGetAsync(string returnUrl = null)
         {
             ReturnUrl = returnUrl;
-            ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+            ExternalLogins = (await signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 
-            ViewData["ShowLogin"] = ((await _userManager.Users.CountAsync()) > 0);
+            ViewData["ShowLogin"] = ((await userManager.Users.CountAsync()) > 0);
 
             return Page();
         }
@@ -103,18 +104,18 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
             returnUrl = returnUrl ?? Url.Content("~/");
-            ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+            ExternalLogins = (await signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
             if (ModelState.IsValid)
             {
                 var user = new IdentityUser { UserName = Input.Email, Email = Input.Email };
-                var result = await _userManager.CreateAsync(user, Input.Password);
+                var result = await userManager.CreateAsync(user, Input.Password);
                 if (result.Succeeded)
                 {
-                    _logger.LogInformation("User created a new account with password.");
+                    logger.LogInformation("User created a new account with password.");
 
-                    var newAdministrator = await SetupNewAdministrator.Ensure_RolesAndAdmin_Exists(_roleManager, _userManager, user);
+                    var newAdministrator = await SetupNewAdministrator.Ensure_RolesAndAdmin_Exists(roleManager, userManager, user);
 
-                    var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                    var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
                     code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
                     var callbackUrl = Url.Page(
                         "/Account/ConfirmEmail",
@@ -125,16 +126,16 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                     // If the user is a new administrator, don't do these things
                     if (!newAdministrator)
                     {
-                        await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
+                        await emailSender.SendEmailAsync(Input.Email, "Confirm your email",
                             $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
 
-                        if (_userManager.Options.SignIn.RequireConfirmedAccount)
+                        if (userManager.Options.SignIn.RequireConfirmedAccount)
                         {
                             return RedirectToPage("RegisterConfirmation", new { email = Input.Email, returnUrl });
                         }
                     }
 
-                    await _signInManager.SignInAsync(user, false);
+                    await signInManager.SignInAsync(user, false);
 
                     return LocalRedirect(returnUrl);
                 }

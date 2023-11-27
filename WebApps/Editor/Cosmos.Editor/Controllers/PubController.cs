@@ -21,11 +21,12 @@ namespace Cosmos.Publisher.Controllers
     /// </summary>
     public class PubController : Controller
     {
-        private readonly IOptions<CosmosConfig> _options;
-        private readonly ApplicationDbContext _dbContext;
-        private readonly StorageContext _storageContext;
+        private readonly IOptions<CosmosConfig> options;
+        private readonly ApplicationDbContext dbContext;
+        private readonly StorageContext storageContext;
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="PubController"/> class.
         /// Constructor.
         /// </summary>
         /// <param name="options"></param>
@@ -33,9 +34,9 @@ namespace Cosmos.Publisher.Controllers
         /// <param name="storageContext"></param>
         public PubController(IOptions<CosmosConfig> options, ApplicationDbContext dbContext, StorageContext storageContext)
         {
-            _options = options;
-            _dbContext = dbContext;
-            _storageContext = storageContext;
+            this.options = options;
+            this.dbContext = dbContext;
+            this.storageContext = storageContext;
         }
 
         /// <summary>
@@ -44,7 +45,7 @@ namespace Cosmos.Publisher.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> Index()
         {
-            if (_options.Value.SiteSettings.CosmosRequiresAuthentication)
+            if (options.Value.SiteSettings.CosmosRequiresAuthentication)
             {
                 // If the user is not logged in, have them login first.
                 if (User.Identity == null || User.Identity?.IsAuthenticated == false)
@@ -63,7 +64,7 @@ namespace Cosmos.Publisher.Controllers
                     if (int.TryParse(id, out var articleNumber))
                     {
                         // Check for user authorization.
-                        if (!await CosmosUtilities.AuthUser(_dbContext, User, articleNumber))
+                        if (!await CosmosUtilities.AuthUser(dbContext, User, articleNumber))
                         {
                             return Unauthorized();
                         }
@@ -73,7 +74,7 @@ namespace Cosmos.Publisher.Controllers
                 Response.Headers.Expires = DateTimeOffset.UtcNow.ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
             }
 
-            var client = _storageContext.GetAppendBlobClient(HttpContext.Request.Path);
+            var client = storageContext.GetAppendBlobClient(HttpContext.Request.Path);
             var properties = await client.GetPropertiesAsync();
 
             return File(await client.OpenReadAsync(), properties.Value.ContentType);

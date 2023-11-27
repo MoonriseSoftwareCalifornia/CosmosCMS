@@ -106,8 +106,9 @@ function cosmos_cms_build_toc(pagePath, navElementId, anchorClassName, activeCss
                 
                 data.Items.forEach(function (item) {
 
-                    let title = item.Title.split("/")[1];
+                    let title = item.Title.split("/").at(-1);
                     let anchor = document.createElement('a');
+                    let li = document.createElement('li');
 
                     anchor.classList.add(cosmosAnchorItemClass);
 
@@ -118,7 +119,6 @@ function cosmos_cms_build_toc(pagePath, navElementId, anchorClassName, activeCss
                     anchor.href = "/" + item.UrlPath;
                     anchor.appendChild(document.createTextNode(title));
 
-                    var li = document.createElement(listElement);
                     li.appendChild(anchor);
 
                     ul.appendChild(li);

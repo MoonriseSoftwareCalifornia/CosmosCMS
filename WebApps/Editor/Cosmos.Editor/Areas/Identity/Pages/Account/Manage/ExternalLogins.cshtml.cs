@@ -21,10 +21,11 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account.Manage
     /// </summary>
     public class ExternalLoginsModel : PageModel
     {
-        private readonly SignInManager<IdentityUser> _signInManager;
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly SignInManager<IdentityUser> signInManager;
+        private readonly UserManager<IdentityUser> userManager;
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="ExternalLoginsModel"/> class.
         /// Constructor.
         /// </summary>
         /// <param name="userManager"></param>
@@ -33,8 +34,8 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account.Manage
             UserManager<IdentityUser> userManager,
             SignInManager<IdentityUser> signInManager)
         {
-            _userManager = userManager;
-            _signInManager = signInManager;
+            this.userManager = userManager;
+            this.signInManager = signInManager;
         }
 
         /// <summary>
@@ -64,14 +65,14 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account.Manage
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> OnGetAsync()
         {
-            var user = await _userManager.GetUserAsync(User);
+            var user = await userManager.GetUserAsync(User);
             if (user == null)
             {
                 return NotFound("Unable to load user with ID 'user.Id'.");
             }
 
-            CurrentLogins = await _userManager.GetLoginsAsync(user);
-            OtherLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync())
+            CurrentLogins = await userManager.GetLoginsAsync(user);
+            OtherLogins = (await signInManager.GetExternalAuthenticationSchemesAsync())
                 .Where(auth => CurrentLogins.All(ul => auth.Name != ul.LoginProvider))
                 .ToList();
             ShowRemoveButton = user.PasswordHash != null || CurrentLogins.Count > 1;
@@ -86,20 +87,20 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account.Manage
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> OnPostRemoveLoginAsync(string loginProvider, string providerKey)
         {
-            var user = await _userManager.GetUserAsync(User);
+            var user = await userManager.GetUserAsync(User);
             if (user == null)
             {
                 return NotFound("Unable to load user with ID 'user.Id'.");
             }
 
-            var result = await _userManager.RemoveLoginAsync(user, loginProvider, providerKey);
+            var result = await userManager.RemoveLoginAsync(user, loginProvider, providerKey);
             if (!result.Succeeded)
             {
                 StatusMessage = "The external login was not removed.";
                 return RedirectToPage();
             }
 
-            await _signInManager.RefreshSignInAsync(user);
+            await signInManager.RefreshSignInAsync(user);
             StatusMessage = "The external login was removed.";
             return RedirectToPage();
         }
@@ -117,8 +118,8 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account.Manage
             // Request a redirect to the external login provider to link a login for the current user
             var redirectUrl = Url.Page("./ExternalLogins", "LinkLoginCallback");
             var properties =
-                _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl,
-                    _userManager.GetUserId(User));
+                signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl,
+                    userManager.GetUserId(User));
             return new ChallengeResult(provider, properties);
         }
 
@@ -129,20 +130,20 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account.Manage
         /// <exception cref="InvalidOperationException"></exception>
         public async Task<IActionResult> OnGetLinkLoginCallbackAsync()
         {
-            var user = await _userManager.GetUserAsync(User);
+            var user = await userManager.GetUserAsync(User);
             if (user == null)
             {
                 return NotFound("Unable to load user with ID 'user.Id'.");
             }
 
-            var info = await _signInManager.GetExternalLoginInfoAsync(user.Id);
+            var info = await signInManager.GetExternalLoginInfoAsync(user.Id);
             if (info == null)
             {
                 throw new InvalidOperationException(
                     $"Unexpected error occurred loading external login info for user with ID '{user.Id}'.");
             }
 
-            var result = await _userManager.AddLoginAsync(user, info);
+            var result = await userManager.AddLoginAsync(user, info);
             if (!result.Succeeded)
             {
                 StatusMessage =

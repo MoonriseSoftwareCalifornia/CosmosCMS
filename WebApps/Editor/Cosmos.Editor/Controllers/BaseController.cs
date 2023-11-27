@@ -32,10 +32,10 @@ namespace Cosmos.Cms.Controllers
     /// </summary>
     public abstract class BaseController : Controller
     {
-        private readonly ArticleEditLogic _articleEditLogic;
-        private readonly UserManager<IdentityUser> _baseUserManager;
-        private readonly ApplicationDbContext _dbContext;
-        private readonly IOptions<CosmosConfig> _options;
+        private readonly ArticleEditLogic articleEditLogic;
+        private readonly UserManager<IdentityUser> baseUserManager;
+        private readonly ApplicationDbContext dbContext;
+        private readonly IOptions<CosmosConfig> options;
 
         /// <summary>
         /// Gets the user ID of the currently logged in user.
@@ -44,7 +44,7 @@ namespace Cosmos.Cms.Controllers
         protected async Task<string> GetUserId()
         {
             // Get the user's ID for logging.
-            var user = await _baseUserManager.GetUserAsync(User);
+            var user = await baseUserManager.GetUserAsync(User);
             return user.Id;
         }
 
@@ -55,11 +55,12 @@ namespace Cosmos.Cms.Controllers
         protected async Task<string> GetUserEmail()
         {
             // Get the user's ID for logging.
-            var user = await _baseUserManager.GetUserAsync(User);
+            var user = await baseUserManager.GetUserAsync(User);
             return user.Email;
         }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="BaseController"/> class.
         ///     Constructor.
         /// </summary>
         /// <param name="dbContext"></param>
@@ -71,10 +72,10 @@ namespace Cosmos.Cms.Controllers
             ArticleEditLogic articleLogic,
             IOptions<CosmosConfig> options)
         {
-            _dbContext = dbContext;
-            _articleEditLogic = articleLogic;
-            _baseUserManager = userManager;
-            _options = options;
+            this.dbContext = dbContext;
+            articleEditLogic = articleLogic;
+            baseUserManager = userManager;
+            this.options = options;
         }
 
         /// <summary>
@@ -110,7 +111,7 @@ namespace Cosmos.Cms.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         internal async Task<List<SelectListItem>> BaseGetLayoutListItems()
         {
-            var layouts = await _dbContext.Layouts.Select(s => new SelectListItem
+            var layouts = await dbContext.Layouts.Select(s => new SelectListItem
             {
                 Value = s.Id.ToString(),
                 Text = s.LayoutName
@@ -122,10 +123,10 @@ namespace Cosmos.Cms.Controllers
 
             var layoutViewModel = new LayoutViewModel();
 
-            _dbContext.Layouts.Add(layoutViewModel.GetLayout());
-            await _dbContext.SaveChangesAsync();
+            dbContext.Layouts.Add(layoutViewModel.GetLayout());
+            await dbContext.SaveChangesAsync();
 
-            return await _dbContext.Layouts.Select(s => new SelectListItem
+            return await dbContext.Layouts.Select(s => new SelectListItem
             {
                 Value = s.Id.ToString(),
                 Text = s.LayoutName

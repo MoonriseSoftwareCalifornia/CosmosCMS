@@ -20,18 +20,19 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     [AllowAnonymous]
     public class LogoutModel : PageModel
     {
-        private readonly ILogger<LogoutModel> _logger;
-        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly ILogger<LogoutModel> logger;
+        private readonly SignInManager<IdentityUser> signInManager;
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="LogoutModel"/> class.
         /// Constructor.
         /// </summary>
         /// <param name="signInManager"></param>
         /// <param name="logger"></param>
         public LogoutModel(SignInManager<IdentityUser> signInManager, ILogger<LogoutModel> logger)
         {
-            _signInManager = signInManager;
-            _logger = logger;
+            this.signInManager = signInManager;
+            this.logger = logger;
         }
 
         /// <summary>
@@ -39,8 +40,8 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         /// </summary>
         public async Task<IActionResult> OnGet()
         {
-            await _signInManager.SignOutAsync();
-            _logger.LogInformation("User logged out.");
+            await signInManager.SignOutAsync();
+            logger.LogInformation("User logged out.");
             return RedirectToPage();
         }
 
@@ -51,8 +52,8 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> OnPost(string returnUrl = null)
         {
-            await _signInManager.SignOutAsync();
-            _logger.LogInformation("User logged out.");
+            await signInManager.SignOutAsync();
+            logger.LogInformation("User logged out.");
             if (returnUrl != null)
             {
                 return LocalRedirect(returnUrl);

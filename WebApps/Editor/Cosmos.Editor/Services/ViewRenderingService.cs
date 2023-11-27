@@ -46,11 +46,12 @@ namespace Cosmos.Cms.Services
     /// </remarks>
     public class ViewRenderService : IViewRenderService
     {
-        private readonly IRazorViewEngine _razorViewEngine;
+        private readonly IRazorViewEngine razorViewEngine;
         private readonly ITempDataProvider _tempDataProvider;
         private readonly IServiceProvider _serviceProvider;
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="ViewRenderService"/> class.
         /// Constructor.
         /// </summary>
         /// <param name="razorViewEngine"></param>
@@ -60,7 +61,7 @@ namespace Cosmos.Cms.Services
             ITempDataProvider tempDataProvider,
             IServiceProvider serviceProvider)
         {
-            _razorViewEngine = razorViewEngine;
+            this.razorViewEngine = razorViewEngine;
             _tempDataProvider = tempDataProvider;
             _serviceProvider = serviceProvider;
         }
@@ -79,7 +80,7 @@ namespace Cosmos.Cms.Services
 
             using (var sw = new StringWriter())
             {
-                var viewResult = _razorViewEngine.GetView(null, viewPath, false);
+                var viewResult = razorViewEngine.GetView(null, viewPath, false);
 
                 if (viewResult.View == null)
                 {

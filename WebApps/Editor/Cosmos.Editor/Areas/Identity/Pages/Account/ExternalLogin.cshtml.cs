@@ -30,14 +30,15 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     [AllowAnonymous]
     public class ExternalLoginModel : PageModel
     {
-        private readonly IEmailSender _emailSender;
-        private readonly ILogger<ExternalLoginModel> _logger;
-        private readonly SignInManager<IdentityUser> _signInManager;
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly IOptions<SiteSettings> _options;
+        private readonly IEmailSender emailSender;
+        private readonly ILogger<ExternalLoginModel> logger;
+        private readonly SignInManager<IdentityUser> signInManager;
+        private readonly UserManager<IdentityUser> userManager;
+        private readonly RoleManager<IdentityRole> roleManager;
+        private readonly IOptions<SiteSettings> options;
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="ExternalLoginModel"/> class.
         /// Constructor.
         /// </summary>
         /// <param name="signInManager"></param>
@@ -54,12 +55,12 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
             IEmailSender emailSender,
             IOptions<SiteSettings> options)
         {
-            _signInManager = signInManager;
-            _userManager = userManager;
-            _roleManager = roleManager;
-            _logger = logger;
-            _emailSender = emailSender;
-            _options = options;
+            this.signInManager = signInManager;
+            this.userManager = userManager;
+            this.roleManager = roleManager;
+            this.logger = logger;
+            this.emailSender = emailSender;
+            this.options = options;
         }
 
         /// <summary>
@@ -103,7 +104,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         {
             // Request a redirect to the external login provider.
             var redirectUrl = Url.Page("./ExternalLogin", "Callback", new { returnUrl });
-            var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
+            var properties = signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
 
             // need to modify this to ensure return URL is https
             // return new ChallengeResult(provider, properties);
@@ -134,7 +135,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                 return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
             }
 
-            var info = await _signInManager.GetExternalLoginInfoAsync();
+            var info = await signInManager.GetExternalLoginInfoAsync();
             if (info == null)
             {
                 ErrorMessage = "Error loading external login information.";
@@ -143,10 +144,10 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
 
             // Sign in the user with this external login provider if the user already has a login.
             var result =
-                await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, false, true);
+                await signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, false, true);
             if (result.Succeeded)
             {
-                _logger.LogInformation("{Name} logged in with {LoginProvider} provider.", info.Principal.Identity.Name,
+                logger.LogInformation("{Name} logged in with {LoginProvider} provider.", info.Principal.Identity.Name,
                     info.LoginProvider);
                 return LocalRedirect(returnUrl);
             }
@@ -166,11 +167,11 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                     Email = info.Principal.FindFirstValue(ClaimTypes.Email)
                 };
 
-                var user = await _userManager.FindByEmailAsync(Input.Email);
+                var user = await userManager.FindByEmailAsync(Input.Email);
 
-                var newAdministrator = await SetupNewAdministrator.Ensure_RolesAndAdmin_Exists(_roleManager, _userManager, user);
+                var newAdministrator = await SetupNewAdministrator.Ensure_RolesAndAdmin_Exists(roleManager, userManager, user);
 
-                if (user != null && await _userManager.IsEmailConfirmedAsync(user) == false)
+                if (user != null && await userManager.IsEmailConfirmedAsync(user) == false)
                 {
                     ViewData["ShowResendConfirmEmail"] = true;
                 }
@@ -188,7 +189,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         {
             returnUrl = returnUrl ?? Url.Content("~/");
             // Get the information about the user from the external login provider
-            var info = await _signInManager.GetExternalLoginInfoAsync();
+            var info = await signInManager.GetExternalLoginInfoAsync();
             if (info == null)
             {
                 ErrorMessage = "Error loading external login information during confirmation.";
@@ -199,18 +200,18 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
             {
                 var user = new IdentityUser { UserName = Input.Email, Email = Input.Email };
 
-                var result = await _userManager.CreateAsync(user);
+                var result = await userManager.CreateAsync(user);
                 if (result.Succeeded)
                 {
-                    result = await _userManager.AddLoginAsync(user, info);
+                    result = await userManager.AddLoginAsync(user, info);
                     if (result.Succeeded)
                     {
-                        _logger.LogInformation("User created an account using {Name} provider.", info.LoginProvider);
+                        logger.LogInformation("User created an account using {Name} provider.", info.LoginProvider);
 
-                        var newAdministrator = await SetupNewAdministrator.Ensure_RolesAndAdmin_Exists(_roleManager, _userManager, user);
+                        var newAdministrator = await SetupNewAdministrator.Ensure_RolesAndAdmin_Exists(roleManager, userManager, user);
 
-                        var userId = await _userManager.GetUserIdAsync(user);
-                        var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                        var userId = await userManager.GetUserIdAsync(user);
+                        var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
                         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
                         var callbackUrl = Url.Page(
                             "/Account/ConfirmEmail",
@@ -221,17 +222,17 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                         // If the user is a new administrator, don't do these things
                         if (!newAdministrator)
                         {
-                            await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
+                            await emailSender.SendEmailAsync(Input.Email, "Confirm your email",
                             $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
 
                             // If account confirmation is required, we need to show the link if we don't have a real email sender
-                            if (_userManager.Options.SignIn.RequireConfirmedAccount)
+                            if (userManager.Options.SignIn.RequireConfirmedAccount)
                             {
                                 return RedirectToPage("./RegisterConfirmation", new { Input.Email });
                             }
                         }
 
-                        await _signInManager.SignInAsync(user, false, info.LoginProvider);
+                        await signInManager.SignInAsync(user, false, info.LoginProvider);
 
                         return LocalRedirect(returnUrl);
                     }
@@ -239,7 +240,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
 
                 if (result.Errors.Any(a => a.Code == "DuplicateUserName"))
                 {
-                    if (await _userManager.IsEmailConfirmedAsync(user) == false)
+                    if (await userManager.IsEmailConfirmedAsync(user) == false)
                     {
                         ViewData["ShowResendConfirmEmail"] = true;
                     }

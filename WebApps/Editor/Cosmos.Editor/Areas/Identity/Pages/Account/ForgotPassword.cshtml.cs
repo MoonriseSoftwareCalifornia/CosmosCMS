@@ -26,11 +26,12 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     [AllowAnonymous]
     public class ForgotPasswordModel : PageModel
     {
-        private readonly IEmailSender _emailSender;
-        private readonly IOptions<SiteSettings> _options;
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly IEmailSender emailSender;
+        private readonly IOptions<SiteSettings> options;
+        private readonly UserManager<IdentityUser> userManager;
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="ForgotPasswordModel"/> class.
         /// Constructor.
         /// </summary>
         /// <param name="userManager"></param>
@@ -39,9 +40,9 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         public ForgotPasswordModel(UserManager<IdentityUser> userManager, IEmailSender emailSender,
             IOptions<SiteSettings> options)
         {
-            _userManager = userManager;
-            _emailSender = emailSender;
-            _options = options;
+            this.userManager = userManager;
+            this.emailSender = emailSender;
+            this.options = options;
         }
 
         /// <summary>
@@ -68,8 +69,8 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         {
             if (ModelState.IsValid)
             {
-                var user = await _userManager.FindByEmailAsync(Input.Email);
-                if (user == null || !await _userManager.IsEmailConfirmedAsync(user))
+                var user = await userManager.FindByEmailAsync(Input.Email);
+                if (user == null || !await userManager.IsEmailConfirmedAsync(user))
                 {
                     // Don't reveal that the user does not exist or is not confirmed
                     return RedirectToPage("./ForgotPasswordConfirmation");
@@ -77,7 +78,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
 
                 // For more information on how to enable account confirmation and password reset please 
                 // visit https://go.microsoft.com/fwlink/?LinkID=532713
-                var code = await _userManager.GeneratePasswordResetTokenAsync(user);
+                var code = await userManager.GeneratePasswordResetTokenAsync(user);
                 code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
                 var callbackUrl = Url.Page(
                     "/Account/ResetPassword",
@@ -85,7 +86,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                     new { area = "Identity", code },
                     Request.Scheme);
 
-                await _emailSender.SendEmailAsync(
+                await emailSender.SendEmailAsync(
                     Input.Email,
                     "Reset Password",
                     $"Please reset your password by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");

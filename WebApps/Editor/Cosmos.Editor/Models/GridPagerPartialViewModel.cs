@@ -15,6 +15,7 @@ namespace Cosmos.Cms.Models
     public class GridPagerPartialViewModel
     {
         /// <summary>
+        /// Initializes a new instance of the <see cref="GridPagerPartialViewModel"/> class.
         /// Constructor.
         /// </summary>
         /// <param name="pageNumber"></param>
