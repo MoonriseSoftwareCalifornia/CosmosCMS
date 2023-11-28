@@ -34,7 +34,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     {
         private readonly IEmailSender emailSender;
         private readonly ILogger<RegisterModel> logger;
-        private readonly IOptions<SiteSettings> options;
         private readonly SignInManager<IdentityUser> signInManager;
         private readonly UserManager<IdentityUser> userManager;
         private readonly RoleManager<IdentityRole> roleManager;
@@ -48,21 +47,18 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         /// <param name="signInManager"></param>
         /// <param name="logger"></param>
         /// <param name="emailSender"></param>
-        /// <param name="options"></param>
         public RegisterModel(
             UserManager<IdentityUser> userManager,
             RoleManager<IdentityRole> roleManager,
             SignInManager<IdentityUser> signInManager,
             ILogger<RegisterModel> logger,
-            IEmailSender emailSender,
-            IOptions<SiteSettings> options)
+            IEmailSender emailSender)
         {
             this.userManager = userManager;
             this.roleManager = roleManager;
             this.signInManager = signInManager;
             this.logger = logger;
             this.emailSender = emailSender;
-            this.options = options;
         }
 
         /// <summary>
@@ -126,6 +122,20 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                     // If the user is a new administrator, don't do these things
                     if (!newAdministrator)
                     {
+
+                        var admins = await userManager.GetUsersInRoleAsync("Administrators");
+                        var editors = await userManager.GetUsersInRoleAsync("Administrators");
+
+                        foreach (var admin in admins)
+                        {
+                            await emailSender.SendEmailAsync(admin.Email, $"New account request for: {user.Email} requested an account.", $"{user.Email} requested a user account on publisher website: {Request.Host}.");
+                        }
+
+                        foreach (var editor in editors)
+                        {
+                            await emailSender.SendEmailAsync(editor.Email, $"New account request for: {user.Email} requested an account.", $"{user.Email} requested a user account on publisher website: {Request.Host}.");
+                        }
+
                         await emailSender.SendEmailAsync(Input.Email, "Confirm your email",
                             $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
 

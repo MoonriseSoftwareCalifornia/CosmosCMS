@@ -83,7 +83,7 @@ function cosmos_cms_build_toc_default(navElementId, anchorClassName, activeCssCl
  * @param {string} anchorClassName Anchor <A> class name (optional).
  * @param {string} activeCssClass The CSS class for an "active" or "selected" element (optional).
  */
-function cosmos_cms_build_toc(pagePath, navElementId, anchorClassName, activeCssClass) {
+function cosmos_cms_build_toc(pagePath, navElementId, liClassName, anchorClassName, activeCssClass) {
 
     let ul = document.getElementById(navElementId);
 
@@ -110,10 +110,14 @@ function cosmos_cms_build_toc(pagePath, navElementId, anchorClassName, activeCss
                     let anchor = document.createElement('a');
                     let li = document.createElement('li');
 
+                    if (typeof (liClassName) !== "undefined" && liClassName !== null && liClassName !== "") {
+                        li.className = liClassName;
+                    }
+
                     anchor.classList.add(cosmosAnchorItemClass);
 
                     if (typeof (anchorClassName) !== "undefined" && anchorClassName !== null && anchorClassName !== "") {
-                        anchor.classList.add(anchorClassName);
+                        anchor.className = anchorClassName;
                     }
 
                     anchor.href = "/" + item.UrlPath;

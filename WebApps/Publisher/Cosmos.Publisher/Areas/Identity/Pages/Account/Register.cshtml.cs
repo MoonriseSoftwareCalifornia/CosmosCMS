@@ -7,18 +7,19 @@
 
 namespace Cosmos.Cms.Areas.Identity.Pages.Account
 {
+    using Microsoft.AspNetCore.Authentication;
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Identity;
+    using Microsoft.AspNetCore.Identity.UI.Services;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Mvc.RazorPages;
+    using Microsoft.AspNetCore.WebUtilities;
+    using Microsoft.Extensions.Logging;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Authentication;
-    using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Identity;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.AspNetCore.Mvc.RazorPages;
-    using Microsoft.AspNetCore.WebUtilities;
-    using Microsoft.Extensions.Logging;
 
     /// <summary>
     /// Register page model.
@@ -27,6 +28,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     public class RegisterModel : PageModel
     {
         private readonly ILogger<RegisterModel> logger;
+        private readonly IEmailSender emailSender;
         private readonly SignInManager<IdentityUser> signInManager;
         private readonly UserManager<IdentityUser> userManager;
 
@@ -36,14 +38,17 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         /// <param name="userManager">User manager.</param>
         /// <param name="signInManager">Sign in manager.</param>
         /// <param name="logger">Logger.</param>
+        /// <param name="emailSender">Email sender to alert admins and editors of new account requests.</param>
         public RegisterModel(
             UserManager<IdentityUser> userManager,
             SignInManager<IdentityUser> signInManager,
-            ILogger<RegisterModel> logger)
+            ILogger<RegisterModel> logger,
+            IEmailSender emailSender)
         {
             this.userManager = userManager;
             this.signInManager = signInManager;
             this.logger = logger;
+            this.emailSender = emailSender;
         }
 
         /// <summary>
@@ -92,15 +97,29 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                 {
                     logger.LogInformation("User created a new account with password.");
 
+                    var admins = await userManager.GetUsersInRoleAsync("Administrators");
+                    var editors = await userManager.GetUsersInRoleAsync("Administrators");
+
+                    foreach (var admin in admins)
+                    {
+                        await emailSender.SendEmailAsync(admin.Email, $"New account request for: {user.Email} requested an account.", $"{user.Email} requested a user account on publisher website: {Request.Host}.");
+                    }
+
+                    foreach (var editor in editors)
+                    {
+                        await emailSender.SendEmailAsync(editor.Email, $"New account request for: {user.Email} requested an account.", $"{user.Email} requested a user account on publisher website: {Request.Host}.");
+                    }
+
                     var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
                     code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+
                     var callbackUrl = Url.Page(
                         "/Account/ConfirmEmail",
                         null,
                         new { area = "Identity", userId = user.Id, code, returnUrl },
                         Request.Scheme);
 
-                    await signInManager.SignInAsync(user, false);
+                    // await signInManager.SignInAsync(user, false);
 
                     return LocalRedirect(returnUrl);
                 }
