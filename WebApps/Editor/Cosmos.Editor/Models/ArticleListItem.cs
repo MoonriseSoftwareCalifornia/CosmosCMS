@@ -8,6 +8,7 @@
 namespace Cosmos.Cms.Models
 {
     using System;
+    using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
 
     /// <summary>
@@ -63,5 +64,11 @@ namespace Cosmos.Cms.Models
         /// </summary>
         [Display(Name = "Url")]
         public string UrlPath { get; set; }
+
+        /// <summary>
+        /// Gets or sets a list of who has view permissions on the public website.
+        /// </summary>
+        [Display(Name = "Permissions")]
+        public List<string> Permissions { get; set; } = new List<string>();
     }
 }

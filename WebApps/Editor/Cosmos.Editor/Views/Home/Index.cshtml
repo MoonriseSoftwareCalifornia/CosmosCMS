@@ -27,6 +27,8 @@
     <meta name="cwps-meta-path-updated" content="@Model.Updated" />
     <meta name="cwps-meta-path-title" content="@Model.Title" />
     <meta name="cwps-meta-author-info" content="@Model.AuthorInfo" />
+    <meta name="cwps-meta-user-is-authenticated" content="@User.Identity.IsAuthenticated.ToString().ToLower()" />
+
     @Html.Raw(Model.Layout.Head)
     @*
     Page specific header

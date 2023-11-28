@@ -205,10 +205,13 @@ namespace Cosmos.Cms.Controllers
                     }
                 }
 
-                if (options.Value.SiteSettings.AllowSetup && options.Value.SiteSettings.CosmosRequiresAuthentication == false)
+                if (options.Value.SiteSettings.AllowSetup)
                 {
                     // Enable static website for Azure BLOB storage
-                    await storageContext.EnableAzureStaticWebsite();
+                    if (options.Value.SiteSettings.CosmosRequiresAuthentication == false)
+                    {
+                        await storageContext.EnableAzureStaticWebsite();
+                    }
                 }
 
                 // If we do not yet have a layout, go to a page where we can select one.

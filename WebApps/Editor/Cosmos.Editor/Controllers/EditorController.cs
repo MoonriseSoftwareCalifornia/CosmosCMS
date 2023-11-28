@@ -139,7 +139,16 @@ namespace Cosmos.Cms.Controllers
             ViewData["pageNo"] = pageNo;
             ViewData["pageSize"] = pageSize;
 
-            var query = dbContext.ArticleCatalog.AsQueryable();
+            var query = dbContext.ArticleCatalog.Select(s => new
+            {
+                s.ArticleNumber,
+                s.Title,
+                s.UrlPath,
+                s.Published,
+                s.Status,
+                s.Updated,
+                s.ArticlePermissions
+            }).AsQueryable();
 
             ViewData["RowCount"] = await query.CountAsync();
 
@@ -209,20 +218,45 @@ namespace Cosmos.Cms.Controllers
                 }
             }
 
-            var model = query.Select(s => new ArticleListItem()
+            var users = await dbContext.Users.Select(s => new { s.Id, s.Email }).ToListAsync();
+            var roles = await dbContext.Roles.Select(s => new { s.Id, s.Name }).ToListAsync();
+
+            var data = await query.Skip(pageNo * pageSize).Take(pageSize).AsNoTracking().ToListAsync();
+
+            var model = new List<ArticleListItem>();
+
+            foreach (var datum in data)
             {
-                ArticleNumber = s.ArticleNumber,
-                Title = s.Title,
-                IsDefault = s.UrlPath == "root",
-                LastPublished = s.Published,
-                UrlPath = s.UrlPath,
-                Status = s.Status,
-                Updated = s.Updated
-            }).Skip(pageNo * pageSize).Take(pageSize);
+                var item = new ArticleListItem()
+                {
+                    ArticleNumber = datum.ArticleNumber,
+                    IsDefault = datum.UrlPath.Equals("root", StringComparison.CurrentCultureIgnoreCase),
+                    UrlPath = datum.UrlPath,
+                    LastPublished = datum.Published,
+                    Status = datum.Status,
+                    Updated = datum.Updated,
+                    Title = datum.Title
+                };
 
-            var data = await model.ToListAsync();
+                if (datum.ArticlePermissions != null && datum.ArticlePermissions.Count > 0 )
+                {
+                    var userIds = datum.ArticlePermissions.Where(w => w.IsRoleObject == false).Select(s => s.IdentityObjectId).ToList();
+                    if (userIds.Any())
+                    {
+                        item.Permissions.AddRange(users.Where(s => userIds.Contains(s.Id)).Select(s => s.Email).ToArray());
+                    }
 
-            return View(data);
+                    var roleds = datum.ArticlePermissions.Where(w => w.IsRoleObject == true).Select(s => s.IdentityObjectId).ToList();
+                    if (roleds.Any())
+                    {
+                        item.Permissions.AddRange(roles.Where(s => roleds.Contains(s.Id)).Select(s => s.Name).ToArray());
+                    }
+                }
+
+                model.Add(item);
+            }
+
+            return View(model);
         }
 
         ///<summary>

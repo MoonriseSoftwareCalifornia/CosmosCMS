@@ -1,4 +1,7 @@
+@using Cosmos.Cms.Common.Services.Configurations;
 @using Cosmos.Cms.Services
+@using Microsoft.Extensions.Options;
+@inject IOptions<CosmosConfig> options
 @model List<ArticleListItem>
 @{
     ViewData["Title"] = "Web Page Inventory";
@@ -80,7 +83,6 @@
                                 <th scope="col">Last Updated</th>
                                 <th scope="col"></th>
                                 <th scope="col"></th>
-                                <th scope="col"></th>
                                 <th scope="col">Trash</th>
                             </tr>
                         </thead>
@@ -118,6 +120,20 @@
                                                 <span class="badge badge-secondary">- DRAFT -</span>
                                             </small>
                                         }
+                                        @if (options.Value.SiteSettings.CosmosRequiresAuthentication)
+                                        {
+                                            <small class="d-block">
+                                                @if (row.Permissions.Any())
+                                                {
+                                                    <a href='/Editor/Permissions/@row.ArticleNumber' title='Set access permissions for users and roles.' id="btnArticleAccess" class='btn btn-sm btn-success'><i class="fa-solid fa-users"></i></a>
+                                                    <span>Permissions: @string.Join(", ", row.Permissions)</span>
+                                                }
+                                                else
+                                                {
+                                                    <a href='/Editor/Permissions/@row.ArticleNumber' title='Set access permissions for users and roles.' id="btnArticleAccess" class='btn btn-sm btn-danger'><i class="fa-solid fa-users"></i></a>                                                  
+                                                }
+                                            </small>
+                                        }
                                     </td>
                                     <td title="Click to select article '@row.Title.'" onclick="openArticleVersions(@row.ArticleNumber)">
                                         <div class='toLocalTimeZone'>@row.Updated</div>
@@ -126,12 +142,6 @@
                                         @if (row.LastPublished.HasValue && canEdit && row.IsDefault == false)
                                         {
                                             <button onclick="unpublish(@row.ArticleNumber)" title="Unpublishes a this item, and makes it no longer accessible except for editing." class="btn btn-sm btn-secondary">Unpublish</button>
-                                        }
-                                    </td>
-                                    <td>
-                                        @if (canEdit)
-                                        {
-                                            <a href='/Editor/Permissions/@row.ArticleNumber' title='Set access permissions for users and roles.' id="btnArticleAccess" class='btn btn-sm btn-secondary'><i class="fa-solid fa-users"></i></a>
                                         }
                                     </td>
                                     <td>

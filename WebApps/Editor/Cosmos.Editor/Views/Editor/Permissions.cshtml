@@ -67,7 +67,7 @@
                 }
             </div>
             <div class="col-md-6 d-flex flex-row-reverse mb-3">
-                <a id="btnGoPageList" title="Return to page list" class="btn btn-sm btn-secondary" href="@Url.Action("Index")">Page list <i class="fa-solid fa-circle-arrow-right"></i></a>
+                <a id="btnGoPageList" title="Return to page list" class="btn btn-sm btn-secondary">Go back <i class="fa-solid fa-circle-arrow-right"></i></a>
                 <a id="btnGoVersions" title="Return to page list" class="btn btn-sm btn-secondary" href="@Url.Action("Versions", "Editor", new { Id = articleNumber })">Version list <i class="fa-solid fa-circle-arrow-right"></i></a>
             </div>
         </div>
@@ -199,7 +199,12 @@
         if (typeof (parent.hasPermissionsSet) !== "undefined") {
             $("#btnGoPageList").hide();
             $("#btnGoVersions").hide();
+        } else {
+            $("#btnGoPageList").click(function () {
+                history.back();
+            });
         }
+
 
         $(".row-click-ckbox").click(function (e) {
             if (e.target.type != 'checkbox' && e.target.tagName != 'A') {
