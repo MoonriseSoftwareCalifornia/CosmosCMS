@@ -91,13 +91,22 @@ namespace Cosmos.Cms.Publisher.Controllers
 
                         return Redirect("~/Identity/Account/Login?returnUrl=" + HttpUtility.UrlEncode(Request.Path));
                     }
+
+                    Response.Headers.Expires = DateTimeOffset.UtcNow.AddMinutes(-30).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
+                    Response.Headers.ETag = Guid.NewGuid().ToString();
+                    Response.Headers.LastModified = DateTimeOffset.UtcNow.AddMinutes(-30).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
+                    Response.Headers.CacheControl = "no-store,no-cache";
+                }
+                else 
+                {
+
+                    Response.Headers.Expires = article.Expires.HasValue ?
+                        article.Expires.Value.ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'") :
+                        DateTimeOffset.UtcNow.AddMinutes(3).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
+                    Response.Headers.ETag = article.Id.ToString();
+                    Response.Headers.LastModified = article.Updated.ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
                 }
 
-                Response.Headers.Expires = article.Expires.HasValue ?
-                    article.Expires.Value.ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'") :
-                    DateTimeOffset.UtcNow.AddMinutes(3).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
-                Response.Headers.ETag = article.Id.ToString();
-                Response.Headers.LastModified = article.Updated.ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
 
                 if (HttpContext.Request.Query["mode"] == "json")
                 {

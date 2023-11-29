@@ -87,7 +87,12 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
 
             if (User.Identity.IsAuthenticated)
             {
-                return LocalRedirect(returnUrl);
+                if (returnUrl != null)
+                {
+                    return LocalRedirect(returnUrl);
+                }
+
+                return Redirect("/");
             }
 
             // Clear the existing external cookie to ensure a clean login process
@@ -127,10 +132,17 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
                 var result =
                     await signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, false);
+
                 if (result.Succeeded)
                 {
                     logger.LogInformation("User logged in.");
-                    return LocalRedirect(returnUrl);
+
+                    if (returnUrl != null)
+                    {
+                        return LocalRedirect(returnUrl);
+                    }
+
+                    return Redirect("/");
                 }
 
                 if (result.RequiresTwoFactor)
