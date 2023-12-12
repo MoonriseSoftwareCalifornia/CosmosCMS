@@ -6,7 +6,7 @@
     var assemblyName = Assembly.GetExecutingAssembly().GetName();
     var assemblyVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
     var isAuthor = User.IsInRole("Authors");
-    var title = ViewData["Title"];
+    var title = ViewData["PageTitle"];
     var requiresAuth = options.Value.SiteSettings.CosmosRequiresAuthentication;
 }
 <!DOCTYPE HTML>
@@ -170,7 +170,7 @@
                     <li class="nav-item">
                         <div id="divTitleGroup" class="input-group input-group-sm mt-1 ms-3 me-3 text-truncate" style="display:none">
                             <span class="input-group-text" id="lblTitle" style="height:31px;">URL: /</span>
-                            <div class="form-control text-truncate" id="divTitle">@title</div>
+                            <div title="@title" class="form-control d-inline-block text-truncate" id="divTitle" style="max-width: 150px;">@title</div>
                         </div>
                     </li>
                 </ul>

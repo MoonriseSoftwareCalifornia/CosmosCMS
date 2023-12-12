@@ -18,23 +18,20 @@ namespace Cosmos.Cms.Publisher.Controllers
     using Cosmos.Common.Data;
     using Cosmos.Common.Data.Logic;
     using Cosmos.Common.Models;
+    using Microsoft.AspNetCore.Antiforgery;
     using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Cors;
     using Microsoft.AspNetCore.Mvc;
-    using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Options;
-    using SendGrid.Helpers.Mail;
 
     /// <summary>
     /// Home page controller.
     /// </summary>
-    public class HomeController : Controller
+    public class HomeController : HomeControllerBase
     {
         private readonly ILogger<HomeController> logger;
         private readonly ArticleLogic articleLogic;
         private readonly IOptions<CosmosConfig> options;
         private readonly ApplicationDbContext dbContext;
-        private readonly StorageContext storageContext;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HomeController"/> class.
@@ -44,13 +41,20 @@ namespace Cosmos.Cms.Publisher.Controllers
         /// <param name="options">Cosmos options.</param>
         /// <param name="dbContext">Database Context.</param>
         /// <param name="storageContext">Storage context.</param>
-        public HomeController(ILogger<HomeController> logger, ArticleLogic articleLogic, IOptions<CosmosConfig> options, ApplicationDbContext dbContext, StorageContext storageContext)
+        /// <param name="antiForgery">Anti-forgery token creator.</param>
+        public HomeController(
+            ILogger<HomeController> logger,
+            ArticleLogic articleLogic,
+            IOptions<CosmosConfig> options,
+            ApplicationDbContext dbContext,
+            StorageContext storageContext,
+            IAntiforgery antiForgery) 
+            : base(articleLogic, antiForgery, dbContext, storageContext)
         {
             this.logger = logger;
             this.articleLogic = articleLogic;
             this.options = options;
             this.dbContext = dbContext;
-            this.storageContext = storageContext;
         }
 
         /// <summary>
@@ -99,14 +103,12 @@ namespace Cosmos.Cms.Publisher.Controllers
                 }
                 else 
                 {
-
                     Response.Headers.Expires = article.Expires.HasValue ?
                         article.Expires.Value.ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'") :
                         DateTimeOffset.UtcNow.AddMinutes(3).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
                     Response.Headers.ETag = article.Id.ToString();
                     Response.Headers.LastModified = article.Updated.ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
                 }
-
 
                 if (HttpContext.Request.Query["mode"] == "json")
                 {
@@ -167,85 +169,6 @@ namespace Cosmos.Cms.Publisher.Controllers
             var data = Newtonsoft.Json.JsonConvert.SerializeObject(model);
 
             return File(Encoding.UTF8.GetBytes(data), "application/json", fileDownloadName: "microsoft-identity-association.json");
-        }
-
-        /// <summary>
-        /// Gets the children of a given page path.
-        /// </summary>
-        /// <param name="page">UrlPath.</param>
-        /// <param name="orderByPub">Ordery by publishing date.</param>
-        /// <param name="pageNo">Page number.</param>
-        /// <param name="pageSize">Number of rows in each page.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        [EnableCors("AllCors")]
-        public async Task<IActionResult> GetTOC(
-            string page,
-            bool? orderByPub,
-            int? pageNo,
-            int? pageSize)
-        {
-            var result = await articleLogic.GetTOC(page, pageNo ?? 0, pageSize ?? 10, orderByPub ?? false);
-            return Json(result);
-        }
-
-        /// <summary>
-        /// Gets contents in an article folder.
-        /// </summary>
-        /// <param name="path">Path to retrieve contents from storage.</param>
-        /// <returns>An <see cref="IActionResult"/> containing a <see cref="FileManagerEntry"/> <see cref="List{T}"/>.</returns>
-        public async Task<IActionResult> CCMS_GetArticleFolderContents(string path = "")
-        {
-            var r = Request.Headers["referer"];
-            if (string.IsNullOrEmpty(r))
-            {
-                return Json("[]");
-            }
-
-            var url = new Uri(r);
-            var page = await dbContext.Pages.Select(s => new { s.ArticleNumber, s.UrlPath }).FirstOrDefaultAsync(f => f.UrlPath == url.AbsolutePath.TrimStart('/'));
-
-            if (page == null)
-            {
-                return Json("[]");
-            }
-
-            if (options.Value.SiteSettings.CosmosRequiresAuthentication)
-            {
-                // If the user is not logged in, have them login first.
-                if (User.Identity == null || User.Identity?.IsAuthenticated == false)
-                {
-                    return Unauthorized();
-                }
-
-                if (!await CosmosUtilities.AuthUser(dbContext, User, page.ArticleNumber))
-                {
-                    return Unauthorized();
-                }
-            }
-
-            var contents = await CosmosUtilities.GetArticleFolderContents(storageContext, page.ArticleNumber, path);
-
-            return Json(contents);
-        }
-
-        /// <summary>
-        /// Returns a health check.
-        /// </summary>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        /// 
-        [AllowAnonymous]
-        public async Task<IActionResult> CWPS_UTILITIES_NET_PING_HEALTH_CHECK()
-        {
-            try
-            {
-                _ = await dbContext.Users.Select(s => s.Id).FirstOrDefaultAsync();
-                return Ok();
-            }
-            catch
-            {
-            }
-
-            return StatusCode(500);
         }
     }
 }

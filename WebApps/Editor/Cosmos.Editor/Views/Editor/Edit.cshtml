@@ -800,38 +800,6 @@
 
             saveChanges(editor.getData(), id);
 
-            @*let model = {
-                Id: $("#Id").val(),
-                ArticleNumber: $("#ArticleNumber").val(),
-                EditorId: id,
-                UserId: ccms_editor_userid,
-                Offset: offset,
-                Command: command,
-                IsFocused: isFocused,
-                VersionNumber: $("#VersionNumber").val(),
-                Data: html
-            };
-
-            saving();
-            saveInProgress = true;
-
-            $.post("@Url.Action("SaveLiveEditorData")", model)
-                .done(function (data) {
-
-                    savePageProperties(data);
-
-                    // Now, we don't need the data anymore
-                    model.Data = "";
-
-                    signalRConnection.invoke("Notification", JSON.stringify(model));
-                    saveInProgress = false;
-                    doneSaving();
-                })
-                .fail(function () {
-                    saveInProgress = false;
-                    doneSaving();
-                    alert("error");
-                });*@
         }
         else {
             let model = {

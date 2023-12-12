@@ -41,7 +41,6 @@ namespace Cosmos.Cms.Controllers
         private readonly UserManager<IdentityUser> userManager;
         private readonly SendGridEmailSender emailSender;
         private readonly ApplicationDbContext dbContext;
-        private readonly IOptions<CosmosConfig> options;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UsersController"/> class.
@@ -52,21 +51,18 @@ namespace Cosmos.Cms.Controllers
         /// <param name="roleManager"></param>
         /// <param name="emailSender"></param>
         /// <param name="dbContext"></param>
-        /// <param name="options"></param>
         public UsersController(
             ILogger<UsersController> logger,
             UserManager<IdentityUser> userManager,
             RoleManager<IdentityRole> roleManager,
             IEmailSender emailSender,
-            ApplicationDbContext dbContext,
-            IOptions<CosmosConfig> options)
+            ApplicationDbContext dbContext)
         {
             this.logger = logger;
             this.userManager = userManager;
             this.roleManager = roleManager;
             this.emailSender = (SendGridEmailSender)emailSender;
             this.dbContext = dbContext;
-            this.options = options;
         }
 
         /// <summary>
@@ -269,7 +265,6 @@ namespace Cosmos.Cms.Controllers
             return View(new UserCreateViewModel());
         }
 
-
         /// <summary>
         /// Create a user.
         /// </summary>
@@ -445,35 +440,6 @@ namespace Cosmos.Cms.Controllers
             return null;
         }
 
-        #region INDEX VIEW GRID METHODS
-
-        ///// <summary>
-        ///// Create users
-        ///// </summary>
-        ///// <param name="request"></param>
-        ///// <param name="models"></param>
-        ///// <returns></returns>
-        // public async Task<IActionResult> Create_Users([DataSourceRequest] DataSourceRequest request, [Bind(Prefix = "models")] IEnumerable<UserIndexViewModel> models)
-        // {
-        //    var results = new List<UserIndexViewModel>();
-
-        // if (models != null && ModelState.IsValid)
-        //    {
-        //        foreach (var user in models)
-        //        {
-        //            _ = await CreateAccount(new UserCreateViewModel()
-        //            {
-        //                EmailAddress = user.EmailAddress,
-        //                EmailConfirmed = true,
-        //                PhoneNumber = user.PhoneNumber,
-        //                PhoneNumberConfirmed = user.PhoneNumberConfirmed
-        //            }, true);
-        //        }
-        //    }
-
-        // return Json(results.ToDataSourceResult(request, ModelState));
-        // }
-
         /// <summary>
         /// Deletes users.
         /// </summary>
@@ -508,45 +474,6 @@ namespace Cosmos.Cms.Controllers
 
             return RedirectToAction("Index");
         }
-
-        ///// <summary>
-        ///// Updates email confirmed or phone number confirmed for a set of users
-        ///// </summary>
-        ///// <param name="request"></param>
-        ///// <param name="users"></param>
-        ///// <returns></returns>
-        // [HttpPost]
-        // public async Task<IActionResult> Update_Users([DataSourceRequest] DataSourceRequest request,
-        //    [Bind(Prefix = "models")] IEnumerable<UserIndexViewModel> users)
-        // {
-        //    if (users != null && ModelState.IsValid)
-        //    {
-        //        foreach (var user in users)
-        //        {
-        //            var identityUser = await _userManager.FindByIdAsync(user.UserId);
-
-        // identityUser.UserName = user.EmailAddress;
-        //            identityUser.NormalizedUserName = user.EmailAddress.ToUpperInvariant();
-        //            identityUser.Email = user.EmailAddress;
-        //            identityUser.NormalizedEmail = user.EmailAddress.ToUpperInvariant();
-        //            identityUser.EmailConfirmed = user.EmailConfirmed;
-        //            identityUser.PhoneNumberConfirmed = user.PhoneNumberConfirmed;
-
-        // var result = await _userManager.UpdateAsync(identityUser);
-
-        // if (!result.Succeeded)
-        //            {
-        //                foreach (var error in result.Errors)
-        //                {
-        //                    ModelState.AddModelError("", $"Error code: {error.Code} Error message: {error.Description}.");
-        //                }
-        //            }
-        //        }
-        //    }
-
-        // return Json(await users.ToDataSourceResultAsync(request, ModelState));
-        // }
-        #endregion
 
         /// <summary>
         /// Gets the role assignments for a user.

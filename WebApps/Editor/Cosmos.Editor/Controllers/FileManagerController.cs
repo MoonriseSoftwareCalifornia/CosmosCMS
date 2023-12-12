@@ -69,9 +69,7 @@ namespace Cosmos.Cms.Controllers
             IViewRenderService viewRenderService)
             : base(
             dbContext,
-            userManager,
-            articleLogic,
-            options)
+            userManager)
         {
             this.options = options;
             this.logger = logger;

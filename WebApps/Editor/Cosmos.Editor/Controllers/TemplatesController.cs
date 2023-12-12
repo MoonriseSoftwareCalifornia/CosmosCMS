@@ -39,16 +39,14 @@ namespace CDT.Cosmos.Cms.Controllers
         /// Initializes a new instance of the <see cref="TemplatesController"/> class.
         /// Constructor.
         /// </summary>
-        /// <param name="logger"></param>
-        /// <param name="dbContext"></param>
-        /// <param name="options"></param>
-        /// <param name="userManager"></param>
-        /// <param name="articleLogic"></param>
-        /// <exception cref="Exception"></exception>
-        public TemplatesController(ILogger<TemplatesController> logger, ApplicationDbContext dbContext,
-            IOptions<CosmosConfig> options, UserManager<IdentityUser> userManager,
-            ArticleEditLogic articleLogic) :
-            base(dbContext, userManager, articleLogic, options)
+        /// <param name="dbContext">Database context.</param>
+        /// <param name="userManager">User manager.</param>
+        /// <param name="articleLogic">Article edit logic.</param>
+        public TemplatesController(
+            ApplicationDbContext dbContext,
+            UserManager<IdentityUser> userManager,
+            ArticleEditLogic articleLogic)
+            : base(dbContext, userManager)
         {
             this.userManager = userManager;
             this.dbContext = dbContext;

@@ -25,64 +25,32 @@ namespace Cosmos.Cms.Controllers
     using Microsoft.AspNetCore.Mvc.ModelBinding;
     using Microsoft.AspNetCore.Mvc.Rendering;
     using Microsoft.EntityFrameworkCore;
-    using Microsoft.Extensions.Options;
 
     /// <summary>
     /// Base controller.
     /// </summary>
     public abstract class BaseController : Controller
     {
-        private readonly ArticleEditLogic articleEditLogic;
         private readonly UserManager<IdentityUser> baseUserManager;
         private readonly ApplicationDbContext dbContext;
-        private readonly IOptions<CosmosConfig> options;
-
-        /// <summary>
-        /// Gets the user ID of the currently logged in user.
-        /// </summary>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        protected async Task<string> GetUserId()
-        {
-            // Get the user's ID for logging.
-            var user = await baseUserManager.GetUserAsync(User);
-            return user.Id;
-        }
-
-        /// <summary>
-        /// Gets the user Email address of the currently logged in user.
-        /// </summary>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        protected async Task<string> GetUserEmail()
-        {
-            // Get the user's ID for logging.
-            var user = await baseUserManager.GetUserAsync(User);
-            return user.Email;
-        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BaseController"/> class.
         ///     Constructor.
         /// </summary>
-        /// <param name="dbContext"></param>
-        /// <param name="userManager"></param>
-        /// <param name="articleLogic"></param>
-        /// <param name="options"></param>
-        internal BaseController(ApplicationDbContext dbContext,
-            UserManager<IdentityUser> userManager,
-            ArticleEditLogic articleLogic,
-            IOptions<CosmosConfig> options)
+        /// <param name="dbContext">Database context.</param>
+        /// <param name="userManager">User manager.</param>
+        internal BaseController(ApplicationDbContext dbContext, UserManager<IdentityUser> userManager)
         {
             this.dbContext = dbContext;
-            articleEditLogic = articleLogic;
             baseUserManager = userManager;
-            this.options = options;
         }
 
         /// <summary>
         ///     Server-side validation of HTML.
         /// </summary>
-        /// <param name="fieldName"></param>
-        /// <param name="inputHtml"></param>
+        /// <param name="fieldName">Field name to validate.</param>
+        /// <param name="inputHtml">HTML data to check.</param>
         /// <returns>HTML content.</returns>
         /// <remarks>
         ///     <para>
@@ -96,9 +64,6 @@ namespace Cosmos.Cms.Controllers
             {
                 var contentHtmlDocument = new HtmlDocument();
                 contentHtmlDocument.LoadHtml(HttpUtility.HtmlDecode(inputHtml));
-                // if (contentHtmlDocument.ParseErrors.Any())
-                //    foreach (var error in contentHtmlDocument.ParseErrors)
-                //        modelState.AddModelError(fieldName, error.Reason);
                 return contentHtmlDocument.ParsedText.Trim();
             }
 
@@ -134,55 +99,10 @@ namespace Cosmos.Cms.Controllers
         }
 
         /// <summary>
-        /// Minifies HTML.
-        /// </summary>
-        /// <param name="input"></param>
-        /// <remarks>If the content can't be minified because of errors, it will echo back the input.</remarks>
-        /// <returns></returns>
-        internal string MinifyHtml(string input)
-        {
-            if (string.IsNullOrEmpty(input) || string.IsNullOrWhiteSpace(input))
-            {
-                return input;
-            }
-
-            var result = NUglify.Uglify.Html(input);
-
-            if (result.HasErrors)
-            {
-                return input;
-            }
-
-            return result.Code;
-        }
-
-        /// <summary>
-        ///     Generates a random string of 32 numbers and charachers.
-        /// </summary>
-        /// <returns></returns>
-        internal string RandomSalt()
-        {
-            var random = new RNGCryptoRandomGenerator();
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz";
-            return new string(Enumerable.Repeat(chars, 32)
-                .Select(s => s[random.Next(0, s.Length)]).ToArray());
-        }
-
-        ///// <summary>
-        ///// Updates date time stamps of all published articles
-        ///// </summary>
-        ///// <returns></returns>
-        // public virtual async Task<JsonResult> UpdateTimeStamps()
-        // {
-        //    var result = await _articleEditLogic.UpdateDateTimeStamps();
-        //    return Json(result);
-        // }
-
-        /// <summary>
         /// Strips Byte Order Marks.
         /// </summary>
-        /// <param name="data"></param>
-        /// <returns></returns>
+        /// <param name="data">HTML data.</param>
+        /// <returns>Un-BOMed html.</returns>
         internal string StripBOM(string data)
         {
             // See: https://danielwertheim.se/utf-8-bom-adventures-in-c/
@@ -218,30 +138,10 @@ namespace Cosmos.Cms.Controllers
         }
 
         /// <summary>
-        /// Removes BOM by searching for them and deleting.
-        /// </summary>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        private static string RemoveBom(string data)
-        {
-            string BOMMarkUtf8 = Encoding.UTF8.GetString(Encoding.UTF8.GetPreamble());
-            if (data.StartsWith(BOMMarkUtf8, StringComparison.OrdinalIgnoreCase))
-            {
-                data = data.Remove(0, BOMMarkUtf8.Length);
-            }
-
-            return data.Replace("\0", string.Empty);
-        }
-
-        #region SIGNAL METHODS
-
-        #region SIGNAL LOGIC IS SPLIT UP TO FACILITY UNIT TESTING
-
-        /// <summary>
         /// Returns model state errors as serialization.
         /// </summary>
-        /// <param name="modelState"></param>
-        /// <returns></returns>
+        /// <param name="modelState">Model state.</param>
+        /// <returns>Errors.</returns>
         internal string SerializeErrors(ModelStateDictionary modelState)
         {
             var errors = modelState.Values
@@ -251,8 +151,26 @@ namespace Cosmos.Cms.Controllers
             return Newtonsoft.Json.JsonConvert.SerializeObject(errors);
         }
 
-        #endregion
+        /// <summary>
+        /// Gets the user Email address of the currently logged in user.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        protected async Task<string> GetUserEmail()
+        {
+            // Get the user's ID for logging.
+            var user = await baseUserManager.GetUserAsync(User);
+            return user.Email;
+        }
 
-        #endregion
+        /// <summary>
+        /// Gets the user ID of the currently logged in user.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        protected async Task<string> GetUserId()
+        {
+            // Get the user's ID for logging.
+            var user = await baseUserManager.GetUserAsync(User);
+            return user.Id;
+        }
     }
 }

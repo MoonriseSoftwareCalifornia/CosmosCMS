@@ -2,9 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
-    <AssemblyVersion>7.6.1.10</AssemblyVersion>
-    <FileVersion>7.6.1.10</FileVersion>
-    <Version>7.6.1.10</Version>
+    <AssemblyVersion>7.6.2.11</AssemblyVersion>
+    <FileVersion>7.6.2.11</FileVersion>
+    <Version>7.6.2.11</Version>
     <Title>Cosmos CMS Azure Storage Provider</Title>
     <Authors>toiyabe62</Authors>
     <Company>Moonrise Software LLC</Company>
@@ -32,7 +32,7 @@
     <PackageReference Include="Azure.Storage.Files.Shares" Version="12.17.1" />
     <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="7.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Options" Version="7.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.0" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

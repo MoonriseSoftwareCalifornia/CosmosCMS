@@ -2,8 +2,8 @@
 
 	<PropertyGroup>
 		<TargetFramework>net7.0</TargetFramework>
-		<AssemblyVersion>7.6.1.10</AssemblyVersion>
-		<FileVersion>7.6.1.10</FileVersion>
+		<AssemblyVersion>7.6.2.11</AssemblyVersion>
+		<FileVersion>7.6.2.11</FileVersion>
 		<Nullable>disable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<UserSecretsId>aspnet-Cosmos.Cms.Publisher-F1D91233-1093-41F8-B23F-43E81E1454FF</UserSecretsId>
@@ -63,10 +63,6 @@
 		<ProjectReference Include="..\..\..\Libraries\Cosmos.BlobService\Cosmos.BlobService\Cosmos.BlobService.csproj" />
 		<ProjectReference Include="..\..\..\Libraries\Cosmos.Common\Cosmos.Common\Cosmos.Common.csproj" />
 		<ProjectReference Include="..\..\..\Libraries\Cosmos.EmailServices\Cosmos.EmailServices.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="wwwroot\lib\cosmos\" />
 	</ItemGroup>
 
 	<ItemGroup>

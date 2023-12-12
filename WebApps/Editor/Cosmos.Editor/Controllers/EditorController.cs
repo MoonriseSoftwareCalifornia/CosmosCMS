@@ -66,7 +66,7 @@ namespace Cosmos.Cms.Controllers
             ArticleEditLogic articleLogic,
             IOptions<CosmosConfig> options,
             IViewRenderService viewRenderService)
-            : base(dbContext, userManager, articleLogic, options)
+            : base(dbContext, userManager)
         {
             this.logger = logger;
             this.dbContext = dbContext;

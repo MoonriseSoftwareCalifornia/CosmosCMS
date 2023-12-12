@@ -64,7 +64,7 @@ namespace Cosmos.Cms.Controllers
             ILogger<LayoutsController> logger,
             IViewRenderService viewRenderService,
             AzureSubscription azureSubscription)
-            : base(dbContext, userManager, articleLogic, options)
+            : base(dbContext, userManager)
         {
             this.dbContext = dbContext;
             this.articleLogic = articleLogic;
@@ -374,6 +374,8 @@ namespace Cosmos.Cms.Controllers
                 return NotFound();
             }
 
+            ViewData["PageTitle"] = layout.LayoutName;
+
             var model = new LayoutCodeViewModel
             {
                 Id = layout.Id,
@@ -499,7 +501,7 @@ namespace Cosmos.Cms.Controllers
                     throw;
                 }
             }
-
+            ViewData["PageTitle"] = layout.EditorTitle;
             return View(layout);
         }
 

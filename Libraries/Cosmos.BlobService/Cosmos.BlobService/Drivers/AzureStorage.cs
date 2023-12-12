@@ -262,18 +262,34 @@ namespace Cosmos.BlobService.Drivers
             if (!properties.StaticWebsite.Enabled)
             {
                 properties.StaticWebsite.Enabled = true;
+                blobServiceClient.SetProperties(properties);
+            }
 
-                if (properties.Cors == null)
+            if (properties.Cors == null || properties.Cors.Count == 0)
+            {
+                var corsRule = new BlobCorsRule
                 {
-                    var corsRule = new BlobCorsRule
-                    {
-                        AllowedMethods = "GET,HEAD,OPTIONS",
-                        AllowedOrigins = "*",
-                        AllowedHeaders = "*",
-                        ExposedHeaders = "*"
-                    };
-                    properties.Cors = new List<BlobCorsRule>() { corsRule };
-                }
+                    AllowedMethods = "GET,HEAD,OPTIONS",
+                    AllowedOrigins = "*",
+                    AllowedHeaders = "*",
+                    ExposedHeaders = "*"
+                };
+                properties.Cors = new List<BlobCorsRule>() { corsRule };
+                blobServiceClient.SetProperties(properties);
+            }
+        }
+
+        /// <summary>
+        /// Disables the static website.
+        /// </summary>
+        /// <returns>A <see cref="Task"/>.</returns>
+        public async Task DisableStaticWebsite()
+        {
+            BlobServiceProperties properties = await blobServiceClient.GetPropertiesAsync();
+
+            if (properties.StaticWebsite.Enabled)
+            {
+                properties.StaticWebsite.Enabled = false;
 
                 blobServiceClient.SetProperties(properties);
             }

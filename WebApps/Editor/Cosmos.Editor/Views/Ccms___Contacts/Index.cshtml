@@ -1,0 +1,55 @@
+﻿@{
+    ViewData["Title"] = "Index";
+}
+<div class="pt-3">
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <h3 class="text-light">@ViewData["Title"]</h3>
+                <div asp-validation-summary="All" class="text-danger"></div>
+            </div>
+        </div>
+        <div class="row bg-dark">
+            <div class="col-md-12">
+                <table id="tblContacts" class="display text-light" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Created</th>
+                            <th>Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th>Id</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Created</th>
+                            <th>Updated</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $('#tblContacts').DataTable({
+        ajax: '/Ccms___Contacts/GetContacts',
+        columns: [
+            { data: 'Id' },
+            { data: 'Name' },
+            { data: 'Email' },
+            { data: 'Phone' },
+            { data: 'Created' },
+            { data: 'Updated' }
+        ]
+    });
+</script>

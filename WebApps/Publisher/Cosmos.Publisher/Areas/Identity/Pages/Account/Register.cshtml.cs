@@ -106,11 +106,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                         await emailSender.SendEmailAsync(admin.Email, $"New account request for: {user.Email} requested an account.", $"{user.Email} requested a user account on publisher website: {Request.Host}.");
                     }
 
-                    //foreach (var editor in editors)
-                    //{
-                    //    await emailSender.SendEmailAsync(editor.Email, $"New account request for: {user.Email} requested an account.", $"{user.Email} requested a user account on publisher website: {Request.Host}.");
-                    //}
-
                     var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
                     code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
 
@@ -119,7 +114,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                         null,
                         new { area = "Identity", userId = user.Id, code, returnUrl },
                         Request.Scheme);
-
 
                     await emailSender.SendEmailAsync(Input.Email, "Confirm your email",
                         $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");

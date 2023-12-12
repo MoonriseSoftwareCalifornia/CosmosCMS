@@ -164,6 +164,24 @@ namespace Cosmos.BlobService
         }
 
         /// <summary>
+        /// Disables the static website (when login is required for example).
+        /// </summary>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        public async Task DisableAzureStaticWebsite()
+        {
+            var drivers = GetDrivers();
+
+            foreach (var driver in drivers)
+            {
+                if (driver.GetType() == typeof(AzureStorage))
+                {
+                    var azureStorage = (AzureStorage)driver;
+                    await azureStorage.DisableStaticWebsite();
+                }
+            }
+        }
+
+        /// <summary>
         /// Gets and Azure storage append blob client.
         /// </summary>
         /// <param name="path">Path to blob.</param>

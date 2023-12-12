@@ -8,8 +8,7 @@
         public string TokenHeaderValue()
         {
             var tokens = antiForgery.GetTokens(Context);
-            return tokens.CookieToken + ":" + tokens.RequestToken;
-            // return cookieToken + ":" + formToken;
+            return tokens.RequestToken;
         }
     }
 }
@@ -38,15 +37,16 @@
     Application Insights Scripts
     *@
     @Html.Raw(JavaScriptSnippet.FullScript)
+    <script>
+        var ccmsXrefToken = '@TokenHeaderValue()';
+    </script>
 </head>
 <body>
     @Html.Raw(Model.Layout.HtmlHeader)
     @Html.Raw(Model.Content)
     @Html.Raw(Model.Layout.FooterHtmlContent)
     @Html.Raw(Model.FooterJavaScript)
-
     <script>
-        var ccmsXrefToken = "@TokenHeaderValue()";
         var ccmsUrlPath = "@Model.UrlPath";
         window.addEventListener("load", () => {
             if (window.location === window.parent.location) {

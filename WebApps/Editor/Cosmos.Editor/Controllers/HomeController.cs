@@ -19,6 +19,7 @@ namespace Cosmos.Cms.Controllers
     using Cosmos.Common;
     using Cosmos.Common.Data;
     using Cosmos.Common.Models;
+    using Microsoft.AspNetCore.Antiforgery;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Cors;
     using Microsoft.AspNetCore.Http;
@@ -34,8 +35,9 @@ namespace Cosmos.Cms.Controllers
     /// </summary>
     [Authorize]
     [ResponseCache(NoStore = true)]
-    public class HomeController : Controller
+    public class HomeController : HomeControllerBase
     {
+        private readonly IAntiforgery antiForgery;
         private readonly ArticleEditLogic articleLogic;
         private readonly IOptions<CosmosConfig> options;
         private readonly ApplicationDbContext dbContext;
@@ -48,17 +50,20 @@ namespace Cosmos.Cms.Controllers
         /// </summary>
         /// <param name="logger">ILogger to use.</param>
         /// <param name="cosmosConfig"><see cref="CosmosConfig">Cosmos configuration</see>.</param>
-        /// <param name="dbContext"><see cref="ApplicationDbContext">database context</see>.</param>
-        /// <param name="articleLogic"><see cref="ArticleEditLogic">article edit logic.</see>.</param>
-        /// <param name="userManager">user manager.</param>
-        /// <param name="storageContext"><see cref="StorageContext">file storage context</see>.</param>
+        /// <param name="dbContext"><see cref="ApplicationDbContext">Database context</see>.</param>
+        /// <param name="articleLogic"><see cref="ArticleEditLogic">Article edit logic.</see>.</param>
+        /// <param name="userManager">User manager.</param>
+        /// <param name="storageContext"><see cref="StorageContext">File storage context</see>.</param>
+        /// <param name="antiForgery">Antiforgery token service.</param>
         public HomeController(
             ILogger<HomeController> logger,
             IOptions<CosmosConfig> cosmosConfig,
             ApplicationDbContext dbContext,
             ArticleEditLogic articleLogic,
             UserManager<IdentityUser> userManager,
-            StorageContext storageContext)
+            StorageContext storageContext,
+            IAntiforgery antiForgery)
+            : base(articleLogic, antiForgery, dbContext, storageContext)
         {
             this.logger = logger;
             options = cosmosConfig;
@@ -66,6 +71,7 @@ namespace Cosmos.Cms.Controllers
             this.dbContext = dbContext;
             this.userManager = userManager;
             this.storageContext = storageContext;
+            this.antiForgery = antiForgery;
         }
 
         /// <summary>
@@ -99,46 +105,6 @@ namespace Cosmos.Cms.Controllers
             }
 
             return View(article);
-        }
-
-        /// <summary>
-        /// Gets contents in an article folder.
-        /// </summary>
-        /// <param name="path">Path to article.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task<IActionResult> CCMS_GetArticleFolderContents(string path = "")
-        {
-            string r = Request.Headers["referer"];
-            var url = new Uri(r);
-
-            int articleNumber;
-
-            // This is just for the Editor
-            if (url.Query.Contains("articleNumber"))
-            {
-                var query = url.Query.Split('=');
-                articleNumber = int.Parse(query[1]);
-            }
-            else if (url.PathAndQuery.ToLower().Contains("editor/ccmscontent"))
-            {
-                var query = url.PathAndQuery.Split('/');
-                articleNumber = int.Parse(query.LastOrDefault());
-            }
-            else
-            {
-                var page = await dbContext.Pages.Select(s => new { s.ArticleNumber, s.UrlPath }).FirstOrDefaultAsync(f => f.UrlPath == url.AbsolutePath.TrimStart('/'));
-
-                if (page == null)
-                {
-                    return Json("[]");
-                }
-
-                articleNumber = page.ArticleNumber;
-            }
-
-            var contents = await CosmosUtilities.GetArticleFolderContents(storageContext, articleNumber, path);
-
-            return Json(contents);
         }
 
         /// <summary>
@@ -211,6 +177,10 @@ namespace Cosmos.Cms.Controllers
                     if (options.Value.SiteSettings.CosmosRequiresAuthentication == false)
                     {
                         await storageContext.EnableAzureStaticWebsite();
+                    }
+                    else
+                    {
+                        await storageContext.DisableAzureStaticWebsite();
                     }
                 }
 
@@ -322,26 +292,6 @@ namespace Cosmos.Cms.Controllers
         }
 
         /// <summary>
-        /// Returns a health check.
-        /// </summary>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        /// 
-        [AllowAnonymous]
-        public async Task<IActionResult> CWPS_UTILITIES_NET_PING_HEALTH_CHECK()
-        {
-            try
-            {
-                _ = await dbContext.Users.Select(s => s.Id).FirstOrDefaultAsync();
-                return Ok();
-            }
-            catch
-            {
-            }
-
-            return StatusCode(500);
-        }
-
-        /// <summary>
         /// Returns if a user has not been granted access yet.
         /// </summary>
         /// <returns>Returns an <see cref="IActionResult"/>.</returns>
@@ -366,25 +316,6 @@ namespace Cosmos.Cms.Controllers
                 EditModeOn = false
             };
             return View(model);
-        }
-
-        /// <summary>
-        /// Gets the children of a given page path.
-        /// </summary>
-        /// <param name="page">URL path to paren.</param>
-        /// <param name="orderByPub">Order by publishing date.</param>
-        /// <param name="pageNo">Page number to return.</param>
-        /// <param name="pageSize">Size of each page.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        [EnableCors("AllCors")]
-        public async Task<IActionResult> GetTOC(
-            string page,
-            bool? orderByPub,
-            int? pageNo,
-            int? pageSize)
-        {
-            var result = await articleLogic.GetTOC(page, pageNo ?? 0, pageSize ?? 10, orderByPub ?? false);
-            return Json(result);
         }
 
         /// <summary>

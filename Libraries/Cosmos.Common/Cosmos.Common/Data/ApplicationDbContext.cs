@@ -57,6 +57,11 @@ namespace Cosmos.Common.Data
         public DbSet<AuthorInfo> AuthorInfos { get; set; }
 
         /// <summary>
+        /// Gets or sets the contacts list.
+        /// </summary>
+        public DbSet<Contact> Contacts { get; set; }
+
+        /// <summary>
         ///     Gets or sets website layouts.
         /// </summary>
         public DbSet<Layout> Layouts { get; set; }
