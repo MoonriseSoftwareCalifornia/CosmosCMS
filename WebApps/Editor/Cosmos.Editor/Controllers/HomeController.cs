@@ -7,11 +7,6 @@
 
 namespace Cosmos.Cms.Controllers
 {
-    using System;
-    using System.Diagnostics;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
     using Cosmos.BlobService;
     using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Cms.Data.Logic;
@@ -21,7 +16,6 @@ namespace Cosmos.Cms.Controllers
     using Cosmos.Common.Models;
     using Microsoft.AspNetCore.Antiforgery;
     using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Cors;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
@@ -29,6 +23,11 @@ namespace Cosmos.Cms.Controllers
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Microsoft.Net.Http.Headers;
+    using System;
+    using System.Diagnostics;
+    using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Home page controller.

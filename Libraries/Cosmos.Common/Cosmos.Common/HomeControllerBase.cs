@@ -140,6 +140,7 @@ namespace Cosmos.Common
                         contact.Updated = DateTimeOffset.UtcNow;
                         contact.Email = model.Email.ToLower();
                         contact.Name = model.Name;
+                        contact.Phone = model.Phone;
                     }
 
                     await dbContext.SaveChangesAsync();
