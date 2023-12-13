@@ -2,8 +2,8 @@
 
 	<PropertyGroup>
 		<TargetFramework>net7.0</TargetFramework>
-		<AssemblyVersion>7.6.2.13</AssemblyVersion>
-		<FileVersion>7.6.2.13</FileVersion>
+		<AssemblyVersion>7.6.2.14</AssemblyVersion>
+		<FileVersion>7.6.2.14</FileVersion>
 		<Nullable>disable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<UserSecretsId>aspnet-Cosmos.Cms.Publisher-F1D91233-1093-41F8-B23F-43E81E1454FF</UserSecretsId>
