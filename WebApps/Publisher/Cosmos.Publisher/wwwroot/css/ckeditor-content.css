@@ -121,17 +121,16 @@
     flex-grow: 1;
     flex-shrink: 1;
     max-width: 100%;
+    height: auto; /* Preserve aspect ratio of the resized image after introducing image height attribute. */
 }
 /* @ckeditor/ckeditor5-image/theme/imageresize.css */
 .ck-content .image.image_resized {
     max-width: 100%;
     display: block;
     box-sizing: border-box;
+    height: auto; /* Preserve aspect ratio of the resized image after introducing image height attribute. */
 }
-/* @ckeditor/ckeditor5-image/theme/imageresize.css */
-.ck-content .image.image_resized img {
-    width: 100%;
-}
+
 /* @ckeditor/ckeditor5-image/theme/imageresize.css */
 .ck-content .image.image_resized > figcaption {
     display: block;
