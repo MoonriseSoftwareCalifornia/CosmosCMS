@@ -938,8 +938,8 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Download a file.
         /// </summary>
-        /// <param name="path"></param>
-        /// <param name="container"></param>
+        /// <param name="path">Path to the file to retrieve.</param>
+        /// <param name="container">Blob container where the file is stored.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> Download(string path, string container = "$web")
         {

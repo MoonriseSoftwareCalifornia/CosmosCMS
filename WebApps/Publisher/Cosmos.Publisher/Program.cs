@@ -91,7 +91,7 @@ internal class Program
                                 new DefaultContractResolver());
 
         // Add Cosmos Identity here
-        builder.Services.AddCosmosIdentity<ApplicationDbContext, IdentityUser, IdentityRole>(
+        builder.Services.AddCosmosIdentity<ApplicationDbContext, IdentityUser, IdentityRole, string>(
               options => options.SignIn.RequireConfirmedAccount = true)
             .AddDefaultUI() // Use this if Identity Scaffolding added
             .AddDefaultTokenProviders();

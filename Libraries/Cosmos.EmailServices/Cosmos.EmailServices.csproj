@@ -1,15 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net7.0</TargetFramework>
+		<TargetFramework>net8.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<Company>Moonrise Software LLC</Company>
-		<Version>7.6.2.15</Version>
-		<AssemblyVersion>7.6.2.15</AssemblyVersion>
-		<FileVersion>7.6.2.15</FileVersion>
+		<Version>8.0.0.1</Version>
+		<AssemblyVersion>8.0.0.1</AssemblyVersion>
+		<FileVersion>8.0.0.1</FileVersion>
 		<PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
 		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
 		<RepositoryUrl>https://github.com/MoonriseSoftwareCalifornia/AspNetCore.Identity.Services.EmailProviders</RepositoryUrl>
@@ -44,6 +44,8 @@
 	<ItemGroup>
 
 		<PackageReference Include="Azure.Communication.Email" Version="1.0.1" />
+
+		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.0" />
 
 		<PackageReference Include="SendGrid" Version="9.28.1" />
 

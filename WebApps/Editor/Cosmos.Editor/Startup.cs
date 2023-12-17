@@ -7,12 +7,6 @@
 
 namespace Cosmos.Cms
 {
-    using System;
-    using System.Security.Cryptography;
-    using System.Security.Policy;
-    using System.Text;
-    using System.Threading.Tasks;
-    using System.Web;
     using AspNetCore.Identity.CosmosDb.Extensions;
     using Azure.Identity;
     using Azure.ResourceManager;
@@ -35,6 +29,11 @@ namespace Cosmos.Cms
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Newtonsoft.Json.Serialization;
+    using System;
+    using System.Security.Cryptography;
+    using System.Text;
+    using System.Threading.Tasks;
+    using System.Web;
 
     /// <summary>
     ///     Startup class for the website.
@@ -131,7 +130,7 @@ namespace Cosmos.Cms
             }
 
             // Add Cosmos Identity here
-            services.AddCosmosIdentity<ApplicationDbContext, IdentityUser, IdentityRole>(
+            services.AddCosmosIdentity<ApplicationDbContext, IdentityUser, IdentityRole, string>(
                   options => options.SignIn.RequireConfirmedAccount = true)
                 .AddDefaultUI() // Use this if Identity Scaffolding added
                 .AddDefaultTokenProviders();

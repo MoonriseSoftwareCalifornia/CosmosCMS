@@ -7,13 +7,15 @@
 
 namespace Cosmos.Editor.Controllers
 {
-    using System;
     using System.Collections.Generic;
+    using System.Globalization;
+    using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
     using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Common.Data;
-    using Cosmos.Common.Models;
+    using CsvHelper;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity.UI.Services;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
@@ -23,24 +25,25 @@ namespace Cosmos.Editor.Controllers
     /// <summary>
     /// Contact Us Controller.
     /// </summary>
-    public class Ccms___ContactsController : Controller
+    [Authorize(Roles = "Administrators,Editors")]
+    public class Cosmos___ContactsController : Controller
     {
         private readonly IEmailSender emailSender;
-        private readonly ILogger<Ccms___ContactsController> logger;
+        private readonly ILogger<Cosmos___ContactsController> logger;
         private readonly IOptions<CosmosConfig> cosmosOptions;
         private readonly ApplicationDbContext dbContext;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Ccms___ContactsController"/> class.
+        /// Initializes a new instance of the <see cref="Cosmos___ContactsController"/> class.
         /// Constructor.
         /// </summary>
         /// <param name="cosmosOptions">Cosmos options.</param>
         /// <param name="logger">Logger.</param>
         /// <param name="emailSender">Sendgrid Email sender</param>
         /// <param name="dbContext">Database context.</param>
-        public Ccms___ContactsController(
+        public Cosmos___ContactsController(
             IOptions<CosmosConfig> cosmosOptions,
-            ILogger<Ccms___ContactsController> logger,
+            ILogger<Cosmos___ContactsController> logger,
             IEmailSender emailSender,
             ApplicationDbContext dbContext)
         {
@@ -73,9 +76,31 @@ namespace Cosmos.Editor.Controllers
             return Json(result);
         }
 
+        /// <summary>
+        /// Returns the list of contacts in the database.
+        /// </summary>
+        /// <returns>Returns a CSV file.</returns>
+        public async Task<IActionResult> ExportContacts()
+        {
+            var data = await dbContext.Contacts.OrderBy(o => o.Email).ToListAsync();
+            await using var memoryStream = new MemoryStream();
+            await using var writer = new StreamWriter(memoryStream);
+            await using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture, false);
+
+            await csv.WriteRecordsAsync(data);
+            await csv.FlushAsync();
+
+            return File(memoryStream.ToArray(), "application/csv", fileDownloadName: "contact-list.csv");
+        }
+
+        /// <summary>
+        /// This model is used to create a JSON file by the <see cref="GetContacts"/> method for use with jQuery <seealso href="https://datatables.net/">DataTable plugin.</seealso>
+        /// </summary>
         private class Result
         {
+#pragma warning disable SA1300 // Element should begin with upper-case letter
             public List<Contact> data { get; set; }
+#pragma warning restore SA1300 // Element should begin with upper-case letter
         }
     }
 }

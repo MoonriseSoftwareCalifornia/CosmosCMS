@@ -1258,7 +1258,7 @@ namespace Cosmos.Cms.Data.Logic
             else
             {
                 // Check for CDN
-                var cdnSetting = await DbContext.Settings.FirstOrDefaultAsync(f => f.Name == Cosmos_Admin_CdnController.CDNSERVICENAME);
+                var cdnSetting = await DbContext.Settings.FirstOrDefaultAsync(f => f.Name == Cosmos___Admin_CdnController.CDNSERVICENAME);
 
                 if (cdnSetting != null && azureSubscription.Subscription != null)
                 {
@@ -1999,7 +1999,7 @@ namespace Cosmos.Cms.Data.Logic
                 {
                     CosmosRequired = true,
                     Notes = "Cosmos CDN controller path.",
-                    Path = "Cosmos_Admin_Cdn*"
+                    Path = "Cosmos__Admin_Cdn*"
                 });
 
                 setting = new Setting()

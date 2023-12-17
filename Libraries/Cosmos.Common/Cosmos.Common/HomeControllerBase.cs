@@ -120,9 +120,9 @@ namespace Cosmos.Common
             {
                 return NotFound();
             }
+
             if (await IsAntiForgeryTokenValid())
             {
-
                 model.Id = Guid.NewGuid();
                 model.Created = DateTimeOffset.UtcNow;
                 model.Updated = DateTimeOffset.UtcNow;
@@ -138,7 +138,6 @@ namespace Cosmos.Common
                     else
                     {
                         contact.Updated = DateTimeOffset.UtcNow;
-                        contact.Email = model.Email.ToLower();
                         contact.Name = model.Name;
                         contact.Phone = model.Phone;
                     }

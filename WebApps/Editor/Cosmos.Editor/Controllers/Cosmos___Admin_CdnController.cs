@@ -1,4 +1,4 @@
-﻿// <copyright file="Cosmos_Admin_CdnController.cs" company="Moonrise Software, LLC">
+﻿// <copyright file="Cosmos__Admin_CdnController.cs" company="Moonrise Software, LLC">
 // Copyright (c) Moonrise Software, LLC. All rights reserved.
 // Licensed under the GNU Public License, Version 3.0 (https://www.gnu.org/licenses/gpl-3.0.html)
 // See https://github.com/MoonriseSoftwareCalifornia/CosmosCMS
@@ -30,9 +30,9 @@ namespace Cosmos.Cms.Controllers
     /// </summary>
     // [ResponseCache(NoStore = true)]
     [Authorize(Roles = "Administrators, Editors")]
-    public class Cosmos_Admin_CdnController : Controller
+    public class Cosmos___Admin_CdnController : Controller
     {
-        private readonly ILogger<Cosmos_Admin_CdnController> logger;
+        private readonly ILogger<Cosmos___Admin_CdnController> logger;
         private readonly ApplicationDbContext dbContext;
         private readonly IOptions<CosmosConfig> options;
         private readonly AzureSubscription azureSubscription;
@@ -43,14 +43,14 @@ namespace Cosmos.Cms.Controllers
         public static string CDNSERVICENAME = "CDN";
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Cosmos_Admin_CdnController"/> class.
+        /// Initializes a new instance of the <see cref="Cosmos___Admin_CdnController"/> class.
         /// Constructor.
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="dbContext"></param>
         /// <param name="options"></param>
         /// <param name="azureSubscription"></param>
-        public Cosmos_Admin_CdnController(ILogger<Cosmos_Admin_CdnController> logger,
+        public Cosmos___Admin_CdnController(ILogger<Cosmos___Admin_CdnController> logger,
            ApplicationDbContext dbContext,
            IOptions<CosmosConfig> options,
            AzureSubscription azureSubscription

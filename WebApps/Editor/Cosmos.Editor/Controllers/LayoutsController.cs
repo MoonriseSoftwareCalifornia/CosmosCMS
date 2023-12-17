@@ -729,7 +729,7 @@ namespace Cosmos.Cms.Controllers
             }
 
             // Check for CDN
-            var cdnSetting = await dbContext.Settings.FirstOrDefaultAsync(f => f.Name == Cosmos_Admin_CdnController.CDNSERVICENAME);
+            var cdnSetting = await dbContext.Settings.FirstOrDefaultAsync(f => f.Name == Cosmos___Admin_CdnController.CDNSERVICENAME);
 
             if (cdnSetting != null)
             {

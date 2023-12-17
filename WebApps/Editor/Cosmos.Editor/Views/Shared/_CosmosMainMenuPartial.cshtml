@@ -77,7 +77,10 @@
                             {
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
-                                    <a class="dropdown-item" title="Manage user accounts." href="/Users/Index">Users</a>
+                                    <a class="dropdown-item" title="Manage user accounts." asp-action="Index" asp-controller="Users">Users</a>
+                                </li>
+                                <li>
+                                    <a class="ms-2 fw-lighter dropdown-item" title="Manage customer contacts." asp-action="Index" asp-controller="Cosmos___Contacts">Contacts</a>
                                 </li>
                             }
                         </ul>
@@ -86,7 +89,8 @@
                 @if (Model != null && isReviewer != true)
                 {
                     <li id="editorDropDown" class="nav-item dropdown" style="display: none;">
-                        <a id="navbarEditDropdown" onclick="loadDdEditMenu()" data-ccms-urlpath="@Model.UrlPath" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <a id="navbarEditDropdown" onclick="loadDdEditMenu()" data-ccms-urlpath="@Model.UrlPath" class="nav-link dropdown-toggle" href="#"
+                        role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             Edit
                         </a>
                         <ul class="dropdown-menu dropdown-menu-dark" id="ddEditMenu">

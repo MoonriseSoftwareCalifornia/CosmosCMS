@@ -15,7 +15,7 @@ namespace Cosmos.Common.Data
     /// <summary>
     ///     Database Context for Cosmos CMS.
     /// </summary>
-    public class ApplicationDbContext : AspNetCore.Identity.CosmosDb.CosmosIdentityDbContext<IdentityUser, IdentityRole>, IDataProtectionKeyContext
+    public class ApplicationDbContext : AspNetCore.Identity.CosmosDb.CosmosIdentityDbContext<IdentityUser, IdentityRole, string>, IDataProtectionKeyContext
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ApplicationDbContext"/> class.
