@@ -16,13 +16,7 @@
         }
     </style>
     @Html.Raw(Model.Layout.Head)
-    @*
-    Page specific header
-    *@
     @Html.Raw(Model.HeadJavaScript)
-    @*
-    Application Insights Scripts
-    *@
     @Html.Raw(JavaScriptSnippet.FullScript)
 </head>
 <body>
@@ -31,12 +25,9 @@
         @Html.Raw(Model.Content)
     </div>
     @Html.Raw(Model.Layout.FooterHtmlContent)
-    @*
-    Page specific
-    *@
     @Html.Raw(Model.FooterJavaScript)
-
-    <script src="/lib/ckeditor/build_20231004.01/ckeditor.js"></script>
+    @Html.AntiForgeryToken()
+    <script src="/lib/ckeditor/build_20231218.01/ckeditor.js"></script>
     <script>
 
         // Create editors
@@ -302,7 +293,6 @@
 
 
     </script>
-
     <script src="@Html.Raw("https://unpkg.com/@popperjs/core@2")"></script>
     <script src="@Html.Raw("https://unpkg.com/tippy.js@6")"></script>
     <script>

@@ -35,7 +35,7 @@
     @Html.Raw(Model.Content)
     @Html.Raw(Model.Layout.FooterHtmlContent)
     @Html.Raw(Model.FooterJavaScript)
-    @Html.AntiForgeryToken();
+    @Html.AntiForgeryToken()
     <script>
         var ccmsUrlPath = "@Model.UrlPath";
         window.addEventListener("load", () => {

@@ -1,5 +1,5 @@
-﻿
-async function ccms___PostForm(endpoint, formName) {
+﻿async function ccms___PostForm(endpoint, formName) {
+    ccms___AddAftToForm(formName);
     const form = document.forms[formName];
     const response = await fetch(endpoint, {
         method: "POST",

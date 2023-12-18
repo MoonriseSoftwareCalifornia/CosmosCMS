@@ -7,9 +7,9 @@
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<Company>Moonrise Software LLC</Company>
-		<Version>8.0.0.2</Version>
-		<AssemblyVersion>8.0.0.2</AssemblyVersion>
-		<FileVersion>8.0.0.2</FileVersion>
+		<Version>8.0.0.3</Version>
+		<AssemblyVersion>8.0.0.3</AssemblyVersion>
+		<FileVersion>8.0.0.3</FileVersion>
 		<PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
 		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
 		<RepositoryUrl>https://github.com/MoonriseSoftwareCalifornia/AspNetCore.Identity.Services.EmailProviders</RepositoryUrl>
