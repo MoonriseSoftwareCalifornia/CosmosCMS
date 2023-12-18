@@ -3,9 +3,13 @@ import { IHttpConnectionOptions } from "./IHttpConnectionOptions";
 import { IHubProtocol } from "./IHubProtocol";
 import { ILogger, LogLevel } from "./ILogger";
 import { IRetryPolicy } from "./IRetryPolicy";
+import { IStatefulReconnectOptions } from "./IStatefulReconnectOptions";
 import { HttpTransportType } from "./ITransport";
 /** A builder for configuring {@link @microsoft/signalr.HubConnection} instances. */
 export declare class HubConnectionBuilder {
+    private _serverTimeoutInMilliseconds?;
+    private _keepAliveIntervalInMilliseconds?;
+    private _statefulReconnectBufferSize?;
     /** Configures console logging for the {@link @microsoft/signalr.HubConnection}.
      *
      * @param {LogLevel} logLevel The minimum level of messages to log. Anything at this level, or a more severe level, will be logged.
@@ -21,13 +25,13 @@ export declare class HubConnectionBuilder {
     /** Configures custom logging for the {@link @microsoft/signalr.HubConnection}.
      *
      * @param {string} logLevel A string representing a LogLevel setting a minimum level of messages to log.
-     *    See {@link https://docs.microsoft.com/aspnet/core/signalr/configuration#configure-logging|the documentation for client logging configuration} for more details.
+     *    See {@link https://learn.microsoft.com/aspnet/core/signalr/configuration#configure-logging|the documentation for client logging configuration} for more details.
      */
     configureLogging(logLevel: string): HubConnectionBuilder;
     /** Configures custom logging for the {@link @microsoft/signalr.HubConnection}.
      *
      * @param {LogLevel | string | ILogger} logging A {@link @microsoft/signalr.LogLevel}, a string representing a LogLevel, or an object implementing the {@link @microsoft/signalr.ILogger} interface.
-     *    See {@link https://docs.microsoft.com/aspnet/core/signalr/configuration#configure-logging|the documentation for client logging configuration} for more details.
+     *    See {@link https://learn.microsoft.com/aspnet/core/signalr/configuration#configure-logging|the documentation for client logging configuration} for more details.
      * @returns The {@link @microsoft/signalr.HubConnectionBuilder} instance, for chaining.
      */
     configureLogging(logging: LogLevel | string | ILogger): HubConnectionBuilder;
@@ -73,6 +77,21 @@ export declare class HubConnectionBuilder {
      * @param {IRetryPolicy} reconnectPolicy An {@link @microsoft/signalR.IRetryPolicy} that controls the timing and number of reconnect attempts.
      */
     withAutomaticReconnect(reconnectPolicy: IRetryPolicy): HubConnectionBuilder;
+    /** Configures {@link @microsoft/signalr.HubConnection.serverTimeoutInMilliseconds} for the {@link @microsoft/signalr.HubConnection}.
+     *
+     * @returns The {@link @microsoft/signalr.HubConnectionBuilder} instance, for chaining.
+     */
+    withServerTimeout(milliseconds: number): HubConnectionBuilder;
+    /** Configures {@link @microsoft/signalr.HubConnection.keepAliveIntervalInMilliseconds} for the {@link @microsoft/signalr.HubConnection}.
+     *
+     * @returns The {@link @microsoft/signalr.HubConnectionBuilder} instance, for chaining.
+     */
+    withKeepAliveInterval(milliseconds: number): HubConnectionBuilder;
+    /** Enables and configures options for the Stateful Reconnect feature.
+     *
+     * @returns The {@link @microsoft/signalr.HubConnectionBuilder} instance, for chaining.
+     */
+    withStatefulReconnect(options?: IStatefulReconnectOptions): HubConnectionBuilder;
     /** Creates a {@link @microsoft/signalr.HubConnection} from the configuration options specified in this builder.
      *
      * @returns {HubConnection} The configured {@link @microsoft/signalr.HubConnection}.

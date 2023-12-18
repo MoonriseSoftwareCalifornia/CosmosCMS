@@ -13,7 +13,7 @@ export declare class LongPollingTransport implements ITransport {
     private _receiving?;
     private _closeError?;
     onreceive: ((data: string | ArrayBuffer) => void) | null;
-    onclose: ((error?: Error) => void) | null;
+    onclose: ((error?: Error | unknown) => void) | null;
     get pollAborted(): boolean;
     constructor(httpClient: HttpClient, logger: ILogger, options: IHttpConnectionOptions);
     connect(url: string, transferFormat: TransferFormat): Promise<void>;

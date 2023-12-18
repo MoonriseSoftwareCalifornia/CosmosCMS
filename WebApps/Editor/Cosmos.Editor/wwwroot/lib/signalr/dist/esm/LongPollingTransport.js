@@ -8,6 +8,10 @@ import { Arg, getDataDetail, getUserAgentHeader, sendMessage } from "./Utils";
 // Not exported from 'index', this type is internal.
 /** @private */
 export class LongPollingTransport {
+    // This is an internal type, not exported from 'index' so this is really just internal.
+    get pollAborted() {
+        return this._pollAbort.aborted;
+    }
     constructor(httpClient, logger, options) {
         this._httpClient = httpClient;
         this._logger = logger;
@@ -16,10 +20,6 @@ export class LongPollingTransport {
         this._running = false;
         this.onreceive = null;
         this.onclose = null;
-    }
-    // This is an internal type, not exported from 'index' so this is really just internal.
-    get pollAborted() {
-        return this._pollAbort.aborted;
     }
     async connect(url, transferFormat) {
         Arg.isRequired(url, "url");
@@ -141,8 +141,26 @@ export class LongPollingTransport {
                 timeout: this._options.timeout,
                 withCredentials: this._options.withCredentials,
             };
-            await this._httpClient.delete(this._url, deleteOptions);
-            this._logger.log(LogLevel.Trace, "(LongPolling transport) DELETE request sent.");
+            let error;
+            try {
+                await this._httpClient.delete(this._url, deleteOptions);
+            }
+            catch (err) {
+                error = err;
+            }
+            if (error) {
+                if (error instanceof HttpError) {
+                    if (error.statusCode === 404) {
+                        this._logger.log(LogLevel.Trace, "(LongPolling transport) A 404 response was returned from sending a DELETE request.");
+                    }
+                    else {
+                        this._logger.log(LogLevel.Trace, `(LongPolling transport) Error sending a DELETE request: ${error}`);
+                    }
+                }
+            }
+            else {
+                this._logger.log(LogLevel.Trace, "(LongPolling transport) DELETE request accepted.");
+            }
         }
         finally {
             this._logger.log(LogLevel.Trace, "(LongPolling transport) Stop finished.");

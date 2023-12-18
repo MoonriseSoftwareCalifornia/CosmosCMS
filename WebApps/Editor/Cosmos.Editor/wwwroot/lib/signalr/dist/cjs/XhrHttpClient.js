@@ -34,7 +34,7 @@ class XhrHttpClient extends HttpClient_1.HttpClient {
             }
             if (request.content) {
                 // Explicitly setting the Content-Type header for React Native on Android platform.
-                if (Utils_1.isArrayBuffer(request.content)) {
+                if ((0, Utils_1.isArrayBuffer)(request.content)) {
                     xhr.setRequestHeader("Content-Type", "application/octet-stream");
                 }
                 else {

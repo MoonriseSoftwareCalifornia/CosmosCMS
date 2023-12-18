@@ -11,7 +11,7 @@ export declare class ServerSentEventsTransport implements ITransport {
     private _eventSource?;
     private _url?;
     onreceive: ((data: string | ArrayBuffer) => void) | null;
-    onclose: ((error?: Error) => void) | null;
+    onclose: ((error?: Error | unknown) => void) | null;
     constructor(httpClient: HttpClient, accessToken: string | undefined, logger: ILogger, options: IHttpConnectionOptions);
     connect(url: string, transferFormat: TransferFormat): Promise<void>;
     send(data: any): Promise<void>;

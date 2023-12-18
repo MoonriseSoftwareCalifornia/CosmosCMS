@@ -12,7 +12,7 @@ export class JsonHubProtocol {
         /** @inheritDoc */
         this.name = JSON_HUB_PROTOCOL_NAME;
         /** @inheritDoc */
-        this.version = 1;
+        this.version = 2;
         /** @inheritDoc */
         this.transferFormat = TransferFormat.Text;
     }
@@ -56,6 +56,12 @@ export class JsonHubProtocol {
                 case MessageType.Close:
                     // All optional values, no need to validate
                     break;
+                case MessageType.Ack:
+                    this._isAckMessage(parsedMessage);
+                    break;
+                case MessageType.Sequence:
+                    this._isSequenceMessage(parsedMessage);
+                    break;
                 default:
                     // Future protocol changes can add message types, old clients can ignore them
                     logger.log(LogLevel.Information, "Unknown message type '" + parsedMessage.type + "' ignored.");
@@ -93,6 +99,16 @@ export class JsonHubProtocol {
             this._assertNotEmptyString(message.error, "Invalid payload for Completion message.");
         }
         this._assertNotEmptyString(message.invocationId, "Invalid payload for Completion message.");
+    }
+    _isAckMessage(message) {
+        if (typeof message.sequenceId !== 'number') {
+            throw new Error("Invalid SequenceId for Ack message.");
+        }
+    }
+    _isSequenceMessage(message) {
+        if (typeof message.sequenceId !== 'number') {
+            throw new Error("Invalid SequenceId for Sequence message.");
+        }
     }
     _assertNotEmptyString(value, errorMessage) {
         if (typeof value !== "string" || value === "") {

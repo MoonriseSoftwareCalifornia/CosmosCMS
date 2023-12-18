@@ -41,7 +41,7 @@ class ServerSentEventsTransport {
                 const cookies = this._httpClient.getCookieString(url);
                 const headers = {};
                 headers.Cookie = cookies;
-                const [name, value] = Utils_1.getUserAgentHeader();
+                const [name, value] = (0, Utils_1.getUserAgentHeader)();
                 headers[name] = value;
                 eventSource = new this._options.EventSource(url, { withCredentials: this._options.withCredentials, headers: { ...headers, ...this._options.headers } });
             }
@@ -49,7 +49,7 @@ class ServerSentEventsTransport {
                 eventSource.onmessage = (e) => {
                     if (this.onreceive) {
                         try {
-                            this._logger.log(ILogger_1.LogLevel.Trace, `(SSE transport) data received. ${Utils_1.getDataDetail(e.data, this._options.logMessageContent)}.`);
+                            this._logger.log(ILogger_1.LogLevel.Trace, `(SSE transport) data received. ${(0, Utils_1.getDataDetail)(e.data, this._options.logMessageContent)}.`);
                             this.onreceive(e.data);
                         }
                         catch (error) {
@@ -87,7 +87,7 @@ class ServerSentEventsTransport {
         if (!this._eventSource) {
             return Promise.reject(new Error("Cannot send until the transport is connected"));
         }
-        return Utils_1.sendMessage(this._logger, "SSE", this._httpClient, this._url, data, this._options);
+        return (0, Utils_1.sendMessage)(this._logger, "SSE", this._httpClient, this._url, data, this._options);
     }
     stop() {
         this._close();

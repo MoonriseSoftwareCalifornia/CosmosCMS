@@ -11,6 +11,10 @@ const Utils_1 = require("./Utils");
 // Not exported from 'index', this type is internal.
 /** @private */
 class LongPollingTransport {
+    // This is an internal type, not exported from 'index' so this is really just internal.
+    get pollAborted() {
+        return this._pollAbort.aborted;
+    }
     constructor(httpClient, logger, options) {
         this._httpClient = httpClient;
         this._logger = logger;
@@ -19,10 +23,6 @@ class LongPollingTransport {
         this._running = false;
         this.onreceive = null;
         this.onclose = null;
-    }
-    // This is an internal type, not exported from 'index' so this is really just internal.
-    get pollAborted() {
-        return this._pollAbort.aborted;
     }
     async connect(url, transferFormat) {
         Utils_1.Arg.isRequired(url, "url");
@@ -35,7 +35,7 @@ class LongPollingTransport {
             (typeof XMLHttpRequest !== "undefined" && typeof new XMLHttpRequest().responseType !== "string")) {
             throw new Error("Binary protocols over XmlHttpRequest not implementing advanced features are not supported.");
         }
-        const [name, value] = Utils_1.getUserAgentHeader();
+        const [name, value] = (0, Utils_1.getUserAgentHeader)();
         const headers = { [name]: value, ...this._options.headers };
         const pollOptions = {
             abortSignal: this._pollAbort.signal,
@@ -82,7 +82,7 @@ class LongPollingTransport {
                     else {
                         // Process the response
                         if (response.content) {
-                            this._logger.log(ILogger_1.LogLevel.Trace, `(LongPolling transport) data received. ${Utils_1.getDataDetail(response.content, this._options.logMessageContent)}.`);
+                            this._logger.log(ILogger_1.LogLevel.Trace, `(LongPolling transport) data received. ${(0, Utils_1.getDataDetail)(response.content, this._options.logMessageContent)}.`);
                             if (this.onreceive) {
                                 this.onreceive(response.content);
                             }
@@ -125,7 +125,7 @@ class LongPollingTransport {
         if (!this._running) {
             return Promise.reject(new Error("Cannot send until the transport is connected"));
         }
-        return Utils_1.sendMessage(this._logger, "LongPolling", this._httpClient, this._url, data, this._options);
+        return (0, Utils_1.sendMessage)(this._logger, "LongPolling", this._httpClient, this._url, data, this._options);
     }
     async stop() {
         this._logger.log(ILogger_1.LogLevel.Trace, "(LongPolling transport) Stopping polling.");
@@ -137,15 +137,33 @@ class LongPollingTransport {
             // Send DELETE to clean up long polling on the server
             this._logger.log(ILogger_1.LogLevel.Trace, `(LongPolling transport) sending DELETE request to ${this._url}.`);
             const headers = {};
-            const [name, value] = Utils_1.getUserAgentHeader();
+            const [name, value] = (0, Utils_1.getUserAgentHeader)();
             headers[name] = value;
             const deleteOptions = {
                 headers: { ...headers, ...this._options.headers },
                 timeout: this._options.timeout,
                 withCredentials: this._options.withCredentials,
             };
-            await this._httpClient.delete(this._url, deleteOptions);
-            this._logger.log(ILogger_1.LogLevel.Trace, "(LongPolling transport) DELETE request sent.");
+            let error;
+            try {
+                await this._httpClient.delete(this._url, deleteOptions);
+            }
+            catch (err) {
+                error = err;
+            }
+            if (error) {
+                if (error instanceof Errors_1.HttpError) {
+                    if (error.statusCode === 404) {
+                        this._logger.log(ILogger_1.LogLevel.Trace, "(LongPolling transport) A 404 response was returned from sending a DELETE request.");
+                    }
+                    else {
+                        this._logger.log(ILogger_1.LogLevel.Trace, `(LongPolling transport) Error sending a DELETE request: ${error}`);
+                    }
+                }
+            }
+            else {
+                this._logger.log(ILogger_1.LogLevel.Trace, "(LongPolling transport) DELETE request accepted.");
+            }
         }
         finally {
             this._logger.log(ILogger_1.LogLevel.Trace, "(LongPolling transport) Stop finished.");

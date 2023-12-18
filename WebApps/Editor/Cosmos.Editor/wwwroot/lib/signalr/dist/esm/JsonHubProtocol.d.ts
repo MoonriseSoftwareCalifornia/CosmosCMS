@@ -24,5 +24,7 @@ export declare class JsonHubProtocol implements IHubProtocol {
     private _isInvocationMessage;
     private _isStreamItemMessage;
     private _isCompletionMessage;
+    private _isAckMessage;
+    private _isSequenceMessage;
     private _assertNotEmptyString;
 }

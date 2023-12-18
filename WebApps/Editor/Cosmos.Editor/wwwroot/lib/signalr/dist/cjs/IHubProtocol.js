@@ -20,5 +20,7 @@ var MessageType;
     MessageType[MessageType["Ping"] = 6] = "Ping";
     /** Indicates the message is a Close message and implements the {@link @microsoft/signalr.CloseMessage} interface. */
     MessageType[MessageType["Close"] = 7] = "Close";
+    MessageType[MessageType["Ack"] = 8] = "Ack";
+    MessageType[MessageType["Sequence"] = 9] = "Sequence";
 })(MessageType = exports.MessageType || (exports.MessageType = {}));
 //# sourceMappingURL=IHubProtocol.js.map

@@ -20,10 +20,10 @@ export class LongPollingTransport implements ITransport {
     private _url?: string;
     private _running: boolean;
     private _receiving?: Promise<void>;
-    private _closeError?: Error;
+    private _closeError?: Error | unknown;
 
     public onreceive: ((data: string | ArrayBuffer) => void) | null;
-    public onclose: ((error?: Error) => void) | null;
+    public onclose: ((error?: Error | unknown) => void) | null;
 
     // This is an internal type, not exported from 'index' so this is really just internal.
     public get pollAborted(): boolean {
@@ -122,7 +122,7 @@ export class LongPollingTransport implements ITransport {
                 } catch (e) {
                     if (!this._running) {
                         // Log but disregard errors that occur after stopping
-                        this._logger.log(LogLevel.Trace, `(LongPolling transport) Poll errored after shutdown: ${e.message}`);
+                        this._logger.log(LogLevel.Trace, `(LongPolling transport) Poll errored after shutdown: ${(e as any).message}`);
                     } else {
                         if (e instanceof TimeoutError) {
                             // Ignore timeouts and reissue the poll.
@@ -175,9 +175,26 @@ export class LongPollingTransport implements ITransport {
                 timeout: this._options.timeout,
                 withCredentials: this._options.withCredentials,
             };
-            await this._httpClient.delete(this._url!, deleteOptions);
 
-            this._logger.log(LogLevel.Trace, "(LongPolling transport) DELETE request sent.");
+            let error;
+            try {
+                await this._httpClient.delete(this._url!, deleteOptions);
+            } catch (err) {
+                error = err;
+            }
+
+            if (error) {
+                if (error instanceof HttpError) {
+                    if (error.statusCode === 404) {
+                        this._logger.log(LogLevel.Trace, "(LongPolling transport) A 404 response was returned from sending a DELETE request.");
+                    } else {
+                        this._logger.log(LogLevel.Trace, `(LongPolling transport) Error sending a DELETE request: ${error}`);
+                    }
+                }
+            } else {
+                this._logger.log(LogLevel.Trace, "(LongPolling transport) DELETE request accepted.");
+            }
+
         } finally {
             this._logger.log(LogLevel.Trace, "(LongPolling transport) Stop finished.");
 

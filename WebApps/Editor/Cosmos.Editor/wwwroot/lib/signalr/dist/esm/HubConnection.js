@@ -6,8 +6,10 @@ import { MessageType } from "./IHubProtocol";
 import { LogLevel } from "./ILogger";
 import { Subject } from "./Subject";
 import { Arg, getErrorString, Platform } from "./Utils";
+import { MessageBuffer } from "./MessageBuffer";
 const DEFAULT_TIMEOUT_IN_MS = 30 * 1000;
 const DEFAULT_PING_INTERVAL_IN_MS = 15 * 1000;
+const DEFAULT_STATEFUL_RECONNECT_BUFFER_SIZE = 100000;
 /** Describes the current state of the {@link HubConnection} to the server. */
 export var HubConnectionState;
 (function (HubConnectionState) {
@@ -24,16 +26,25 @@ export var HubConnectionState;
 })(HubConnectionState || (HubConnectionState = {}));
 /** Represents a connection to a SignalR Hub. */
 export class HubConnection {
-    constructor(connection, logger, protocol, reconnectPolicy) {
+    /** @internal */
+    // Using a public static factory method means we can have a private constructor and an _internal_
+    // create method that can be used by HubConnectionBuilder. An "internal" constructor would just
+    // be stripped away and the '.d.ts' file would have no constructor, which is interpreted as a
+    // public parameter-less constructor.
+    static create(connection, logger, protocol, reconnectPolicy, serverTimeoutInMilliseconds, keepAliveIntervalInMilliseconds, statefulReconnectBufferSize) {
+        return new HubConnection(connection, logger, protocol, reconnectPolicy, serverTimeoutInMilliseconds, keepAliveIntervalInMilliseconds, statefulReconnectBufferSize);
+    }
+    constructor(connection, logger, protocol, reconnectPolicy, serverTimeoutInMilliseconds, keepAliveIntervalInMilliseconds, statefulReconnectBufferSize) {
         this._nextKeepAlive = 0;
         this._freezeEventListener = () => {
-            this._logger.log(LogLevel.Warning, "The page is being frozen, this will likely lead to the connection being closed and messages being lost. For more information see the docs at https://docs.microsoft.com/aspnet/core/signalr/javascript-client#bsleep");
+            this._logger.log(LogLevel.Warning, "The page is being frozen, this will likely lead to the connection being closed and messages being lost. For more information see the docs at https://learn.microsoft.com/aspnet/core/signalr/javascript-client#bsleep");
         };
         Arg.isRequired(connection, "connection");
         Arg.isRequired(logger, "logger");
         Arg.isRequired(protocol, "protocol");
-        this.serverTimeoutInMilliseconds = DEFAULT_TIMEOUT_IN_MS;
-        this.keepAliveIntervalInMilliseconds = DEFAULT_PING_INTERVAL_IN_MS;
+        this.serverTimeoutInMilliseconds = serverTimeoutInMilliseconds !== null && serverTimeoutInMilliseconds !== void 0 ? serverTimeoutInMilliseconds : DEFAULT_TIMEOUT_IN_MS;
+        this.keepAliveIntervalInMilliseconds = keepAliveIntervalInMilliseconds !== null && keepAliveIntervalInMilliseconds !== void 0 ? keepAliveIntervalInMilliseconds : DEFAULT_PING_INTERVAL_IN_MS;
+        this._statefulReconnectBufferSize = statefulReconnectBufferSize !== null && statefulReconnectBufferSize !== void 0 ? statefulReconnectBufferSize : DEFAULT_STATEFUL_RECONNECT_BUFFER_SIZE;
         this._logger = logger;
         this._protocol = protocol;
         this.connection = connection;
@@ -51,14 +62,6 @@ export class HubConnection {
         this._connectionState = HubConnectionState.Disconnected;
         this._connectionStarted = false;
         this._cachedPingMessage = this._protocol.writeMessage({ type: MessageType.Ping });
-    }
-    /** @internal */
-    // Using a public static factory method means we can have a private constructor and an _internal_
-    // create method that can be used by HubConnectionBuilder. An "internal" constructor would just
-    // be stripped away and the '.d.ts' file would have no constructor, which is interpreted as a
-    // public parameter-less constructor.
-    static create(connection, logger, protocol, reconnectPolicy) {
-        return new HubConnection(connection, logger, protocol, reconnectPolicy);
     }
     /** Indicates the state of the {@link HubConnection} to the server. */
     get state() {
@@ -128,9 +131,15 @@ export class HubConnection {
         });
         await this.connection.start(this._protocol.transferFormat);
         try {
+            let version = this._protocol.version;
+            if (!this.connection.features.reconnect) {
+                // Stateful Reconnect starts with HubProtocol version 2, newer clients connecting to older servers will fail to connect due to
+                // the handshake only supporting version 1, so we will try to send version 1 during the handshake to keep old servers working.
+                version = 1;
+            }
             const handshakeRequest = {
                 protocol: this._protocol.name,
-                version: this._protocol.version,
+                version,
             };
             this._logger.log(LogLevel.Debug, "Sending handshake request.");
             await this._sendMessage(this._handshakeProtocol.writeHandshakeRequest(handshakeRequest));
@@ -149,6 +158,16 @@ export class HubConnection {
                 // will cause the calling continuation to get scheduled to run later.
                 // eslint-disable-next-line @typescript-eslint/no-throw-literal
                 throw this._stopDuringStartError;
+            }
+            const useStatefulReconnect = this.connection.features.reconnect || false;
+            if (useStatefulReconnect) {
+                this._messageBuffer = new MessageBuffer(this._protocol, this.connection, this._statefulReconnectBufferSize);
+                this.connection.features.disconnected = this._messageBuffer._disconnected.bind(this._messageBuffer);
+                this.connection.features.resend = () => {
+                    if (this._messageBuffer) {
+                        return this._messageBuffer._resend();
+                    }
+                };
             }
             if (!this.connection.features.inherentKeepAlive) {
                 await this._sendMessage(this._cachedPingMessage);
@@ -171,6 +190,7 @@ export class HubConnection {
     async stop() {
         // Capture the start promise before the connection might be restarted in an onclose callback.
         const startPromise = this._startPromise;
+        this.connection.features.reconnect = false;
         this._stopPromise = this._stopInternal();
         await this._stopPromise;
         try {
@@ -190,6 +210,7 @@ export class HubConnection {
             this._logger.log(LogLevel.Debug, `Call to HttpConnection.stop(${error}) ignored because the connection is already in the disconnecting state.`);
             return this._stopPromise;
         }
+        const state = this._connectionState;
         this._connectionState = HubConnectionState.Disconnecting;
         this._logger.log(LogLevel.Debug, "Stopping HubConnection.");
         if (this._reconnectDelayHandle) {
@@ -202,6 +223,10 @@ export class HubConnection {
             this._completeClose();
             return Promise.resolve();
         }
+        if (state === HubConnectionState.Connected) {
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises
+            this._sendCloseMessage();
+        }
         this._cleanupTimeout();
         this._cleanupPingTimer();
         this._stopDuringStartError = error || new AbortError("The connection was stopped before the hub handshake could complete.");
@@ -209,6 +234,14 @@ export class HubConnection {
         // or the onclose callback is invoked. The onclose callback will transition the HubConnection
         // to the disconnected state if need be before HttpConnection.stop() completes.
         return this.connection.stop(error);
+    }
+    async _sendCloseMessage() {
+        try {
+            await this._sendWithProtocol(this._createCloseMessage());
+        }
+        catch {
+            // Ignore, this is a best effort attempt to let the server know the client closed gracefully.
+        }
     }
     /** Invokes a streaming hub method on the server using the specified name and arguments.
      *
@@ -267,7 +300,12 @@ export class HubConnection {
      * @param message The js object to serialize and send.
      */
     _sendWithProtocol(message) {
-        return this._sendMessage(this._protocol.writeMessage(message));
+        if (this._messageBuffer) {
+            return this._messageBuffer._send(message);
+        }
+        else {
+            return this._sendMessage(this._protocol.writeMessage(message));
+        }
     }
     /** Invokes a hub method on the server using the specified name and arguments. Does not wait for a response from the receiver.
      *
@@ -404,6 +442,10 @@ export class HubConnection {
             // Parse the messages
             const messages = this._protocol.parseMessages(data, this._logger);
             for (const message of messages) {
+                if (this._messageBuffer && !this._messageBuffer._shouldProcessMessage(message)) {
+                    // Don't process the message, we are either waiting for a SequenceMessage or received a duplicate message
+                    continue;
+                }
                 switch (message.type) {
                     case MessageType.Invocation:
                         // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -443,6 +485,16 @@ export class HubConnection {
                         }
                         break;
                     }
+                    case MessageType.Ack:
+                        if (this._messageBuffer) {
+                            this._messageBuffer._ack(message);
+                        }
+                        break;
+                    case MessageType.Sequence:
+                        if (this._messageBuffer) {
+                            this._messageBuffer._resetSequence(message);
+                        }
+                        break;
                     default:
                         this._logger.log(LogLevel.Warning, `Invalid message type: ${message.type}.`);
                         break;
@@ -611,6 +663,10 @@ export class HubConnection {
         if (this._connectionStarted) {
             this._connectionState = HubConnectionState.Disconnected;
             this._connectionStarted = false;
+            if (this._messageBuffer) {
+                this._messageBuffer._dispose(error !== null && error !== void 0 ? error : new Error("Connection closed."));
+                this._messageBuffer = undefined;
+            }
             if (Platform.isBrowser) {
                 window.document.removeEventListener("freeze", this._freezeEventListener);
             }
@@ -873,6 +929,9 @@ export class HubConnection {
             result,
             type: MessageType.Completion,
         };
+    }
+    _createCloseMessage() {
+        return { type: MessageType.Close };
     }
 }
 //# sourceMappingURL=HubConnection.js.map

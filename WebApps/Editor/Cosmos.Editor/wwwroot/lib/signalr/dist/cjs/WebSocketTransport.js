@@ -35,7 +35,7 @@ class WebSocketTransport {
             let opened = false;
             if (Utils_1.Platform.isNode || Utils_1.Platform.isReactNative) {
                 const headers = {};
-                const [name, value] = Utils_1.getUserAgentHeader();
+                const [name, value] = (0, Utils_1.getUserAgentHeader)();
                 headers[name] = value;
                 if (token) {
                     headers[HeaderNames_1.HeaderNames.Authorization] = `Bearer ${token}`;
@@ -78,7 +78,7 @@ class WebSocketTransport {
                 this._logger.log(ILogger_1.LogLevel.Information, `(WebSockets transport) ${error}.`);
             };
             webSocket.onmessage = (message) => {
-                this._logger.log(ILogger_1.LogLevel.Trace, `(WebSockets transport) data received. ${Utils_1.getDataDetail(message.data, this._logMessageContent)}.`);
+                this._logger.log(ILogger_1.LogLevel.Trace, `(WebSockets transport) data received. ${(0, Utils_1.getDataDetail)(message.data, this._logMessageContent)}.`);
                 if (this.onreceive) {
                     try {
                         this.onreceive(message.data);
@@ -114,7 +114,7 @@ class WebSocketTransport {
     }
     send(data) {
         if (this._webSocket && this._webSocket.readyState === this._webSocketConstructor.OPEN) {
-            this._logger.log(ILogger_1.LogLevel.Trace, `(WebSockets transport) sending data. ${Utils_1.getDataDetail(data, this._logMessageContent)}.`);
+            this._logger.log(ILogger_1.LogLevel.Trace, `(WebSockets transport) sending data. ${(0, Utils_1.getDataDetail)(data, this._logMessageContent)}.`);
             this._webSocket.send(data);
             return Promise.resolve();
         }

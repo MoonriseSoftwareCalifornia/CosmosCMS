@@ -7,33 +7,24 @@ const Errors_1 = require("./Errors");
 const HttpClient_1 = require("./HttpClient");
 const ILogger_1 = require("./ILogger");
 const Utils_1 = require("./Utils");
+const DynamicImports_1 = require("./DynamicImports");
 class FetchHttpClient extends HttpClient_1.HttpClient {
     constructor(logger) {
         super();
         this._logger = logger;
-        if (typeof fetch === "undefined") {
-            // In order to ignore the dynamic require in webpack builds we need to do this magic
-            // @ts-ignore: TS doesn't know about these names
-            const requireFunc = typeof __webpack_require__ === "function" ? __non_webpack_require__ : require;
-            // Cookies aren't automatically handled in Node so we need to add a CookieJar to preserve cookies across requests
-            this._jar = new (requireFunc("tough-cookie")).CookieJar();
-            this._fetchType = requireFunc("node-fetch");
-            // node-fetch doesn't have a nice API for getting and setting cookies
-            // fetch-cookie will wrap a fetch implementation with a default CookieJar or a provided one
-            this._fetchType = requireFunc("fetch-cookie")(this._fetchType, this._jar);
+        // This is how you do "reference" arguments
+        const fetchObj = { _fetchType: undefined, _jar: undefined };
+        if ((0, DynamicImports_1.configureFetch)(fetchObj)) {
+            this._fetchType = fetchObj._fetchType;
+            this._jar = fetchObj._jar;
         }
         else {
-            this._fetchType = fetch.bind(Utils_1.getGlobalThis());
+            this._fetchType = fetch.bind((0, Utils_1.getGlobalThis)());
         }
-        if (typeof AbortController === "undefined") {
-            // In order to ignore the dynamic require in webpack builds we need to do this magic
-            // @ts-ignore: TS doesn't know about these names
-            const requireFunc = typeof __webpack_require__ === "function" ? __non_webpack_require__ : require;
-            // Node needs EventListener methods on AbortController which our custom polyfill doesn't provide
-            this._abortControllerType = requireFunc("abort-controller");
-        }
-        else {
-            this._abortControllerType = AbortController;
+        this._abortControllerType = AbortController;
+        const abortObj = { _abortControllerType: this._abortControllerType };
+        if ((0, DynamicImports_1.configureAbortController)(abortObj)) {
+            this._abortControllerType = abortObj._abortControllerType;
         }
     }
     /** @inheritDoc */
@@ -74,7 +65,7 @@ class FetchHttpClient extends HttpClient_1.HttpClient {
         if (request.content) {
             // Explicitly setting the Content-Type header for React Native on Android platform.
             request.headers = request.headers || {};
-            if (Utils_1.isArrayBuffer(request.content)) {
+            if ((0, Utils_1.isArrayBuffer)(request.content)) {
                 request.headers["Content-Type"] = "application/octet-stream";
             }
             else {

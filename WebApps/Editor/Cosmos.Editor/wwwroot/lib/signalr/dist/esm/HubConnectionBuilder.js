@@ -87,6 +87,36 @@ export class HubConnectionBuilder {
         }
         return this;
     }
+    /** Configures {@link @microsoft/signalr.HubConnection.serverTimeoutInMilliseconds} for the {@link @microsoft/signalr.HubConnection}.
+     *
+     * @returns The {@link @microsoft/signalr.HubConnectionBuilder} instance, for chaining.
+     */
+    withServerTimeout(milliseconds) {
+        Arg.isRequired(milliseconds, "milliseconds");
+        this._serverTimeoutInMilliseconds = milliseconds;
+        return this;
+    }
+    /** Configures {@link @microsoft/signalr.HubConnection.keepAliveIntervalInMilliseconds} for the {@link @microsoft/signalr.HubConnection}.
+     *
+     * @returns The {@link @microsoft/signalr.HubConnectionBuilder} instance, for chaining.
+     */
+    withKeepAliveInterval(milliseconds) {
+        Arg.isRequired(milliseconds, "milliseconds");
+        this._keepAliveIntervalInMilliseconds = milliseconds;
+        return this;
+    }
+    /** Enables and configures options for the Stateful Reconnect feature.
+     *
+     * @returns The {@link @microsoft/signalr.HubConnectionBuilder} instance, for chaining.
+     */
+    withStatefulReconnect(options) {
+        if (this.httpConnectionOptions === undefined) {
+            this.httpConnectionOptions = {};
+        }
+        this.httpConnectionOptions._useStatefulReconnect = true;
+        this._statefulReconnectBufferSize = options === null || options === void 0 ? void 0 : options.bufferSize;
+        return this;
+    }
     /** Creates a {@link @microsoft/signalr.HubConnection} from the configuration options specified in this builder.
      *
      * @returns {HubConnection} The configured {@link @microsoft/signalr.HubConnection}.
@@ -105,7 +135,7 @@ export class HubConnectionBuilder {
             throw new Error("The 'HubConnectionBuilder.withUrl' method must be called before building the connection.");
         }
         const connection = new HttpConnection(this.url, httpConnectionOptions);
-        return HubConnection.create(connection, this.logger || NullLogger.instance, this.protocol || new JsonHubProtocol(), this.reconnectPolicy);
+        return HubConnection.create(connection, this.logger || NullLogger.instance, this.protocol || new JsonHubProtocol(), this.reconnectPolicy, this._serverTimeoutInMilliseconds, this._keepAliveIntervalInMilliseconds, this._statefulReconnectBufferSize);
     }
 }
 function isLogger(logger) {

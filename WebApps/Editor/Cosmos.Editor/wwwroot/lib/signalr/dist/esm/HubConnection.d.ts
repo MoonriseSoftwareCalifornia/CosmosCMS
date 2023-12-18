@@ -18,11 +18,13 @@ export declare class HubConnection {
     private readonly connection;
     private readonly _logger;
     private readonly _reconnectPolicy?;
+    private readonly _statefulReconnectBufferSize;
     private _protocol;
     private _handshakeProtocol;
     private _callbacks;
     private _methods;
     private _invocationId;
+    private _messageBuffer?;
     private _closedCallbacks;
     private _reconnectingCallbacks;
     private _reconnectedCallbacks;
@@ -81,6 +83,7 @@ export declare class HubConnection {
      */
     stop(): Promise<void>;
     private _stopInternal;
+    private _sendCloseMessage;
     /** Invokes a streaming hub method on the server using the specified name and arguments.
      *
      * @typeparam T The type of the items returned by the server.
@@ -173,4 +176,5 @@ export declare class HubConnection {
     private _createCancelInvocation;
     private _createStreamItemMessage;
     private _createCompletionMessage;
+    private _createCloseMessage;
 }

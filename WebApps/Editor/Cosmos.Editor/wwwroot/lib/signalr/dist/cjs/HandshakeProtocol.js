@@ -14,7 +14,7 @@ class HandshakeProtocol {
     parseHandshakeResponse(data) {
         let messageData;
         let remainingData;
-        if (Utils_1.isArrayBuffer(data)) {
+        if ((0, Utils_1.isArrayBuffer)(data)) {
             // Format is binary but still need to read JSON text from handshake response
             const binaryData = new Uint8Array(data);
             const separatorIndex = binaryData.indexOf(TextMessageFormat_1.TextMessageFormat.RecordSeparatorCode);

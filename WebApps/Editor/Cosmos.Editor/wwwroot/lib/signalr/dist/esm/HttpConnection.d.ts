@@ -10,6 +10,7 @@ export interface INegotiateResponse {
     url?: string;
     accessToken?: string;
     error?: string;
+    useStatefulReconnect?: boolean;
 }
 /** @private */
 export interface IAvailableTransport {

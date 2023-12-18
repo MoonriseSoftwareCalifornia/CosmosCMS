@@ -3,7 +3,7 @@
   "defaultProvider": "cdnjs",
   "libraries": [
     {
-      "library": "monaco-editor@0.41.0",
+      "library": "monaco-editor@0.45.0",
       "destination": "wwwroot/lib/monaco-editor/"
     },
     {
@@ -13,11 +13,11 @@
     },
     {
       "provider": "unpkg",
-      "library": "@microsoft/signalr@7.0.10",
+      "library": "@microsoft/signalr@8.0.0",
       "destination": "wwwroot/lib/signalr/"
     },
     {
-      "library": "jquery-validate@1.19.5",
+      "library": "jquery-validate@1.20.0",
       "destination": "wwwroot/lib/jquery-validate"
     },
     {
