@@ -41,15 +41,13 @@ namespace Cosmos.Cms.Publisher.Controllers
         /// <param name="options">Cosmos options.</param>
         /// <param name="dbContext">Database Context.</param>
         /// <param name="storageContext">Storage context.</param>
-        /// <param name="antiForgery">Anti-forgery token creator.</param>
         public HomeController(
             ILogger<HomeController> logger,
             ArticleLogic articleLogic,
             IOptions<CosmosConfig> options,
             ApplicationDbContext dbContext,
-            StorageContext storageContext,
-            IAntiforgery antiForgery) 
-            : base(articleLogic, antiForgery, dbContext, storageContext)
+            StorageContext storageContext) 
+            : base(articleLogic, dbContext, storageContext, logger)
         {
             this.logger = logger;
             this.articleLogic = articleLogic;

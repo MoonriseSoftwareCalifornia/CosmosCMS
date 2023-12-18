@@ -36,7 +36,6 @@ namespace Cosmos.Cms.Controllers
     [ResponseCache(NoStore = true)]
     public class HomeController : HomeControllerBase
     {
-        private readonly IAntiforgery antiForgery;
         private readonly ArticleEditLogic articleLogic;
         private readonly IOptions<CosmosConfig> options;
         private readonly ApplicationDbContext dbContext;
@@ -53,16 +52,14 @@ namespace Cosmos.Cms.Controllers
         /// <param name="articleLogic"><see cref="ArticleEditLogic">Article edit logic.</see>.</param>
         /// <param name="userManager">User manager.</param>
         /// <param name="storageContext"><see cref="StorageContext">File storage context</see>.</param>
-        /// <param name="antiForgery">Antiforgery token service.</param>
         public HomeController(
             ILogger<HomeController> logger,
             IOptions<CosmosConfig> cosmosConfig,
             ApplicationDbContext dbContext,
             ArticleEditLogic articleLogic,
             UserManager<IdentityUser> userManager,
-            StorageContext storageContext,
-            IAntiforgery antiForgery)
-            : base(articleLogic, antiForgery, dbContext, storageContext)
+            StorageContext storageContext)
+            : base(articleLogic, dbContext, storageContext, logger)
         {
             this.logger = logger;
             options = cosmosConfig;
@@ -70,7 +67,6 @@ namespace Cosmos.Cms.Controllers
             this.dbContext = dbContext;
             this.userManager = userManager;
             this.storageContext = storageContext;
-            this.antiForgery = antiForgery;
         }
 
         /// <summary>

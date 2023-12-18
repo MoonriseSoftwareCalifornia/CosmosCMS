@@ -1,16 +1,8 @@
 ﻿@using Microsoft.AspNetCore.Antiforgery
 @model Cosmos.Common.Models.ArticleViewModel
-@inject IAntiforgery antiForgery
 @{
     Layout = null;
     ViewData["Title"] = Model.Title;
-    @functions {
-        public string TokenHeaderValue()
-        {
-            var tokens = antiForgery.GetTokens(Context);
-            return tokens.RequestToken;
-        }
-    }
 }
 <!DOCTYPE HTML>
 <html lang="@Model.LanguageCode">
@@ -35,9 +27,6 @@
     *@
     @Html.Raw(Model.HeadJavaScript)
     @Html.Raw(JavaScriptSnippet.FullScript)
-    <script>
-        var ccmsXrefToken = '@TokenHeaderValue()';
-    </script>
 </head>
 <body>
     @*
@@ -50,5 +39,6 @@
     *@
     @Html.Raw(Model.Layout.FooterHtmlContent)
     @Html.Raw(Model.FooterJavaScript)
+    @Html.AntiForgeryToken();
 </body>
 </html>

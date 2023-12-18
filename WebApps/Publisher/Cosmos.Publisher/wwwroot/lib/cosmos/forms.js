@@ -10,6 +10,7 @@ async function ccms___PostForm(endpoint, formName) {
 
 function ccms___AddAftToForm(formName) {
     const form = document.forms[formName];
+    const ccmsXrefToken = document.getElementsByName("__RequestVerificationToken")[0].value;
     if (ccms___ElementExists(form)) {
         let el = form.elements["__RequestVerificationToken"];
         if (!ccms___ElementExists(el)) {
