@@ -14,6 +14,7 @@ namespace Cosmos.Editor.Controllers
     using System.Threading.Tasks;
     using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Common.Data;
+    using Cosmos.Editor.Models;
     using CsvHelper;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity.UI.Services;
@@ -82,12 +83,29 @@ namespace Cosmos.Editor.Controllers
         /// <returns>Returns a CSV file.</returns>
         public async Task<IActionResult> ExportContacts()
         {
-            var data = await dbContext.Contacts.OrderBy(o => o.Email).ToListAsync();
+            var data = await dbContext.Contacts.OrderBy(o => o.Created).ToListAsync();
+            var export = new List<ContactsExportViewModel>();
+            var index = 1;
+
+            foreach (var contact in data)
+            {
+                export.Add(new ContactsExportViewModel()
+                {
+                    Id = index++,
+                    Created = contact.Created,
+                    Email = contact.Email,
+                    FirstName = contact.FirstName,
+                    LastName = contact.LastName,
+                    Phone = contact.Phone,
+                    Updated = contact.Updated
+                });
+            }
+
             await using var memoryStream = new MemoryStream();
             await using var writer = new StreamWriter(memoryStream);
             await using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture, false);
 
-            await csv.WriteRecordsAsync(data);
+            await csv.WriteRecordsAsync(export);
             await csv.FlushAsync();
 
             return File(memoryStream.ToArray(), "application/csv", fileDownloadName: "contact-list.csv");

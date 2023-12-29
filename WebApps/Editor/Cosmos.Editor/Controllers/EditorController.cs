@@ -359,9 +359,8 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Saves live editor data.
         /// </summary>
-        /// <param name="model"></param>
+        /// <param name="model">Live editor post model.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        /// <exception cref="Exception"></exception>
         [HttpPost]
         public async Task<IActionResult> SaveLiveEditorData(LiveEditorSignal model)
         {
@@ -547,7 +546,7 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Gets template page information.
         /// </summary>
-        /// <param name="Id"></param>
+        /// <param name="Id">Template ID.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [Authorize(Roles = "Administrators, Editors, Authors, Team Members")]
         public async Task<IActionResult> GetTemplateInfo(Guid? Id)
@@ -566,10 +565,10 @@ namespace Cosmos.Cms.Controllers
         ///     Creates a <see cref="CreatePageViewModel" /> used to create a new article.
         /// </summary>
         /// <param name="title">Name of new page if known.</param>
-        /// <param name="sortOrder"></param>
-        /// <param name="currentSort"></param>
-        /// <param name="pageNo"></param>
-        /// <param name="pageSize"></param>
+        /// <param name="sortOrder">Current sort order.</param>
+        /// <param name="currentSort">Field being sorted on.</param>
+        /// <param name="pageNo">Page number to retrieve.</param>
+        /// <param name="pageSize">Number of records in each page.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [Authorize(Roles = "Administrators, Editors, Authors, Team Members")]
         public async Task<IActionResult> Create(string title = "", string sortOrder = "asc", string currentSort = "Title", int pageNo = 0, int pageSize = 20)
@@ -672,7 +671,7 @@ namespace Cosmos.Cms.Controllers
         ///     saved to
         ///     the database with <see cref="ArticleEditLogic.Save(ArticleViewModel, string)" /> ready for editing.
         /// </summary>
-        /// <param name="model"></param>
+        /// <param name="model">Create page view model.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [Authorize(Roles = "Administrators, Editors, Authors, Team Members")]
         [HttpPost]
@@ -1545,7 +1544,7 @@ namespace Cosmos.Cms.Controllers
                             StatusCode = (StatusCodeEnum)article.StatusCode,
                             UrlPath = article.UrlPath,
                             VersionNumber = article.VersionNumber,
-                            Updated = model.Updated.Value,
+                            Updated = model.Updated.Value
                         }, await GetUserEmail());
 
                     jsonModel.Model = new EditCodePostModel()

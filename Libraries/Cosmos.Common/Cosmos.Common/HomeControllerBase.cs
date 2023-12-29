@@ -152,12 +152,13 @@ namespace Cosmos.Common
 
                     if (contact == null)
                     {
-                        dbContext.Contacts.Add(new Contact() { Email = model.Email.ToLower(), Name = model.Name, Phone = model.Phone });
+                        dbContext.Contacts.Add(new Contact() { Email = model.Email.ToLower(), FirstName = model.FirstName, LastName = model.LastName, Phone = model.Phone });
                     }
                     else
                     {
                         contact.Updated = DateTimeOffset.UtcNow;
-                        contact.Name = model.Name;
+                        contact.FirstName = model.FirstName;
+                        contact.LastName = model.LastName;
                         contact.Phone = model.Phone;
                     }
 

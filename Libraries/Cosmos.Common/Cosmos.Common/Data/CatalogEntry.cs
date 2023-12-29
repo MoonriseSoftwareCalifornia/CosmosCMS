@@ -65,6 +65,12 @@ namespace Cosmos.Common.Data
         public string UrlPath { get; set; }
 
         /// <summary>
+        /// Gets or sets the ID of the template used by this article.
+        /// </summary>
+        [Display(Name = "Template ID")]
+        public Guid? TemplateId { get; set; }
+
+        /// <summary>
         /// Gets or sets article permissions.
         /// </summary>
         public List<ArticlePermission> ArticlePermissions { get; set; } = new List<ArticlePermission>();

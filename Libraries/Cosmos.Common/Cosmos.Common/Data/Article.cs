@@ -107,5 +107,10 @@ namespace Cosmos.Common.Data
         /// Gets or sets article author.
         /// </summary>
         public string UserId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the page template ID here.
+        /// </summary>
+        public Guid? TemplateId { get; set; }
     }
 }

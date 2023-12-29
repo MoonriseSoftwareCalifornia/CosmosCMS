@@ -15,9 +15,9 @@
 		<SignAssembly>false</SignAssembly>
 		<AnalysisLevel>5.0</AnalysisLevel>
 		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-		<Version>8.0.0.3</Version>
-		<AssemblyVersion>8.0.0.3</AssemblyVersion>
-		<FileVersion>8.0.0.3</FileVersion>
+		<Version>8.0.1.1</Version>
+		<AssemblyVersion>8.0.1.1</AssemblyVersion>
+		<FileVersion>8.0.1.1</FileVersion>
 		<UserSecretsId>498e495c-d772-4d44-870d-92009f01de57</UserSecretsId>
 		<PackageProjectUrl>https://www.cosmoswps.com</PackageProjectUrl>
 		<NeutralLanguage></NeutralLanguage>
@@ -78,7 +78,7 @@
 		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.0" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.0" />
-		<PackageReference Include="MiniExcel" Version="1.31.2" />
+		<PackageReference Include="MiniExcel" Version="1.31.3" />
 		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

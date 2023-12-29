@@ -39,7 +39,7 @@
                         <thead>
                             <tr scope="col">
                                 <th scope="col">Action</th>
-                                <th scope="col" class="text-center" style="min-width:200px;">Edit With</th>
+                                <th scope="col" class="text-center" style="min-width:200px;"></th>
                                 <th scope="col">Title</th>
                                 <th scope="col">Description</th>
                                 <th scope="col">Trash</th>
@@ -52,21 +52,20 @@
                                 <tr scope="row">
                                     <td scope="row">
                                         <div class="btn-group" role="group" aria-label="Actions for this template">
-                                            <a class="btn btn-sm btn-secondary" href="@Url.Action("Edit", "Templates", new { Id = row.Id })" title="Edit title and description"><i class="fa-solid fa-pencil"></i></a>
-                                            <a class="btn btn-sm btn-secondary" href="@Url.Action("Preview", "Templates", new { Id = row.Id })" title="Preview"><span class="fa fa-binoculars"></span></a>
                                             <a class="btn btn-sm btn-secondary" href="@Url.Action("EditCode", "Templates", new { Id = row.Id })" title="Code editor"><img src="/images/monaco-vscode-logo.png" height="22" /></a>
+                                            <a class="btn btn-sm btn-secondary" asp-action="Pages" asp-route-id="@row.Id" title="View pages that use this template"><i class="fa-solid fa-circle-arrow-right"></i></a>
+                                            
+                                            <a class="btn btn-sm btn-secondary" href="@Url.Action("Preview", "Templates", new { Id = row.Id })" title="Preview"><span class="fa fa-binoculars"></span></a>
                                         </div>
                                     </td>
                                     <td scope="row">
-                                        <span class="me-2 fs-6" title="Creates a page that is editable with the code editor"><img style="height:14px" src="~/images/monaco-vscode-logo.png" /> Code</span>
-
                                         @if (row.UsesHtmlEditor)
                                         {
-                                            <span class="fs-6" title="Creates a page that is editable with the live (WYSIWYG) editor"><img style="height:18px" src="~/images/ckeditor-5-proj-logo.svg" /> Live</span>
+                                            <span class="fs-6" title="Creates a page that is editable with the live (WYSIWYG) editor">Live Editor Enabled</span>
                                         }
                                     </td>
                                     <td scope="row">
-                                        @row.Title
+                                        <a class="btn btn-sm btn-secondary" href="@Url.Action("Edit", "Templates", new { Id = row.Id })" title="Edit title and description"><i class="fa-solid fa-pencil"></i></a> @row.Title
                                     </td>
                                     <td scope="row">
                                         @Html.Raw(row.Description)

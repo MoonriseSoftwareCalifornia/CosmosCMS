@@ -51,15 +51,16 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Initializes a new instance of the <see cref="FileManagerController"/> class.
         /// </summary>
-        /// <param name="options"></param>
-        /// <param name="logger"></param>
-        /// <param name="dbContext"></param>
-        /// <param name="storageContext"></param>
-        /// <param name="userManager"></param>
-        /// <param name="articleLogic"></param>
-        /// <param name="hostEnvironment"></param>
-        /// <param name="viewRenderService"></param>
-        public FileManagerController(IOptions<CosmosConfig> options,
+        /// <param name="options">Cosmos options.</param>
+        /// <param name="logger">Logger service.</param>
+        /// <param name="dbContext">Database context.</param>
+        /// <param name="storageContext">Storage context.</param>
+        /// <param name="userManager">User manager context.</param>
+        /// <param name="articleLogic">Article logic.</param>
+        /// <param name="hostEnvironment">Host environment.</param>
+        /// <param name="viewRenderService">View rendering service</param>
+        public FileManagerController(
+            IOptions<CosmosConfig> options,
             ILogger<FileManagerController> logger,
             ApplicationDbContext dbContext,
             StorageContext storageContext,
@@ -96,16 +97,16 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// File manager index page.
         /// </summary>
-        /// <param name="target"></param>
-        /// <param name="sortOrder"></param>
-        /// <param name="currentSort"></param>
-        /// <param name="pageNo"></param>
-        /// <param name="pageSize"></param>
-        /// <param name="directoryOnly"></param>
-        /// <param name="container"></param>
-        /// <param name="selectOne"></param>
-        /// <param name="imagesOnly"></param>
-        /// <param name="isNewSession"></param>
+        /// <param name="target">Path to folder.</param>
+        /// <param name="sortOrder">Sort order.</param>
+        /// <param name="currentSort">Current or selected sort.</param>
+        /// <param name="pageNo">Page number to get.</param>
+        /// <param name="pageSize">Size of each page.</param>
+        /// <param name="directoryOnly">Only return directories.</param>
+        /// <param name="container">Container to search within.</param>
+        /// <param name="selectOne">Select one item triggered in UI.</param>
+        /// <param name="imagesOnly">Show only images.</param>
+        /// <param name="isNewSession">s a new session.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [HttpGet]
         public async Task<IActionResult> Index(string target, string sortOrder = "asc", string currentSort = "Name", int pageNo = 0, int pageSize = 10, bool directoryOnly = false, string container = "$web", bool selectOne = false, bool imagesOnly = false, bool isNewSession = false)
@@ -350,7 +351,9 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Gets a unique GUID for FilePond.
         /// </summary>
-        /// <returns></returns>
+        /// <param name="files">Files being uploaded.</param>
+        /// <param name="container">Container to use.</param>
+        /// <returns>Returns an IActionResult.</returns>
         [HttpPost]
         public ActionResult Process([FromForm] string files, [FromQuery] string container = "$web")
         {
@@ -366,9 +369,9 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Process a chunched upload.
         /// </summary>
-        /// <param name="patch"></param>
-        /// <param name="options"></param>
-        /// <param name="container"></param>
+        /// <param name="patch">Patch number</param>
+        /// <param name="options">Upload options.</param>
+        /// <param name="container">Upload container name.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [HttpPatch]
         public async Task<ActionResult> Process(string patch, string options = "", string container = "$web")
@@ -520,63 +523,63 @@ namespace Cosmos.Cms.Controllers
             }
         }
 
-        private async Task<FileUploadMetaData> SaveImage(Image image, string directory, string fileName, string extension, string contentType)
-        {
-            // jpeg, png, gif, bmp, webp and tiff
-            using var img = new MemoryStream();
+        //private async Task<FileUploadMetaData> SaveImage(Image image, string directory, string fileName, string extension, string contentType)
+        //{
+        //    // jpeg, png, gif, bmp, webp and tiff
+        //    using var img = new MemoryStream();
 
-            switch (extension)
-            {
-                case ".jpeg":
-                    await image.SaveAsJpegAsync(img);
-                    break;
-                case ".png":
-                    await image.SaveAsPngAsync(img);
-                    break;
-                case ".gif":
-                    await image.SaveAsGifAsync(img);
-                    break;
-                case ".bmp":
-                    await image.SaveAsBmpAsync(img);
-                    break;
-                case ".webp":
-                    await image.SaveAsWebpAsync(img);
-                    break;
-                case ".tiff":
-                    await image.SaveAsTiffAsync(img);
-                    break;
-            }
+        //    switch (extension)
+        //    {
+        //        case ".jpeg":
+        //            await image.SaveAsJpegAsync(img);
+        //            break;
+        //        case ".png":
+        //            await image.SaveAsPngAsync(img);
+        //            break;
+        //        case ".gif":
+        //            await image.SaveAsGifAsync(img);
+        //            break;
+        //        case ".bmp":
+        //            await image.SaveAsBmpAsync(img);
+        //            break;
+        //        case ".webp":
+        //            await image.SaveAsWebpAsync(img);
+        //            break;
+        //        case ".tiff":
+        //            await image.SaveAsTiffAsync(img);
+        //            break;
+        //    }
 
-            contentType = MimeTypeMap.GetMimeType(extension);
+        //    contentType = MimeTypeMap.GetMimeType(extension);
 
-            var metadata = new FileUploadMetaData()
-            {
-                ChunkIndex = 0,
-                ContentType = contentType,
-                FileName = fileName,
-                RelativePath = UrlEncode(directory + fileName),
-                TotalChunks = 1,
-                TotalFileSize = img.Length,
-                UploadUid = Guid.NewGuid().ToString()
-            };
+        //    var metadata = new FileUploadMetaData()
+        //    {
+        //        ChunkIndex = 0,
+        //        ContentType = contentType,
+        //        FileName = fileName,
+        //        RelativePath = UrlEncode(directory + fileName),
+        //        TotalChunks = 1,
+        //        TotalFileSize = img.Length,
+        //        UploadUid = Guid.NewGuid().ToString()
+        //    };
 
-            _storageContext.DeleteFile(metadata.RelativePath);
-            _storageContext.AppendBlob(img, metadata);
+        //    _storageContext.DeleteFile(metadata.RelativePath);
+        //    _storageContext.AppendBlob(img, metadata);
 
-            return metadata;
-        }
+        //    return metadata;
+        //}
 
-        private Rectangle GetRectangle(Image image, decimal percent)
-        {
-            // First step down
-            var x = (int)Math.Round(image.Width * percent);
-            var y = (int)Math.Round(image.Height * percent);
+        //private Rectangle GetRectangle(Image image, decimal percent)
+        //{
+        //    // First step down
+        //    var x = (int)Math.Round(image.Width * percent);
+        //    var y = (int)Math.Round(image.Height * percent);
 
-            var xdif = (int)Math.Round((image.Width - x) / (decimal)2);
-            var ydif = (int)Math.Round((image.Height - y) / (decimal)2);
+        //    var xdif = (int)Math.Round((image.Width - x) / (decimal)2);
+        //    var ydif = (int)Math.Round((image.Height - y) / (decimal)2);
 
-            return new Rectangle(xdif, ydif, x, y);
-        }
+        //    return new Rectangle(xdif, ydif, x, y);
+        //}
 
         private dynamic ReturnSimpleErrorMessage(string message)
         {
@@ -880,8 +883,8 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         ///     Encodes a URL.
         /// </summary>
-        /// <param name="path"></param>
-        /// <returns></returns>
+        /// <param name="path">URL path to encode.</param>
+        /// <returns>Returns a URL Encoded string.</returns>
         /// <remarks>
         ///     For more information, see
         ///     <a
@@ -1079,8 +1082,8 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         ///     Parses out a path into a string array.
         /// </summary>
-        /// <param name="pathParts"></param>
-        /// <returns></returns>
+        /// <param name="pathParts">URL path as an arrayto parse out.</param>
+        /// <returns>Processed path as an array.</returns>
         public string[] ParsePath(params string[] pathParts)
         {
             if (pathParts == null)
@@ -1115,8 +1118,8 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         ///     Trims leading and trailing slashes and white space from a path part.
         /// </summary>
-        /// <param name="part"></param>
-        /// <returns></returns>
+        /// <param name="part">URL path part to trim.</param>
+        /// <returns>Returns trimmed path.</returns>
         public string TrimPathPart(string part)
         {
             if (string.IsNullOrEmpty(part))

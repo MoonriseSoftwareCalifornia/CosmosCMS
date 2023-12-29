@@ -29,7 +29,6 @@
                         </tr>
                     </thead>
                     <tbody>
-
                     </tbody>
                     <tfoot>
                         <tr>
@@ -61,6 +60,13 @@
             { data: 'Phone' },
             { data: 'Created', render: DataTable.render.datetime() },
             { data: 'Updated', render: DataTable.render.datetime() }
+        ],
+        columnDefs: [
+            {
+                target: 0,
+                visible: false,
+                searchable: false
+            }
         ]
     });
 </script>

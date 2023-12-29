@@ -673,12 +673,13 @@ namespace Cosmos.Cms.Controllers
                     var pages = communityPages.Select(p => new Template()
                     {
                         CommunityLayoutId = p.CommunityLayoutId,
-                        Content = p.Content,
+                        Content = articleLogic.Ensure_ContentEditable_IsMarked(p.Content),
                         Description = p.Description,
                         LayoutId = layout.Id,
                         Title = p.Title
                     });
 
+                    // Mark the content editable regions.
                     dbContext.Templates.AddRange(pages);
                     await dbContext.SaveChangesAsync();
                 }

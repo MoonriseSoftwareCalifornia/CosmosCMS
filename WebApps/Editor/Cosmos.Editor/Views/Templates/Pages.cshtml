@@ -1,17 +1,18 @@
-@using Cosmos.Cms.Common.Services.Configurations;
+﻿@using Cosmos.Cms.Common.Services.Configurations;
 @using Cosmos.Cms.Services
 @using Microsoft.Extensions.Options;
 @inject IOptions<CosmosConfig> options
 @model List<ArticleListItem>
 @{
-    ViewData["Title"] = "Web Page Inventory";
+    var template = (Template)ViewData["template"];
+    ViewData["Title"] = template.Title;
 
     var publisherUrl = ViewData["PublisherUrl"];
     var isReviewer = User.IsInRole("Reviewers");
     var canEdit = User.IsInRole("Administrators") || User.IsInRole("Editors");
+    var canApplyChanges = (bool)ViewData["canApplyChanges"];
 
-    var homeArticleNumber = (int)ViewData["HomePageArticleNumber"];
-    var showFirstPageBtn = (bool)ViewData["ShowFirstPageBtn"];
+
     var showNotFoundBtn = (bool)ViewData["ShowNotFoundBtn"];
 
     var rowCount = (int)ViewData["RowCount"];
@@ -29,23 +30,13 @@
     <div class="container">
         <div class="row">
             <div class="col">
+                <p class="text-light">Page list inventory for template:</p>
                 <h3 class="text-light">@ViewData["Title"]</h3>
-                @if (showFirstPageBtn)
-                {
-                    <a class="btn btn-sm btn-primary" title="Create website home page" href="/Editor/Create">Create Home Page <i class="fa-solid fa-circle-arrow-right"></i></a>
-                }
-                @if (showFirstPageBtn == false && showFirstPageBtn)
-                {
-                    <a class="btn btn-sm btn-primary" title="Create a custom page when a user makes a request that cannot be found." href="/Editor/Create?title=Not%20Found">Create Not Found Page<i class="fa-solid fa-circle-arrow-right"></i></a>
-                }
             </div>
         </div>
         <div class="row">
             <div class="col-md-12 d-flex flex-row">
-                <button id="btnFilter" class="btn btn-sm btn-primary" style="min-width:100px;">Filter <i class="fa-solid fa-filter"></i></button>
-                <button id="btnOpen" title="Go to the version list for this page." class="btn btn-sm btn-primary" style="min-width:100px;" disabled>Go <i class="fa-solid fa-circle-arrow-right"></i></button>
-                <button id="btnCreate" title="Create a page with this title." class="btn btn-sm btn-primary" style="min-width:100px;">Create <i class="fa-solid fa-circle-arrow-right"></i></button>
-                <input id="combobox" autocomplete="off" placeholder="Search for a page ..." type="text" class="form-control bg-dark text-light" aria-label="Type to search for a page." style="height:32px" value="@filter">
+                <a class="btn btn-sm btn-secondary" asp-action="Index">Template list <i class="fa-solid fa-circle-arrow-right"></i></a>
             </div>
         </div>
         <div class="row cpws-table-pager-row-top">
@@ -53,13 +44,7 @@
                 @if (!isReviewer)
                 {
                     <div class="btn-group" role="group" aria-label="Actions">
-                        <a asp-action="Versions" asp-route-id="@homeArticleNumber" title="Edit home page" class="btn btn-sm btn-success">Edit home page</a>
-                        <a class="btn btn-sm btn-primary" title="Create a new web page" asp-action="Create">New Page</a>
-                        <a class="btn btn-sm btn-secondary" title="Create a new web page" asp-action="Index" asp-controller="Templates">Templates</a>
-                        <a title="Manage redirects" class="btn btn-sm btn-secondary" asp-action="Redirects">Redirects</a>
-                        <a title="Manage site design" class="btn btn-sm btn-secondary" asp-action="Index" asp-controller="Layouts">Site Design</a>
-                        <a title="Manage reserved paths" class="btn btn-sm btn-secondary" asp-action="ReservedPaths" asp-controller="Editor">Reserved Paths</a>
-                        <a title="Manage trash" class="btn btn-sm btn-secondary" asp-action="Trash">Trash</a>
+                        <a class="btn btn-sm btn-primary" title="Create a new web page" data-bs-toggle='modal' data-bs-target='#updConfModal'>Update all pages </a>
                     </div>
                 }
             </div>
@@ -98,10 +83,6 @@
                                         {
                                             <div title='Current home page.' class='btn btn-sm btn-success'><i class="fa-solid fa-house"></i></div>
                                         }
-                                        else if (row.LastPublished.HasValue)
-                                        {
-                                            <a href='/Editor/NewHome/@row.ArticleNumber' title='Make this the new home page.' class='btn btn-sm btn-secondary'><i class="fa-solid fa-house"></i></a>
-                                        }
                                     </td>
                                     <td title="Click to select article '@row.Title.'" onclick="openArticleVersions(@row.ArticleNumber)">
                                         @row.ArticleNumber
@@ -130,7 +111,7 @@
                                                 }
                                                 else
                                                 {
-                                                    <a href='/Editor/Permissions/@row.ArticleNumber' title='Set access permissions for users and roles.' id="btnArticleAccess" class='btn btn-sm btn-danger'><i class="fa-solid fa-users"></i></a>                                                  
+                                                    <a href='/Editor/Permissions/@row.ArticleNumber' title='Set access permissions for users and roles.' id="btnArticleAccess" class='btn btn-sm btn-danger'><i class="fa-solid fa-users"></i></a>
                                                 }
                                             </small>
                                         }
@@ -148,9 +129,9 @@
                                         <a class="btn btn-sm btn-secondary" title="Create a clone of this page" asp-action="Clone" asp-route-id="@row.ArticleNumber"><i class="fa-solid fa-copy"></i> Clone</a>
                                     </td>
                                     <td>
-                                        @if (canEdit && row.UrlPath != "root")
+                                        @if (canApplyChanges)
                                         {
-                                            <button type='button' onclick='selectArticle("@row.ArticleNumber", "@row.Title")' class='btn btn-sm btn-secondary' data-bs-toggle='modal' data-bs-target='#delConfModal'><i title='Send article to trash' class='fa-solid fa-trash'></i> Trash</button>
+                                            <a class='btn btn-sm btn-secondary' asp-action="UpdatePage" asp-route-id="@row.ArticleNumber" asp-route-templateId="@template.Id" title="Update this page with the latest template version and open page in live editor."><i class="fa-solid fa-file-export"></i></a>
                                         }
                                     </td>
                                 </tr>
@@ -173,20 +154,23 @@
 </form>
 
 <!-- Modal -->
-<div class="modal fade" id="delConfModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="updConfModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content text-bg-dark mt-5">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Confirm Delete</h5>
+                <h5 class="modal-title" id="exampleModalLabel">Confirm Update?</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p>Are you sure you want to delete this page?</p>
-                <p class="fs-5" id="articleTitle"></p>
+                <h5>WARNING!</h5>
+                <p>You are about to update all pages that use this template. <i>This may result in loss of content.</i></p>
+                <p>Tip: Update a single page first to ensure changes will be OK before updating all pages.</p>
+                <h5>IMPORTANT!</h5>
+                <p>Please wait for this to be finished. This may take several minutes if many pages need to be updated.</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="sendToTrash()">Confirm</button>
+                <button type="button" class="btn btn-primary" onclick="updateAll()">Confirm</button>
             </div>
         </div>
     </div>
@@ -214,12 +198,12 @@
         return true;
     }
 
-    function sendToTrash() {
-        window.location.href = "@Url.Action("TrashArticle", "Editor")/" + articleNumber;
+    function updateAll() {
+        window.location.href = "@Url.Action("UpdateAll", "Templates", new { id = template.Id })";
     }
 
     function openArticleVersions(id) {
-        window.location.href = "@Url.Action("Versions")/" + id;
+        window.location.href = "@Url.Action("Versions", "Editor")/" + id;
     }
 
     function unpublish(articleNumber) {
@@ -236,80 +220,6 @@
             $(element).html(getLocalTime($(element).html()));
         });
 
-        $("#btnCreate").hide();
-
-        $("#btnCreate").click(function (e) {
-            window.location.href = "@Url.Action("Create", "Editor")?title=" + $("#combobox").val();
-        });
-
-        // COMBOBOX
-        $("#combobox").combobox({
-            source: function (request, response) {
-
-                $("#btnOpen").prop('disabled', true);
-                $("#btnOpen").show();
-                $("#btnCreate").hide();
-                $("#btnFilter").prop('disabled', true);
-
-                $.ajax({
-                    url: "@Url.Action("GetArticleList","Editor")",
-                    dataType: "json",
-                    data: {
-                        term: request.term
-                    },
-                    success: function (data) {
-                        let results = [];
-                        let showCreate = true;
-                        $.each(data, function (index, entity) {
-                            var item = { label: entity.Title, value: entity.Title, url: entity.UrlPath, updated: entity.Updated, id: entity.ArticleNumber, published: entity.LastPublished };
-                            results.push(item);
-                            if (request.term.toLowerCase() === item.label.toLowerCase()) {
-                                showCreate = false;
-                            }
-                        });
-                        response(results);
-                        var value = $("#combobox").val();
-
-                        if (value !== null && value.length > 0) {
-                            $("#btnFilter").prop('disabled', false);
-                        }
-
-                        $("#btnOpen").hide();
-
-                        if (showCreate) {
-                            $("#btnCreate").show();
-                        }
-                    }
-                });
-            },
-            select: function (event, ui) {
-                $("#btnCreate").hide();
-                $("#btnOpen").show();
-                $("#btnOpen").click(function () {
-                    window.location.href = "@Url.Action("Versions", "Editor")/" + ui.item.id;
-                });
-                $("#btnOpen").prop('disabled', false);
-            }
-        });
-
-        $("#combobox").keypress(function (event) {
-            var keycode = (event.keyCode ? event.keyCode : event.which);
-            if (keycode == '13') {
-                var url = "/Editor/Index?pageNo=0&sortOrder=@sortOrder&currentSort=@currentSort&pageSize=@pageSize&filter=" + $("#combobox").val();
-                window.location.href = url;
-            }
-        });
-
-        $("#btnFilter").click(function (e) {
-            e.preventDefault();
-            var url = "/Editor/Index?pageNo=0&sortOrder=@sortOrder&currentSort=@currentSort&pageSize=@pageSize&filter=" + $("#combobox").val();
-            window.location.href = url;
-        });
-
-
-        if ("@filter" === "") {
-            $("#btnFilter").prop('disabled', true);
-        }
     });
 
 

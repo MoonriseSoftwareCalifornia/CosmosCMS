@@ -7,9 +7,9 @@
 		<EnableNETAnalyzers>false</EnableNETAnalyzers>
 		<RepositoryUrl>https://github.com/CosmosSoftware/CosmosCms</RepositoryUrl>
 		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-		<Version>8.0.0.3</Version>
-		<AssemblyVersion>8.0.0.3</AssemblyVersion>
-		<FileVersion>8.0.0.3</FileVersion>
+		<Version>8.0.1.1</Version>
+		<AssemblyVersion>8.0.1.1</AssemblyVersion>
+		<FileVersion>8.0.1.1</FileVersion>
 		<RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
 		<Authors></Authors>
 		<ApplicationInsightsResourceId>/subscriptions/9bdb8e29-156f-4fc9-a1fe-1bb6a915a4f0/resourceGroups/CosmosCMS/providers/microsoft.insights/components/edit-cosmos-cms202107021426</ApplicationInsightsResourceId>
@@ -79,8 +79,8 @@
 		<PackageReference Include="Azure.ResourceManager.Cdn" Version="1.2.0" />
 		<PackageReference Include="Azure.ResourceManager.FrontDoor" Version="1.2.0" />
 		<PackageReference Include="CsvHelper" Version="30.0.1" />
-		<PackageReference Include="EPPlus" Version="7.0.4" />
-		<PackageReference Include="HtmlAgilityPack" Version="1.11.55" />
+		<PackageReference Include="EPPlus" Version="7.0.5" />
+		<PackageReference Include="HtmlAgilityPack" Version="1.11.57" />
 		<PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.AzureADB2C.UI" Version="6.0.25" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.0" />

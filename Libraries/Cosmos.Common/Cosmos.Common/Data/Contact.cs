@@ -22,9 +22,14 @@ namespace Cosmos.Common.Data
         public Guid Id { get; set; } = Guid.NewGuid();
 
         /// <summary>
-        /// Gets or sets customer name.
+        /// Gets or sets customer first name.
         /// </summary>
-        public string Name { get; set; }
+        public string FirstName { get; set; }
+
+        /// <summary>
+        /// Gets or sets customer last name.
+        /// </summary>
+        public string LastName { get; set; }
 
         /// <summary>
         /// Gets or sets a customer's email address.
