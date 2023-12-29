@@ -1,5 +1,6 @@
 ﻿@{
     ViewData["Title"] = "Customer Contact List";
+    var mailChimpIntegrated = (bool)ViewData["MailChimpIntegrated"];
 }
 <div class="pt-3">
     <div class="container">
@@ -7,6 +8,15 @@
             <div class="col text-light">
                 <h3 class="text-light">@ViewData["Title"]</h3>
                 <p>People shown here have signed up to be on the customer contact list for this website.</p>
+                @if (mailChimpIntegrated)
+                {
+                    <a class="btn btn-sm btn-success" asp-action="MailChimp" title="MailChimp is integrated. Click to change settings."><i class="fa-brands fa-mailchimp"></i> Integrated</a>
+                    <a class="btn btn-sm btn-secondary" asp-action="RemoveMailChimp" title="Remove MailChimp settings and integration.">Remove</a>
+                }
+                else
+                {
+                    <a class="btn btn-sm btn-secondary" asp-action="MailChimp" title="Click to setup MailChimp integration."><i class="fa-brands fa-mailchimp"></i> Setup</a>
+                }
                 <div asp-validation-summary="All" class="text-danger"></div>
             </div>
         </div>
@@ -21,7 +31,8 @@
                     <thead>
                         <tr>
                             <th>Id</th>
-                            <th>Name</th>
+                            <th>First name</th>
+                            <th>Last name</th>
                             <th>Email</th>
                             <th>Phone</th>
                             <th>Created</th>
@@ -33,7 +44,8 @@
                     <tfoot>
                         <tr>
                             <th>Id</th>
-                            <th>Name</th>
+                            <th>First name</th>
+                            <th>Last name</th>
                             <th>Email</th>
                             <th>Phone</th>
                             <th>Created</th>
@@ -55,7 +67,8 @@
         ajax: '/Cosmos___Contacts/GetContacts',
         columns: [
             { data: 'Id' },
-            { data: 'Name' },
+            { data: 'FirstName' },
+            { data: 'LastName' },
             { data: 'Email' },
             { data: 'Phone' },
             { data: 'Created', render: DataTable.render.datetime() },

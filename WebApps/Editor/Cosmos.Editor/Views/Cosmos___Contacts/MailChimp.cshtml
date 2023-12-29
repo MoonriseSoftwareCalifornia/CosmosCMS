@@ -1,0 +1,40 @@
+﻿@using Cosmos.Common.Services.Configurations
+@model MailChimpConfig
+@{
+    ViewData["Title"] = "MailChimp Configuration";
+}
+<div class="container mt-3">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-light">
+            <h3 class="text-light">@ViewData["Title"]</h3>
+            <p>When this form is filled out, customer contacts are forwarded to your MailChimp account.</p>
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <form asp-action="MailChimp" method="post" autocomplete="off">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="All" class="text-danger"></div>
+                <div class="form-group mb-3">
+                    <label asp-for="ApiKey"></label>
+                    <input asp-for="ApiKey" class="form-control" autocomplete="off" placeholder="Enter API Key" />
+                    <span asp-validation-for="ApiKey" class="text-danger"></span>
+                </div>
+                <div class="form-group mb-3">
+                    <label asp-for="ContactListName"></label>
+                    <input asp-for="ContactListName" class="form-control" autocomplete="off" placeholder="Enter list name" />
+                    <span asp-validation-for="ContactListName" class="text-danger"></span>
+                </div>
+                <div class="form-group mb-3">
+                    <a class="btn btn-secondary" asp-action="Index">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+                <div class="form-group mb-3">
+                    <a target="_blank" class="text-light" href="https://mailchimp.com/">Need a MailChimp account?</a>
+                    <a target="_blank" class="text-light" href="https://us21.admin.mailchimp.com/account/api/">Need an Api Key?</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

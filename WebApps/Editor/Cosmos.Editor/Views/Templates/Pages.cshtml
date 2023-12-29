@@ -41,7 +41,7 @@
         </div>
         <div class="row cpws-table-pager-row-top">
             <div class="col-md-6">
-                @if (!isReviewer)
+                @if (canEdit && canApplyChanges)
                 {
                     <div class="btn-group" role="group" aria-label="Actions">
                         <a class="btn btn-sm btn-primary" title="Create a new web page" data-bs-toggle='modal' data-bs-target='#updConfModal'>Update all pages </a>
@@ -129,7 +129,7 @@
                                         <a class="btn btn-sm btn-secondary" title="Create a clone of this page" asp-action="Clone" asp-route-id="@row.ArticleNumber"><i class="fa-solid fa-copy"></i> Clone</a>
                                     </td>
                                     <td>
-                                        @if (canApplyChanges)
+                                        @if (canEdit && canApplyChanges)
                                         {
                                             <a class='btn btn-sm btn-secondary' asp-action="UpdatePage" asp-route-id="@row.ArticleNumber" asp-route-templateId="@template.Id" title="Update this page with the latest template version and open page in live editor."><i class="fa-solid fa-file-export"></i></a>
                                         }

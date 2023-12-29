@@ -14,12 +14,16 @@ namespace Cosmos.Common
     using Cosmos.Common.Data;
     using Cosmos.Common.Data.Logic;
     using Cosmos.Common.Models;
+    using MailChimp.Net.Interfaces;
+    using MailChimp.Net;
     using Microsoft.AspNetCore.Antiforgery;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Cors;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
+    using MailChimp.Net.Models;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Methods common to both the editor and publisher home controllers.
@@ -152,7 +156,7 @@ namespace Cosmos.Common
 
                     if (contact == null)
                     {
-                        dbContext.Contacts.Add(new Contact() { Email = model.Email.ToLower(), FirstName = model.FirstName, LastName = model.LastName, Phone = model.Phone });
+                        dbContext.Contacts.Add(new Data.Contact() { Email = model.Email.ToLower(), FirstName = model.FirstName, LastName = model.LastName, Phone = model.Phone });
                     }
                     else
                     {
@@ -164,12 +168,29 @@ namespace Cosmos.Common
 
                     await dbContext.SaveChangesAsync();
 
+                    // MailChimp? If so add contact to list.
+                    var settings = await dbContext.Settings.Where(w => w.Group == "MailChimp").ToListAsync();
+                    if (settings.Count > 0)
+                    {
+                        var key = settings.FirstOrDefault(f => f.Name == "ApiKey");
+                        var list = settings.FirstOrDefault(f => f.Name == "ContactListName");
+                        IMailChimpManager manager = new MailChimpManager(key.Value);
+
+                        var lists = await manager.Lists.GetAllAsync();
+                        var mclist = lists.FirstOrDefault(w => w.Name.Equals(list.Value, StringComparison.OrdinalIgnoreCase));
+
+                        var member = new Member { FullName = $"{model.FirstName} {model.LastName}", EmailAddress = contact.Email, StatusIfNew = Status.Subscribed };
+                        member.MergeFields.Add("FNAME", model.FirstName);
+                        member.MergeFields.Add("LNAME", model.LastName);
+                        
+                        await manager.Members.AddOrUpdateAsync(mclist.Id, member);
+                    }
+
                     return Json(model);
                 }
 
                 return BadRequest(ModelState);
 
-                return Unauthorized();
             }
             catch (Exception e)
             {

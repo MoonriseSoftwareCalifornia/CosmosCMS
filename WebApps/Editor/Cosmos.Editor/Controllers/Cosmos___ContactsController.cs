@@ -14,6 +14,7 @@ namespace Cosmos.Editor.Controllers
     using System.Threading.Tasks;
     using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Common.Data;
+    using Cosmos.Common.Services.Configurations;
     using Cosmos.Editor.Models;
     using CsvHelper;
     using Microsoft.AspNetCore.Authorization;
@@ -22,6 +23,7 @@ namespace Cosmos.Editor.Controllers
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
+    using NuGet.Configuration;
 
     /// <summary>
     /// Contact Us Controller.
@@ -58,8 +60,9 @@ namespace Cosmos.Editor.Controllers
         /// Gets the contact list page.
         /// </summary>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            ViewData["MailChimpIntegrated"] = await dbContext.Settings.Where(w => w.Group == "MailChimp").CosmosAnyAsync();
             return View();
         }
 
@@ -109,6 +112,84 @@ namespace Cosmos.Editor.Controllers
             await csv.FlushAsync();
 
             return File(memoryStream.ToArray(), "application/csv", fileDownloadName: "contact-list.csv");
+        }
+
+        /// <summary>
+        /// Opens the MailChimp configuration page.
+        /// </summary>
+        /// <returns>Returns the view.</returns>
+        public async Task<IActionResult> MailChimp()
+        {
+            var settings = await dbContext.Settings.Where(w => w.Group == "MailChimp").ToListAsync();
+
+            var model = new MailChimpConfig();
+
+            if (settings.Count == 0)
+            {
+                return View(model);
+            }
+
+            model.ContactListName = settings.FirstOrDefault(f => f.Name == "ContactListName")?.Value;
+            model.ApiKey = settings.FirstOrDefault(f => f.Name == "ApiKey")?.Value;
+
+            return View(model);
+        }
+
+        /// <summary>
+        /// Removes MailChimp settings.
+        /// </summary>
+        /// <returns>Redirects to Index when done.</returns>
+        public async Task<IActionResult> RemoveMailChimp()
+        {
+            var settings = await dbContext.Settings.Where(w => w.Group == "MailChimp").ToListAsync();
+            dbContext.Settings.RemoveRange(settings);
+            await dbContext.SaveChangesAsync();
+            return RedirectToAction("Index");
+        }
+
+        /// <summary>
+        /// Saves MailChimp settings.
+        /// </summary>
+        /// <param name="model">MailChimp configuration model.</param>
+        /// <returns>Redirects to index if successful.</returns>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MailChimp(MailChimpConfig model)
+        {
+            if (ModelState.IsValid)
+            {
+                var settings = await dbContext.Settings.Where(w => w.Group == "MailChimp").ToListAsync();
+                var key = settings.FirstOrDefault(f => f.Name == "ApiKey");
+                var list = settings.FirstOrDefault(f => f.Name == "ContactListName");
+
+                if (key == null)
+                {
+                    key = new Setting() { Group = "MailChimp", Name = "ApiKey", Value = model.ApiKey, Description = "MailChip API Key." };
+                    dbContext.Settings.Add(key);
+                }
+                else
+                {
+                    key.Value = model.ApiKey;
+                }
+
+                if (list == null)
+                {
+                    list = new Setting() { Group = "MailChimp", Name = "ContactListName", Value = model.ContactListName.Trim(), Description = "List name that contacts are added to." };
+                    dbContext.Settings.Add(list);
+                }
+                else
+                {
+                    list.Value = model.ContactListName;
+                }
+
+                await dbContext.SaveChangesAsync();
+
+                return RedirectToAction("Index");
+
+            }
+            
+            // Something isn't right.
+            return View(model);
         }
 
         /// <summary>
