@@ -1,28 +1,22 @@
-Terms of Service
+Cosmos Website Solutions Terms of Service
 ----------------
 
 *Last Updated: October 31, 2023*
 
-The Gist
+Introduction
 --------
 
-We (the [folks at Automattic](https://automattic.com/about/)) are on a mission to make the web a better place. We hope you love our products and services — from website publishing tools to ecommerce solutions to security backup systems to management tools for distributed companies to the next great idea that we haven’t even thought of yet — as much as we love creating them.
-
-These Terms of Service (”Terms”) describe our commitments to you, and your rights and responsibilities when using our services. Please read them carefully and reach out to us if you have any questions.** If you don’t agree to these Terms, don’t use our services.**
+These Terms of Service (”Terms”) describes our commitments to you, and your rights and responsibilities when using our services. Please read them carefully and reach out to us if you have any questions.** If you don’t agree to these Terms, don’t use our services.**
 
 If you are a user in countries located in the European Economic Area, Switzerland, or the United Kingdom (“European User”), some special terms apply to you as mentioned below.**\
 **
 
-We’ve made these Terms available under a [Creative Commons Sharealike license](https://creativecommons.org/licenses/by-sa/4.0/), which means that you’re more than welcome to copy them, adapt them, and repurpose them for your own use. Just make sure to revise them so that your Terms of Service reflect your actual practices. Also, if you do use these Terms, we’d appreciate a credit and link to Automattic somewhere on your website. You can grab a copy of these Terms and other legal documents on [GitHub](https://github.com/Automattic/legalmattic).
-
 Terms of Service
 ----------------
 
-These Terms govern your access to and use of the products and services we provide through or for [WordPress.com](https://wordpress.com/), [Woo.com](https://woocommerce.com/), [WooPay](https://pay.woo.com/), [Jetpack.com](https://jetpack.com/), [Gravatar.com](https://gravatar.com/), [VaultPress.com](https://vaultpress.com/), [Happy.Tools](https://happy.tools/), [Jetpack CRM](https://jetpackcrm.com/), [MailPoet](http://mailpoet.com/), [WPScan.com](https://wpscan.com/), and [WordPress.com Courses](https://wpcourses.com/) (such products and services, collectively, “Services”). Please note that Woo-related products and services are intended for commercial use and you acknowledge that your use is that of a representative of a business (as defined by applicable law) and not that of a consumer.
+These Terms govern your access to and use of the products and services we provide through or for [Cosmos CMS](https://www.cosmosws.io). 
 
-These Terms also govern visitors’ access to and use of any websites that use our Services, like the websites that our users create on WordPress.com. Please note though that the operators of those websites may also have their own separate terms of use.
-
-For some of Automattic’s other products, services, and programs, such as [Akismet](https://akismet.com/), [Crowdsignal](https://crowdsignal.com/), [Newspack](https://newspack.pub/), [WordPress VIP](https://wpvip.com/), our [Affiliate Program](https://refer.wordpress.com/), and our [Refer-A-Friend Program](https://wordpress.com/refer-a-friend-program-terms-of-service/), additional or separate terms and policies may apply.
+These Terms also govern visitors’ access to and use of any websites that use our Services, like the websites that our users create using Cosmos CMS. Please note though that the operators of those websites may also have their own separate terms of use.
 
 Please read these Terms carefully before accessing or using our Services. By accessing or using any part of our Services, you agree to be bound by all of the Terms and all other operating rules, policies, and procedures that we may publish via the Services from time to time (collectively, the “Agreement”). You also agree that we may automatically change, update, or add on to our Services as stated in the Terms, and the Agreement will apply to any changes.
 
@@ -33,34 +27,24 @@ Please read these Terms carefully before accessing or using our Services. By acc
 
 Please see below to determine which entity your Agreement is with, which depends on where you reside and which Services you use. We use the term “Designated Countries” to refer to Australia, Canada, Japan, Mexico, New Zealand, Russia, and all countries located in Europe.
 
-**Automattic Services (except Woo)**
+**Cosmos Website Solutions, Inc.**
 
--   If you reside outside of the Designated Countries: Automattic Inc.
--   If you reside in the Designated Countries: Aut O’Mattic A8C Ireland Ltd.
-
-**Woo Services**
-
-*Woo services includes WooCommerce, WooPayments, Woo Shipping, Woo Tax, MailPoet, and other products or services available at Woo.com. (Please note that for the use of Third-Party Services — as defined below — additional terms may govern).*
-
--   If you reside outside of the Designated Countries: WooCommerce, Inc.
--   If you reside in the Designated Countries: WooCommerce Ireland Ltd.
-
-We refer to Automattic Inc., Aut O’Mattic A8C Ireland Ltd., WooCommerce, Inc., and WooCommerce Ireland Ltd. collectively as “Automattic,” “us,” or “we” throughout these Terms.
+We refer to Cosmos Website Solutions, Inc. as “us,” or “we” throughout these Terms.
 
 2\. Your Account
 ----------------
 
-When using our Services requires an account, you agree to provide us with complete and accurate information and to keep the information current so that we can communicate with you about your account. We may need to send you emails about notable updates (like changes to our Terms of Service or Privacy Policy), or to let you know about legal inquiries or complaints we receive about the ways you use our Services so you can make informed choices in response.
+Using our Services requires an account, and you agree to provide us with complete and accurate information, and to keep the information current so that we can communicate with you about your account. We may need to send you emails about notable updates (like changes to our Terms of Service or Privacy Policy), or to let you know about legal inquiries or complaints we receive about the ways you use our Services so you can make informed choices in response.
 
 We may limit your access to our Services until we’re able to verify your account information, like your email address.
 
-When you create a WordPress.com account, we consider that to be an inquiry about our products and services, which means that we may also contact you to share more details about what we have to offer (i.e., marketing). Don’t worry — if you aren’t interested, you can opt out of the marketing communications, whether it’s an email, phone call, or text message.
+When you create an account with us, we consider that to be an inquiry about our products and services, which means that we may also contact you to share more details about what we have to offer (i.e., marketing). Don’t worry — if you aren’t interested, you can opt out of the marketing communications, whether it’s an email, phone call, or text message.
 
 You’re solely responsible and liable for all activity under your account. You’re also fully responsible for maintaining the security of your account (which includes keeping your password secure). We’re not liable for any acts or omissions by you, including any damages of any kind incurred as a result of your acts or omissions. If you get fired because of a blog post you write about your boss, that’s on you.
 
 Don’t share or misuse your access credentials. And notify us immediately of any unauthorized uses of your account, store, or website, or of any other breach of security. If we believe your account has been compromised, we may suspend or disable it.
 
-If you’d like to learn about how we handle the data you provide us, please see our [Privacy Policy](https://automattic.com/privacy/).
+If you’d like to learn about how we handle the data you provide us, please see our [Privacy Policy](https:/www.cosmosws.io/privacy).
 
 3\. Minimum Age Requirements
 ----------------------------
@@ -85,7 +69,7 @@ Please note that additional third-party terms and conditions may apply to Conten
 5\. Fees, Payment, and Renewal
 ------------------------------
 
-### a. Automattic Fees
+### a. Cosmos Website Solutions Fees
 
 **Fees for Paid Services.** Some of our Services are offered for a fee, like certain [WordPress.com plans](https://wordpress.com/pricing/) or Woo themes or extensions (collectively, “Paid Services”). This section applies to any purchases of Paid Services.
 
