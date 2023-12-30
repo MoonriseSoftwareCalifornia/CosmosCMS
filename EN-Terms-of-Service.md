@@ -29,7 +29,7 @@ Please see below to determine which entity your Agreement is with, which depends
 
 **Cosmos Website Solutions, Inc.**
 
-We refer to Cosmos Website Solutions, Inc. as “us,” or “we," or "Cosmos WS" throughout these Terms.
+We refer to Cosmos Website Solutions, Inc. as “us,” or “we," or "Cosmos Website Solutions," or "Cosmos WS" throughout these Terms.
 
 2\. Your Account
 ----------------
@@ -71,9 +71,9 @@ Please note that additional third-party terms and conditions may apply to Conten
 
 ### a. Cosmos Website Solutions Fees
 
-**Fees for Paid Services.** Some of our Services are offered for a fee, like certain [WordPress.com plans](https://wordpress.com/pricing/) or Woo themes or extensions (collectively, “Paid Services”). This section applies to any purchases of Paid Services.
+**Fees for Paid Services.** Some of our Services are offered for a fee, like certain [Cosmos CMS plans and services](https://www.cosmosws.io/pricing/). This section applies to any purchases of Paid Services.
 
-By using a Paid Service, you agree to pay the specified fees. Depending on the Paid Service, there may be different kinds of fees, like some that are one-time, recurring, revenue-based, or based on an advertising campaign budget that you set. For recurring fees (AKA subscriptions), your subscription begins on your purchase date, and we’ll bill or charge you in the automatically-renewing interval (such as monthly, annually, or biennially) you select, on a pre-pay basis until you cancel, which you can do at any time by contacting the relevant support team. For revenue-based fees — such as [fees for the Payments feature](https://wordpress.com/support/wordpress-editor/blocks/payments/#related-fees) — you pay us a percentage of the revenue your website generates. Revenue-based fees are ongoing.
+By using a Paid Service, you agree to pay the specified fees. Depending on the Paid Service, there may be different kinds of fees, like some that are one-time, recurring, revenue-based, or based on an advertising campaign budget that you set. For recurring fees (AKA subscriptions), your subscription begins on your purchase date, and we’ll bill or charge you in the automatically-renewing interval (such as monthly, annually, or biennially) you select, on a pre-pay basis until you cancel, which you can do at any time by contacting the relevant support team.
 
 **Taxes.** To the extent permitted by law, or unless explicitly stated otherwise, all fees do not include applicable federal, provincial, state, local or other governmental sales, value-added, goods and services, harmonized or other taxes, fees, or charges (”Taxes”). You’re responsible for paying all applicable Taxes relating to your use of our Services, your payments, or your purchases. If we’re obligated to pay or collect Taxes on the fees you’ve paid or will pay, you’re responsible for those Taxes, and we may collect payment from you.
 
@@ -81,7 +81,7 @@ By using a Paid Service, you agree to pay the specified fees. Depending on the P
 
 **Automatic Renewal. **By enrolling in a subscription, you authorize us to automatically charge the then-applicable fees and Taxes for each subsequent subscription period until the subscription is canceled. If you received a discount, used a coupon code, or subscribed during a free trial or promotion, your subscription will automatically renew for the full price of the subscription at the end of the discount period. This means that unless you cancel a subscription, it’ll automatically renew and we’ll charge your payment method(s). You must cancel at least one month before the scheduled end date of any annual subscription and at least 24 hours before the end of any shorter subscription period. The date for the automatic renewal is based on the date of the original purchase and cannot be changed. If you’ve purchased access to multiple services, you may have multiple renewal dates.
 
-You can view your renewal date(s), cancel, or manage subscriptions in your settings (for example, [WordPress.com’s Manage Purchases page](https://wordpress.com/me/purchases) or [Woo’s My Subscriptions page](http://woocommerce.com/my-account/my-subscriptions/)) or by contacting the support team.
+You can view your renewal date(s), cancel, or manage subscriptions by contacting the support team.
 
 **Fees and Changes.** We may change our fees at any time in accordance with these Terms and requirements under applicable law. This means that we may change our fees going forward, start charging fees for Services that were previously free, or remove or update features or functionality that were previously included in the fees. If you don’t agree with the changes, you must cancel your Paid Service.
 
@@ -93,15 +93,11 @@ European Users: You have the right to withdraw from the transaction within fourt
 
 If you cancel this contract, we will reimburse you all payments we have received from you, including delivery costs (with the exception of additional costs resulting from the fact that you have chosen a type of delivery other than the most favorable standard delivery offered by us), without undue delay and no later than within fourteen days from the day on which we received the notification of your cancellation of this contract. For this repayment, we will use the same means of payment that you used for the original transaction, unless expressly agreed otherwise with you; you will not be charged for this repayment. If you have requested that we begin our services during the withdrawal period, you will pay us a reasonable amount corresponding to the services already provided up to the time you notify us of the exercise of the withdrawal right compared to the total scope of the services provided for in the contract. If you cancel your contract with us, you will refrain from using the digital content or digital services or making them available to third parties.
 
-You may exercise your right to withdrawal by sending a clear, written request to: Aut O’Mattic A8C Ireland Ltd., Grand Canal Dock, 25 Herbert Pl, Dublin, D02 AY86 Ireland or by using [this model form](https://wordpress.com/support/right-to-withdrawal/).
+You may exercise your right to withdrawal by sending a clear, written request to: Cosmos Website Solutions, Inc. PO Box 604, Rancho Cordova, CA, 95741, USA.
 
 ### b. Fees Collected by Website Owners
 
 **Fees Paid to Websites or Website Owners.** Website owners can sell items (goods, content, services, etc.), offer subscriptions for their websites at specific price points and intervals, or simply collect payments. We’re not involved in a website’s subscription details or store operations (including the quality, timing, pricing, or legality of what may or may not be included in exchange for payment, or any goods or services purchased). If you buy items or subscriptions from a website, you’re making the purchase directly from the website owner, and they’re solely responsible for the items sold. Please contact the website owner if you have any questions or complaints.
-
-**Automatic Renewal. **Any recurring payments you make to a WordPress.com website owner (like a [website subscription](https://wordpress.com/support/recurring-payments/)) are automatically renewed. This means that unless you or the website owner cancels your website subscription before the end of the subscription period, it’ll automatically renew and your payment method will be charged. For example, if you select an annually renewing website subscription, you’ll be automatically charged once each year until the subscription is canceled. You can view the renewal dates or cancel your website subscriptions on your [Purchases page](https://wordpress.com/me/purchases/other).
-
-**Refunds.** We’re not responsible for refunding fees paid to a website owner because those transactions are between website owners and their users. If you’d like to request a refund, please contact the website owner. If you have a complaint regarding a website owner, you can [contact us](https://en.wordpress.com/abuse/).
 
 6\. Feedback
 ------------
