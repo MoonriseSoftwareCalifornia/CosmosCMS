@@ -29,7 +29,7 @@ Please see below to determine which entity your Agreement is with, which depends
 
 **Cosmos Website Solutions, Inc.**
 
-We refer to Cosmos Website Solutions, Inc. as “us,” or “we” throughout these Terms.
+We refer to Cosmos Website Solutions, Inc. as “us,” or “we," or "Cosmos WS" throughout these Terms.
 
 2\. Your Account
 ----------------
