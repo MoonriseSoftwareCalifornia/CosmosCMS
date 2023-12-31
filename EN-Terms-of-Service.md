@@ -124,21 +124,21 @@ Our mission is to make the web a better place, and our Services are designed to 
 8\. Specific Service Terms
 --------------------------
 
-### a. WordPress.com Websites and Accounts
+### a. Cosmos WS Websites and Accounts
 
-[WordPress.com](https://wordpress.com/) enables you to create beautiful websites and blogs, and we would love for you to use it. A WordPress.com account also allows you to sign into some of our other Services.
+[Cosmos CMS](https://www.cosmosws.io/) enables you to create beautiful websites and blogs, and we would love for you to use it. A Cosmos WS account also allows you to sign into some of our other Services.
 
-WordPress.com’s basic service is free, and we offer [paid plans](https://wordpress.com/pricing/) that add advanced features like a custom domain name, extra storage, and access to premium themes. We don’t own your content, and you retain all ownership rights you have in the content you post to your website. However, be responsible in what you publish. In particular, make sure that nothing prohibited (like spam, viruses, or serious threats of violence) appears on your website.
+Cosmos WS basic service is free, and we offer [paid plans](https://www.cosmosws.io/pricing) that add advanced features like a custom domain name, extra storage, and access to premium themes. We don’t own your content, and you retain all ownership rights you have in the content you post to your website. However, be responsible in what you publish. In particular, make sure that nothing prohibited (like spam, viruses, or serious threats of violence) appears on your website.
 
-If you find a WordPress.com website that you believe violates these Terms, please [let us know](https://en.support.wordpress.com/report-blogs/).
+If you find a Cosmos WS website that you believe violates these Terms, please [let us know](https://www.cosmosws.io/support).
 
-**Your WordPress.com Website’s URL.** If you create a website on WordPress.com, you get free use of an Automattic-owned subdomain, like yourgroovysite.wordpress.com or mollys.food.blog. You must not engage in “domain squatting,” claim an unreasonable number of subdomains (as determined by us), or sell access to any subdomains.
+**Your Website’s URL.** If you create a websitewith Cosmos WS, you get free use of an Cosmos WS-owned subdomain, like yourgroovysite.cosmosws.io. You must not engage in “domain squatting,” claim an unreasonable number of subdomains (as determined by us), or sell access to any subdomains.
 
-**License.** By uploading or sharing Content, you grant us a worldwide, royalty-free, transferable, sub-licensable, and non-exclusive license to use, reproduce, modify, distribute, adapt, publicly display, and publish the Content solely for the purpose of providing and improving our products and Services and promoting your website. This license also allows us to make any publicly-posted Content available to select third parties (through [Firehose](https://developer.wordpress.com/docs/firehose/), for example) so that these third parties can analyze and distribute (but not publicly display) the Content through their services. You also give other WordPress.com users permission to share your Content on other WordPress.com websites and add their own Content to it (aka to “reblog” your Content), so long as they use only a portion of your post and they give you credit as the original author by linking back to your website, which the [reblogging](https://en.support.wordpress.com/reblogs/) function on WordPress.com does automatically.
+**License.** By uploading or sharing Content, you grant us a worldwide, royalty-free, transferable, sub-licensable, and non-exclusive license to use, reproduce, modify, distribute, adapt, publicly display, and publish the Content solely for the purpose of providing and improving our products and Services and promoting your website.
 
-**Removing Content.** If you delete Content, we’ll use reasonable efforts to remove it from public view (or in the case of a private website, from view by the authorized visitors) on WordPress.com, but you acknowledge that cached versions of the Content or references to the Content may not be immediately unavailable.
+**Removing Content.** If you delete Content, we’ll use reasonable efforts to remove it from public view (or in the case of a private website, from view by the authorized visitors), but you acknowledge that cached versions of the Content or references to the Content may not be immediately unavailable.
 
-**Web Traffic.** We may use a third-party service to measure WordPress.com’s audience and usage. By having your website on WordPress.com, you agree to assign the traffic for your website to Automattic, and you authorize us to sign a Traffic Assignment Letter on your behalf. This means that your website’s traffic may be included under Automattic, your website may not receive credit for traffic in the respective reports, and you must not assign your website’s traffic to any other party. If we require additional documentation to verify ownership of your website or domain name, you agree to make reasonable efforts to provide it.
+**Web Traffic.** We may use a third-party service to measure Cosmos WS audience and usage.
 
 **Prohibited Uses.** Your Content and conduct must not violate the [WordPress.com User Guidelines,](https://en.support.wordpress.com/user-guidelines/) or the [VideoPress Service Guidelines](https://videopress.com/service-guidelines) if you use our Services to upload videos.
 
