@@ -11,10 +11,10 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     using System.ComponentModel.DataAnnotations;
     using System.Linq;
     using System.Text;
-    using System.Text.Encodings.Web;
     using System.Threading.Tasks;
-    using Cosmos.Cms.Common.Services.Configurations;
+    using Cosmos.Common.Data;
     using Cosmos.Editor.Services;
+    using Cosmos.EmailServices;
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
@@ -22,9 +22,8 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.RazorPages;
     using Microsoft.AspNetCore.WebUtilities;
-    using Microsoft.Azure.Cosmos.Linq;
+    using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Options;
 
     /// <summary>
     /// Register page model.
@@ -32,33 +31,37 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     [AllowAnonymous]
     public class RegisterModel : PageModel
     {
-        private readonly IEmailSender emailSender;
+        private readonly ICosmosEmailSender emailSender;
         private readonly ILogger<RegisterModel> logger;
         private readonly SignInManager<IdentityUser> signInManager;
         private readonly UserManager<IdentityUser> userManager;
         private readonly RoleManager<IdentityRole> roleManager;
+        private readonly ApplicationDbContext dbContext;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RegisterModel"/> class.
         /// Constructor.
         /// </summary>
-        /// <param name="userManager"></param>
-        /// <param name="roleManager"></param>
-        /// <param name="signInManager"></param>
-        /// <param name="logger"></param>
-        /// <param name="emailSender"></param>
+        /// <param name="userManager">User manager service.</param>
+        /// <param name="roleManager">Role manager service.</param>
+        /// <param name="signInManager">Sign-in service.</param>
+        /// <param name="logger">Logger service.</param>
+        /// <param name="emailSender">Email sender service.</param>
+        /// <param name="dbContext">Database context.</param>
         public RegisterModel(
             UserManager<IdentityUser> userManager,
             RoleManager<IdentityRole> roleManager,
             SignInManager<IdentityUser> signInManager,
             ILogger<RegisterModel> logger,
-            IEmailSender emailSender)
+            IEmailSender emailSender,
+            ApplicationDbContext dbContext)
         {
             this.userManager = userManager;
             this.roleManager = roleManager;
             this.signInManager = signInManager;
             this.logger = logger;
-            this.emailSender = emailSender;
+            this.emailSender = (ICosmosEmailSender)emailSender;
+            this.dbContext = dbContext;
         }
 
         /// <summary>
@@ -80,14 +83,14 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         /// <summary>
         /// GET method handler.
         /// </summary>
-        /// <param name="returnUrl"></param>
+        /// <param name="returnUrl">Returns a <see cref="PageResult"/>.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> OnGetAsync(string returnUrl = null)
         {
             ReturnUrl = returnUrl;
             ExternalLogins = (await signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 
-            ViewData["ShowLogin"] = ((await userManager.Users.CountAsync()) > 0);
+            ViewData["ShowLogin"] = await userManager.Users.CosmosAnyAsync();
 
             return Page();
         }
@@ -95,7 +98,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         /// <summary>
         /// POST method handler.
         /// </summary>
-        /// <param name="returnUrl"></param>
+        /// <param name="returnUrl">Returns a <see cref="PageResult"/>.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
@@ -122,7 +125,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                     // If the user is a new administrator, don't do these things
                     if (!newAdministrator)
                     {
-
                         var admins = await userManager.GetUsersInRoleAsync("Administrators");
                         var editors = await userManager.GetUsersInRoleAsync("Administrators");
 
@@ -136,8 +138,11 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                             await emailSender.SendEmailAsync(editor.Email, $"New account request for: {user.Email} requested an account.", $"{user.Email} requested a user account on publisher website: {Request.Host}.");
                         }
 
-                        await emailSender.SendEmailAsync(Input.Email, "Confirm your email",
-                            $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+                        var homePage = await dbContext.Pages.Select(s => new { s.Title, s.UrlPath }).FirstOrDefaultAsync(f => f.UrlPath == "root");
+                        var websiteName = homePage.Title ?? Request.Host.Host;
+
+                        var emailHandler = new EmailHandler(emailSender, logger);
+                        await emailHandler.SendCallbackTemplateEmail(EmailHandler.CallbackTemplate.NewAccountConfirmEmail, callbackUrl, Request.Host.Host, Input.Email, websiteName);
 
                         if (userManager.Options.SignIn.RequireConfirmedAccount)
                         {

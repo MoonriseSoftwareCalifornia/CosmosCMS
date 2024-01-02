@@ -7,6 +7,7 @@
 
 namespace Cosmos.EmailServices
 {
+    using HtmlAgilityPack;
     using Microsoft.AspNetCore.Identity.UI.Services;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
@@ -16,7 +17,7 @@ namespace Cosmos.EmailServices
     /// <summary>
     ///     SendGrid Email sender service.
     /// </summary>
-    public class SendGridEmailSender : IEmailSender
+    public class SendGridEmailSender : ICosmosEmailSender
     {
         private readonly IOptions<SendGridEmailProviderOptions> options;
         private readonly ILogger<SendGridEmailSender> logger;
@@ -50,12 +51,25 @@ namespace Cosmos.EmailServices
         /// </summary>
         /// <param name="emailTo">To email address.</param>
         /// <param name="subject">Email subject.</param>
-        /// <param name="message">Email message.</param>
+        /// <param name="htmlMessage">Email message in HTML format.</param>
         /// <param name="emailFrom">From email message.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public Task SendEmailAsync(string emailTo, string subject, string message, string? emailFrom = null)
+        public Task SendEmailAsync(string emailTo, string subject, string htmlMessage, string? emailFrom = null)
         {
-            return Execute(subject, message, emailTo, emailFrom);
+            var doc = new HtmlDocument();
+            doc.LoadHtml(htmlMessage);
+
+            var message = new SendGridMessage
+            {
+                Subject = subject,
+                PlainTextContent = doc.DocumentNode.InnerText,
+                HtmlContent = htmlMessage
+            };
+
+            var task = Execute(message, emailTo, emailFrom);
+            task.Wait();
+
+            return task;
         }
 
         /// <summary>
@@ -67,48 +81,60 @@ namespace Cosmos.EmailServices
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public Task SendEmailAsync(string emailTo, string subject, string htmlMessage)
         {
-            return Execute(subject, htmlMessage, emailTo, null);
+            return SendEmailAsync(emailTo, subject, htmlMessage, null);
+        }
+
+        /// <summary>
+        /// Sends and Email using a SendGrid mail template.
+        /// </summary>
+        /// <param name="emailTo">To email address.</param>
+        /// <param name="subject">Email subject.</param>
+        /// <param name="textVersion">Text version of the email.</param>
+        /// <param name="htmlVersion">HTML version of the email.</param>
+        /// <param name="emailFrom">Who the email is from.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        public Task SendEmailAsync(string emailTo, string subject, string textVersion, string htmlVersion, string? emailFrom = null)
+        {
+            var message = new SendGridMessage();
+
+            message.SetFrom(new EmailAddress(emailFrom ?? "support@cosmosws.io"));
+            message.AddTo(emailTo);
+            message.PlainTextContent = textVersion;
+            message.HtmlContent = htmlVersion;
+            message.Subject = subject;
+
+            var task = Execute(message, emailTo, emailFrom);
+            task.Wait();
+
+            return task;
         }
 
         /// <summary>
         ///     Execute send email method.
         /// </summary>
-        /// <param name="subject">Email subject.</param>
-        /// <param name="message">Email message.</param>
-        /// <param name="emailTo">To email address.</param>
-        /// <param name="emailFrom">From email address.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        private Task Execute(string subject, string message, string emailTo, string? emailFrom = null)
+        /// <param name="message">SendGrid message.</param>
+        /// <param name="emailTo">EMail to address.</param>
+        /// <param name="emailFrom">Email from address.</param>
+        private async Task Execute(SendGridMessage message, string emailTo, string? emailFrom)
         {
-            var client = new SendGridClient(options.Value);
-
-            var msg = new SendGridMessage
-            {
-                From = new EmailAddress(emailFrom ?? options.Value.DefaultFromEmailAddress),
-                Subject = subject,
-                PlainTextContent = message,
-                HtmlContent = message
-            };
-            msg.AddTo(new EmailAddress(emailTo));
+            message.AddTo(new EmailAddress(emailTo));
+            message.SetFrom(new EmailAddress(emailFrom ?? options.Value.DefaultFromEmailAddress));
 
             // Disable click tracking.
             // See https://sendgrid.com/docs/User_Guide/Settings/tracking.html
-            msg.SetClickTracking(true, true);
+            message.SetClickTracking(true, true);
 
             // Set the Sandbox mode if on.
             if (options.Value.SandboxMode)
             {
-                msg.SetSandBoxMode(true);
+                message.SetSandBoxMode(true);
             }
 
             try
             {
-                Response = client.SendEmailAsync(msg).Result;
+                var client = new SendGridClient(options.Value);
 
-                if (Response.IsSuccessStatusCode && options.Value.LogSuccesses)
-                {
-                    logger.LogInformation($"Email successfully sent to: {emailTo}; Subject: {subject};");
-                }
+                Response = await client.SendEmailAsync(message);
 
                 if (!Response.IsSuccessStatusCode && options.Value.LogErrors)
                 {
@@ -119,8 +145,6 @@ namespace Cosmos.EmailServices
             {
                 logger.LogError(e, e.Message);
             }
-
-            return Task.CompletedTask;
         }
     }
 }

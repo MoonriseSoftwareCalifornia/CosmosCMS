@@ -31,8 +31,8 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         /// Initializes a new instance of the <see cref="ResetPasswordModel"/> class.
         /// Constructor.
         /// </summary>
-        /// <param name="userManager"></param>
-        /// <param name="options"></param>
+        /// <param name="userManager">User manager.</param>
+        /// <param name="options">Site settings.</param>
         public ResetPasswordModel(UserManager<IdentityUser> userManager, IOptions<SiteSettings> options)
         {
             this.userManager = userManager;
@@ -48,8 +48,8 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         /// <summary>
         /// Get handler.
         /// </summary>
-        /// <param name="code"></param>
-        /// <returns></returns>
+        /// <param name="code">Reset code.</param>
+        /// <returns><see cref="PageResult"/></returns>
         public IActionResult OnGet(string code = null)
         {
             if (code == null)

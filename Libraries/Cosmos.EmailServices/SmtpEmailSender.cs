@@ -9,14 +9,14 @@ namespace Cosmos.EmailServices
 {
     using System.Net;
     using System.Net.Mail;
-    using Microsoft.AspNetCore.Identity.UI.Services;
+    using System.Text;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
 
     /// <summary>
     /// SMTP Email sender.
     /// </summary>
-    public class SmtpEmailSender : IEmailSender
+    public class SmtpEmailSender : ICosmosEmailSender
     {
         private readonly IOptions<SmtpEmailProviderOptions> options;
         private readonly ILogger<SendGridEmailSender> logger;
@@ -44,7 +44,21 @@ namespace Cosmos.EmailServices
             return Execute(subject, message, toEmail);
         }
 
-        private async Task Execute(string subject, string message, string toEmail)
+        /// <summary>
+        /// Sends an Email in both HTML and plain text format.
+        /// </summary>
+        /// <param name="emailTo">To email address.</param>
+        /// <param name="subject">Email subject.</param>
+        /// <param name="textVersion">Plain text version.</param>
+        /// <param name="htmlVersion">HTML version.</param>
+        /// <param name="emailFrom">From email address.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        public Task SendEmailAsync(string emailTo, string subject, string textVersion, string htmlVersion, string? emailFrom = null)
+        {
+            return Execute(subject, htmlVersion, emailTo, textVersion);
+        }
+
+        private async Task Execute(string subject, string html, string toEmail, string plainText = "")
         {
             var client = new SmtpClient(options.Value.Host, options.Value.Port);
 
@@ -57,7 +71,12 @@ namespace Cosmos.EmailServices
                 }
             }
 
-            var msg = new MailMessage(options.Value.DefaultFromEmailAddress, toEmail, subject, message);
+            var msg = new MailMessage(options.Value.DefaultFromEmailAddress, toEmail, subject, html);
+
+            if (!string.IsNullOrEmpty(plainText))
+            {
+                msg.AlternateViews.Add(new AlternateView(new MemoryStream(Encoding.ASCII.GetBytes(plainText)), "text/plain"));
+            }
 
             try
             {

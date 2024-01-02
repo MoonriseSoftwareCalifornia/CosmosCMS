@@ -11,12 +11,15 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     using System.Text;
     using System.Text.Encodings.Web;
     using System.Threading.Tasks;
+    using Cosmos.Common.Data;
+    using Cosmos.EmailServices;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Identity.UI.Services;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.RazorPages;
     using Microsoft.AspNetCore.WebUtilities;
+    using Microsoft.EntityFrameworkCore;
 
     /// <summary>
     /// Forgot password page model.
@@ -24,7 +27,9 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     [AllowAnonymous]
     public class ForgotPasswordModel : PageModel
     {
-        private readonly IEmailSender emailSender;
+        private readonly ICosmosEmailSender emailSender;
+        private readonly ApplicationDbContext dbContext;
+        private readonly ILogger<ForgotPasswordModel> logger;
         private readonly UserManager<IdentityUser> userManager;
 
         /// <summary>
@@ -32,10 +37,18 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         /// </summary>
         /// <param name="userManager">User manager.</param>
         /// <param name="emailSender">Email sender.</param>
-        public ForgotPasswordModel(UserManager<IdentityUser> userManager, IEmailSender emailSender)
+        /// <param name="dbContext">Database context.</param>
+        /// <param name="logger">Log service.</param>
+        public ForgotPasswordModel(
+            UserManager<IdentityUser> userManager,
+            IEmailSender emailSender,
+            ApplicationDbContext dbContext,
+            ILogger<ForgotPasswordModel> logger)
         {
             this.userManager = userManager;
-            this.emailSender = emailSender;
+            this.emailSender = (ICosmosEmailSender)emailSender;
+            this.dbContext = dbContext;
+            this.logger = logger;
         }
 
         /// <summary>
@@ -79,10 +92,11 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                     new { area = "Identity", code },
                     Request.Scheme);
 
-                await emailSender.SendEmailAsync(
-                    Input.Email,
-                    "Reset Password",
-                    $"Please reset your password by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+                var homePage = await dbContext.Pages.Select(s => new { s.Title, s.UrlPath }).FirstOrDefaultAsync(f => f.UrlPath == "root");
+                var websiteName = homePage.Title ?? Request.Host.Host;
+
+                var emailHandler = new EmailHandler(emailSender, logger);
+                await emailHandler.SendCallbackTemplateEmail(EmailHandler.CallbackTemplate.ResetPasswordTemplate, callbackUrl, Request.Host.Host, Input.Email, websiteName);
 
                 return RedirectToPage("./ForgotPasswordConfirmation");
             }

@@ -9,8 +9,8 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
 {
     using System.ComponentModel.DataAnnotations;
     using System.Text;
-    using System.Text.Encodings.Web;
     using System.Threading.Tasks;
+    using Cosmos.Common.Data;
     using Cosmos.EmailServices;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
@@ -18,6 +18,8 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.RazorPages;
     using Microsoft.AspNetCore.WebUtilities;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Logging;
 
     /// <summary>
     /// Resend email confirmation page model.
@@ -25,18 +27,28 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     [AllowAnonymous]
     public class ResendEmailConfirmationModel : PageModel
     {
-        private readonly IEmailSender emailSender;
+        private readonly ICosmosEmailSender emailSender;
+        private readonly ILogger<RegisterModel> logger;
         private readonly UserManager<IdentityUser> userManager;
+        private readonly ApplicationDbContext dbContext;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ResendEmailConfirmationModel"/> class.
         /// </summary>
-        /// <param name="userManager">User manager.</param>
-        /// <param name="emailSender">Email sender.</param>
-        public ResendEmailConfirmationModel(UserManager<IdentityUser> userManager, IEmailSender emailSender)
+        /// <param name="userManager">User manager service.</param>
+        /// <param name="logger">Logger service.</param>
+        /// <param name="emailSender">Email sender service.</param>
+        /// <param name="dbContext">Database context.</param>
+        public ResendEmailConfirmationModel(
+            UserManager<IdentityUser> userManager,
+            ILogger<RegisterModel> logger,
+            IEmailSender emailSender,
+            ApplicationDbContext dbContext)
         {
             this.userManager = userManager;
-            this.emailSender = emailSender;
+            this.logger = logger;
+            this.emailSender = (ICosmosEmailSender)emailSender;
+            this.dbContext = dbContext;
         }
 
         /// <summary>
@@ -78,10 +90,13 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                 null,
                 new { userId, code },
                 Request.Scheme);
-            await emailSender.SendEmailAsync(
-                Input.Email,
-                "Confirm your email",
-                $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(value: callbackUrl)}'>clicking here</a>.");
+
+            var homePage = await dbContext.Pages.Select(s => new { s.Title, s.UrlPath }).FirstOrDefaultAsync(f => f.UrlPath == "root");
+            var websiteName = homePage.Title ?? Request.Host.Host;
+
+            var emailHandler = new EmailHandler(emailSender, logger);
+            await emailHandler.SendCallbackTemplateEmail(EmailHandler.CallbackTemplate.NewAccountConfirmEmail, callbackUrl, Request.Host.Host, Input.Email, websiteName);
+
             ViewData["SendGridResponse"] = ((SendGridEmailSender)emailSender).Response;
             ModelState.AddModelError(string.Empty, "Verification email sent. Please check your email.");
             return Page();

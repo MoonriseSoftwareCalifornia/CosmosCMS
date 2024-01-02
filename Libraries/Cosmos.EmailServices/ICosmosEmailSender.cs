@@ -7,7 +7,6 @@
 
 namespace Cosmos.EmailServices
 {
-    using Azure.Communication.Email;
     using Microsoft.AspNetCore.Identity.UI.Services;
 
     /// <summary>
@@ -17,8 +16,14 @@ namespace Cosmos.EmailServices
     public interface ICosmosEmailSender : IEmailSender
     {
         /// <summary>
-        /// Gets or sets email send status.
+        /// Sends a password reset email.
         /// </summary>
-        EmailSendStatus SendStatus { get; set; }
+        /// <param name="emailTo">To address.</param>
+        /// <param name="subject">Email subject.</param>
+        /// <param name="textVersion">Message in plain text.</param>
+        /// <param name="htmlVersion">HTML message version.</param>
+        /// <param name="emailFrom">From email address.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Task SendEmailAsync(string emailTo, string subject, string textVersion, string htmlVersion, string? emailFrom = null);
     }
 }
