@@ -1,5 +1,4 @@
-Cosmos Website Solutions Terms of Service
-----------------
+# Cosmos Website Solutions Terms of Service
 
 *Last Updated: January 1, 2024*
 
@@ -144,7 +143,7 @@ If you find a Cosmos WS website that you believe violates these Terms, please [l
 
 **Attribution.** We may display attribution text or links in your website footer or toolbar, noting that your website is powered by Cosmos or attributing the creator of your website design, for example. For more details about these attributions, and under which circumstances (if any) you may alter or remove them, please conact [customer support](https://www.cosmosws.io/support).
 
-**Domain Names.** We act as a registrar and also work with third-party registrars to provide domain name services. When you register a domain with Cosmos or transfer an existing domain to us, the policies of the respective registry ((Go Daddy)[https://www.godaddy.com/legal/agreements/domain-name-registration-agreement] or (Microsoft Azure)[https://azure.microsoft.com/en-us/support/legal/]) apply, and you become bound by the relevant registrar’s terms and conditions.
+**Domain Names.** We act as a registrar and also work with third-party registrars to provide domain name services. When you register a domain with Cosmos or transfer an existing domain to us, the policies of the respective registry ([Go Daddy](https://www.godaddy.com/legal/agreements/domain-name-registration-agreement) or [Microsoft Azure](https://azure.microsoft.com/en-us/support/legal/)) apply, and you become bound by the relevant registrar’s terms and conditions.
 
 Your domain is also subject to the policies of the Internet Corporation for Assigned Names and Numbers (”ICANN”). You can read about [your rights and responsibilities as a domain name registrant](http://www.icann.org/en/resources/registrars/registrant-rights/benefits) under ICANN’s Registrar Accreditation Agreement and about [domain name registration generally](https://www.icann.org/resources/pages/educational-2012-02-25-en).
 
