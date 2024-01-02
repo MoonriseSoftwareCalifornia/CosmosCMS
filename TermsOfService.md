@@ -1,7 +1,7 @@
 Cosmos Website Solutions Terms of Service
 ----------------
 
-*Last Updated: December 31, 2023*
+*Last Updated: January 1, 2024*
 
 Introduction
 --------
