@@ -98,12 +98,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
             returnUrl = returnUrl ?? Url.Content("~/");
             ExternalLogins = (await signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 
-
-            if (!Input.AgreeToTerms)
-            {
-                ModelState.AddModelError("Input.AgreeToTerms", "Please check box indicating you have read and agree with our terms and guidelines.");
-            }
-
             if (ModelState.IsValid)
             {
                 var user = new IdentityUser { UserName = Input.Email, Email = Input.Email };
@@ -162,12 +156,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
             [EmailAddress]
             [Display(Name = "Email")]
             public string Email { get; set; }
-
-            /// <summary>
-            /// Gets or sets a value indicating whether user agreement with terms.
-            /// </summary>
-            [Display(Name = "Agree to terms")]
-            public bool AgreeToTerms { get; set; } = false;
 
             /// <summary>
             /// Gets or sets password.
