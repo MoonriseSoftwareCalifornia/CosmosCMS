@@ -104,6 +104,12 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         {
             returnUrl = returnUrl ?? Url.Content("~/");
             ExternalLogins = (await signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+
+            if (!Input.AgreeToTerms)
+            {
+                ModelState.AddModelError("Input.AgreeToTerms", "Please check box indicating you have read and agree with our terms and guidelines.");
+            }
+
             if (ModelState.IsValid)
             {
                 var user = new IdentityUser { UserName = Input.Email, Email = Input.Email };
@@ -161,6 +167,8 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                 }
             }
 
+            ViewData["ShowLogin"] = await userManager.Users.CosmosAnyAsync();
+
             // If we got this far, something failed, redisplay form
             return Page();
         }
@@ -179,11 +187,16 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
             public string Email { get; set; }
 
             /// <summary>
+            /// Gets or sets a value indicating whether user agreement with terms.
+            /// </summary>
+            [Display(Name = "Agree to terms")]
+            public bool AgreeToTerms { get; set; } = false;
+
+            /// <summary>
             /// Gets or sets password.
             /// </summary>
             [Required]
-            [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.",
-                MinimumLength = 6)]
+            [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
             [DataType(DataType.Password)]
             [Display(Name = "Password")]
             public string Password { get; set; }

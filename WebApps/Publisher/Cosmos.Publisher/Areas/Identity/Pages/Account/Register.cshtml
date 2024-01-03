@@ -57,7 +57,7 @@
                         </div>
                         <section>
                             <div asp-validation-summary="All" class="text-danger"></div>
-                            <form asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                            <form id="frmReg" asp-route-returnUrl="@Model.ReturnUrl" method="post">
                                 <div class="form-group">
                                     <label asp-for="Input.Email"></label>
                                     <input asp-for="Input.Email" class="form-control" />
@@ -73,6 +73,15 @@
                                     <input asp-for="Input.ConfirmPassword" class="form-control" />
                                     <span asp-validation-for="Input.ConfirmPassword" class="badge badge-primary"></span>
                                 </div>
+                                <div class="form-check mb-4">
+                                    @Html.HiddenFor(m => m.Input.AgreeToTerms)
+                                    <input class="form-check-input" type="checkbox" value="true" id="chkTerms">
+                                    <label class="form-check-label" for="flexCheckDefault">
+                                        Check here to indicate you have read and agree to our <a target="_blank" href="https://www.cosmosws.io/Terms">Terms of Service</a> and
+                                        <a target="_blank" href="https://www.cosmosws.io/User_Guidelines">User Guidelines</a>.
+                                    </label>
+                                    <span id="msgPleaseCheck" class="badge badge-warning" style="display:none">Please check before continuing.</span>
+                                </div>
                                 <button type="submit" class="btn btn-dark">Create account</button>
                             </form>
                         </section>
@@ -81,7 +90,33 @@
 
             </div>
         </div>
+    </div>
+</div>
 
-        @section Scripts {
-            <partial name="_ValidationScriptsPartial" />
-        }
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+
+<script>
+    $(document).ready(function () {
+        $("#frmReg").submit(function (e) {
+            if ($('#chkTerms').is(':checked')) {
+                $("#frmReg").submit();
+            } else {
+                e.preventDefault();
+                $("#msgPleaseCheck").show();
+            }
+        });
+
+        $("#chkTerms").click(function () {
+            if ($('#chkTerms').is(':checked')) {
+                $('#Input_AgreeToTerms').val("true");
+                $("#msgPleaseCheck").hide();
+            } else {
+                $('#Input_AgreeToTerms').val("false");
+                $("#msgPleaseCheck").show();
+            }
+        });
+    });
+</script>
