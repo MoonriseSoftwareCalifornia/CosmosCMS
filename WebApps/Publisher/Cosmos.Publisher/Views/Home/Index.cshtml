@@ -1,4 +1,5 @@
 ﻿@using Microsoft.AspNetCore.Antiforgery
+@using System.Reflection
 @model Cosmos.Common.Models.ArticleViewModel
 @{
     Layout = null;
@@ -14,6 +15,7 @@
     <meta property="og:type" content="article" />
     <meta property="og:image" content="@Model.BannerImage" />
     <meta property="article:modified_time" content="@Model.Updated.ToString("u")">
+    <meta name="cwps-meta-v-id" content="@Assembly.GetExecutingAssembly().GetName().Version.ToString()" />
     <meta name="cwps-meta-path-url" content="@Model.UrlPath" />
     <meta name="cwps-meta-path-updated" content="@Model.Updated" />
     <meta name="cwps-meta-author-info" content="@Model.AuthorInfo" />

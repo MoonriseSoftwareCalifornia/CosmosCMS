@@ -14,16 +14,14 @@ namespace Cosmos.Common
     using Cosmos.Common.Data;
     using Cosmos.Common.Data.Logic;
     using Cosmos.Common.Models;
-    using MailChimp.Net.Interfaces;
     using MailChimp.Net;
-    using Microsoft.AspNetCore.Antiforgery;
+    using MailChimp.Net.Interfaces;
+    using MailChimp.Net.Models;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Cors;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
-    using MailChimp.Net.Models;
-    using System.Collections.Generic;
 
     /// <summary>
     /// Methods common to both the editor and publisher home controllers.
@@ -182,7 +180,7 @@ namespace Cosmos.Common
                         var member = new Member { FullName = $"{model.FirstName} {model.LastName}", EmailAddress = contact.Email, StatusIfNew = Status.Subscribed };
                         member.MergeFields.Add("FNAME", model.FirstName);
                         member.MergeFields.Add("LNAME", model.LastName);
-                        
+
                         await manager.Members.AddOrUpdateAsync(mclist.Id, member);
                     }
 

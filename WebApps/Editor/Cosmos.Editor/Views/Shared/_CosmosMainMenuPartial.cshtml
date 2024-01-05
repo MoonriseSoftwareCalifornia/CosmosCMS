@@ -30,7 +30,7 @@
         isReviewer = true;
     }
 
-    var assemblyVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+    
 }
 <nav id="ccmsNavMenu" class="navbar navbar-expand-sm navbar-dark bg-dark" style="z-index: 20000000;">
     <div class="container-fluid">
@@ -109,7 +109,7 @@
                         </ul>
                     </li>
                 }
-                <li class="nav-item"><span title="Cosmos Version" class="nav-link text-mute">@assemblyVersion.ToString()</span></li>
+                <li class="nav-item"><span title="Cosmos Version" class="nav-link text-mute">@assemblyName.Version.ToString()</span></li>
                 @if (Context.Request.Path.Equals("/home/preview", StringComparison.InvariantCultureIgnoreCase))
                 {
                     <li class="nav-item"><a class="btn btn-sm btn-primary mt-2" title="Close preview" href="javascript:closePreview()">Close Preview</a></li>
