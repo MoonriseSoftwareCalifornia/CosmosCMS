@@ -178,10 +178,15 @@ namespace Cosmos.Common
                         var mclist = lists.FirstOrDefault(w => w.Name.Equals(list.Value, StringComparison.OrdinalIgnoreCase));
 
                         var member = new Member { FullName = $"{model.FirstName} {model.LastName}", EmailAddress = contact.Email, StatusIfNew = Status.Subscribed };
+
+                        member.LastChanged = DateTimeOffset.UtcNow.ToString("U");
+
                         member.MergeFields.Add("FNAME", model.FirstName);
                         member.MergeFields.Add("LNAME", model.LastName);
 
-                        await manager.Members.AddOrUpdateAsync(mclist.Id, member);
+                        var updated = await manager.Members.AddOrUpdateAsync(mclist.Id, member);
+
+                        logger.LogInformation($"Add or updated {updated.FullName} {updated.EmailAddress} with MailChimp on {updated.LastChanged}.");
                     }
 
                     return Json(model);
