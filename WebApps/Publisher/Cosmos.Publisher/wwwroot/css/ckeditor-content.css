@@ -15,6 +15,11 @@ svg {
     vertical-align: middle;
 }
 
+/* Added fall 2023 */
+.image_resized {
+    height: auto !important;
+}
+
 .ck-content .image {
     display: table;
     clear: both;
