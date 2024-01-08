@@ -742,7 +742,6 @@ namespace Cosmos.Cms.Data.Logic
                     {
                         // If the data-ccms-ceid attribute is missing, add it here.
                         element.Attributes.Add("data-ccms-ceid", Guid.NewGuid().ToString());
-                        // count++;
                     }
 
                     if (element.Attributes.Contains("contenteditable"))

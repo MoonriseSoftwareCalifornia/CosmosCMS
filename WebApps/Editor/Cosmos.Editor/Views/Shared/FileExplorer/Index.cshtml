@@ -807,9 +807,28 @@
             clearSelection();
         });
 
-        $("frmChangeName").submit(function (e) {
-            clearPaths();
+        $("#frmChangeName").submit(function (e) {
+
+            // Stop form from submitting normally
+            event.preventDefault();
+            const $form = $(this);
+            const url = $form.attr("action");
+
+            $.post(url, $form.serialize())
+                .done(function () {
+                    clearPaths();
+                    clearSelection();
+                    hideModals();
+                    // Reload
+                    window.location.href = '@Html.Raw(baseUrl)target=@target';
+                })
+                .fail(function (data) {
+                    console.log(data);
+                    alert("We appologize, and error occured while renaming file.");
+                });
+
             return true;
+            
         });
 
         resetButtons();

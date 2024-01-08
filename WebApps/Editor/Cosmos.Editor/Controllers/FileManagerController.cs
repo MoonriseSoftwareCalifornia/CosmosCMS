@@ -1040,8 +1040,8 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Rename a blob item.
         /// </summary>
-        /// <param name="model"></param>
-        /// <param name="container"></param>
+        /// <param name="model">Post view model.</param>
+        /// <param name="container">Container name.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
