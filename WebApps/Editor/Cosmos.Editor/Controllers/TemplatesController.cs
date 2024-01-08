@@ -17,6 +17,7 @@ namespace Cosmos.Cms.Controllers
     using Cosmos.Common.Data;
     using Cosmos.Common.Data.Logic;
     using Cosmos.Common.Models;
+    using Cosmos.Editor.Data;
     using HtmlAgilityPack;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
@@ -403,6 +404,13 @@ namespace Cosmos.Cms.Controllers
         [HttpPost]
         public async Task<IActionResult> EditCode(TemplateCodeEditorViewModel model)
         {
+
+            // Check for nested editable regions.
+            if (!NestedEditableRegionValidation.Validate(model.Content))
+            {
+                ModelState.AddModelError("Content", "Cannot have nested editable regions.");
+            }
+
             if (ModelState.IsValid)
             {
                 var entity = await dbContext.Templates.FirstOrDefaultAsync(f => f.Id == model.Id);

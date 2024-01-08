@@ -15,9 +15,9 @@
 		<SignAssembly>false</SignAssembly>
 		<AnalysisLevel>5.0</AnalysisLevel>
 		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-		<Version>8.0.3.2</Version>
-		<AssemblyVersion>8.0.3.2</AssemblyVersion>
-		<FileVersion>8.0.3.2</FileVersion>
+		<Version>8.0.3.3</Version>
+		<AssemblyVersion>8.0.3.3</AssemblyVersion>
+		<FileVersion>8.0.3.3</FileVersion>
 		<UserSecretsId>498e495c-d772-4d44-870d-92009f01de57</UserSecretsId>
 		<PackageProjectUrl>https://www.cosmoswps.com</PackageProjectUrl>
 		<NeutralLanguage></NeutralLanguage>

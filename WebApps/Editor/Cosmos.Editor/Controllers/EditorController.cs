@@ -20,6 +20,7 @@ namespace Cosmos.Cms.Controllers
     using Cosmos.Common.Data;
     using Cosmos.Common.Data.Logic;
     using Cosmos.Common.Models;
+    using Cosmos.Editor.Data;
     using Cosmos.Editor.Models;
     using HtmlAgilityPack;
     using Microsoft.AspNetCore.Authorization;
@@ -1512,6 +1513,12 @@ namespace Cosmos.Cms.Controllers
             if (model == null)
             {
                 return NotFound();
+            }
+
+            // Check for nested editable regions.
+            if (!NestedEditableRegionValidation.Validate(model.Content))
+            {
+                ModelState.AddModelError("Content", "Cannot have nested editable regions.");
             }
 
             // Next pull the original. This is a view model, not tracked by DbContext.

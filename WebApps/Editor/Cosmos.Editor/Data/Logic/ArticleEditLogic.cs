@@ -716,20 +716,6 @@ namespace Cosmos.Cms.Data.Logic
             {
                 if (editables.Contains(element.Name.ToLower()))
                 {
-                    // Remove all editable children as this will mess up CKEditor creation
-                    var children = element.Descendants().Where(w => w.Attributes.Contains("data-ccms-ceid") || w.Attributes.Contains("contenteditable"));
-                    foreach (var c in children)
-                    {
-                        if (c.Attributes.Contains("data-ccms-ceid"))
-                        {
-                            c.Attributes.Remove("data-ccms-ceid");
-                        }
-
-                        if (c.Attributes.Contains("contenteditable"))
-                        {
-                            c.Attributes.Remove("contenteditable");
-                        }
-                    }
 
                     if (element.Attributes.Contains("data-ccms-ceid"))
                     {
