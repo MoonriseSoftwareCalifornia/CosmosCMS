@@ -341,7 +341,7 @@
 
         pickPageModal.hide();
 
-        const link = "<a target='_blank' href='/" + selectedAnchorData.url + "'>" + inputLinkText + "</a>";
+        const link = "<a href='/" + selectedAnchorData.url + "'>" + inputLinkText + "</a>";
 
         // insert text here
         editor.trigger('keyboard', 'type', { text: link });

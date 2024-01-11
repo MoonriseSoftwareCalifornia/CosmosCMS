@@ -543,7 +543,7 @@
         // Change the model using the model writer.
         ckeditor.model.change(writer => {
 
-            const viewFragment = ckeditor.data.processor.toView("<a target='_blank' href='/" + selectedAnchorData.url + "'>" + inputLinkText + "</a>");
+            const viewFragment = ckeditor.data.processor.toView("<a href='/" + selectedAnchorData.url + "'>" + inputLinkText + "</a>");
 
             const anchor = ckeditor.data.toModel(viewFragment);
             ckeditor.model.insertContent(anchor);

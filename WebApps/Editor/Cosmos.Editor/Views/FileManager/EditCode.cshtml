@@ -44,6 +44,7 @@
     var editor;
     var fieldId;
     var ccmsEditorIsLocked = false;
+    const isAuthor = @User.IsInRole("Authors").ToString().ToLower();
 
     $("#frmSave").submit(function (e) {
         e.preventDefault();
