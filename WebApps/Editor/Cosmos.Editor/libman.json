@@ -35,6 +35,10 @@
     {
       "library": "fotorama@4.6.4",
       "destination": "wwwroot/lib/fotorama"
+    },
+    {
+      "library": "file"
     }
+
   ]
 }
