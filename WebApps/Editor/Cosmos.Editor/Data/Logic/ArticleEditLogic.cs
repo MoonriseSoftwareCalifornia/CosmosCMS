@@ -1733,13 +1733,12 @@ namespace Cosmos.Cms.Data.Logic
         /// <summary>
         /// Gets a page, and allows unpublished or inactive pages to be returned.
         /// </summary>
-        /// <param name="urlPath"></param>
-        /// <param name="lang"></param>
-        /// <param name="publishedOnly"></param>
-        /// <param name="onlyActive"></param>
+        /// <param name="urlPath">URL path.</param>
+        /// <param name="lang">Language code.</param>
+        /// <param name="publishedOnly">Only published articles.</param>
+        /// <param name="onlyActive">Only active articles.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task<ArticleViewModel> GetByUrl(string urlPath, string lang = "", bool publishedOnly = true,
-            bool onlyActive = true)
+        public async Task<ArticleViewModel> GetByUrl(string urlPath, string lang = "", bool publishedOnly = true,  bool onlyActive = true)
         {
             if (publishedOnly && onlyActive)
             {
@@ -1749,13 +1748,20 @@ namespace Cosmos.Cms.Data.Logic
             var activeStatusCodes =
                 onlyActive ? new[] { 0, 3 } : new[] { 0, 1, 3 }; // i.e. StatusCode.Active (DEFAULT) and StatusCode.Redirect
 
+
+            urlPath = urlPath?.ToLower().Trim(new char[] { ' ', '/' });
+            if (string.IsNullOrEmpty(urlPath) || urlPath.Trim() == "/")
+            {
+                urlPath = "root";
+            }
+
             if (publishedOnly)
             {
                 var article = await DbContext.Pages.WithPartitionKey(urlPath)
                     .Where(a => a.Published <= DateTimeOffset.UtcNow &&
                                 activeStatusCodes.Contains(a.StatusCode)) // Now filter on active status code.
                     .OrderByDescending(o => o.VersionNumber).FirstOrDefaultAsync();
-                return await base.BuildArticleViewModel(article, lang, null);
+                return await BuildArticleViewModel(article, lang, null);
             }
             else
             {

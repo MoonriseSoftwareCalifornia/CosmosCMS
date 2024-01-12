@@ -1382,7 +1382,7 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         ///     Gets an article to edit by ID for the HTML (WYSIWYG) Editor.
         /// </summary>
-        /// <param name="id">Article ID.</param>
+        /// <param name="id">Article number.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [Authorize(Roles = "Administrators, Editors, Authors, Team Members")]
         public async Task<IActionResult> Edit(int id)

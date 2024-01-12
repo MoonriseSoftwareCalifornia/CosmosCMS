@@ -7,6 +7,11 @@
 
 namespace Cosmos.Cms.Controllers
 {
+    using System;
+    using System.Diagnostics;
+    using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
     using Cosmos.BlobService;
     using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Cms.Data.Logic;
@@ -14,7 +19,6 @@ namespace Cosmos.Cms.Controllers
     using Cosmos.Common;
     using Cosmos.Common.Data;
     using Cosmos.Common.Models;
-    using Microsoft.AspNetCore.Antiforgery;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Identity;
@@ -23,11 +27,6 @@ namespace Cosmos.Cms.Controllers
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Microsoft.Net.Http.Headers;
-    using System;
-    using System.Diagnostics;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// Home page controller.
@@ -201,6 +200,23 @@ namespace Cosmos.Cms.Controllers
                 // try getting a version not published.
                 if (article == null)
                 {
+                    // See if a page is un-published, but does exist, let us edit it.
+                    article = await articleLogic.GetByUrl(HttpContext.Request.Path, HttpContext.Request.Query["lang"], false);
+
+                    if (article != null)
+                    {
+                        // Go into edit mode
+                        if (!string.IsNullOrEmpty(article.Content))
+                        {
+                            if (article.Content.ToLower().Contains(" contenteditable=") || article.Content.ToLower().Contains(" data-ccms-ceid="))
+                            {
+                                RedirectToAction("Edit", "Editor", new { id = article.ArticleNumber });
+                            }
+                        }
+
+                        return RedirectToAction("EditCode", "Editor", new { id = article.ArticleNumber });
+                    }
+
                     // Create your own not found page for a graceful page for users.
                     article = await articleLogic.GetByUrl("/not_found", HttpContext.Request.Query["lang"]);
 
