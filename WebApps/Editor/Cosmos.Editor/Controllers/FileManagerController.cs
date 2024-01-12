@@ -115,6 +115,11 @@ namespace Cosmos.Cms.Controllers
 
             _storageContext.CreateFolder("/pub");
 
+            if (string.IsNullOrEmpty(target) || target == "/")
+            {
+                return RedirectToAction("Index", new { target = "/pub" });
+            }
+
             target = string.IsNullOrEmpty(target) ? string.Empty : HttpUtility.UrlDecode(target);
 
             ViewData["PathPrefix"] = target.StartsWith('/') ? target : "/" + target;
