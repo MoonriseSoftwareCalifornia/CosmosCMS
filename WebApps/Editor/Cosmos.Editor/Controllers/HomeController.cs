@@ -208,7 +208,7 @@ namespace Cosmos.Cms.Controllers
                         // Go into edit mode
                         if (!string.IsNullOrEmpty(article.Content) && article.Content.ToLower().Contains(" data-ccms-ceid="))
                         {
-                            RedirectToAction("Edit", "Editor", new { id = article.ArticleNumber });
+                            return RedirectToAction("Edit", "Editor", new { id = article.ArticleNumber });
                         }
 
                         return RedirectToAction("EditCode", "Editor", new { id = article.ArticleNumber });
