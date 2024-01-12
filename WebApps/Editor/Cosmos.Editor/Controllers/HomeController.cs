@@ -161,7 +161,7 @@ namespace Cosmos.Cms.Controllers
                     if (!User.IsInRole("Reviewers") && !User.IsInRole("Authors") && !User.IsInRole("Editors") &&
                         !User.IsInRole("Administrators"))
                     {
-                        return RedirectToAction("AccessPending");
+                        return View("~/Views/Home/AccessPending.cshtml");
                     }
                 }
 
