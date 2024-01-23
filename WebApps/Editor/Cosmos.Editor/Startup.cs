@@ -175,16 +175,16 @@ namespace Cosmos.Cms
 
             // Add Azure Frontdoor connection here
             // First try and get the connection from a configuration variable
-            var azureFrontdoorConnection = Configuration.GetValue<FrontdoorConnection>("FrontdoorConnection");
+            var azureFrontdoorConnection = Configuration.GetValue<FrontDoorConnection>("FrontdoorConnection");
 
             if (azureFrontdoorConnection == null)
             {
-                azureFrontdoorConnection = Configuration.GetSection("FrontdoorConnection").Get<FrontdoorConnection>();
+                azureFrontdoorConnection = Configuration.GetSection("FrontdoorConnection").Get<FrontDoorConnection>();
             }
 
             if (azureFrontdoorConnection == null)
             {
-                azureFrontdoorConnection = new FrontdoorConnection();
+                azureFrontdoorConnection = new FrontDoorConnection();
             }
             else
             {
@@ -209,14 +209,17 @@ namespace Cosmos.Cms
 
             var azureSubscription = new AzureSubscription();
 
-            try
+            // Get the Azure app service connection to control Front Door and CDNs.
+            var tenantId = Configuration["AzureServices_App_TenantId"];
+            var clientId = Configuration["AzureServices_App_ClientId"];
+            var clientSecret = Configuration["AzureServices_App_Secret"];
+            if (!string.IsNullOrEmpty(tenantId) &&
+                !string.IsNullOrEmpty(clientId) &&
+                !string.IsNullOrEmpty(clientSecret))
             {
-                var armClient = new ArmClient(new DefaultAzureCredential());
+                var armClient = new ArmClient(new ClientSecretCredential(tenantId, clientId, clientSecret));
                 azureSubscription.Subscription = armClient.GetDefaultSubscription();
-            }
-            catch
-            {
-                // Nothing to do right now.
+                
             }
 
             services.AddSingleton(azureSubscription);

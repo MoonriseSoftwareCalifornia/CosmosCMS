@@ -43,7 +43,7 @@ namespace Cosmos.Cms.Data.Logic
     {
         private readonly ILogger<ArticleEditLogic> logger;
         private readonly AzureSubscription azureSubscription;
-        private readonly FrontdoorConnection adfConnection;
+        private readonly FrontDoorConnection adfConnection;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ArticleEditLogic"/> class.
@@ -61,7 +61,7 @@ namespace Cosmos.Cms.Data.Logic
             IOptions<CosmosConfig> config,
             ILogger<ArticleEditLogic> logger,
             AzureSubscription azureSubscription,
-            FrontdoorConnection adfConnection
+            FrontDoorConnection adfConnection
             )
             : base(
                 dbContext,

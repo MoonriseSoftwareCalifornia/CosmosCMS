@@ -10,12 +10,12 @@ namespace Cosmos.Editor.Models
     /// <summary>
     /// Azure Frontdoor connection information.
     /// </summary>
-    public class FrontdoorConnection
+    public class FrontDoorConnection
     {
         /// <summary>
         /// All values are configured.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Returns true if configured.</returns>
         public bool IsConfigured()
         {
             return !string.IsNullOrEmpty(SubscriptionId)

@@ -126,7 +126,6 @@ namespace Cosmos.Cms.Models
         {
             return new ()
             {
-                CdnConfig = CdnConfig,
                 SendGridConfig = SendGridConfig,
                 SiteSettings = SiteSettings,
                 StorageConfig = StorageConfig
@@ -141,7 +140,6 @@ namespace Cosmos.Cms.Models
         {
             SiteSettings = config.SiteSettings;
             ImportJson = string.Empty;
-            CdnConfig = config.CdnConfig;
             SendGridConfig = config.SendGridConfig;
             StorageConfig = config.StorageConfig;
             SecretName = config.SecretName;
