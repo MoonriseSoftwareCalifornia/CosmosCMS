@@ -78,8 +78,8 @@
 		<PackageReference Include="Azure.ResourceManager" Version="1.10.0" />
 		<PackageReference Include="Azure.ResourceManager.Cdn" Version="1.2.0" />
 		<PackageReference Include="Azure.ResourceManager.FrontDoor" Version="1.2.0" />
-		<PackageReference Include="CsvHelper" Version="30.0.1" />
-		<PackageReference Include="EPPlus" Version="7.0.6" />
+		<PackageReference Include="CsvHelper" Version="30.0.3" />
+		<PackageReference Include="EPPlus" Version="7.0.8" />
 		<PackageReference Include="HtmlAgilityPack" Version="1.11.57" />
 		<PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.AzureADB2C.UI" Version="6.0.26" />
@@ -88,7 +88,7 @@
 		<PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid.EntityFrameworkAdapter" Version="8.0.1" />
 		<PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="8.0.1" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.1" />
-		<PackageReference Include="Microsoft.Azure.SignalR" Version="1.23.0" />
+		<PackageReference Include="Microsoft.Azure.SignalR" Version="1.24.0" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.1">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
