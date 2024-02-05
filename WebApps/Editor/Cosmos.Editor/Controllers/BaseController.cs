@@ -7,16 +7,12 @@
 
 namespace Cosmos.Cms.Controllers
 {
-    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
     using System.Web;
-    using Cosmos.Cms.Common.Services.Configurations;
-    using Cosmos.Cms.Data.Logic;
-    using Cosmos.Cms.Services;
     using Cosmos.Common.Data;
     using Cosmos.Common.Models;
     using HtmlAgilityPack;

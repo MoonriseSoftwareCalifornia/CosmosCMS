@@ -19,6 +19,7 @@ namespace Cosmos.Cms.Controllers
     using Cosmos.Common;
     using Cosmos.Common.Data;
     using Cosmos.Common.Models;
+    using Cosmos.Common.Services.PowerBI;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Identity;
@@ -46,22 +47,24 @@ namespace Cosmos.Cms.Controllers
         /// Initializes a new instance of the <see cref="HomeController"/> class.
         /// </summary>
         /// <param name="logger">ILogger to use.</param>
-        /// <param name="cosmosConfig"><see cref="CosmosConfig">Cosmos configuration</see>.</param>
+        /// <param name="options"><see cref="CosmosConfig">Cosmos configuration</see>.</param>
         /// <param name="dbContext"><see cref="ApplicationDbContext">Database context</see>.</param>
         /// <param name="articleLogic"><see cref="ArticleEditLogic">Article edit logic.</see>.</param>
         /// <param name="userManager">User manager.</param>
         /// <param name="storageContext"><see cref="StorageContext">File storage context</see>.</param>
+        /// <param name="powerBiTokenService">Service used to get tokens from Power BI.</param>
         public HomeController(
             ILogger<HomeController> logger,
-            IOptions<CosmosConfig> cosmosConfig,
+            IOptions<CosmosConfig> options,
             ApplicationDbContext dbContext,
             ArticleEditLogic articleLogic,
             UserManager<IdentityUser> userManager,
-            StorageContext storageContext)
-            : base(articleLogic, dbContext, storageContext, logger)
+            StorageContext storageContext,
+            PowerBiTokenService powerBiTokenService)
+            : base(articleLogic, dbContext, storageContext, logger, powerBiTokenService)
         {
             this.logger = logger;
-            options = cosmosConfig;
+            this.options = options;
             this.articleLogic = articleLogic;
             this.dbContext = dbContext;
             this.userManager = userManager;

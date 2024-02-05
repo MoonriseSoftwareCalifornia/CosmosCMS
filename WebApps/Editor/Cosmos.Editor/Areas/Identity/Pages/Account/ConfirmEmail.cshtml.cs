@@ -42,7 +42,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         /// <param name="dbContext">Database context.</param>
         public ConfirmEmailModel(
             UserManager<IdentityUser> userManager,
-            ILogger<ConfirmEmailModel> logger, 
+            ILogger<ConfirmEmailModel> logger,
             IEmailSender emailSender,
             ApplicationDbContext dbContext)
 

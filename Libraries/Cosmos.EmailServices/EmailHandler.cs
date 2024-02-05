@@ -80,9 +80,15 @@ namespace Cosmos.EmailServices
             parser.Insert("WebsiteUrl", $"https://{hostname}");
             parser.Insert("WebsiteName", websiteName);
 
-            await emailSender.SendEmailAsync(toEmail, subject, parser.Text, parser.Html, fromEmail);
-
-            logger.LogInformation($"Password reset Email request sent to: '{toEmail}'");
+            if (parser.Html != null && parser.Text != null)
+            {
+                await emailSender.SendEmailAsync(toEmail, subject, parser.Text, parser.Html, fromEmail);
+                logger.LogInformation($"Password reset Email request sent to: '{toEmail}'.");
+            }
+            else
+            {
+                logger.LogInformation($"Failed to send password reset Email request sent to: '{toEmail}' because email parser failed to build message.");
+            }
         }
 
         /// <summary>
@@ -95,7 +101,7 @@ namespace Cosmos.EmailServices
         /// <param name="body">Email body or content.</param>
         /// <param name="toEmail">Who will receive the email.</param>
         /// <param name="fromEmail">Who the email is from.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.S</returns>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task SendGeneralInfoTemplateEmail(string subject, string subtitle, string websiteName, string hostname, string body, string toEmail, string? fromEmail = null)
         {
             var parser = new EmailTemplateParser("GeneralInfo");

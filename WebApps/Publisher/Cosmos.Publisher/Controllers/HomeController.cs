@@ -18,7 +18,7 @@ namespace Cosmos.Cms.Publisher.Controllers
     using Cosmos.Common.Data;
     using Cosmos.Common.Data.Logic;
     using Cosmos.Common.Models;
-    using Microsoft.AspNetCore.Antiforgery;
+    using Cosmos.Common.Services.PowerBI;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Options;
@@ -41,13 +41,15 @@ namespace Cosmos.Cms.Publisher.Controllers
         /// <param name="options">Cosmos options.</param>
         /// <param name="dbContext">Database Context.</param>
         /// <param name="storageContext">Storage context.</param>
+        /// <param name="powerBiTokenService">Service used to get tokens from Power BI.</param>
         public HomeController(
             ILogger<HomeController> logger,
             ArticleLogic articleLogic,
             IOptions<CosmosConfig> options,
             ApplicationDbContext dbContext,
-            StorageContext storageContext) 
-            : base(articleLogic, dbContext, storageContext, logger)
+            StorageContext storageContext,
+            PowerBiTokenService powerBiTokenService)
+            : base(articleLogic, dbContext, storageContext, logger, powerBiTokenService)
         {
             this.logger = logger;
             this.articleLogic = articleLogic;
@@ -99,7 +101,7 @@ namespace Cosmos.Cms.Publisher.Controllers
                     Response.Headers.LastModified = DateTimeOffset.UtcNow.AddMinutes(-30).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
                     Response.Headers.CacheControl = "no-store,no-cache";
                 }
-                else 
+                else
                 {
                     Response.Headers.Expires = article.Expires.HasValue ?
                         article.Expires.Value.ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'") :

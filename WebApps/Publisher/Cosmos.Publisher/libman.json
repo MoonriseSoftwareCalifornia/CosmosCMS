@@ -5,6 +5,10 @@
     {
       "library": "fotorama@4.6.4",
       "destination": "wwwroot/lib/fotorama"
+    },
+    {
+      "library": "powerbi-client@2.22.4",
+      "destination": "wwwroot/lib/powerbi-client"
     }
   ]
 }

@@ -13,9 +13,6 @@ namespace Cosmos.Cms.Controllers
     using System.Text;
     using System.Threading.Tasks;
     using System.Web;
-    using Azure.ResourceManager.Cdn;
-    using Azure.ResourceManager.Cdn.Models;
-    using Azure.ResourceManager.Resources;
     using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Cms.Data.Logic;
     using Cosmos.Cms.Models;
@@ -30,7 +27,6 @@ namespace Cosmos.Cms.Controllers
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
-    using Newtonsoft.Json;
 
     /// <summary>
     /// Layouts controller.
@@ -44,7 +40,6 @@ namespace Cosmos.Cms.Controllers
         private readonly ILogger<LayoutsController> logger;
         private readonly Uri blobPublicAbsoluteUrl;
         private readonly IViewRenderService viewRenderService;
-        private readonly AzureSubscription azureSubscription;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LayoutsController"/> class.
@@ -55,21 +50,18 @@ namespace Cosmos.Cms.Controllers
         /// <param name="options"><see cref="CosmosConfig">Cosmos configuration</see> options.</param>
         /// <param name="logger">ILogger.</param>
         /// <param name="viewRenderService">View rendering service.</param>
-        /// <param name="azureSubscription">Azure subscription.</param>
         public LayoutsController(
             ApplicationDbContext dbContext,
             UserManager<IdentityUser> userManager,
             ArticleEditLogic articleLogic,
             IOptions<CosmosConfig> options,
             ILogger<LayoutsController> logger,
-            IViewRenderService viewRenderService,
-            AzureSubscription azureSubscription)
+            IViewRenderService viewRenderService)
             : base(dbContext, userManager)
         {
             this.dbContext = dbContext;
             this.articleLogic = articleLogic;
             this.logger = logger;
-            this.azureSubscription = azureSubscription;
 
             var htmlUtilities = new HtmlUtilities();
 
@@ -723,75 +715,7 @@ namespace Cosmos.Cms.Controllers
 
         private async Task PurgeCdn()
         {
-            if (azureSubscription.Subscription == null)
-            {
-                logger.LogError("Tried to purge CDN but DefaultAzureCredential did not return a subscription in Startup.cs.");
-                return; // Not authenticated
-            }
-
-            // Check for CDN
-            var cdnSetting = await dbContext.Settings.FirstOrDefaultAsync(f => f.Name == "CDN");
-
-            if (cdnSetting != null)
-            {
-                try
-                {
-                    var azureCdnEndpoint = JsonConvert.DeserializeObject<AzureCdnEndpoint>(cdnSetting.Value);
-
-                    SubscriptionResource subscription = azureSubscription.Subscription;
-
-                    var group = await subscription.GetResourceGroupAsync(azureCdnEndpoint.ResourceGroupName);
-
-                    var profile = await group.Value.GetProfileAsync(azureCdnEndpoint.CdnProfileName);
-
-                    var endPoint = await profile.Value.GetCdnEndpointAsync(azureCdnEndpoint.EndpointName);
-
-                    if (azureCdnEndpoint.SkuName.Contains("akamai", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        // Akamami does not support wildcard so iterate throw URLs in batches of 100
-                        var purgeUrls = await dbContext.Pages.Select(s => s.UrlPath).Distinct().ToListAsync();
-                        var urls = new List<string>();
-
-                        var count = 0;
-
-                        foreach (var url in purgeUrls)
-                        {
-                            if (url.Equals("root"))
-                            {
-                                urls.Add("/");
-                            }
-                            else
-                            {
-                                urls.Add("/" + url.Trim('/'));
-                            }
-
-                            count++;
-
-                            if (count == 100)
-                            {
-                                var purgeContent = new PurgeContent(urls);
-                                endPoint.Value.PurgeContent(Azure.WaitUntil.Started, purgeContent);
-                                count = 0;
-                                urls.Clear();
-                            }
-                        }
-
-                        if (urls.Any())
-                        {
-                            var purgeContent = new PurgeContent(urls);
-                            endPoint.Value.PurgeContent(Azure.WaitUntil.Started, purgeContent);
-                        }
-                    }
-                    else
-                    {
-                        endPoint.Value.PurgeContent(Azure.WaitUntil.Started, new PurgeContent(new string[] { "/*" }));
-                    }
-                }
-                catch (Exception e)
-                {
-                    logger.LogError($"Failed to refresh CDN for a layout change due the following reason:", e);
-                }
-            }
+            await articleLogic.PurgeCdn(new List<string>() { "/" });
         }
     }
 }

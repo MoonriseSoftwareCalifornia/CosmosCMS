@@ -18,7 +18,6 @@ namespace Cosmos.IdentityManagement.Website.Controllers
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Options;
-    using Newtonsoft.Json;
 
     /// <summary>
     /// Role management controller.

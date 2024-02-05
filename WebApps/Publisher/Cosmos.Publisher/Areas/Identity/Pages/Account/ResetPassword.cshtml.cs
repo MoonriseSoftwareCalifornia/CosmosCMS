@@ -29,7 +29,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         /// Initializes a new instance of the <see cref="ResetPasswordModel"/> class.
         /// </summary>
         /// <param name="userManager">User manager.</param>
-        public ResetPasswordModel([NotNull]UserManager<IdentityUser> userManager)
+        public ResetPasswordModel([NotNull] UserManager<IdentityUser> userManager)
         {
             this.userManager = userManager;
         }

@@ -20,7 +20,6 @@ namespace Cosmos.Cms.Common.Services.Configurations
         /// </summary>
         public CosmosConfig()
         {
-            CdnConfig = new CdnConfig();
             EditorUrls = new List<EditorUrl>();
             SiteSettings = new SiteSettings();
             StorageConfig = new StorageConfig();
@@ -44,11 +43,6 @@ namespace Cosmos.Cms.Common.Services.Configurations
         public string PrimaryLanguageCode { get; set; } = "en-US";
 
         /// <summary>
-        ///     Gets or sets cDN Configuration.
-        /// </summary>
-        public CdnConfig CdnConfig { get; set; }
-
-        /// <summary>
         ///     Gets or sets editor Urls.
         /// </summary>
         public List<EditorUrl> EditorUrls { get; set; }
@@ -56,7 +50,7 @@ namespace Cosmos.Cms.Common.Services.Configurations
         /// <summary>
         /// Gets or sets microsoft application ID used for application verification.
         /// </summary>
-        public string MicrosoftAppId { get; set; }
+        public string MicrosoftAppId { get; set; } = string.Empty;
 
         /// <summary>
         ///     Gets or sets sendGrid configuration.

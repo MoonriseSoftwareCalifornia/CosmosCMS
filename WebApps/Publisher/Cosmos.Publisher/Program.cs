@@ -11,6 +11,7 @@ using Cosmos.BlobService;
 using Cosmos.Cms.Common.Services.Configurations;
 using Cosmos.Common.Data;
 using Cosmos.Common.Data.Logic;
+using Cosmos.Common.Services.Configurations;
 using Cosmos.EmailServices;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
@@ -74,7 +75,6 @@ internal class Program
                 options.UseCosmos(connectionString: connectionString, databaseName: cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
             });
         }
-#pragma warning restore CS8604 // Possible null reference argument.
 
         // Add the BLOB and File Storage contexts for Cosmos
         builder.Services.AddCosmosStorageContext(builder.Configuration);
@@ -97,27 +97,29 @@ internal class Program
             .AddDefaultTokenProviders();
 
         // SUPPORTED OAuth Providers
+        //-------------------------------
         // Add Google if keys are present
-        var googleClientId = builder.Configuration["Authentication_Google_ClientId"];
-        var googleClientSecret = builder.Configuration["Authentication_Google_ClientSecret"];
-        if (!string.IsNullOrEmpty(googleClientId) && !string.IsNullOrEmpty(googleClientSecret))
+        var googleOAuth = builder.Configuration.GetSection("GoogleOAuth").Get<OAuth>();
+
+        if (googleOAuth != null && googleOAuth.IsConfigured())
         {
             builder.Services.AddAuthentication().AddGoogle(options =>
             {
-                options.ClientId = googleClientId;
-                options.ClientSecret = googleClientSecret;
+                options.ClientId = googleOAuth.ClientId;
+                options.ClientSecret = googleOAuth.ClientSecret;
             });
         }
 
+        // ---------------------------------
         // Add Microsoft if keys are present
-        var microsoftClientId = builder.Configuration["Authentication_Microsoft_ClientId"];
-        var microsoftClientSecret = builder.Configuration["Authentication_Microsoft_ClientSecret"];
-        if (!string.IsNullOrEmpty(microsoftClientId) && !string.IsNullOrEmpty(microsoftClientSecret))
+        var entraIdOAuth = builder.Configuration.GetSection("MicrosoftOAuth").Get<OAuth>();
+
+        if (entraIdOAuth != null && entraIdOAuth.IsConfigured())
         {
             builder.Services.AddAuthentication().AddMicrosoftAccount(options =>
             {
-                options.ClientId = microsoftClientId;
-                options.ClientSecret = microsoftClientSecret;
+                options.ClientId = entraIdOAuth.ClientId;
+                options.ClientSecret = entraIdOAuth.ClientSecret;
             });
         }
 

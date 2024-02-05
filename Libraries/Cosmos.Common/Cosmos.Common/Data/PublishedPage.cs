@@ -8,7 +8,6 @@
 namespace Cosmos.Common.Data
 {
     using System;
-    using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
     using Cosmos.Common.Data.Logic;
 

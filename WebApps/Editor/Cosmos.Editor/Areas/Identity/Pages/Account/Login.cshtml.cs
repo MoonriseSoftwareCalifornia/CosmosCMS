@@ -28,29 +28,32 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     public class LoginModel : PageModel
     {
         private readonly ILogger<LoginModel> logger;
-        private readonly IOptions<SiteSettings> _options;
+        private readonly IOptions<SiteSettings> options;
         private readonly SignInManager<IdentityUser> signInManager;
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly ApplicationDbContext _dbContext;
+        private readonly UserManager<IdentityUser> userManager;
+        private readonly ApplicationDbContext dbContext;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LoginModel"/> class.
         /// Constructor.
         /// </summary>
-        /// <param name="signInManager"></param>
-        /// <param name="logger"></param>
-        /// <param name="userManager"></param>
-        /// <param name="options"></param>
-        /// <param name="dbContext"></param>
-        public LoginModel(SignInManager<IdentityUser> signInManager,
+        /// <param name="signInManager">Sign in manager service.</param>
+        /// <param name="logger">Log service.</param>
+        /// <param name="userManager">User manager service.</param>
+        /// <param name="options">Cosmos site options.</param>
+        /// <param name="dbContext">Database context.</param>
+        public LoginModel(
+            SignInManager<IdentityUser> signInManager,
             ILogger<LoginModel> logger,
-            UserManager<IdentityUser> userManager, IOptions<SiteSettings> options, ApplicationDbContext dbContext)
+            UserManager<IdentityUser> userManager,
+            IOptions<SiteSettings> options,
+            ApplicationDbContext dbContext)
         {
-            _userManager = userManager;
+            this.userManager = userManager;
             this.signInManager = signInManager;
             this.logger = logger;
-            _options = options;
-            _dbContext = dbContext;
+            this.options = options;
+            this.dbContext = dbContext;
         }
 
         /// <summary>
@@ -78,7 +81,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         /// <summary>
         /// On get method handler.
         /// </summary>
-        /// <param name="returnUrl"></param>
+        /// <param name="returnUrl">Return URL after logging in.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> OnGetAsync(string returnUrl = null)
         {
@@ -102,12 +105,12 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
             ReturnUrl = returnUrl.Replace("http:", "https:");
 
             // If there are no users yet, go strait to the register page.
-            if (_options.Value.AllowSetup)
+            if (options.Value.AllowSetup)
             {
-                await _dbContext.Database.EnsureCreatedAsync();
+                await dbContext.Database.EnsureCreatedAsync();
             }
 
-            if (_userManager.Users.Count() == 0)
+            if (userManager.Users.Count() == 0)
             {
                 return RedirectToPage("Register");
             }

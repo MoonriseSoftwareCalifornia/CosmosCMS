@@ -239,7 +239,7 @@ namespace Cosmos.Cms.Controllers
                     Title = datum.Title
                 };
 
-                if (datum.ArticlePermissions != null && datum.ArticlePermissions.Count > 0 )
+                if (datum.ArticlePermissions != null && datum.ArticlePermissions.Count > 0)
                 {
                     var userIds = datum.ArticlePermissions.Where(w => w.IsRoleObject == false).Select(s => s.IdentityObjectId).ToList();
                     if (userIds.Any())

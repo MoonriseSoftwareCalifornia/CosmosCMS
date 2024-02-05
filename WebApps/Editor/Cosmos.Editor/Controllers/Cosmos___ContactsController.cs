@@ -1,4 +1,4 @@
-﻿// <copyright file="Ccms___ContactsController.cs" company="Moonrise Software, LLC">
+﻿// <copyright file="Cosmos___ContactsController.cs" company="Moonrise Software, LLC">
 // Copyright (c) Moonrise Software, LLC. All rights reserved.
 // Licensed under the GNU Public License, Version 3.0 (https://www.gnu.org/licenses/gpl-3.0.html)
 // See https://github.com/MoonriseSoftwareCalifornia/CosmosCMS
@@ -12,18 +12,13 @@ namespace Cosmos.Editor.Controllers
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
-    using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Common.Data;
     using Cosmos.Common.Services.Configurations;
     using Cosmos.Editor.Models;
     using CsvHelper;
     using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Identity.UI.Services;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
-    using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Options;
-    using NuGet.Configuration;
 
     /// <summary>
     /// Contact Us Controller.
@@ -31,28 +26,15 @@ namespace Cosmos.Editor.Controllers
     [Authorize(Roles = "Administrators,Editors")]
     public class Cosmos___ContactsController : Controller
     {
-        private readonly IEmailSender emailSender;
-        private readonly ILogger<Cosmos___ContactsController> logger;
-        private readonly IOptions<CosmosConfig> cosmosOptions;
         private readonly ApplicationDbContext dbContext;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Cosmos___ContactsController"/> class.
         /// Constructor.
         /// </summary>
-        /// <param name="cosmosOptions">Cosmos options.</param>
-        /// <param name="logger">Logger.</param>
-        /// <param name="emailSender">Sendgrid Email sender</param>
         /// <param name="dbContext">Database context.</param>
-        public Cosmos___ContactsController(
-            IOptions<CosmosConfig> cosmosOptions,
-            ILogger<Cosmos___ContactsController> logger,
-            IEmailSender emailSender,
-            ApplicationDbContext dbContext)
+        public Cosmos___ContactsController(ApplicationDbContext dbContext)
         {
-            this.cosmosOptions = cosmosOptions;
-            this.logger = logger;
-            this.emailSender = emailSender;
             this.dbContext = dbContext;
         }
 
@@ -187,7 +169,7 @@ namespace Cosmos.Editor.Controllers
                 return RedirectToAction("Index");
 
             }
-            
+
             // Something isn't right.
             return View(model);
         }

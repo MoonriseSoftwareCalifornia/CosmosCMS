@@ -13,8 +13,6 @@ namespace Cosmos.Cms
     using System.Threading.Tasks;
     using System.Web;
     using AspNetCore.Identity.CosmosDb.Extensions;
-    using Azure.Identity;
-    using Azure.ResourceManager;
     using Azure.Storage.Blobs;
     using Cosmos.BlobService;
     using Cosmos.Cms.Common.Services.Configurations;
@@ -22,7 +20,8 @@ namespace Cosmos.Cms
     using Cosmos.Cms.Hubs;
     using Cosmos.Cms.Services;
     using Cosmos.Common.Data;
-    using Cosmos.Editor.Models;
+    using Cosmos.Common.Services.Configurations;
+    using Cosmos.Common.Services.PowerBI;
     using Cosmos.EmailServices;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.DataProtection;
@@ -103,10 +102,8 @@ namespace Cosmos.Cms
                     var builder1 = new DbContextOptionsBuilder<ApplicationDbContext>();
                     builder1.UseCosmos(connectionString, cosmosIdentityDbName);
 
-                    using (var dbContext = new ApplicationDbContext(builder1.Options))
-                    {
-                        dbContext.Database.EnsureCreated();
-                    }
+                    using var dbContext = new ApplicationDbContext(builder1.Options);
+                    dbContext.Database.EnsureCreated();
                 }
                 catch (Exception e)
                 {
@@ -146,52 +143,41 @@ namespace Cosmos.Cms
             container.CreateIfNotExists();
             services.AddDataProtection().PersistKeysToAzureBlobStorage(container.GetBlobClient("keys.xml"));
 
+            // ===========================================================
             // SUPPORTED OAuth Providers
-            // Add Google if keys are present
-            var googleClientId = Configuration["Authentication_Google_ClientId"];
-            var googleClientSecret = Configuration["Authentication_Google_ClientSecret"];
 
-            if (!string.IsNullOrEmpty(googleClientId) && !string.IsNullOrEmpty(googleClientSecret))
+            //-------------------------------
+            // Add Google if keys are present
+            var googleOAuth = Configuration.GetSection("GoogleOAuth").Get<OAuth>();
+
+            if (googleOAuth != null && googleOAuth.IsConfigured())
             {
                 services.AddAuthentication().AddGoogle(options =>
                 {
-                    options.ClientId = googleClientId;
-                    options.ClientSecret = googleClientSecret;
+                    options.ClientId = googleOAuth.ClientId;
+                    options.ClientSecret = googleOAuth.ClientSecret;
                 });
             }
 
+            // ---------------------------------
             // Add Microsoft if keys are present
-            var microsoftClientId = Configuration["Authentication_Microsoft_ClientId"];
-            var microsoftClientSecret = Configuration["Authentication_Microsoft_ClientSecret"];
+            var entraIdOAuth = Configuration.GetSection("MicrosoftOAuth").Get<OAuth>();
 
-            if (!string.IsNullOrEmpty(microsoftClientId) && !string.IsNullOrEmpty(microsoftClientSecret))
+            if (entraIdOAuth != null && entraIdOAuth.IsConfigured())
             {
                 services.AddAuthentication().AddMicrosoftAccount(options =>
                 {
-                    options.ClientId = microsoftClientId;
-                    options.ClientSecret = microsoftClientSecret;
+                    options.ClientId = entraIdOAuth.ClientId;
+                    options.ClientSecret = entraIdOAuth.ClientSecret;
                 });
             }
 
-            // Add Azure Frontdoor connection here
-            // First try and get the connection from a configuration variable
-            var azureFrontdoorConnection = Configuration.GetValue<FrontDoorConnection>("FrontdoorConnection");
+            // Add Power BI Token Service.
+            services.AddScoped(typeof(PowerBiTokenService));
+            services.Configure<PowerBiAuth>(Configuration.GetSection("PowerBiAuth"));
 
-            if (azureFrontdoorConnection == null)
-            {
-                azureFrontdoorConnection = Configuration.GetSection("FrontdoorConnection").Get<FrontDoorConnection>();
-            }
-
-            if (azureFrontdoorConnection == null)
-            {
-                azureFrontdoorConnection = new FrontDoorConnection();
-            }
-            else
-            {
-                azureFrontdoorConnection.EndpointName = Configuration["FrontdoorEndpointName"];
-            }
-
-            services.AddSingleton(azureFrontdoorConnection);
+            // Add Azure CDN/Frontdoor configuration here.
+            services.Configure<AzureCdnConfig>(Configuration.GetSection("AzureCdnConfig"));
 
             services.AddSession(options =>
             {
@@ -206,23 +192,6 @@ namespace Cosmos.Cms
                 o.ExpireTimeSpan = TimeSpan.FromDays(5);
                 o.SlidingExpiration = true;
             });
-
-            var azureSubscription = new AzureSubscription();
-
-            // Get the Azure app service connection to control Front Door and CDNs.
-            var tenantId = Configuration["AzureServices_App_TenantId"];
-            var clientId = Configuration["AzureServices_App_ClientId"];
-            var clientSecret = Configuration["AzureServices_App_Secret"];
-            if (!string.IsNullOrEmpty(tenantId) &&
-                !string.IsNullOrEmpty(clientId) &&
-                !string.IsNullOrEmpty(clientSecret))
-            {
-                var armClient = new ArmClient(new ClientSecretCredential(tenantId, clientId, clientSecret));
-                azureSubscription.Subscription = armClient.GetDefaultSubscription();
-                
-            }
-
-            services.AddSingleton(azureSubscription);
 
             // Add services
             var azureCommunicationConnection = Configuration.GetConnectionString("AzureCommunicationConnection");
@@ -378,25 +347,6 @@ namespace Cosmos.Cms
             }
         }
 
-        private static byte[] GetHash(string inputString)
-        {
-            using (HashAlgorithm algorithm = SHA256.Create())
-            {
-                return algorithm.ComputeHash(Encoding.UTF8.GetBytes(inputString));
-            }
-        }
-
-        private static string GetHashString(string inputString)
-        {
-            StringBuilder sb = new StringBuilder();
-            foreach (byte b in GetHash(inputString))
-            {
-                sb.Append(b.ToString("X2"));
-            }
-
-            return sb.ToString();
-        }
-
         /// <summary>
         ///     This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         /// </summary>
@@ -462,6 +412,23 @@ namespace Cosmos.Cms
 
                 endpoints.MapRazorPages();
             });
+        }
+
+        private static byte[] GetHash(string inputString)
+        {
+            using HashAlgorithm algorithm = SHA256.Create();
+            return algorithm.ComputeHash(Encoding.UTF8.GetBytes(inputString));
+        }
+
+        private static string GetHashString(string inputString)
+        {
+            var sb = new StringBuilder();
+            foreach (byte b in GetHash(inputString))
+            {
+                sb.Append(b.ToString("X2"));
+            }
+
+            return sb.ToString();
         }
     }
 }

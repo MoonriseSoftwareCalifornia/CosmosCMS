@@ -21,10 +21,13 @@ namespace Cosmos.EmailServices.Templates
         /// <param name="templateName">Template name.</param>
         public EmailTemplateParser(string templateName)
         {
-            ResourceManager rm = new ResourceManager("Cosmos.EmailServices.Templates.EmailTemplates", typeof(EmailTemplates).Assembly);
+            var rm = new ResourceManager("Cosmos.EmailServices.Templates.EmailTemplates", typeof(EmailTemplates).Assembly);
 
-            Html = (string?) rm.GetObject(templateName);
-            Text = (string?) rm.GetObject($"{templateName}TXT");
+            if (rm != null)
+            {
+                Html = rm.GetObject(templateName) as string ?? string.Empty;
+                Text = rm.GetObject($"{templateName}TXT") as string ?? string.Empty;
+            }
 
             if (string.IsNullOrEmpty(Html))
             {
@@ -40,12 +43,12 @@ namespace Cosmos.EmailServices.Templates
         /// <summary>
         /// Gets the HTML version of the Email.
         /// </summary>
-        public string Html { get; private set; }
+        public string Html { get; private set; } = string.Empty;
 
         /// <summary>
         /// Gets the text version of the Email.
         /// </summary>
-        public string Text { get; private set; }
+        public string Text { get; private set; } = string.Empty;
 
         /// <summary>
         /// Inserts text into the Email.

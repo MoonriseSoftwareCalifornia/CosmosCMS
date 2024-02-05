@@ -14,6 +14,7 @@ namespace Cosmos.Common
     using Cosmos.Common.Data;
     using Cosmos.Common.Data.Logic;
     using Cosmos.Common.Models;
+    using Cosmos.Common.Services.PowerBI;
     using MailChimp.Net;
     using MailChimp.Net.Interfaces;
     using MailChimp.Net.Models;
@@ -22,6 +23,7 @@ namespace Cosmos.Common
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
+    using Microsoft.PowerBI.Api.Models;
 
     /// <summary>
     /// Methods common to both the editor and publisher home controllers.
@@ -32,6 +34,8 @@ namespace Cosmos.Common
         private readonly ApplicationDbContext dbContext;
         private readonly StorageContext storageContext;
         private readonly ILogger logger;
+        private readonly PowerBiTokenService powerBiTokenService;
+        private readonly string[] powerBiScopeBase = ["https://analysis.windows.net/powerbi/api/.default"];
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HomeControllerBase"/> class.
@@ -40,16 +44,19 @@ namespace Cosmos.Common
         /// <param name="dbContext">Database context.</param>
         /// <param name="storageContext">Storage context.</param>
         /// <param name="logger">Logger service.</param>
+        /// <param name="powerBiTokenService">Power BI Token Service.</param>
         public HomeControllerBase(
             ArticleLogic articleLogic,
             ApplicationDbContext dbContext,
             StorageContext storageContext,
-            ILogger logger)
+            ILogger logger,
+            PowerBiTokenService powerBiTokenService)
         {
             this.articleLogic = articleLogic;
             this.dbContext = dbContext;
             this.storageContext = storageContext;
             this.logger = logger;
+            this.powerBiTokenService = powerBiTokenService;
         }
 
         /// <summary>
@@ -61,36 +68,17 @@ namespace Cosmos.Common
         {
             try
             {
-
                 string r = Request.Headers["referer"];
                 var url = new Uri(r);
 
-                int articleNumber;
+                var articleNumber = await GetArticleNumberFromRequestHeaders();
 
-                // This is just for the Editor
-                if (url.Query.Contains("articleNumber"))
+                if (articleNumber == null)
                 {
-                    var query = url.Query.Split('=');
-                    articleNumber = int.Parse(query[1]);
-                }
-                else if (url.PathAndQuery.ToLower().Contains("editor/ccmscontent"))
-                {
-                    var query = url.PathAndQuery.Split('/');
-                    articleNumber = int.Parse(query.LastOrDefault());
-                }
-                else
-                {
-                    var page = await dbContext.Pages.Select(s => new { s.ArticleNumber, s.UrlPath }).FirstOrDefaultAsync(f => f.UrlPath == url.AbsolutePath.TrimStart('/'));
-
-                    if (page == null)
-                    {
-                        return Json("[]");
-                    }
-
-                    articleNumber = page.ArticleNumber;
+                    return NotFound("Page not found.");
                 }
 
-                var contents = await CosmosUtilities.GetArticleFolderContents(storageContext, articleNumber, path);
+                var contents = await CosmosUtilities.GetArticleFolderContents(storageContext, articleNumber.Value, path);
 
                 return Json(contents);
             }
@@ -177,7 +165,7 @@ namespace Cosmos.Common
                         var lists = await manager.Lists.GetAllAsync();
                         var mclist = lists.FirstOrDefault(w => w.Name.Equals(list.Value, StringComparison.OrdinalIgnoreCase));
 
-                        var member = new Member { FullName = $"{model.FirstName} {model.LastName}", EmailAddress = contact.Email, StatusIfNew = Status.Subscribed };
+                        var member = new Member { FullName = $"{model.FirstName} {model.LastName}", EmailAddress = contact.Email, StatusIfNew = MailChimp.Net.Models.Status.Subscribed };
 
                         member.LastChanged = DateTimeOffset.UtcNow.ToString("U");
 
@@ -193,7 +181,6 @@ namespace Cosmos.Common
                 }
 
                 return BadRequest(ModelState);
-
             }
             catch (Exception e)
             {
@@ -202,14 +189,66 @@ namespace Cosmos.Common
             }
         }
 
+        /// <summary>
+        /// Gets the power BI token.
+        /// </summary>
+        /// <param name="reportId">Power BI report ID.</param>
+        /// <param name="workspaceId">Power BI workspace (group) ID.</param>
+        /// <param name="additionalDataset">Additional dataset ID.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        /// <remarks>This method works only with new Power BI V2 workspace experience.</remarks>
+        /// <returns>Returns <see cref="EmbedParams"/> as a Json object.</returns>
+        [HttpGet]
+        public async Task<IActionResult> CCMS_GET_POWER_BI_TOKEN(Guid? reportId, Guid? workspaceId, Guid? additionalDataset = null)
+        {
+            if (!reportId.HasValue || !workspaceId.HasValue)
+            {
+                return NotFound("Report or workspace ID missing or not found.");
+            }
 
+            if (powerBiTokenService.IsConfigured)
+            {
+                // TODO: This is to check security.
+                // var articleNumber = await GetArticleNumberFromRequestHeaders();
+                if (additionalDataset.HasValue)
+                {
+                    return Json(await powerBiTokenService.GetEmbedParams(workspaceId.Value, reportId.Value, additionalDataset.Value));
+                }
+                else
+                {
+                    return Json(await powerBiTokenService.GetEmbedParams(workspaceId.Value, reportId.Value));
+                }
+            }
+
+            return BadRequest("Not configured.");
+        }
+
+        /// <summary>
+        /// Gets an embed token for a Power BI RDL report.
+        /// </summary>
+        /// <param name="reportId">Report ID.</param>
+        /// <param name="workspaceId">Workspace ID.</param>
+        /// <returns>Returns an <see cref="EmbedToken"/> as a Json object.</returns>
+        [HttpGet]
+        public async Task<IActionResult> CCMS_GET_POWER_BI_RDL_TOKEN(Guid reportId, Guid workspaceId)
+        {
+            if (powerBiTokenService.IsConfigured)
+            {
+                // TODO: This is to check security.
+                var articleNumber = await GetArticleNumberFromRequestHeaders();
+                var result = await powerBiTokenService.GetEmbedParams(workspaceId, reportId);
+                return Json(result);
+            }
+
+            return BadRequest("Not configured.");
+        }
 
         /// <summary>
         /// Returns a health check.
         /// </summary>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [AllowAnonymous]
-        public async Task<IActionResult> CWPS_UTILITIES_NET_PING_HEALTH_CHECK()
+        public async Task<IActionResult> CCMS_UTILITIES_NET_PING_HEALTH_CHECK()
         {
             try
             {
@@ -223,5 +262,33 @@ namespace Cosmos.Common
             return StatusCode(500);
         }
 
+        private async Task<int?> GetArticleNumberFromRequestHeaders()
+        {
+            string r = Request.Headers["referer"];
+            var url = new Uri(r);
+
+            // This is just for the Editor
+            if (url.Query.Contains("articleNumber"))
+            {
+                var query = url.Query.Split('=');
+                return int.Parse(query[1]);
+            }
+            else if (url.PathAndQuery.ToLower().Contains("editor/ccmscontent"))
+            {
+                var query = url.PathAndQuery.Split('/');
+                return int.Parse(query.LastOrDefault());
+            }
+            else
+            {
+                var page = await dbContext.Pages.Select(s => new { s.ArticleNumber, s.UrlPath }).FirstOrDefaultAsync(f => f.UrlPath == url.AbsolutePath.TrimStart('/'));
+
+                if (page == null)
+                {
+                    return null;
+                }
+
+                return page.ArticleNumber;
+            }
+        }
     }
 }

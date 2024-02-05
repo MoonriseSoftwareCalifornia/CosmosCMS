@@ -1,4 +1,4 @@
-﻿// <copyright file="EditableRegionValidation.cs" company="Moonrise Software, LLC">
+﻿// <copyright file="NestedEditableRegionValidation.cs" company="Moonrise Software, LLC">
 // Copyright (c) Moonrise Software, LLC. All rights reserved.
 // Licensed under the GNU Public License, Version 3.0 (https://www.gnu.org/licenses/gpl-3.0.html)
 // See https://github.com/MoonriseSoftwareCalifornia/CosmosCMS
@@ -28,12 +28,15 @@ namespace Cosmos.Editor.Data
 
             var elements = htmlDoc.DocumentNode.SelectNodes("//*[@contenteditable]|//*[@crx]|//*[@data-ccms-ceid]");
 
-            foreach (var element in elements)
+            if (elements != null && elements.Any())
             {
-                var children = element.Descendants().Where(w => w.Attributes.Contains("data-ccms-ceid") || w.Attributes.Contains("contenteditable")).ToList();
-                if (children.Any())
+                foreach (var element in elements)
                 {
-                    return false;
+                    var children = element.Descendants().Where(w => w.Attributes.Contains("data-ccms-ceid") || w.Attributes.Contains("contenteditable")).ToList();
+                    if (children.Any())
+                    {
+                        return false;
+                    }
                 }
             }
 

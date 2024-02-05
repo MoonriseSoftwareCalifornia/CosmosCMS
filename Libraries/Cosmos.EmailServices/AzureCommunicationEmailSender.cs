@@ -27,7 +27,7 @@ namespace Cosmos.EmailServices
         /// </summary>
         /// <param name="options">Provder options.</param>
         /// <param name="logger">ILogger.</param>
-        public AzureCommunicationEmailSender([NotNull]IOptions<AzureCommunicationEmailProviderOptions> options, [NotNull]ILogger<AzureCommunicationEmailSender> logger)
+        public AzureCommunicationEmailSender([NotNull] IOptions<AzureCommunicationEmailProviderOptions> options, [NotNull] ILogger<AzureCommunicationEmailSender> logger)
         {
             this.options = options;
             this.logger = logger;

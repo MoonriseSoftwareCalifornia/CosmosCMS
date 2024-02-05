@@ -96,7 +96,7 @@ namespace Cosmos.BlobService.Drivers
 
             // AWS Multi part upload requires parts or chunks to be 5MB, which
             // are too big for Azure append blobs, so buffer the upload size here.
-            await using Stream loadMemoryStream = new MemoryStream(data);
+            await using var loadMemoryStream = new MemoryStream(data);
 
             loadMemoryStream.Position = 0;
             int bytesRead;

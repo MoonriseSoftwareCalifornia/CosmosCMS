@@ -8,7 +8,6 @@
 namespace Cosmos.Common.Models
 {
     using System;
-    using System.Collections.Generic;
 
     /// <summary>
     /// Table of Contents (TOC) Item.

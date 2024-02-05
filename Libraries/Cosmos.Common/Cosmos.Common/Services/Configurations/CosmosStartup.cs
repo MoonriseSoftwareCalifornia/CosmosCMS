@@ -9,6 +9,7 @@ namespace Cosmos.Cms.Common.Services.Configurations
 {
     using System;
     using Azure.Identity;
+    using Cosmos.Common.Services.Configurations;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Options;
 
@@ -107,7 +108,13 @@ namespace Cosmos.Cms.Common.Services.Configurations
 
             // Microsoft App ID
             cosmosConfig.SecretName = GetValue<string>("CosmosSecretName");
-            cosmosConfig.MicrosoftAppId = GetValue<string>("Authentication_Microsoft_ClientId");
+
+            var microsoftAuth = configuration.GetSection("MicrosoftOAuth").Get<OAuth>();
+            if (microsoftAuth != null)
+            {
+                cosmosConfig.MicrosoftAppId = microsoftAuth.ClientId;
+            }
+
             cosmosConfig.SendGridConfig.EmailFrom = "no-reply@cosmosws.io";
             cosmosConfig.SendGridConfig.SendGridKey = GetValue<string>("CosmosSendGridApiKey");
 

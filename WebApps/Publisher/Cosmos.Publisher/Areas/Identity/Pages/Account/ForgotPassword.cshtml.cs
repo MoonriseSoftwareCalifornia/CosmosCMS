@@ -9,7 +9,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
 {
     using System.ComponentModel.DataAnnotations;
     using System.Text;
-    using System.Text.Encodings.Web;
     using System.Threading.Tasks;
     using Cosmos.Common.Data;
     using Cosmos.EmailServices;

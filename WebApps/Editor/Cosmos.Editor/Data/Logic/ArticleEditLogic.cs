@@ -17,15 +17,12 @@ namespace Cosmos.Cms.Data.Logic
     using Azure.ResourceManager;
     using Azure.ResourceManager.Cdn;
     using Azure.ResourceManager.Cdn.Models;
-    using Azure.ResourceManager.Resources;
     using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Cms.Controllers;
     using Cosmos.Cms.Models;
-    using Cosmos.Cms.Services;
     using Cosmos.Common.Data;
     using Cosmos.Common.Data.Logic;
     using Cosmos.Common.Models;
-    using Cosmos.Editor.Models;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.Extensions.Logging;
@@ -42,8 +39,7 @@ namespace Cosmos.Cms.Data.Logic
     public class ArticleEditLogic : ArticleLogic
     {
         private readonly ILogger<ArticleEditLogic> logger;
-        private readonly AzureSubscription azureSubscription;
-        private readonly FrontDoorConnection adfConnection;
+        private readonly AzureCdnConfig azureCdnConfig;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ArticleEditLogic"/> class.
@@ -53,15 +49,13 @@ namespace Cosmos.Cms.Data.Logic
         /// <param name="memoryCache">Memory cache.</param>
         /// <param name="config">Cosmos configuration.</param>
         /// <param name="logger">Log service.</param>
-        /// <param name="azureSubscription">Azure subscription.</param>
-        /// <param name="adfConnection">Azure front door connection.</param>
+        /// <param name="azureCdnConfig">Azure front door of CDN configuration.</param>
         public ArticleEditLogic(
             ApplicationDbContext dbContext,
             IMemoryCache memoryCache,
             IOptions<CosmosConfig> config,
             ILogger<ArticleEditLogic> logger,
-            AzureSubscription azureSubscription,
-            FrontDoorConnection adfConnection
+            IOptions<AzureCdnConfig> azureCdnConfig
             )
             : base(
                 dbContext,
@@ -70,8 +64,7 @@ namespace Cosmos.Cms.Data.Logic
                 true)
         {
             this.logger = logger;
-            this.azureSubscription = azureSubscription;
-            this.adfConnection = adfConnection;
+            this.azureCdnConfig = azureCdnConfig.Value;
         }
 
         /// <summary>
@@ -317,21 +310,6 @@ namespace Cosmos.Cms.Data.Logic
             await HandlePublishing(published, userId);
 
             // await HandleLogEntry(published, $"Article {published.ArticleNumber} is now the new home page.", userId);
-        }
-
-        /// <summary>
-        ///     Provides a standard method for turning a title into a URL Encoded path.
-        /// </summary>
-        /// <param name="title">Title to be converted into a URL.</param>
-        /// <remarks>
-        ///     <para>This is accomplished using <see cref="HttpUtility.UrlEncode(string)" />.</para>
-        ///     <para>Blanks are turned into underscores (i.e. "_").</para>
-        ///     <para>All strings are normalized to lower case.</para>
-        /// </remarks>
-        private string NormailizeArticleUrl(string title)
-        {
-            // return HttpUtility.UrlEncode(title.Trim().Replace(" ", "_").ToLower()).Replace("%2f", "/");
-            return title.Trim().Replace(" ", "_").ToLower();
         }
 
         /// <summary>
@@ -660,14 +638,14 @@ namespace Cosmos.Cms.Data.Logic
                 {
                     await ArticleSearchAndReplace(
                         new SearchAndReplaceViewModel()
-                    {
-                        ArticleNumber = articleNumber,
-                        FindValue = model.FindValue,
-                        IncludeContent = model.IncludeContent,
-                        IncludeTitle = model.IncludeTitle,
-                        LimitToPublished = model.LimitToPublished,
-                        ReplaceValue = model.ReplaceValue
-                    }, userId);
+                        {
+                            ArticleNumber = articleNumber,
+                            FindValue = model.FindValue,
+                            IncludeContent = model.IncludeContent,
+                            IncludeTitle = model.IncludeTitle,
+                            LimitToPublished = model.LimitToPublished,
+                            ReplaceValue = model.ReplaceValue
+                        }, userId);
                 }
             }
         }
@@ -864,6 +842,89 @@ namespace Cosmos.Cms.Data.Logic
             DbContext.Pages.RemoveRange(pages);
 
             await DbContext.SaveChangesAsync();
+        }
+
+
+        /// <summary>
+        /// Purges the CDN (or Front Door) if either is configured.
+        /// </summary>
+        /// <param name="purgeUrls">Purge URL Paths.</param>
+        /// <returns>ArmOperation results.</returns>
+        public async Task<ArmOperation> PurgeCdn(List<string> purgeUrls)
+        {
+            purgeUrls = purgeUrls.Distinct().Select(s => s.Trim('/')).Select(s => s.Equals("root") ? "/" : "/" + s).ToList();
+
+            // Check for Azure Frontdoor, if available use that.
+            if (azureCdnConfig.IsFrontDoorConfigured())
+            {
+                var token = new ClientSecretCredential(azureCdnConfig.TenantId, azureCdnConfig.ClientId, azureCdnConfig.ClientSecret);
+                ArmClient client = new(token);
+
+                var frontendEndpointResourceId = FrontDoorEndpointResource.CreateResourceIdentifier(
+                    azureCdnConfig.SubscriptionId,
+                    azureCdnConfig.ResourceGroup,
+                    azureCdnConfig.FrontDoorName,
+                    azureCdnConfig.EndPointName);
+
+                var frontDoor = client.GetFrontDoorEndpointResource(frontendEndpointResourceId);
+
+                var purgeContent = new FrontDoorPurgeContent(purgeUrls);
+                var domains = azureCdnConfig.DnsNames.Split(',');
+                foreach (var domain in domains)
+                {
+                    purgeContent.Domains.Add(domain);
+                }
+
+                var result = await frontDoor.PurgeContentAsync(WaitUntil.Started, purgeContent);
+
+                return result;
+            }
+            else if (azureCdnConfig.IsCdnConfigured())
+            {
+                var token = new ClientSecretCredential(azureCdnConfig.TenantId, azureCdnConfig.ClientId, azureCdnConfig.ClientSecret);
+                ArmClient client = new(token);
+
+                var cdnResource = CdnEndpointResource.CreateResourceIdentifier(
+                    azureCdnConfig.SubscriptionId,
+                    azureCdnConfig.ResourceGroup,
+                    azureCdnConfig.FrontDoorName,
+                    azureCdnConfig.EndPointName);
+
+                var cdnEndpoint = client.GetCdnEndpointResource(cdnResource);
+
+
+                ArmOperation operation = null;
+
+                if (purgeUrls.Count > 100 || purgeUrls.Any(p => p.Equals("/") || p.Equals("/*")))
+                {
+                    operation = cdnEndpoint.PurgeContent(Azure.WaitUntil.Started, new PurgeContent(new string[] { "/*" }));
+                }
+                else
+                {
+                    // 100 paths or less, no need to page or use wildcard
+                    var purgeContent = new PurgeContent(purgeUrls);
+                    operation = cdnEndpoint.PurgeContent(Azure.WaitUntil.Started, purgeContent);
+                }
+
+                return operation;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        ///     Provides a standard method for turning a title into a URL Encoded path.
+        /// </summary>
+        /// <param name="title">Title to be converted into a URL.</param>
+        /// <remarks>
+        ///     <para>This is accomplished using <see cref="HttpUtility.UrlEncode(string)" />.</para>
+        ///     <para>Blanks are turned into underscores (i.e. "_").</para>
+        ///     <para>All strings are normalized to lower case.</para>
+        /// </remarks>
+        private string NormailizeArticleUrl(string title)
+        {
+            // return HttpUtility.UrlEncode(title.Trim().Replace(" ", "_").ToLower()).Replace("%2f", "/");
+            return title.Trim().Replace(" ", "_").ToLower();
         }
 
         private async Task ArticleSearchAndReplace(SearchAndReplaceViewModel model, string userId)
@@ -1202,108 +1263,11 @@ namespace Cosmos.Cms.Data.Logic
             return null;
         }
 
-        private async Task<ArmOperation> PurgeCdn(List<string> purgeUrls)
-        {
-            purgeUrls = purgeUrls.Distinct().Select(s => s.Trim('/')).Select(s => s.Equals("root") ? "/" : "/" + s).ToList();
-
-            // Check for Azure Frontdoor, if available use that.
-            if (adfConnection.IsConfigured())
-            {
-                var token = new ClientSecretCredential(adfConnection.TenantId, adfConnection.ClientId, adfConnection.ClientSecret);
-                ArmClient client = new ArmClient(token);
-
-                var frontendEndpointResourceId = FrontDoorEndpointResource.CreateResourceIdentifier(adfConnection.SubscriptionId, adfConnection.ResourceGroupName, adfConnection.FrontDoorName, adfConnection.EndpointName);
-                var frontDoor = client.GetFrontDoorEndpointResource(frontendEndpointResourceId);
-
-                var purgeContent = new FrontDoorPurgeContent(purgeUrls);
-                var domains = adfConnection.DnsNames.Split(',');
-                foreach (var domain in domains)
-                {
-                    purgeContent.Domains.Add(domain);
-                }
-
-                var result = await frontDoor.PurgeContentAsync(WaitUntil.Started, purgeContent);
-
-                return result;
-            }
-            else
-            {
-                // Check for CDN
-                var cdnSetting = await DbContext.Settings.FirstOrDefaultAsync(f => f.Name == Cosmos___Admin_CdnController.CDNSERVICENAME);
-
-                if (cdnSetting != null && azureSubscription.Subscription != null)
-                {
-                    try
-                    {
-                        var azureCdnEndpoint = JsonConvert.DeserializeObject<AzureCdnEndpoint>(cdnSetting.Value);
-
-                        SubscriptionResource subscription = azureSubscription.Subscription;
-
-                        var group = await subscription.GetResourceGroupAsync(azureCdnEndpoint.ResourceGroupName);
-
-                        var profile = await group.Value.GetProfileAsync(azureCdnEndpoint.CdnProfileName);
-
-                        var endPoint = await profile.Value.GetCdnEndpointAsync(azureCdnEndpoint.EndpointName);
-
-                        ArmOperation operation = null;
-
-                        if (purgeUrls.Count > 100)
-                        {
-                            if (azureCdnEndpoint.SkuName.Contains("akamai", StringComparison.CurrentCultureIgnoreCase))
-                            {
-                                // Akamami does not support wildcard so iterate throw URLs in batches of 100
-                                var urls = new List<string>();
-                                int count = 0;
-
-                                foreach (var url in purgeUrls)
-                                {
-                                    count++;
-                                    urls.Add(url);
-                                    if (count == 100)
-                                    {
-                                        var purgeContent = new PurgeContent(urls);
-                                        operation = endPoint.Value.PurgeContent(Azure.WaitUntil.Started, purgeContent);
-                                        count = 0;
-                                        urls.Clear();
-                                    }
-                                }
-
-                                if (urls.Any())
-                                {
-                                    var purgeContent = new PurgeContent(urls);
-                                    operation = endPoint.Value.PurgeContent(Azure.WaitUntil.Started, purgeContent);
-                                }
-                            }
-                            else
-                            {
-                                // Purge everything with wildcard * (Akamai does not support this)
-                                operation = endPoint.Value.PurgeContent(Azure.WaitUntil.Started, new PurgeContent(new string[] { "/*" }));
-                            }
-                        }
-                        else
-                        {
-                            // 100 paths or less, no need to page or use wildcard
-                            var purgeContent = new PurgeContent(purgeUrls);
-                            operation = endPoint.Value.PurgeContent(Azure.WaitUntil.Started, purgeContent);
-                        }
-
-                        return operation;
-                    }
-                    catch (Exception e)
-                    {
-                        logger.LogError($"Failed to refresh CDN for {string.Join(",", purgeUrls)} the following reason:", e);
-                    }
-                }
-            }
-
-            return null;
-        }
-
         /// <summary>
         /// If the title has changed, handle that here.
         /// </summary>
-        /// <param name="article"></param>
-        /// <param name="oldTitle"></param>
+        /// <param name="article">Article.</param>
+        /// <param name="oldTitle">Old title.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         /// <remarks>
         /// Upon title change:
@@ -1436,12 +1400,6 @@ namespace Cosmos.Cms.Data.Logic
             {
                 await UpdatePublishedPages(num);
             }
-        }
-
-        private string UpdatePrefix(string oldprefix, string newPrefix, string targetString)
-        {
-            var updated = newPrefix + targetString.TrimStart(oldprefix.ToArray());
-            return updated;
         }
 
         /// <summary>
@@ -1738,7 +1696,7 @@ namespace Cosmos.Cms.Data.Logic
         /// <param name="publishedOnly">Only published articles.</param>
         /// <param name="onlyActive">Only active articles.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task<ArticleViewModel> GetByUrl(string urlPath, string lang = "", bool publishedOnly = true,  bool onlyActive = true)
+        public async Task<ArticleViewModel> GetByUrl(string urlPath, string lang = "", bool publishedOnly = true, bool onlyActive = true)
         {
             if (publishedOnly && onlyActive)
             {
@@ -2076,13 +2034,19 @@ namespace Cosmos.Cms.Data.Logic
         /// <summary>
         /// Deletes a catalog entry.
         /// </summary>
-        /// <param name="articleNumber"></param>
+        /// <param name="articleNumber">Article number</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         private async Task DeleteCatalogEntry(int articleNumber)
         {
             var catalogEntry = await DbContext.ArticleCatalog.FirstOrDefaultAsync(f => f.ArticleNumber == articleNumber);
             DbContext.ArticleCatalog.Remove(catalogEntry);
             await DbContext.SaveChangesAsync();
+        }
+
+        private string UpdatePrefix(string oldprefix, string newPrefix, string targetString)
+        {
+            var updated = newPrefix + targetString.TrimStart(oldprefix.ToArray());
+            return updated;
         }
 
         /// <summary>

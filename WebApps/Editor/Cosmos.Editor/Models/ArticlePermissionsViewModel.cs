@@ -9,7 +9,6 @@ namespace Cosmos.Editor.Models
 {
     using System;
     using Cosmos.Common.Data;
-    using Cosmos.Common.Models;
 
     /// <summary>
     /// Article permissions view model.

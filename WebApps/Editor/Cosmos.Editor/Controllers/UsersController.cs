@@ -14,7 +14,6 @@ namespace Cosmos.Cms.Controllers
     using System.Text;
     using System.Text.Encodings.Web;
     using System.Threading.Tasks;
-    using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Cms.Models;
     using Cosmos.Common.Data;
     using Cosmos.EmailServices;
@@ -25,7 +24,6 @@ namespace Cosmos.Cms.Controllers
     using Microsoft.AspNetCore.WebUtilities;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Options;
 
     // See: https://docs.microsoft.com/en-us/aspnet/core/mvc/controllers/areas?view=aspnetcore-3.1
 

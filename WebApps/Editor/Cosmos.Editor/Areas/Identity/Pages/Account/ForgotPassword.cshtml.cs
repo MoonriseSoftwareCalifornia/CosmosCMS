@@ -10,11 +10,9 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     using System.ComponentModel.DataAnnotations;
     using System.Linq;
     using System.Text;
-    using System.Text.Encodings.Web;
     using System.Threading.Tasks;
     using Cosmos.Common.Data;
     using Cosmos.EmailServices;
-    using Cosmos.EmailServices.Templates;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Identity.UI.Services;

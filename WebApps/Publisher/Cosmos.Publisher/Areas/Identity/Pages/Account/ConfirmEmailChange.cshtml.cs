@@ -30,7 +30,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         /// </summary>
         /// <param name="userManager">User manager.</param>
         /// <param name="signInManager">Signin manager.</param>
-        public ConfirmEmailChangeModel([NotNull]UserManager<IdentityUser> userManager, [NotNull]SignInManager<IdentityUser> signInManager)
+        public ConfirmEmailChangeModel([NotNull] UserManager<IdentityUser> userManager, [NotNull] SignInManager<IdentityUser> signInManager)
         {
             this.userManager = userManager;
             this.signInManager = signInManager;

@@ -377,7 +377,7 @@ namespace Cosmos.Cms.Controllers
                 Title = entity.Title,
                 EditorFields = new List<EditorField>
                 {
-                    new()
+                    new ()
                     {
                         EditorMode = EditorMode.Html,
                         FieldName = "Html Content",
@@ -461,7 +461,7 @@ namespace Cosmos.Cms.Controllers
             var guid = Guid.NewGuid();
 
             // Template preview
-            ArticleViewModel model = new ArticleViewModel
+            ArticleViewModel model = new()
             {
                 ArticleNumber = 1,
                 LanguageCode = string.Empty,
@@ -550,7 +550,7 @@ namespace Cosmos.Cms.Controllers
         private async Task ApplyTemplateChanges(int articleNumber, string templateContent)
         {
             var article = await articleLogic.Get(articleNumber, null);
-            
+
             // Pull out the editable DIVs.
             var articleHtmlDoc = new HtmlDocument();
             var templateHtmlDoc = new HtmlDocument();
