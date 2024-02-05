@@ -12,12 +12,14 @@ using Cosmos.Cms.Common.Services.Configurations;
 using Cosmos.Common.Data;
 using Cosmos.Common.Data.Logic;
 using Cosmos.Common.Services.Configurations;
+using Cosmos.Common.Services.PowerBI;
 using Cosmos.EmailServices;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Azure.Cosmos.Fluent;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Serialization;
+using System.Configuration;
 
 /// <summary>
 /// Main program.
@@ -122,6 +124,10 @@ internal class Program
                 options.ClientSecret = entraIdOAuth.ClientSecret;
             });
         }
+
+        // Add Power BI Token Service.
+        builder.Services.AddScoped(typeof(PowerBiTokenService));
+        builder.Services.Configure<PowerBiAuth>(builder.Configuration.GetSection("PowerBiAuth"));
 
         // https://docs.microsoft.com/en-us/aspnet/core/security/authentication/accconfirm?view=aspnetcore-3.1&tabs=visual-studio
         builder.Services.ConfigureApplicationCookie(o =>

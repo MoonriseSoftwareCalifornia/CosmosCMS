@@ -882,7 +882,7 @@ namespace Cosmos.Cms.Data.Logic
             else if (azureCdnConfig.IsCdnConfigured())
             {
                 var token = new ClientSecretCredential(azureCdnConfig.TenantId, azureCdnConfig.ClientId, azureCdnConfig.ClientSecret);
-                ArmClient client = new(token);
+                ArmClient client = new (token);
 
                 var cdnResource = CdnEndpointResource.CreateResourceIdentifier(
                     azureCdnConfig.SubscriptionId,
