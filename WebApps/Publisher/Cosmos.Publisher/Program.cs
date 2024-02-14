@@ -15,11 +15,11 @@ using Cosmos.Common.Services.Configurations;
 using Cosmos.Common.Services.PowerBI;
 using Cosmos.EmailServices;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Azure.Cosmos.Fluent;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Serialization;
-using System.Configuration;
 
 /// <summary>
 /// Main program.
@@ -149,6 +149,34 @@ internal class Program
             cacheOptions.CreateIfNotExists = true;
         });
 
+        // BEGIN
+        // When deploying to a Docker container, the OAuth redirect_url
+        // parameter may have http instead of https.
+        // Providers often do not allow http because it is not secure.
+        // So authentication will fail.
+        // Article below shows instructions for fixing this.
+        //
+        // NOTE: There is a companion secton below in the Configure method. Must have this
+        // app.UseForwardedHeaders();
+        //
+        // https://seankilleen.com/2020/06/solved-net-core-azure-ad-in-docker-container-incorrectly-uses-an-non-https-redirect-uri/
+        builder.Services.Configure<ForwardedHeadersOptions>(options =>
+        {
+            options.ForwardedHeaders = ForwardedHeaders.XForwardedFor |
+                                       ForwardedHeaders.XForwardedProto;
+
+            // Only loopback proxies are allowed by default.
+            // Clear that restriction because forwarders are enabled by explicit
+            // configuration.
+            options.KnownNetworks.Clear();
+            options.KnownProxies.Clear();
+        });
+
+        // END
+        builder.Services.AddResponseCaching();
+
+
+
         // Get the boot variables loaded, and
         // do some validation to make sure Cosmos can boot up
         // based on the values given.
@@ -189,6 +217,11 @@ internal class Program
 
         var app = builder.Build();
 
+        // BEGIN
+        // https://seankilleen.com/2020/06/solved-net-core-azure-ad-in-docker-container-incorrectly-uses-an-non-https-redirect-uri/
+        app.UseForwardedHeaders();
+        // END
+
         // Middle-ware proper order:
         // See: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/middleware/?view=aspnetcore-6.0#middleware-order
         // Configure the HTTP request pipeline.
@@ -219,6 +252,8 @@ internal class Program
         {
             app.UseCors("AllowedOrigPolicy");
         }
+
+        app.UseResponseCaching(); // https://docs.microsoft.com/en-us/aspnet/core/performance/caching/middleware?view=aspnetcore-3.1
 
         app.UseAuthentication();
         app.UseAuthorization();

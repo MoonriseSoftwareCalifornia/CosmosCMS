@@ -7,9 +7,9 @@
 		<EnableNETAnalyzers>false</EnableNETAnalyzers>
 		<RepositoryUrl>https://github.com/CosmosSoftware/CosmosCms</RepositoryUrl>
 		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-		<Version>8.0.4.3</Version>
-		<AssemblyVersion>8.0.4.3</AssemblyVersion>
-		<FileVersion>8.0.4.3</FileVersion>
+		<Version>8.0.4.4</Version>
+		<AssemblyVersion>8.0.4.4</AssemblyVersion>
+		<FileVersion>8.0.4.4</FileVersion>
 		<RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
 		<Authors></Authors>
 		<ApplicationInsightsResourceId>/subscriptions/9bdb8e29-156f-4fc9-a1fe-1bb6a915a4f0/resourceGroups/CosmosCMS/providers/microsoft.insights/components/edit-cosmos-cms202107021426</ApplicationInsightsResourceId>
@@ -26,15 +26,19 @@
 	</PropertyGroup>
 	
 	<ItemGroup>
+		<Compile Remove="Areas\MicrosoftIdentity\**" />
 		<Compile Remove="wwwroot\images\video\**" />
 		<Compile Remove="wwwroot\lib\ckeditor\build_20230104.01\**" />
 		<Compile Remove="wwwroot\lib\ckeditor\build_20230209.01\**" />
+		<Content Remove="Areas\MicrosoftIdentity\**" />
 		<Content Remove="wwwroot\images\video\**" />
 		<Content Remove="wwwroot\lib\ckeditor\build_20230104.01\**" />
 		<Content Remove="wwwroot\lib\ckeditor\build_20230209.01\**" />
+		<EmbeddedResource Remove="Areas\MicrosoftIdentity\**" />
 		<EmbeddedResource Remove="wwwroot\images\video\**" />
 		<EmbeddedResource Remove="wwwroot\lib\ckeditor\build_20230104.01\**" />
 		<EmbeddedResource Remove="wwwroot\lib\ckeditor\build_20230209.01\**" />
+		<None Remove="Areas\MicrosoftIdentity\**" />
 		<None Remove="wwwroot\images\video\**" />
 		<None Remove="wwwroot\lib\ckeditor\build_20230104.01\**" />
 		<None Remove="wwwroot\lib\ckeditor\build_20230209.01\**" />
@@ -105,12 +109,6 @@
 	  <Content Update="wwwroot\images\logos\primarylogowhite.png">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </Content>
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Areas\MicrosoftIdentity\Data\" />
-	  <Folder Include="Areas\MicrosoftIdentity\Models\" />
-	  <Folder Include="Areas\MicrosoftIdentity\Views\" />
 	</ItemGroup>
 
 	<ProjectExtensions>

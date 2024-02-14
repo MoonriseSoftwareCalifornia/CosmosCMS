@@ -185,13 +185,13 @@ namespace Cosmos.Cms
                 options.Cookie.IsEssential = true;
             });
 
-            // https://docs.microsoft.com/en-us/aspnet/core/security/authentication/accconfirm?view=aspnetcore-3.1&tabs=visual-studio
-            services.ConfigureApplicationCookie(o =>
-            {
-                o.Cookie.Name = "CosmosAuthCookie";
-                o.ExpireTimeSpan = TimeSpan.FromDays(5);
-                o.SlidingExpiration = true;
-            });
+            //// https://docs.microsoft.com/en-us/aspnet/core/security/authentication/accconfirm?view=aspnetcore-3.1&tabs=visual-studio
+            //services.ConfigureApplicationCookie(o =>
+            //{
+            //    o.Cookie.Name = "CosmosAuthCookie";
+            //    o.ExpireTimeSpan = TimeSpan.FromDays(5);
+            //    o.SlidingExpiration = true;
+            //});
 
             // Add services
             var azureCommunicationConnection = Configuration.GetConnectionString("AzureCommunicationConnection");
@@ -268,6 +268,10 @@ namespace Cosmos.Cms
 
             services.ConfigureApplicationCookie(options =>
             {
+                options.Cookie.Name = "CosmosAuthCookie";
+                options.ExpireTimeSpan = TimeSpan.FromDays(5);
+                options.SlidingExpiration = true;
+
                 // This section docs are here: https://docs.microsoft.com/en-us/aspnet/core/security/authentication/scaffold-identity?view=aspnetcore-3.1&tabs=visual-studio#full
                 // The following is when using Docker container with a proxy like
                 // Azure front door. It ensures relative paths for redirects
@@ -359,8 +363,8 @@ namespace Cosmos.Cms
             // BEGIN
             // https://seankilleen.com/2020/06/solved-net-core-azure-ad-in-docker-container-incorrectly-uses-an-non-https-redirect-uri/
             app.UseForwardedHeaders();
-
             // END
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
