@@ -8,7 +8,7 @@
 		<RepositoryUrl>https://github.com/CosmosSoftware/CosmosCms</RepositoryUrl>
 		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
 		<Version>8.0.4.5</Version>
-		<AssemblyVersion>8.0.4.5</AssemblyVersion>
+		<AssemblyVersion>C</AssemblyVersion>
 		<FileVersion>8.0.4.5</FileVersion>
 		<RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
 		<Authors></Authors>
