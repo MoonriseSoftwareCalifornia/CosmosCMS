@@ -7,16 +7,23 @@
 
 namespace Cosmos.Cms.Areas.Identity.Pages.Account
 {
+    using System;
     using System.ComponentModel.DataAnnotations;
+    using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
     using Cosmos.Cms.Common.Services.Configurations;
+    using Cosmos.Common.Data;
+    using Cosmos.EmailServices;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
+    using Microsoft.AspNetCore.Identity.UI.Services;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.RazorPages;
     using Microsoft.AspNetCore.RateLimiting;
     using Microsoft.AspNetCore.WebUtilities;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
 
     /// <summary>
@@ -27,18 +34,26 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     public class ResetPasswordModel : PageModel
     {
         private readonly IOptions<SiteSettings> options;
+        private readonly ICosmosEmailSender emailSender;
+        private readonly ApplicationDbContext dbContext;
+        private readonly ILogger<ForgotPasswordModel> logger;
         private readonly UserManager<IdentityUser> userManager;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ResetPasswordModel"/> class.
-        /// Constructor.
         /// </summary>
         /// <param name="userManager">User manager.</param>
         /// <param name="options">Site settings.</param>
-        public ResetPasswordModel(UserManager<IdentityUser> userManager, IOptions<SiteSettings> options)
+        /// <param name="emailSender">Email sender service.</param>
+        /// <param name="dbContext">Database context.</param>
+        /// <param name="logger">Log service.</param>
+        public ResetPasswordModel(UserManager<IdentityUser> userManager, IOptions<SiteSettings> options, IEmailSender emailSender, ApplicationDbContext dbContext, ILogger<ForgotPasswordModel> logger)
         {
             this.userManager = userManager;
             this.options = options;
+            this.emailSender = (ICosmosEmailSender)emailSender;
+            this.dbContext = dbContext;
+            this.logger = logger;
         }
 
         /// <summary>
@@ -50,8 +65,8 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         /// <summary>
         /// Get handler.
         /// </summary>
-        /// <param name="code">Reset code.</param>
-        /// <returns><see cref="PageResult"/></returns>
+        /// <param name="code">Reset password verification code.</param>
+        /// <returns>Returns an <see cref="IActionResult"/>.</returns>
         public IActionResult OnGet(string code = null)
         {
             if (code == null)
@@ -77,9 +92,23 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                 return Page();
             }
 
+            var homePage = await dbContext.Pages.Select(s => new { s.Title, s.UrlPath }).FirstOrDefaultAsync(f => f.UrlPath == "root");
+            var websiteName = homePage.Title ?? Request.Host.Host;
+
+            var admins = await userManager.GetUsersInRoleAsync("Administrators");
+            var emailHandler = new EmailHandler(emailSender, logger);
+
             var user = await userManager.FindByEmailAsync(Input.Email);
             if (user == null)
             {
+                await emailHandler.SendGeneralInfoTemplateEmail(
+                        "User without an account tried to change a password",
+                        "System Notification",
+                        websiteName,
+                        Request.Host.Host,
+                        $"<p>This is a notification that '{Input.Email},' who does not have an account on this website, tried to change a password for website '{Request.Host.Host}' on {DateTime.UtcNow.ToString()} (UTC). No password reset email was sent.</p>",
+                        admins.Select(s => s.Email).ToList());
+
                 // Don't reveal that the user does not exist
                 return RedirectToPage("./ResetPasswordConfirmation");
             }
@@ -87,6 +116,24 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
             var result = await userManager.ResetPasswordAsync(user, Input.Code, Input.Password);
             if (result.Succeeded)
             {
+                // Notify the administrators of a password change.
+                await emailHandler.SendGeneralInfoTemplateEmail(
+                    "Password was changed.",
+                    "System Notification",
+                    websiteName,
+                    Request.Host.Host,
+                    $"<p>This is a notification that '{Input.Email}' changed their password for website '{Request.Host.Host}' on {DateTime.UtcNow.ToString()} (UTC).</p>",
+                    admins.Select(s => s.Email).ToList());
+
+                // Notify the user of a password change.
+                await emailHandler.SendGeneralInfoTemplateEmail(
+                    "Password was changed.",
+                    "System Notification",
+                    websiteName,
+                    Request.Host.Host,
+                    $"<p>This is a confirmation that your password was changed for website '{Request.Host.Host}' on {DateTime.UtcNow.ToString()} (UTC).</p>",
+                    Input.Email);
+
                 return RedirectToPage("./ResetPasswordConfirmation");
             }
 
@@ -114,8 +161,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
             /// Gets or sets error message (if any).
             /// </summary>
             [Required]
-            [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.",
-                MinimumLength = 6)]
+            [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
             [DataType(DataType.Password)]
             public string Password { get; set; }
 

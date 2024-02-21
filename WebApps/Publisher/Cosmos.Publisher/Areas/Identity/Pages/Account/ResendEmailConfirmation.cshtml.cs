@@ -8,6 +8,7 @@
 namespace Cosmos.Cms.Areas.Identity.Pages.Account
 {
     using System.ComponentModel.DataAnnotations;
+    using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
     using Cosmos.Common.Data;
@@ -87,6 +88,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
             var userId = await userManager.GetUserIdAsync(user);
             var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
             code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+
             var callbackUrl = Url.Page(
                 "/Account/ConfirmEmail",
                 null,

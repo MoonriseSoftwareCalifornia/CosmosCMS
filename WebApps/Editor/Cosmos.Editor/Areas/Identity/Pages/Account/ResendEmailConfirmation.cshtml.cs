@@ -37,7 +37,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ResendEmailConfirmationModel"/> class.
-        /// Constructor.
         /// </summary>
         /// <param name="userManager">User manager service.</param>
         /// <param name="logger">Logger service.</param>

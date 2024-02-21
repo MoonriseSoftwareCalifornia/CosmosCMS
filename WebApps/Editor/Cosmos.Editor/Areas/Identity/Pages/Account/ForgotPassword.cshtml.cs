@@ -38,7 +38,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ForgotPasswordModel"/> class.
-        /// Constructor.
         /// </summary>
         /// <param name="userManager">Password manager.</param>
         /// <param name="emailSender">IEmail service.</param>

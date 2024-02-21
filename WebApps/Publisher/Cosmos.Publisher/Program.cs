@@ -187,8 +187,6 @@ internal class Program
         // END
         builder.Services.AddResponseCaching();
 
-
-
         // Get the boot variables loaded, and
         // do some validation to make sure Cosmos can boot up
         // based on the values given.

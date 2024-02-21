@@ -42,7 +42,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         {
             await signInManager.SignOutAsync();
             logger.LogInformation("User logged out.");
-            return RedirectToPage();
+            return Redirect("/");
         }
 
         /// <summary>
@@ -59,7 +59,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                 return LocalRedirect(returnUrl);
             }
 
-            return RedirectToPage();
+            return Redirect("/");
         }
     }
 }
