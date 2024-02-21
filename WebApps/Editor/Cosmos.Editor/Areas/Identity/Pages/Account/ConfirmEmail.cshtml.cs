@@ -45,7 +45,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
             ILogger<ConfirmEmailModel> logger,
             IEmailSender emailSender,
             ApplicationDbContext dbContext)
-
         {
             this.userManager = userManager;
             this.logger = logger;

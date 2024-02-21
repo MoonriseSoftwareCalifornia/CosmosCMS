@@ -17,6 +17,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     using Microsoft.AspNetCore.Identity.UI.Services;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.RazorPages;
+    using Microsoft.AspNetCore.RateLimiting;
     using Microsoft.AspNetCore.WebUtilities;
     using Microsoft.EntityFrameworkCore;
 
@@ -24,6 +25,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     /// Forgot password page model.
     /// </summary>
     [AllowAnonymous]
+    [EnableRateLimiting("fixed")]
     public class ForgotPasswordModel : PageModel
     {
         private readonly ICosmosEmailSender emailSender;

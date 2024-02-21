@@ -20,6 +20,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     using Microsoft.AspNetCore.Identity.UI.Services;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.RazorPages;
+    using Microsoft.AspNetCore.RateLimiting;
     using Microsoft.AspNetCore.WebUtilities;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
@@ -28,6 +29,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     /// External login page model.
     /// </summary>
     [AllowAnonymous]
+    [EnableRateLimiting("fixed")]
     public class ExternalLoginModel : PageModel
     {
         private readonly IEmailSender emailSender;
@@ -35,32 +37,28 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         private readonly SignInManager<IdentityUser> signInManager;
         private readonly UserManager<IdentityUser> userManager;
         private readonly RoleManager<IdentityRole> roleManager;
-        private readonly IOptions<SiteSettings> options;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ExternalLoginModel"/> class.
         /// Constructor.
         /// </summary>
-        /// <param name="signInManager"></param>
-        /// <param name="userManager"></param>
-        /// <param name="roleManager"></param>
-        /// <param name="logger"></param>
-        /// <param name="emailSender"></param>
-        /// <param name="options"></param>
+        /// <param name="signInManager">Sign in manager service.</param>
+        /// <param name="userManager">User manager service.</param>
+        /// <param name="roleManager">Role manager service.</param>
+        /// <param name="logger">Log service.</param>
+        /// <param name="emailSender">Email sender.</param>
         public ExternalLoginModel(
             SignInManager<IdentityUser> signInManager,
             UserManager<IdentityUser> userManager,
             RoleManager<IdentityRole> roleManager,
             ILogger<ExternalLoginModel> logger,
-            IEmailSender emailSender,
-            IOptions<SiteSettings> options)
+            IEmailSender emailSender)
         {
             this.signInManager = signInManager;
             this.userManager = userManager;
             this.roleManager = roleManager;
             this.logger = logger;
             this.emailSender = emailSender;
-            this.options = options;
         }
 
         /// <summary>

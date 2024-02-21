@@ -1,4 +1,4 @@
-﻿@using Microsoft.AspNetCore.Antiforgery
+﻿@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 @using System.Reflection
 @model Cosmos.Common.Models.ArticleViewModel
 @{
@@ -20,6 +20,8 @@
     <meta name="cwps-meta-path-updated" content="@Model.Updated" />
     <meta name="cwps-meta-author-info" content="@Model.AuthorInfo" />
     <meta name="cwps-meta-user-is-authenticated" content="@User.Identity.IsAuthenticated.ToString().ToLower()" />
+    <meta name="cwps-meta-af-value" content="@Antiforgery.GetAndStoreTokens(Context).RequestToken" />
+
     @*
         Layout "head" injection location
     *@
@@ -29,6 +31,7 @@
     *@
     @Html.Raw(Model.HeadJavaScript)
     @Html.Raw(JavaScriptSnippet.FullScript)
+    <script async src="//cdn.embedly.com/widgets/platform.js" charset="UTF-8"></script>
 </head>
 <body>
     @*
@@ -41,6 +44,5 @@
     *@
     @Html.Raw(Model.Layout.FooterHtmlContent)
     @Html.Raw(Model.FooterJavaScript)
-    @Html.AntiForgeryToken()
 </body>
 </html>

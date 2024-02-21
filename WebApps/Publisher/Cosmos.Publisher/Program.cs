@@ -5,6 +5,7 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System.Threading.RateLimiting;
 using AspNetCore.Identity.CosmosDb.Extensions;
 using Azure.Storage.Blobs;
 using Cosmos.BlobService;
@@ -17,6 +18,7 @@ using Cosmos.EmailServices;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Azure.Cosmos.Fluent;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Serialization;
@@ -143,7 +145,7 @@ internal class Program
         // See: https://github.com/Azure/Microsoft.Extensions.Caching.Cosmos
         builder.Services.AddCosmosCache((cacheOptions) =>
         {
-            cacheOptions.ContainerName = "EditorCache";
+            cacheOptions.ContainerName = "PublisherCache";
             cacheOptions.DatabaseName = cosmosIdentityDbName;
             cacheOptions.ClientBuilder = new CosmosClientBuilder(connectionString);
             cacheOptions.CreateIfNotExists = true;
@@ -171,6 +173,16 @@ internal class Program
             options.KnownNetworks.Clear();
             options.KnownProxies.Clear();
         });
+
+        // Throttle certain endpoints to protect the website.
+        builder.Services.AddRateLimiter(_ => _
+            .AddFixedWindowLimiter(policyName: "fixed", options =>
+            {
+                options.PermitLimit = 4;
+                options.Window = TimeSpan.FromSeconds(8);
+                options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                options.QueueLimit = 2;
+            }));
 
         // END
         builder.Services.AddResponseCaching();
@@ -242,6 +254,8 @@ internal class Program
         app.UseCookiePolicy();
 
         app.UseRouting();
+
+        app.UseRateLimiter();
 
         if (string.IsNullOrEmpty(corsOrigins))
         {

@@ -10,6 +10,7 @@ namespace Cosmos.Cms
     using System;
     using System.Security.Cryptography;
     using System.Text;
+    using System.Threading.RateLimiting;
     using System.Threading.Tasks;
     using System.Web;
     using AspNetCore.Identity.CosmosDb.Extensions;
@@ -28,6 +29,8 @@ namespace Cosmos.Cms
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.HttpOverrides;
     using Microsoft.AspNetCore.Identity;
+    using Microsoft.AspNetCore.RateLimiting;
+    using Microsoft.Azure.Cosmos.Fluent;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
@@ -185,14 +188,7 @@ namespace Cosmos.Cms
                 options.Cookie.IsEssential = true;
             });
 
-            //// https://docs.microsoft.com/en-us/aspnet/core/security/authentication/accconfirm?view=aspnetcore-3.1&tabs=visual-studio
-            //services.ConfigureApplicationCookie(o =>
-            //{
-            //    o.Cookie.Name = "CosmosAuthCookie";
-            //    o.ExpireTimeSpan = TimeSpan.FromDays(5);
-            //    o.SlidingExpiration = true;
-            //});
-
+            
             // Add services
             var azureCommunicationConnection = Configuration.GetConnectionString("AzureCommunicationConnection");
 
@@ -349,6 +345,16 @@ namespace Cosmos.Cms
                     config.ApplicationName = $"H{appName}";
                 });
             }
+
+            // Throttle certain endpoints to protect the website.
+            services.AddRateLimiter(_ => _
+                .AddFixedWindowLimiter(policyName: "fixed", options =>
+                {
+                    options.PermitLimit = 4;
+                    options.Window = TimeSpan.FromSeconds(8);
+                    options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                    options.QueueLimit = 2;
+                }));
         }
 
         /// <summary>
@@ -387,6 +393,8 @@ namespace Cosmos.Cms
 
             app.UseAuthentication();
             app.UseAuthorization();
+
+            app.UseRateLimiter();
 
             app.UseEndpoints(endpoints =>
             {

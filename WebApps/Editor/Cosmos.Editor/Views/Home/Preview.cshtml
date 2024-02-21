@@ -1,4 +1,5 @@
-﻿@model ArticleViewModel
+﻿@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@model ArticleViewModel
 @{
     if (string.IsNullOrEmpty(Context.Request.Query["standalone"]))
     {
@@ -19,6 +20,8 @@
     <meta name="cwps-meta-path-updated" content="@Model.Updated" />
     <meta name="cwps-meta-path-title" content="@Model.Title" />
     <meta name="cwps-meta-author-info" content="@Model.AuthorInfo" />
+    <meta name="cwps-meta-af-value" content="@Antiforgery.GetAndStoreTokens(Context).RequestToken" />
+
     @Html.Raw(Model.Layout.Head)
     @*
 Page specific header
@@ -28,6 +31,7 @@ Page specific header
 Application Insights Scripts
 *@
     @Html.Raw(JavaScriptSnippet.FullScript)
+    <script async src="//cdn.embedly.com/widgets/platform.js" charset="UTF-8"></script>
 </head>
 <body>
     @Html.Raw(Model.Layout.HtmlHeader)

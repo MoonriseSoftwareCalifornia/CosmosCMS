@@ -45,9 +45,9 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         /// <summary>
         /// On get method handler.
         /// </summary>
-        /// <param name="userId"></param>
-        /// <param name="email"></param>
-        /// <param name="code"></param>
+        /// <param name="userId">User ID.</param>
+        /// <param name="email">User email address.</param>
+        /// <param name="code">Confirmation code.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> OnGetAsync(string userId, string email, string code)
         {

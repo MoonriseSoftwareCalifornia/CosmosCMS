@@ -18,6 +18,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     using Microsoft.AspNetCore.Identity.UI.Services;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.RazorPages;
+    using Microsoft.AspNetCore.RateLimiting;
     using Microsoft.AspNetCore.WebUtilities;
     using Microsoft.Extensions.Logging;
 
@@ -25,6 +26,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     /// External login page model.
     /// </summary>
     [AllowAnonymous]
+    [EnableRateLimiting("fixed")]
     public class ExternalLoginModel : PageModel
     {
         private readonly IEmailSender emailSender;

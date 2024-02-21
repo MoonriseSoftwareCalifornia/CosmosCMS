@@ -7,6 +7,7 @@
 
 namespace Cosmos.Cms.Areas.Identity.Pages.Account
 {
+    using System;
     using System.ComponentModel.DataAnnotations;
     using System.Linq;
     using System.Text;
@@ -18,6 +19,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     using Microsoft.AspNetCore.Identity.UI.Services;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.RazorPages;
+    using Microsoft.AspNetCore.RateLimiting;
     using Microsoft.AspNetCore.WebUtilities;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
@@ -26,6 +28,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     /// Forgot password page model.
     /// </summary>
     [AllowAnonymous]
+    [EnableRateLimiting("fixed")]
     public class ForgotPasswordModel : PageModel
     {
         private readonly ICosmosEmailSender emailSender;
@@ -77,9 +80,37 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         {
             if (ModelState.IsValid)
             {
+                var homePage = await dbContext.Pages.Select(s => new { s.Title, s.UrlPath }).FirstOrDefaultAsync(f => f.UrlPath == "root");
+                var websiteName = homePage.Title ?? Request.Host.Host;
+
+                var admins = await userManager.GetUsersInRoleAsync("Administrators");
+                var emailHandler = new EmailHandler(emailSender, logger);
+
                 var user = await userManager.FindByEmailAsync(Input.Email);
-                if (user == null || !await userManager.IsEmailConfirmedAsync(user))
+                if (user == null)
                 {
+                    await emailHandler.SendGeneralInfoTemplateEmail(
+                            "User without an account requested password reset",
+                            "System Notification",
+                            websiteName,
+                            Request.Host.Host,
+                            $"<p>This is a notification that '{Input.Email},' who does not have an account on this website, requested a password reset for website '{Request.Host.Host}' on {DateTime.UtcNow.ToString()} (UTC). No password reset email was sent.</p>",
+                            admins.Select(s => s.Email).ToList());
+
+                    // Don't reveal that the user does not exist or is not confirmed
+                    return RedirectToPage("./ForgotPasswordConfirmation");
+                }
+
+                if (!await userManager.IsEmailConfirmedAsync(user))
+                {
+                    await emailHandler.SendGeneralInfoTemplateEmail(
+                            "User with an unconfirmed email requested password reset",
+                            "System Notification",
+                            websiteName,
+                            Request.Host.Host,
+                            $"<p>This is a notification that '{Input.Email},' who's email has not yet been confirmed, requested a password reset for website '{Request.Host.Host}' on {DateTime.UtcNow.ToString()} (UTC). No password reset email was sent.</p>",
+                            admins.Select(s => s.Email).ToList());
+
                     // Don't reveal that the user does not exist or is not confirmed
                     return RedirectToPage("./ForgotPasswordConfirmation");
                 }
@@ -94,11 +125,15 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                     new { area = "Identity", code },
                     Request.Scheme);
 
-                var homePage = await dbContext.Pages.Select(s => new { s.Title, s.UrlPath }).FirstOrDefaultAsync(f => f.UrlPath == "root");
-                var websiteName = homePage.Title ?? Request.Host.Host;
-
-                var emailHandler = new EmailHandler(emailSender, logger);
                 await emailHandler.SendCallbackTemplateEmail(EmailHandler.CallbackTemplate.ResetPasswordTemplate, callbackUrl, Request.Host.Host, Input.Email, websiteName);
+
+                await emailHandler.SendGeneralInfoTemplateEmail(
+                        "Password Reset Email Requested",
+                        "System Notification",
+                        websiteName,
+                        Request.Host.Host,
+                        $"<p>This is a notification that '{Input.Email}' requested a password reset for website '{Request.Host.Host}' on {DateTime.UtcNow.ToString()} (UTC).</p>",
+                        admins.Select(s => s.Email).ToList());
 
                 return RedirectToPage("./ForgotPasswordConfirmation");
             }

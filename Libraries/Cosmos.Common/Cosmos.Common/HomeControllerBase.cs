@@ -21,6 +21,7 @@ namespace Cosmos.Common
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Cors;
     using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.RateLimiting;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
     using Microsoft.PowerBI.Api.Models;
@@ -123,6 +124,7 @@ namespace Cosmos.Common
         /// <returns>Returns OK if successful.</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [EnableRateLimiting("fixed")]
         public async Task<IActionResult> CCMS_POSTCONTACT_INFO(ContactViewModel model)
         {
             try
@@ -167,7 +169,7 @@ namespace Cosmos.Common
 
                         var member = new Member { FullName = $"{model.FirstName} {model.LastName}", EmailAddress = contact.Email, StatusIfNew = MailChimp.Net.Models.Status.Subscribed };
 
-                        member.LastChanged = DateTimeOffset.UtcNow.ToString("U");
+                        member.LastChanged = DateTimeOffset.UtcNow.ToString();
 
                         member.MergeFields.Add("FNAME", model.FirstName);
                         member.MergeFields.Add("LNAME", model.LastName);
@@ -248,6 +250,7 @@ namespace Cosmos.Common
         /// </summary>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [AllowAnonymous]
+        [EnableRateLimiting("fixed")]
         public async Task<IActionResult> CCMS_UTILITIES_NET_PING_HEALTH_CHECK()
         {
             try

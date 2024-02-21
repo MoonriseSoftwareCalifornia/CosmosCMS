@@ -116,6 +116,34 @@ namespace Cosmos.EmailServices
             logger.LogInformation($"Email with subject '{subject}' was sent to: '{toEmail}'");
         }
 
+        /// <summary>
+        /// Sends an email using the general information template.
+        /// </summary>
+        /// <param name="subject">Subject.</param>
+        /// <param name="subtitle">Subtitle.</param>
+        /// <param name="websiteName">Website name.</param>
+        /// <param name="hostname">Website host name.</param>
+        /// <param name="body">Email body or content.</param>
+        /// <param name="toEmails">A list of those who will receive the email.</param>
+        /// <param name="fromEmail">Who the email is from.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        public async Task SendGeneralInfoTemplateEmail(string subject, string subtitle, string websiteName, string hostname, string body, IEnumerable<string> toEmails, string? fromEmail = null)
+        {
+            var parser = new EmailTemplateParser("GeneralInfo");
+            parser.Insert("Subject", subject);
+            parser.Insert("Subtitle", subtitle);
+            parser.Insert("WebsiteUrl", $"https://{hostname}");
+            parser.Insert("WebsiteName", websiteName);
+            parser.InsertHtml("Body", body);
+
+            foreach (var email in toEmails)
+            {
+                await emailSender.SendEmailAsync(email, subject, parser.Text, parser.Html, fromEmail);
+
+                logger.LogInformation($"Email with subject '{subject}' was sent to: '{email}'");
+            }
+        }
+
         private EmailTemplateParser GetParser(string templateName)
         {
             var parser = new EmailTemplateParser(templateName);

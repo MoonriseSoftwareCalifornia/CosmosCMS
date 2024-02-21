@@ -15,6 +15,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.RazorPages;
+    using Microsoft.AspNetCore.RateLimiting;
     using Microsoft.AspNetCore.WebUtilities;
     using Microsoft.Extensions.Options;
 
@@ -22,6 +23,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     /// Reset password page model.
     /// </summary>
     [AllowAnonymous]
+    [EnableRateLimiting("fixed")]
     public class ResetPasswordModel : PageModel
     {
         private readonly IOptions<SiteSettings> options;

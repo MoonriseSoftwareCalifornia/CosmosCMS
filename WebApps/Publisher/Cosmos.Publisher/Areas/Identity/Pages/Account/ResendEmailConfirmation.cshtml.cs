@@ -17,6 +17,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     using Microsoft.AspNetCore.Identity.UI.Services;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.RazorPages;
+    using Microsoft.AspNetCore.RateLimiting;
     using Microsoft.AspNetCore.WebUtilities;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
@@ -25,6 +26,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     /// Resend email confirmation page model.
     /// </summary>
     [AllowAnonymous]
+    [EnableRateLimiting("fixed")]
     public class ResendEmailConfirmationModel : PageModel
     {
         private readonly ICosmosEmailSender emailSender;
