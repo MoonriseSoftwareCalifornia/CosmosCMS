@@ -14,6 +14,13 @@
         figure.media {
             width: 640px;
         }
+
+        .ck.ck-block-toolbar-button {
+            transform: translateX( 30px ) translateY( -80px ) !important;
+            background-color: white !important;
+            border: 3px solid blue !important;
+        }
+
     </style>
     @Html.Raw(Model.Layout.Head)
     @Html.Raw(Model.HeadJavaScript)
@@ -59,7 +66,7 @@
                     return Editor
                         .create(elementOrData, editorConfig)
                         .then(editor => {
-                            
+
                             const imageUploadEditing = editor.plugins.get('ImageUploadEditing');
                             imageUploadEditing.on('uploadComplete', (evt, { data, imageElement }) => {
                                 parent.ccms_setBannerImage(data.url);
