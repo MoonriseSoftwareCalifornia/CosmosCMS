@@ -1,4 +1,4 @@
-// powerbi-client v2.22.4
+// powerbi-client v2.23.0
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 (function webpackUniversalModuleDefinition(root, factory) {
@@ -203,7 +203,7 @@ return /******/ (function(modules) { // webpackBootstrap
   \****************************************************/
 /***/ (function(module) {
 
-// powerbi-models v1.12.6
+// powerbi-models v1.14.0
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 (function webpackUniversalModuleDefinition(root, factory) {
@@ -1166,6 +1166,7 @@ var parameterPanelValidator_1 = __nested_webpack_require_46167__(30);
 var datasetCreateConfigValidator_1 = __nested_webpack_require_46167__(31);
 var quickCreateValidator_1 = __nested_webpack_require_46167__(32);
 var printSettingsValidator_1 = __nested_webpack_require_46167__(33);
+var paginatedReportDatasetBindingValidator_1 = __nested_webpack_require_46167__(34);
 exports.Validators = {
     addBookmarkRequestValidator: new bookmarkValidator_1.AddBookmarkRequestValidator(),
     advancedFilterTypeValidator: new typeValidator_1.EnumValidator([0]),
@@ -1254,6 +1255,7 @@ exports.Validators = {
     pageViewFieldValidator: new pageValidator_1.PageViewFieldValidator(),
     pagesLayoutValidator: new mapValidator_1.MapValidator([new typeValidator_1.StringValidator()], [new layoutValidator_1.PageLayoutValidator()]),
     paginatedReportCommandsValidator: new commandsSettingsValidator_1.PaginatedReportCommandsValidator(),
+    paginatedReportDatasetBindingArrayValidator: new typeValidator_1.ArrayValidator([new paginatedReportDatasetBindingValidator_1.PaginatedReportDatasetBindingValidator()]),
     paginatedReportLoadValidator: new paginatedReportLoadValidator_1.PaginatedReportLoadValidator(),
     paginatedReportsettingsValidator: new settingsValidator_1.PaginatedReportSettingsValidator(),
     parameterValuesArrayValidator: new typeValidator_1.ArrayValidator([new paginatedReportLoadValidator_1.ReportParameterFieldsValidator()]),
@@ -1315,7 +1317,7 @@ exports.Validators = {
 
 /***/ }),
 /* 2 */
-/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_63052__) {
+/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_63300__) {
 
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
@@ -1336,9 +1338,9 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.StatusBarValidator = exports.ActionBarValidator = exports.ReportBarsValidator = void 0;
-var multipleFieldsValidator_1 = __nested_webpack_require_63052__(3);
-var typeValidator_1 = __nested_webpack_require_63052__(4);
-var validator_1 = __nested_webpack_require_63052__(1);
+var multipleFieldsValidator_1 = __nested_webpack_require_63300__(3);
+var typeValidator_1 = __nested_webpack_require_63300__(4);
+var validator_1 = __nested_webpack_require_63300__(1);
 var ReportBarsValidator = /** @class */ (function (_super) {
     __extends(ReportBarsValidator, _super);
     function ReportBarsValidator() {
@@ -1718,7 +1720,7 @@ exports.RangeValidator = RangeValidator;
 
 /***/ }),
 /* 5 */
-/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_78931__) {
+/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_79179__) {
 
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
@@ -1739,9 +1741,9 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CaptureBookmarkRequestValidator = exports.CaptureBookmarkOptionsValidator = exports.ApplyBookmarkStateRequestValidator = exports.ApplyBookmarkByNameRequestValidator = exports.AddBookmarkRequestValidator = exports.PlayBookmarkRequestValidator = void 0;
-var multipleFieldsValidator_1 = __nested_webpack_require_78931__(3);
-var typeValidator_1 = __nested_webpack_require_78931__(4);
-var validator_1 = __nested_webpack_require_78931__(1);
+var multipleFieldsValidator_1 = __nested_webpack_require_79179__(3);
+var typeValidator_1 = __nested_webpack_require_79179__(4);
+var validator_1 = __nested_webpack_require_79179__(1);
 var PlayBookmarkRequestValidator = /** @class */ (function (_super) {
     __extends(PlayBookmarkRequestValidator, _super);
     function PlayBookmarkRequestValidator() {
@@ -1908,7 +1910,7 @@ exports.CaptureBookmarkRequestValidator = CaptureBookmarkRequestValidator;
 
 /***/ }),
 /* 6 */
-/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_87407__) {
+/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_87655__) {
 
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
@@ -1929,9 +1931,9 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PaginatedReportCommandsValidator = exports.SingleCommandSettingsValidator = exports.CommandsSettingsValidator = void 0;
-var multipleFieldsValidator_1 = __nested_webpack_require_87407__(3);
-var typeValidator_1 = __nested_webpack_require_87407__(4);
-var validator_1 = __nested_webpack_require_87407__(1);
+var multipleFieldsValidator_1 = __nested_webpack_require_87655__(3);
+var typeValidator_1 = __nested_webpack_require_87655__(4);
+var validator_1 = __nested_webpack_require_87655__(1);
 var CommandsSettingsValidator = /** @class */ (function (_super) {
     __extends(CommandsSettingsValidator, _super);
     function CommandsSettingsValidator() {
@@ -2075,7 +2077,7 @@ exports.PaginatedReportCommandsValidator = PaginatedReportCommandsValidator;
 
 /***/ }),
 /* 7 */
-/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_94440__) {
+/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_94688__) {
 
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
@@ -2096,8 +2098,8 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CustomThemeValidator = void 0;
-var multipleFieldsValidator_1 = __nested_webpack_require_94440__(3);
-var typeValidator_1 = __nested_webpack_require_94440__(4);
+var multipleFieldsValidator_1 = __nested_webpack_require_94688__(3);
+var typeValidator_1 = __nested_webpack_require_94688__(4);
 var CustomThemeValidator = /** @class */ (function (_super) {
     __extends(CustomThemeValidator, _super);
     function CustomThemeValidator() {
@@ -2127,7 +2129,7 @@ exports.CustomThemeValidator = CustomThemeValidator;
 
 /***/ }),
 /* 8 */
-/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_96594__) {
+/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_96842__) {
 
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
@@ -2148,9 +2150,9 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.DashboardLoadValidator = void 0;
-var multipleFieldsValidator_1 = __nested_webpack_require_96594__(3);
-var typeValidator_1 = __nested_webpack_require_96594__(4);
-var validator_1 = __nested_webpack_require_96594__(1);
+var multipleFieldsValidator_1 = __nested_webpack_require_96842__(3);
+var typeValidator_1 = __nested_webpack_require_96842__(4);
+var validator_1 = __nested_webpack_require_96842__(1);
 var DashboardLoadValidator = /** @class */ (function (_super) {
     __extends(DashboardLoadValidator, _super);
     function DashboardLoadValidator() {
@@ -2200,7 +2202,7 @@ exports.DashboardLoadValidator = DashboardLoadValidator;
 
 /***/ }),
 /* 9 */
-/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_99593__) {
+/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_99841__) {
 
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
@@ -2221,9 +2223,9 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.DatasetBindingValidator = void 0;
-var multipleFieldsValidator_1 = __nested_webpack_require_99593__(3);
-var typeValidator_1 = __nested_webpack_require_99593__(4);
-var validator_1 = __nested_webpack_require_99593__(1);
+var multipleFieldsValidator_1 = __nested_webpack_require_99841__(3);
+var typeValidator_1 = __nested_webpack_require_99841__(4);
+var validator_1 = __nested_webpack_require_99841__(1);
 var DatasetBindingValidator = /** @class */ (function (_super) {
     __extends(DatasetBindingValidator, _super);
     function DatasetBindingValidator() {
@@ -2237,10 +2239,21 @@ var DatasetBindingValidator = /** @class */ (function (_super) {
         if (errors) {
             return errors;
         }
+        if (!input["datasetId"] && !input["paginatedReportBindings"]) {
+            return [{
+                    message: "datasetBinding cannot be empty",
+                    path: (path ? path + "." : "") + field,
+                    keyword: "invalid"
+                }];
+        }
         var fields = [
             {
                 field: "datasetId",
-                validators: [validator_1.Validators.fieldRequiredValidator, validator_1.Validators.stringValidator]
+                validators: [validator_1.Validators.stringValidator]
+            },
+            {
+                field: "paginatedReportBindings",
+                validators: [validator_1.Validators.paginatedReportDatasetBindingArrayValidator]
             }
         ];
         var multipleFieldsValidator = new multipleFieldsValidator_1.MultipleFieldsValidator(fields);
@@ -2253,7 +2266,7 @@ exports.DatasetBindingValidator = DatasetBindingValidator;
 
 /***/ }),
 /* 10 */
-/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_101863__) {
+/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_102537__) {
 
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
@@ -2274,8 +2287,8 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ExportDataRequestValidator = void 0;
-var multipleFieldsValidator_1 = __nested_webpack_require_101863__(3);
-var typeValidator_1 = __nested_webpack_require_101863__(4);
+var multipleFieldsValidator_1 = __nested_webpack_require_102537__(3);
+var typeValidator_1 = __nested_webpack_require_102537__(4);
 var ExportDataRequestValidator = /** @class */ (function (_super) {
     __extends(ExportDataRequestValidator, _super);
     function ExportDataRequestValidator() {
@@ -2309,7 +2322,7 @@ exports.ExportDataRequestValidator = ExportDataRequestValidator;
 
 /***/ }),
 /* 11 */
-/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_104207__) {
+/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_104881__) {
 
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
@@ -2330,9 +2343,9 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ExtensionsValidator = exports.MenuGroupExtensionValidator = exports.ExtensionValidator = exports.CommandExtensionValidator = exports.ExtensionItemValidator = exports.ExtensionPointsValidator = exports.GroupedMenuExtensionValidator = exports.FlatMenuExtensionValidator = exports.MenuExtensionBaseValidator = void 0;
-var multipleFieldsValidator_1 = __nested_webpack_require_104207__(3);
-var typeValidator_1 = __nested_webpack_require_104207__(4);
-var validator_1 = __nested_webpack_require_104207__(1);
+var multipleFieldsValidator_1 = __nested_webpack_require_104881__(3);
+var typeValidator_1 = __nested_webpack_require_104881__(4);
+var validator_1 = __nested_webpack_require_104881__(1);
 var MenuExtensionBaseValidator = /** @class */ (function (_super) {
     __extends(MenuExtensionBaseValidator, _super);
     function MenuExtensionBaseValidator() {
@@ -2602,7 +2615,7 @@ exports.ExtensionsValidator = ExtensionsValidator;
 
 /***/ }),
 /* 12 */
-/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_116698__) {
+/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_117372__) {
 
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
@@ -2623,9 +2636,9 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.OnLoadFiltersValidator = exports.OnLoadFiltersBaseRemoveOperationValidator = exports.OnLoadFiltersBaseValidator = exports.ConditionItemValidator = exports.RemoveFiltersRequestValidator = exports.UpdateFiltersRequestValidator = exports.FilterValidator = exports.HierarchyFilterNodeValidator = exports.HierarchyFilterValidator = exports.IncludeExcludeFilterValidator = exports.NotSupportedFilterValidator = exports.TopNFilterValidator = exports.RelativeTimeFilterValidator = exports.RelativeDateFilterValidator = exports.RelativeDateTimeFilterValidator = exports.AdvancedFilterValidator = exports.BasicFilterValidator = exports.FilterValidatorBase = exports.FilterDisplaySettingsValidator = exports.FilterMeasureTargetValidator = exports.FilterKeyHierarchyTargetValidator = exports.FilterHierarchyTargetValidator = exports.FilterKeyColumnsTargetValidator = exports.FilterColumnTargetValidator = void 0;
-var multipleFieldsValidator_1 = __nested_webpack_require_116698__(3);
-var typeValidator_1 = __nested_webpack_require_116698__(4);
-var validator_1 = __nested_webpack_require_116698__(1);
+var multipleFieldsValidator_1 = __nested_webpack_require_117372__(3);
+var typeValidator_1 = __nested_webpack_require_117372__(4);
+var validator_1 = __nested_webpack_require_117372__(1);
 var FilterColumnTargetValidator = /** @class */ (function (_super) {
     __extends(FilterColumnTargetValidator, _super);
     function FilterColumnTargetValidator() {
@@ -3371,7 +3384,7 @@ exports.OnLoadFiltersValidator = OnLoadFiltersValidator;
 
 /***/ }),
 /* 13 */
-/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_150670__) {
+/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_151344__) {
 
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
@@ -3392,9 +3405,9 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PageLayoutValidator = exports.DisplayStateValidator = exports.VisualLayoutValidator = exports.CustomLayoutValidator = void 0;
-var multipleFieldsValidator_1 = __nested_webpack_require_150670__(3);
-var typeValidator_1 = __nested_webpack_require_150670__(4);
-var validator_1 = __nested_webpack_require_150670__(1);
+var multipleFieldsValidator_1 = __nested_webpack_require_151344__(3);
+var typeValidator_1 = __nested_webpack_require_151344__(4);
+var validator_1 = __nested_webpack_require_151344__(1);
 var CustomLayoutValidator = /** @class */ (function (_super) {
     __extends(CustomLayoutValidator, _super);
     function CustomLayoutValidator() {
@@ -3531,7 +3544,7 @@ exports.PageLayoutValidator = PageLayoutValidator;
 
 /***/ }),
 /* 14 */
-/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_157149__) {
+/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_157823__) {
 
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
@@ -3552,9 +3565,9 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PageViewFieldValidator = exports.PageValidator = exports.CustomPageSizeValidator = exports.PageSizeValidator = void 0;
-var multipleFieldsValidator_1 = __nested_webpack_require_157149__(3);
-var typeValidator_1 = __nested_webpack_require_157149__(4);
-var validator_1 = __nested_webpack_require_157149__(1);
+var multipleFieldsValidator_1 = __nested_webpack_require_157823__(3);
+var typeValidator_1 = __nested_webpack_require_157823__(4);
+var validator_1 = __nested_webpack_require_157823__(1);
 var PageSizeValidator = /** @class */ (function (_super) {
     __extends(PageSizeValidator, _super);
     function PageSizeValidator() {
@@ -3662,7 +3675,7 @@ exports.PageViewFieldValidator = PageViewFieldValidator;
 
 /***/ }),
 /* 15 */
-/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_162589__) {
+/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_163263__) {
 
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
@@ -3683,9 +3696,9 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.VisualizationsPaneValidator = exports.SyncSlicersPaneValidator = exports.SelectionPaneValidator = exports.PageNavigationPaneValidator = exports.FiltersPaneValidator = exports.FieldsPaneValidator = exports.BookmarksPaneValidator = exports.QnaPanesValidator = exports.ReportPanesValidator = void 0;
-var multipleFieldsValidator_1 = __nested_webpack_require_162589__(3);
-var typeValidator_1 = __nested_webpack_require_162589__(4);
-var validator_1 = __nested_webpack_require_162589__(1);
+var multipleFieldsValidator_1 = __nested_webpack_require_163263__(3);
+var typeValidator_1 = __nested_webpack_require_163263__(4);
+var validator_1 = __nested_webpack_require_163263__(1);
 var ReportPanesValidator = /** @class */ (function (_super) {
     __extends(ReportPanesValidator, _super);
     function ReportPanesValidator() {
@@ -3947,7 +3960,7 @@ exports.VisualizationsPaneValidator = VisualizationsPaneValidator;
 
 /***/ }),
 /* 16 */
-/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_174335__) {
+/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_175009__) {
 
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
@@ -3968,9 +3981,9 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.QnaInterpretInputDataValidator = exports.QnaSettingsValidator = exports.LoadQnaValidator = void 0;
-var multipleFieldsValidator_1 = __nested_webpack_require_174335__(3);
-var typeValidator_1 = __nested_webpack_require_174335__(4);
-var validator_1 = __nested_webpack_require_174335__(1);
+var multipleFieldsValidator_1 = __nested_webpack_require_175009__(3);
+var typeValidator_1 = __nested_webpack_require_175009__(4);
+var validator_1 = __nested_webpack_require_175009__(1);
 var LoadQnaValidator = /** @class */ (function (_super) {
     __extends(LoadQnaValidator, _super);
     function LoadQnaValidator() {
@@ -4086,7 +4099,7 @@ exports.QnaInterpretInputDataValidator = QnaInterpretInputDataValidator;
 
 /***/ }),
 /* 17 */
-/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_180046__) {
+/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_180720__) {
 
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
@@ -4107,9 +4120,9 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ReportCreateValidator = void 0;
-var multipleFieldsValidator_1 = __nested_webpack_require_180046__(3);
-var typeValidator_1 = __nested_webpack_require_180046__(4);
-var validator_1 = __nested_webpack_require_180046__(1);
+var multipleFieldsValidator_1 = __nested_webpack_require_180720__(3);
+var typeValidator_1 = __nested_webpack_require_180720__(4);
+var validator_1 = __nested_webpack_require_180720__(1);
 var ReportCreateValidator = /** @class */ (function (_super) {
     __extends(ReportCreateValidator, _super);
     function ReportCreateValidator() {
@@ -4155,7 +4168,7 @@ exports.ReportCreateValidator = ReportCreateValidator;
 
 /***/ }),
 /* 18 */
-/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_182904__) {
+/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_183578__) {
 
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
@@ -4176,9 +4189,9 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ReportLoadValidator = void 0;
-var multipleFieldsValidator_1 = __nested_webpack_require_182904__(3);
-var typeValidator_1 = __nested_webpack_require_182904__(4);
-var validator_1 = __nested_webpack_require_182904__(1);
+var multipleFieldsValidator_1 = __nested_webpack_require_183578__(3);
+var typeValidator_1 = __nested_webpack_require_183578__(4);
+var validator_1 = __nested_webpack_require_183578__(1);
 var ReportLoadValidator = /** @class */ (function (_super) {
     __extends(ReportLoadValidator, _super);
     function ReportLoadValidator() {
@@ -4260,7 +4273,7 @@ exports.ReportLoadValidator = ReportLoadValidator;
 
 /***/ }),
 /* 19 */
-/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_187025__) {
+/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_187699__) {
 
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
@@ -4281,9 +4294,9 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ReportParameterFieldsValidator = exports.PaginatedReportLoadValidator = void 0;
-var multipleFieldsValidator_1 = __nested_webpack_require_187025__(3);
-var typeValidator_1 = __nested_webpack_require_187025__(4);
-var validator_1 = __nested_webpack_require_187025__(1);
+var multipleFieldsValidator_1 = __nested_webpack_require_187699__(3);
+var typeValidator_1 = __nested_webpack_require_187699__(4);
+var validator_1 = __nested_webpack_require_187699__(1);
 var PaginatedReportLoadValidator = /** @class */ (function (_super) {
     __extends(PaginatedReportLoadValidator, _super);
     function PaginatedReportLoadValidator() {
@@ -4329,6 +4342,10 @@ var PaginatedReportLoadValidator = /** @class */ (function (_super) {
             {
                 field: "parameterValues",
                 validators: [validator_1.Validators.parameterValuesArrayValidator]
+            },
+            {
+                field: "datasetBindings",
+                validators: [validator_1.Validators.paginatedReportDatasetBindingArrayValidator]
             }
         ];
         var multipleFieldsValidator = new multipleFieldsValidator_1.MultipleFieldsValidator(fields);
@@ -4364,7 +4381,7 @@ exports.ReportParameterFieldsValidator = ReportParameterFieldsValidator;
 
 /***/ }),
 /* 20 */
-/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_191349__) {
+/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_192195__) {
 
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
@@ -4385,9 +4402,9 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SaveAsParametersValidator = void 0;
-var multipleFieldsValidator_1 = __nested_webpack_require_191349__(3);
-var typeValidator_1 = __nested_webpack_require_191349__(4);
-var validator_1 = __nested_webpack_require_191349__(1);
+var multipleFieldsValidator_1 = __nested_webpack_require_192195__(3);
+var typeValidator_1 = __nested_webpack_require_192195__(4);
+var validator_1 = __nested_webpack_require_192195__(1);
 var SaveAsParametersValidator = /** @class */ (function (_super) {
     __extends(SaveAsParametersValidator, _super);
     function SaveAsParametersValidator() {
@@ -4417,7 +4434,7 @@ exports.SaveAsParametersValidator = SaveAsParametersValidator;
 
 /***/ }),
 /* 21 */
-/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_193630__) {
+/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_194476__) {
 
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
@@ -4438,10 +4455,10 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SlicerTargetSelectorValidator = exports.VisualTypeSelectorValidator = exports.VisualSelectorValidator = void 0;
-var multipleFieldsValidator_1 = __nested_webpack_require_193630__(3);
-var typeValidator_1 = __nested_webpack_require_193630__(4);
-var typeValidator_2 = __nested_webpack_require_193630__(4);
-var validator_1 = __nested_webpack_require_193630__(1);
+var multipleFieldsValidator_1 = __nested_webpack_require_194476__(3);
+var typeValidator_1 = __nested_webpack_require_194476__(4);
+var typeValidator_2 = __nested_webpack_require_194476__(4);
+var validator_1 = __nested_webpack_require_194476__(1);
 var VisualSelectorValidator = /** @class */ (function (_super) {
     __extends(VisualSelectorValidator, _super);
     function VisualSelectorValidator() {
@@ -4534,7 +4551,7 @@ exports.SlicerTargetSelectorValidator = SlicerTargetSelectorValidator;
 
 /***/ }),
 /* 22 */
-/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_199088__) {
+/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_199934__) {
 
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
@@ -4555,9 +4572,9 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PaginatedReportSettingsValidator = exports.SettingsValidator = void 0;
-var multipleFieldsValidator_1 = __nested_webpack_require_199088__(3);
-var typeValidator_1 = __nested_webpack_require_199088__(4);
-var validator_1 = __nested_webpack_require_199088__(1);
+var multipleFieldsValidator_1 = __nested_webpack_require_199934__(3);
+var typeValidator_1 = __nested_webpack_require_199934__(4);
+var validator_1 = __nested_webpack_require_199934__(1);
 var SettingsValidator = /** @class */ (function (_super) {
     __extends(SettingsValidator, _super);
     function SettingsValidator() {
@@ -4684,7 +4701,7 @@ exports.PaginatedReportSettingsValidator = PaginatedReportSettingsValidator;
 
 /***/ }),
 /* 23 */
-/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_205084__) {
+/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_205930__) {
 
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
@@ -4705,9 +4722,9 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SlicerStateValidator = exports.SlicerValidator = void 0;
-var multipleFieldsValidator_1 = __nested_webpack_require_205084__(3);
-var typeValidator_1 = __nested_webpack_require_205084__(4);
-var validator_1 = __nested_webpack_require_205084__(1);
+var multipleFieldsValidator_1 = __nested_webpack_require_205930__(3);
+var typeValidator_1 = __nested_webpack_require_205930__(4);
+var validator_1 = __nested_webpack_require_205930__(1);
 var SlicerValidator = /** @class */ (function (_super) {
     __extends(SlicerValidator, _super);
     function SlicerValidator() {
@@ -4766,7 +4783,7 @@ exports.SlicerStateValidator = SlicerStateValidator;
 
 /***/ }),
 /* 24 */
-/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_208514__) {
+/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_209360__) {
 
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
@@ -4787,9 +4804,9 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.TileLoadValidator = void 0;
-var multipleFieldsValidator_1 = __nested_webpack_require_208514__(3);
-var typeValidator_1 = __nested_webpack_require_208514__(4);
-var validator_1 = __nested_webpack_require_208514__(1);
+var multipleFieldsValidator_1 = __nested_webpack_require_209360__(3);
+var typeValidator_1 = __nested_webpack_require_209360__(4);
+var validator_1 = __nested_webpack_require_209360__(1);
 var TileLoadValidator = /** @class */ (function (_super) {
     __extends(TileLoadValidator, _super);
     function TileLoadValidator() {
@@ -4847,7 +4864,7 @@ exports.TileLoadValidator = TileLoadValidator;
 
 /***/ }),
 /* 25 */
-/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_211786__) {
+/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_212632__) {
 
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
@@ -4868,9 +4885,9 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.VisualHeaderValidator = exports.VisualHeaderSettingsValidator = exports.VisualSettingsValidator = void 0;
-var multipleFieldsValidator_1 = __nested_webpack_require_211786__(3);
-var typeValidator_1 = __nested_webpack_require_211786__(4);
-var validator_1 = __nested_webpack_require_211786__(1);
+var multipleFieldsValidator_1 = __nested_webpack_require_212632__(3);
+var typeValidator_1 = __nested_webpack_require_212632__(4);
+var validator_1 = __nested_webpack_require_212632__(1);
 var VisualSettingsValidator = /** @class */ (function (_super) {
     __extends(VisualSettingsValidator, _super);
     function VisualSettingsValidator() {
@@ -5045,7 +5062,7 @@ exports.FieldRequiredValidator = FieldRequiredValidator;
 
 /***/ }),
 /* 29 */
-/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_219195__) {
+/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_220041__) {
 
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
@@ -5066,7 +5083,7 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.MapValidator = void 0;
-var typeValidator_1 = __nested_webpack_require_219195__(4);
+var typeValidator_1 = __nested_webpack_require_220041__(4);
 var MapValidator = /** @class */ (function (_super) {
     __extends(MapValidator, _super);
     function MapValidator(keyValidators, valueValidators) {
@@ -5111,7 +5128,7 @@ exports.MapValidator = MapValidator;
 
 /***/ }),
 /* 30 */
-/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_221879__) {
+/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_222725__) {
 
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
@@ -5132,9 +5149,9 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ParametersPanelValidator = void 0;
-var multipleFieldsValidator_1 = __nested_webpack_require_221879__(3);
-var typeValidator_1 = __nested_webpack_require_221879__(4);
-var validator_1 = __nested_webpack_require_221879__(1);
+var multipleFieldsValidator_1 = __nested_webpack_require_222725__(3);
+var typeValidator_1 = __nested_webpack_require_222725__(4);
+var validator_1 = __nested_webpack_require_222725__(1);
 var ParametersPanelValidator = /** @class */ (function (_super) {
     __extends(ParametersPanelValidator, _super);
     function ParametersPanelValidator() {
@@ -5168,7 +5185,7 @@ exports.ParametersPanelValidator = ParametersPanelValidator;
 
 /***/ }),
 /* 31 */
-/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_224247__) {
+/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_225093__) {
 
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
@@ -5189,9 +5206,9 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.TableDataValidator = exports.TableSchemaValidator = exports.ColumnSchemaValidator = exports.CredentialsValidator = exports.DatasourceConnectionConfigValidator = exports.DatasetCreateConfigValidator = void 0;
-var multipleFieldsValidator_1 = __nested_webpack_require_224247__(3);
-var typeValidator_1 = __nested_webpack_require_224247__(4);
-var validator_1 = __nested_webpack_require_224247__(1);
+var multipleFieldsValidator_1 = __nested_webpack_require_225093__(3);
+var typeValidator_1 = __nested_webpack_require_225093__(4);
+var validator_1 = __nested_webpack_require_225093__(1);
 var DatasetCreateConfigValidator = /** @class */ (function (_super) {
     __extends(DatasetCreateConfigValidator, _super);
     function DatasetCreateConfigValidator() {
@@ -5404,7 +5421,7 @@ exports.TableDataValidator = TableDataValidator;
 
 /***/ }),
 /* 32 */
-/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_234302__) {
+/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_235148__) {
 
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
@@ -5425,9 +5442,9 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.QuickCreateValidator = void 0;
-var multipleFieldsValidator_1 = __nested_webpack_require_234302__(3);
-var typeValidator_1 = __nested_webpack_require_234302__(4);
-var validator_1 = __nested_webpack_require_234302__(1);
+var multipleFieldsValidator_1 = __nested_webpack_require_235148__(3);
+var typeValidator_1 = __nested_webpack_require_235148__(4);
+var validator_1 = __nested_webpack_require_235148__(1);
 var QuickCreateValidator = /** @class */ (function (_super) {
     __extends(QuickCreateValidator, _super);
     function QuickCreateValidator() {
@@ -5473,7 +5490,7 @@ exports.QuickCreateValidator = QuickCreateValidator;
 
 /***/ }),
 /* 33 */
-/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_237175__) {
+/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_238021__) {
 
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
@@ -5494,8 +5511,8 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PrintSettingsValidator = void 0;
-var multipleFieldsValidator_1 = __nested_webpack_require_237175__(3);
-var typeValidator_1 = __nested_webpack_require_237175__(4);
+var multipleFieldsValidator_1 = __nested_webpack_require_238021__(3);
+var typeValidator_1 = __nested_webpack_require_238021__(4);
 var PrintSettingsValidator = /** @class */ (function (_super) {
     __extends(PrintSettingsValidator, _super);
     function PrintSettingsValidator() {
@@ -5523,6 +5540,63 @@ var PrintSettingsValidator = /** @class */ (function (_super) {
 exports.PrintSettingsValidator = PrintSettingsValidator;
 
 
+/***/ }),
+/* 34 */
+/***/ (function(__unused_webpack_module, exports, __nested_webpack_require_240214__) {
+
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PaginatedReportDatasetBindingValidator = void 0;
+var multipleFieldsValidator_1 = __nested_webpack_require_240214__(3);
+var typeValidator_1 = __nested_webpack_require_240214__(4);
+var validator_1 = __nested_webpack_require_240214__(1);
+var PaginatedReportDatasetBindingValidator = /** @class */ (function (_super) {
+    __extends(PaginatedReportDatasetBindingValidator, _super);
+    function PaginatedReportDatasetBindingValidator() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    PaginatedReportDatasetBindingValidator.prototype.validate = function (input, path, field) {
+        if (input == null) {
+            return null;
+        }
+        var errors = _super.prototype.validate.call(this, input, path, field);
+        if (errors) {
+            return errors;
+        }
+        var fields = [
+            {
+                field: "sourceDatasetId",
+                validators: [validator_1.Validators.fieldRequiredValidator, validator_1.Validators.stringValidator]
+            },
+            {
+                field: "targetDatasetId",
+                validators: [validator_1.Validators.fieldRequiredValidator, validator_1.Validators.stringValidator]
+            }
+        ];
+        var multipleFieldsValidator = new multipleFieldsValidator_1.MultipleFieldsValidator(fields);
+        return multipleFieldsValidator.validate(input, path, field);
+    };
+    return PaginatedReportDatasetBindingValidator;
+}(typeValidator_1.ObjectValidator));
+exports.PaginatedReportDatasetBindingValidator = PaginatedReportDatasetBindingValidator;
+
+
 /***/ })
 /******/ 	]);
 /************************************************************************/
@@ -5530,7 +5604,7 @@ exports.PrintSettingsValidator = PrintSettingsValidator;
 /******/ 	var __webpack_module_cache__ = {};
 /******/ 	
 /******/ 	// The require function
-/******/ 	function __nested_webpack_require_239527__(moduleId) {
+/******/ 	function __nested_webpack_require_242960__(moduleId) {
 /******/ 		// Check if module is in cache
 /******/ 		var cachedModule = __webpack_module_cache__[moduleId];
 /******/ 		if (cachedModule !== undefined) {
@@ -5544,7 +5618,7 @@ exports.PrintSettingsValidator = PrintSettingsValidator;
 /******/ 		};
 /******/ 	
 /******/ 		// Execute the module function
-/******/ 		__webpack_modules__[moduleId].call(module.exports, module, module.exports, __nested_webpack_require_239527__);
+/******/ 		__webpack_modules__[moduleId].call(module.exports, module, module.exports, __nested_webpack_require_242960__);
 /******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
@@ -5555,7 +5629,7 @@ exports.PrintSettingsValidator = PrintSettingsValidator;
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __nested_webpack_exports__ = __nested_webpack_require_239527__(0);
+/******/ 	var __nested_webpack_exports__ = __nested_webpack_require_242960__(0);
 /******/ 	
 /******/ 	return __nested_webpack_exports__;
 /******/ })()
@@ -7362,7 +7436,7 @@ exports.BookmarksManager = BookmarksManager;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 /** @ignore */ /** */
 var config = {
-    version: '2.22.4',
+    version: '2.23.0',
     type: 'js'
 };
 exports["default"] = config;
@@ -8232,9 +8306,6 @@ var Embed = /** @class */ (function () {
         var endpoint = this.getDefaultEmbedUrlEndpoint();
         // Trim spaces to fix user mistakes.
         hostname = hostname.toLowerCase().trim();
-        if (hostname.indexOf("http://") === 0) {
-            throw new Error("HTTP is not allowed. HTTPS is required");
-        }
         if (hostname.indexOf("https://") === 0) {
             return "".concat(hostname, "/").concat(endpoint);
         }
@@ -8301,6 +8372,9 @@ var Embed = /** @class */ (function () {
         if (!this.iframe) {
             var iframeContent = document.createElement("iframe");
             var embedUrl = this.config.uniqueId ? (0, util_1.addParamToUrl)(this.config.embedUrl, 'uid', this.config.uniqueId) : this.config.embedUrl;
+            if (!(0, util_1.validateEmbedUrl)(embedUrl)) {
+                throw new Error(errors_1.invalidEmbedUrlErrorMessage);
+            }
             iframeContent.style.width = '100%';
             iframeContent.style.height = '100%';
             iframeContent.setAttribute("src", embedUrl);
@@ -8454,9 +8528,10 @@ exports.Embed = Embed;
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.EmbedUrlNotSupported = exports.APINotSupportedForRDLError = void 0;
+exports.invalidEmbedUrlErrorMessage = exports.EmbedUrlNotSupported = exports.APINotSupportedForRDLError = void 0;
 exports.APINotSupportedForRDLError = "This API is currently not supported for RDL reports";
 exports.EmbedUrlNotSupported = "Embed URL is invalid for this scenario. Please use Power BI REST APIs to get the valid URL";
+exports.invalidEmbedUrlErrorMessage = "Invalid embed URL detected. Either URL hostname or protocol are invalid. Please use Power BI REST APIs to get the valid URL";
 
 
 /***/ }),
@@ -8592,6 +8667,39 @@ var Page = /** @class */ (function () {
         this.wallpaper = wallpaper;
     }
     /**
+     * Get insights for report page
+     *
+     * ```javascript
+     * page.getSmartNarrativeInsights();
+     * ```
+     *
+     * @returns {Promise<ISmartNarratives>}
+     */
+    Page.prototype.getSmartNarrativeInsights = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var response, response_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if ((0, util_1.isRDLEmbed)(this.report.config.embedUrl)) {
+                            return [2 /*return*/, Promise.reject(errors_1.APINotSupportedForRDLError)];
+                        }
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, this.report.service.hpm.get("/report/pages/".concat(this.name, "/smartNarrativeInsights"), { uid: this.report.config.uniqueId }, this.report.iframe.contentWindow)];
+                    case 2:
+                        response = _a.sent();
+                        return [2 /*return*/, response.body];
+                    case 3:
+                        response_1 = _a.sent();
+                        throw response_1.body;
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    /**
      * Gets all page level filters within the report.
      *
      * ```javascript
@@ -8603,7 +8711,7 @@ var Page = /** @class */ (function () {
      */
     Page.prototype.getFilters = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var response, response_1;
+            var response, response_2;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -8613,8 +8721,8 @@ var Page = /** @class */ (function () {
                         response = _a.sent();
                         return [2 /*return*/, response.body];
                     case 2:
-                        response_1 = _a.sent();
-                        throw response_1.body;
+                        response_2 = _a.sent();
+                        throw response_2.body;
                     case 3: return [2 /*return*/];
                 }
             });
@@ -8633,7 +8741,7 @@ var Page = /** @class */ (function () {
      */
     Page.prototype.updateFilters = function (operation, filters) {
         return __awaiter(this, void 0, void 0, function () {
-            var updateFiltersRequest, response_2;
+            var updateFiltersRequest, response_3;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -8647,8 +8755,8 @@ var Page = /** @class */ (function () {
                         return [4 /*yield*/, this.report.service.hpm.post("/report/pages/".concat(this.name, "/filters"), updateFiltersRequest, { uid: this.report.config.uniqueId }, this.report.iframe.contentWindow)];
                     case 2: return [2 /*return*/, _a.sent()];
                     case 3:
-                        response_2 = _a.sent();
-                        throw response_2.body;
+                        response_3 = _a.sent();
+                        throw response_3.body;
                     case 4: return [2 /*return*/];
                 }
             });
@@ -8686,7 +8794,7 @@ var Page = /** @class */ (function () {
      */
     Page.prototype.setFilters = function (filters) {
         return __awaiter(this, void 0, void 0, function () {
-            var response_3;
+            var response_4;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -8694,8 +8802,8 @@ var Page = /** @class */ (function () {
                         return [4 /*yield*/, this.report.service.hpm.put("/report/pages/".concat(this.name, "/filters"), filters, { uid: this.report.config.uniqueId }, this.report.iframe.contentWindow)];
                     case 1: return [2 /*return*/, _a.sent()];
                     case 2:
-                        response_3 = _a.sent();
-                        throw response_3.body;
+                        response_4 = _a.sent();
+                        throw response_4.body;
                     case 3: return [2 /*return*/];
                 }
             });
@@ -8713,7 +8821,7 @@ var Page = /** @class */ (function () {
      */
     Page.prototype.delete = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var response, response_4;
+            var response, response_5;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -8723,8 +8831,8 @@ var Page = /** @class */ (function () {
                         response = _a.sent();
                         return [2 /*return*/, response.body];
                     case 2:
-                        response_4 = _a.sent();
-                        throw response_4.body;
+                        response_5 = _a.sent();
+                        throw response_5.body;
                     case 3: return [2 /*return*/];
                 }
             });
@@ -8741,7 +8849,7 @@ var Page = /** @class */ (function () {
      */
     Page.prototype.setActive = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var page, response_5;
+            var page, response_6;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -8756,8 +8864,8 @@ var Page = /** @class */ (function () {
                         return [4 /*yield*/, this.report.service.hpm.put('/report/pages/active', page, { uid: this.report.config.uniqueId }, this.report.iframe.contentWindow)];
                     case 2: return [2 /*return*/, _a.sent()];
                     case 3:
-                        response_5 = _a.sent();
-                        throw response_5.body;
+                        response_6 = _a.sent();
+                        throw response_6.body;
                     case 4: return [2 /*return*/];
                 }
             });
@@ -8774,7 +8882,7 @@ var Page = /** @class */ (function () {
      */
     Page.prototype.setDisplayName = function (displayName) {
         return __awaiter(this, void 0, void 0, function () {
-            var page, response_6;
+            var page, response_7;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -8788,8 +8896,8 @@ var Page = /** @class */ (function () {
                         return [4 /*yield*/, this.report.service.hpm.put("/report/pages/".concat(this.name, "/name"), page, { uid: this.report.config.uniqueId }, this.report.iframe.contentWindow)];
                     case 2: return [2 /*return*/, _a.sent()];
                     case 3:
-                        response_6 = _a.sent();
-                        throw response_6.body;
+                        response_7 = _a.sent();
+                        throw response_7.body;
                     case 4: return [2 /*return*/];
                 }
             });
@@ -8807,7 +8915,7 @@ var Page = /** @class */ (function () {
      */
     Page.prototype.getVisuals = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var response, response_7;
+            var response, response_8;
             var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
@@ -8824,8 +8932,8 @@ var Page = /** @class */ (function () {
                         return [2 /*return*/, response.body
                                 .map(function (visual) { return new visualDescriptor_1.VisualDescriptor(_this, visual.name, visual.title, visual.type, visual.layout); })];
                     case 3:
-                        response_7 = _a.sent();
-                        throw response_7.body;
+                        response_8 = _a.sent();
+                        throw response_8.body;
                     case 4: return [2 /*return*/];
                 }
             });
@@ -8846,7 +8954,7 @@ var Page = /** @class */ (function () {
      */
     Page.prototype.getVisualByName = function (visualName) {
         return __awaiter(this, void 0, void 0, function () {
-            var response, visual, response_8;
+            var response, visual, response_9;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -8865,8 +8973,8 @@ var Page = /** @class */ (function () {
                         }
                         return [2 /*return*/, new visualDescriptor_1.VisualDescriptor(this, visual.name, visual.title, visual.type, visual.layout)];
                     case 3:
-                        response_8 = _a.sent();
-                        throw response_8.body;
+                        response_9 = _a.sent();
+                        throw response_9.body;
                     case 4: return [2 /*return*/];
                 }
             });
@@ -8980,7 +9088,7 @@ var Page = /** @class */ (function () {
      */
     Page.prototype.getSlicers = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var response, response_9;
+            var response, response_10;
             var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
@@ -8998,8 +9106,8 @@ var Page = /** @class */ (function () {
                                 .filter(function (visual) { return visual.type === 'slicer'; })
                                 .map(function (visual) { return new visualDescriptor_1.VisualDescriptor(_this, visual.name, visual.title, visual.type, visual.layout); })];
                     case 3:
-                        response_9 = _a.sent();
-                        throw response_9.body;
+                        response_10 = _a.sent();
+                        throw response_10.body;
                     case 4: return [2 /*return*/];
                 }
             });
@@ -9017,7 +9125,7 @@ var Page = /** @class */ (function () {
      */
     Page.prototype.hasLayout = function (layoutType) {
         return __awaiter(this, void 0, void 0, function () {
-            var layoutTypeEnum, response, response_10;
+            var layoutTypeEnum, response, response_11;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -9033,8 +9141,8 @@ var Page = /** @class */ (function () {
                         response = _a.sent();
                         return [2 /*return*/, response.body];
                     case 3:
-                        response_10 = _a.sent();
-                        throw response_10.body;
+                        response_11 = _a.sent();
+                        throw response_11.body;
                     case 4: return [2 /*return*/];
                 }
             });
@@ -11023,6 +11131,7 @@ var visual_1 = __webpack_require__(/*! ./visual */ "./src/visual.ts");
 var utils = __webpack_require__(/*! ./util */ "./src/util.ts");
 var quickCreate_1 = __webpack_require__(/*! ./quickCreate */ "./src/quickCreate.ts");
 var sdkConfig = __webpack_require__(/*! ./config */ "./src/config.ts");
+var errors_1 = __webpack_require__(/*! ./errors */ "./src/errors.ts");
 /**
  * The Power BI Service embed component, which is the entry point to embed all other Power BI components into your application
  *
@@ -11496,6 +11605,9 @@ var Service = /** @class */ (function () {
      * @param {HTMLElement} [element=undefined]
      */
     Service.prototype.preload = function (config, element) {
+        if (!utils.validateEmbedUrl(config.embedUrl)) {
+            throw new Error(errors_1.invalidEmbedUrlErrorMessage);
+        }
         var iframeContent = document.createElement("iframe");
         iframeContent.setAttribute("style", "display:none;");
         iframeContent.setAttribute("src", config.embedUrl);
@@ -11744,7 +11856,19 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.isCreate = exports.getTimeDiffInMilliseconds = exports.getRandomValue = exports.autoAuthInEmbedUrl = exports.isRDLEmbed = exports.isSavedInternal = exports.addParamToUrl = exports.generateUUID = exports.createRandomString = exports.assign = exports.remove = exports.find = exports.findIndex = exports.raiseCustomEvent = void 0;
+exports.validateEmbedUrl = exports.isCreate = exports.getTimeDiffInMilliseconds = exports.getRandomValue = exports.autoAuthInEmbedUrl = exports.isRDLEmbed = exports.isSavedInternal = exports.addParamToUrl = exports.generateUUID = exports.createRandomString = exports.assign = exports.remove = exports.find = exports.findIndex = exports.raiseCustomEvent = void 0;
+/**
+ * @hidden
+ */
+var allowedPowerBiHostsRegex = new RegExp(/(.+\.powerbi\.com$)|(.+\.fabric\.microsoft\.com$)|(.+\.analysis\.windows-int\.net$)|(.+\.analysis-df\.windows\.net$)/g);
+/**
+ * @hidden
+ */
+var allowedPowerBiHostsSovRegex = new RegExp(/^app\.powerbi\.cn$|^app(\.mil\.|\.high\.|\.)powerbigov\.us$|^app\.powerbi\.eaglex\.ic\.gov$|^app\.powerbi\.microsoft\.scloud$/g);
+/**
+ * @hidden
+ */
+var expectedEmbedUrlProtocol = "https:";
 /**
  * Raises a custom event with event data on the specified HTML element.
  *
@@ -11974,6 +12098,25 @@ function isCreate(embedType) {
     return embedType === 'create' || embedType === 'quickcreate';
 }
 exports.isCreate = isCreate;
+/**
+ * Checks if the embedUrl has an allowed power BI domain
+ * @hidden
+ */
+function validateEmbedUrl(embedUrl) {
+    if (embedUrl) {
+        var url = void 0;
+        try {
+            url = new URL(embedUrl.toLowerCase());
+        }
+        catch (e) {
+            // invalid URL
+            return false;
+        }
+        return url.protocol === expectedEmbedUrlProtocol &&
+            (allowedPowerBiHostsRegex.test(url.hostname) || allowedPowerBiHostsSovRegex.test(url.hostname));
+    }
+}
+exports.validateEmbedUrl = validateEmbedUrl;
 
 
 /***/ }),
@@ -12742,6 +12885,34 @@ var VisualDescriptor = /** @class */ (function () {
             });
         });
     };
+    /**
+     * Get insights for single visual
+     *
+     * ```javascript
+     * visual.getSmartNarrativeInsights();
+     * ```
+     *
+     * @returns {Promise<ISmartNarratives>}
+     */
+    VisualDescriptor.prototype.getSmartNarrativeInsights = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var response, response_9;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 2, , 3]);
+                        return [4 /*yield*/, this.page.report.service.hpm.get("/report/pages/".concat(this.page.name, "/visuals/").concat(this.name, "/smartNarrativeInsights"), { uid: this.page.report.config.uniqueId }, this.page.report.iframe.contentWindow)];
+                    case 1:
+                        response = _a.sent();
+                        return [2 /*return*/, response.body];
+                    case 2:
+                        response_9 = _a.sent();
+                        throw response_9.body;
+                    case 3: return [2 /*return*/];
+                }
+            });
+        });
+    };
     return VisualDescriptor;
 }());
 exports.VisualDescriptor = VisualDescriptor;
@@ -12857,26 +13028,26 @@ else {
 });
 //# sourceMappingURL=powerbi.js.map
 // SIG // Begin signature block
-// SIG // MIIrWgYJKoZIhvcNAQcCoIIrSzCCK0cCAQExDzANBglg
+// SIG // MIIr5AYJKoZIhvcNAQcCoIIr1TCCK9ECAQExDzANBglg
 // SIG // hkgBZQMEAgEFADB3BgorBgEEAYI3AgEEoGkwZzAyBgor
 // SIG // BgEEAYI3AgEeMCQCAQEEEBDgyQbOONQRoqMAEEvTUJAC
 // SIG // AQACAQACAQACAQACAQAwMTANBglghkgBZQMEAgEFAAQg
-// SIG // eBFQGsY6TNPxO0SYPXROhe9d4sQOvkUC3aUXMzTddDug
-// SIG // ghF9MIIIjTCCB3WgAwIBAgITNgAAAclwIbGGt0CyHQAC
-// SIG // AAAByTANBgkqhkiG9w0BAQsFADBBMRMwEQYKCZImiZPy
+// SIG // sJbNe2xdarO1kAlSwsLTow9Oa9tM0FHLBS7GIjSiWseg
+// SIG // ghFuMIIIfjCCB2agAwIBAgITNgAAAchkggAwtCOCeAAC
+// SIG // AAAByDANBgkqhkiG9w0BAQsFADBBMRMwEQYKCZImiZPy
 // SIG // LGQBGRYDR0JMMRMwEQYKCZImiZPyLGQBGRYDQU1FMRUw
 // SIG // EwYDVQQDEwxBTUUgQ1MgQ0EgMDEwHhcNMjMwMzIwMjAw
 // SIG // MDMxWhcNMjQwMzE5MjAwMDMxWjAkMSIwIAYDVQQDExlN
 // SIG // aWNyb3NvZnQgQXp1cmUgQ29kZSBTaWduMIIBIjANBgkq
-// SIG // hkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxa9UuxHcu4Pi
-// SIG // Dk75ILwpx2fCBTvWGM+0I91ZlOLEXmJ8lnyRht4A8t/d
-// SIG // eQNUUWAvFxoOLXEW+EOBvNYUY8ERwZ+QRhsp9dmokHvE
-// SIG // XPqUA1Fn+QBmoFNuH0xmmqDLz0TKQ39mhAc0jn2BRZ2c
-// SIG // UeCwC4pqCHbNWgYLazn4ADET+AGGKfrqHAAohxr1487s
-// SIG // E+kber/brQ5b5r61Slpz/4mcBjXDRCz7SQ9BLk1GbpML
-// SIG // +HLQ2m6yUE+t8V57y1Wx7hQ86WZEaKStW4JI1cLIZPaH
-// SIG // J1NR59uolzXUrvuglYyrucwJ249JhDYqBEGDxubGDrNQ
-// SIG // XYoOOnfQfby03srj54j/ZwIDAQABo4IFmTCCBZUwKQYJ
+// SIG // hkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArKhH7cINkFWa
+// SIG // NPbW4CGpQwfhD2vWIwm5iDQIGjc5Siq9Ay9yIB0MPvck
+// SIG // Xnp402u+fVvy8Zb+cPXCyiemnyFG7wYwKgPF4+x2awd4
+// SIG // beHkFvcWtTV+Yz5oEKVVT0oWR5NfsUHuqEGDlIVFAYB/
+// SIG // 7FIlZQWRiC4emeka+jYoFTl50U2mDQ/CvdCquvAd+dBc
+// SIG // hoH0BLXWh00rK3NqRoqQj50vTHl+EB5HCer6+uP7iFKi
+// SIG // a3vFw1uDonKVKmcz4x8GJo4y5p7plcr4VAB5FdwTpZrz
+// SIG // hFObBzJxcxdIT3qMm07RYM6K1EbUn3AKKTEG2O9etQ06
+// SIG // oIKCcGHltvj0NZp37NkEJwIDAQABo4IFijCCBYYwKQYJ
 // SIG // KwYBBAGCNxUKBBwwGjAMBgorBgEEAYI3WwEBMAoGCCsG
 // SIG // AQUFBwMDMD0GCSsGAQQBgjcVBwQwMC4GJisGAQQBgjcV
 // SIG // CIaQ4w2E1bR4hPGLPoWb3RbOnRKBYIPdzWaGlIwyAgFk
@@ -12899,299 +13070,303 @@ else {
 // SIG // eSUyMFNlcnZpY2VzLENOPVNlcnZpY2VzLENOPUNvbmZp
 // SIG // Z3VyYXRpb24sREM9QU1FLERDPUdCTD9jQUNlcnRpZmlj
 // SIG // YXRlP2Jhc2U/b2JqZWN0Q2xhc3M9Y2VydGlmaWNhdGlv
-// SIG // bkF1dGhvcml0eTAdBgNVHQ4EFgQUnVRygb7XvjwTW2HQ
-// SIG // hPeoinHl2xwwDgYDVR0PAQH/BAQDAgeAMFQGA1UdEQRN
-// SIG // MEukSTBHMS0wKwYDVQQLEyRNaWNyb3NvZnQgSXJlbGFu
-// SIG // ZCBPcGVyYXRpb25zIExpbWl0ZWQxFjAUBgNVBAUTDTIz
-// SIG // NjE2Nys1MDAzNjEwggHmBgNVHR8EggHdMIIB2TCCAdWg
-// SIG // ggHRoIIBzYY/aHR0cDovL2NybC5taWNyb3NvZnQuY29t
-// SIG // L3BraWluZnJhL0NSTC9BTUUlMjBDUyUyMENBJTIwMDEo
-// SIG // MikuY3JshjFodHRwOi8vY3JsMS5hbWUuZ2JsL2NybC9B
+// SIG // bkF1dGhvcml0eTAdBgNVHQ4EFgQUskGhjtP5WCMqHOBI
+// SIG // YEqYPR0vFkMwDgYDVR0PAQH/BAQDAgeAMEUGA1UdEQQ+
+// SIG // MDykOjA4MR4wHAYDVQQLExVNaWNyb3NvZnQgQ29ycG9y
+// SIG // YXRpb24xFjAUBgNVBAUTDTIzNjE2Nys1MDAzNjAwggHm
+// SIG // BgNVHR8EggHdMIIB2TCCAdWgggHRoIIBzYY/aHR0cDov
+// SIG // L2NybC5taWNyb3NvZnQuY29tL3BraWluZnJhL0NSTC9B
 // SIG // TUUlMjBDUyUyMENBJTIwMDEoMikuY3JshjFodHRwOi8v
-// SIG // Y3JsMi5hbWUuZ2JsL2NybC9BTUUlMjBDUyUyMENBJTIw
-// SIG // MDEoMikuY3JshjFodHRwOi8vY3JsMy5hbWUuZ2JsL2Ny
+// SIG // Y3JsMS5hbWUuZ2JsL2NybC9BTUUlMjBDUyUyMENBJTIw
+// SIG // MDEoMikuY3JshjFodHRwOi8vY3JsMi5hbWUuZ2JsL2Ny
 // SIG // bC9BTUUlMjBDUyUyMENBJTIwMDEoMikuY3JshjFodHRw
-// SIG // Oi8vY3JsNC5hbWUuZ2JsL2NybC9BTUUlMjBDUyUyMENB
-// SIG // JTIwMDEoMikuY3JshoG9bGRhcDovLy9DTj1BTUUlMjBD
-// SIG // UyUyMENBJTIwMDEoMiksQ049QlkyUEtJQ1NDQTAxLENO
-// SIG // PUNEUCxDTj1QdWJsaWMlMjBLZXklMjBTZXJ2aWNlcyxD
-// SIG // Tj1TZXJ2aWNlcyxDTj1Db25maWd1cmF0aW9uLERDPUFN
-// SIG // RSxEQz1HQkw/Y2VydGlmaWNhdGVSZXZvY2F0aW9uTGlz
-// SIG // dD9iYXNlP29iamVjdENsYXNzPWNSTERpc3RyaWJ1dGlv
-// SIG // blBvaW50MB8GA1UdIwQYMBaAFJZRhOBrb3v+2Aarw/KF
-// SIG // 5imuavnUMB8GA1UdJQQYMBYGCisGAQQBgjdbAQEGCCsG
-// SIG // AQUFBwMDMA0GCSqGSIb3DQEBCwUAA4IBAQBBp4Ct6QxN
-// SIG // gKxrkeWINdpmVzOwH+AT5LSCfeqaQXlGtRY8/OHQEJKk
-// SIG // tcu7K5OnAjzH2mYyWi57EJQb6ygpGKSz+qog6t/j8nel
-// SIG // skDr8IhhZh/1WOOOuczWTarBOwluPpxDJibTH3c/oFDo
-// SIG // s5FnTT0MyjgcJrz37fvWPAoC8JvCAWu2Sx9yO3BosdYC
-// SIG // PMcc89MPCVJyvr42ZNgeJK8fpEhJP/ctR2gwQtehnBG+
-// SIG // B7CWyNb5GA9X+AgXPQoDM3XPDQweeX/NRjHU/cExC3j8
-// SIG // WW12b2tnOmd2u+VrKO8Za09FN1lvaF+VUdPvEKm8Ovte
-// SIG // v2ykVRq6wEiE+IdpXxPESDH/MIII6DCCBtCgAwIBAgIT
-// SIG // HwAAAFHqj/accwyoOwAAAAAAUTANBgkqhkiG9w0BAQsF
-// SIG // ADA8MRMwEQYKCZImiZPyLGQBGRYDR0JMMRMwEQYKCZIm
-// SIG // iZPyLGQBGRYDQU1FMRAwDgYDVQQDEwdhbWVyb290MB4X
-// SIG // DTIxMDUyMTE4NDQxNFoXDTI2MDUyMTE4NTQxNFowQTET
-// SIG // MBEGCgmSJomT8ixkARkWA0dCTDETMBEGCgmSJomT8ixk
-// SIG // ARkWA0FNRTEVMBMGA1UEAxMMQU1FIENTIENBIDAxMIIB
-// SIG // IjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyZpS
-// SIG // CX0Bno1W1yqXMhT6BUlJZWpa4p3xFeiTHO4vm2Q6C/az
-// SIG // R5xwxnyYHrkSGDtS2P9X+KDE64V20mmEQkubxnPNeOVn
-// SIG // E2RvdPGxgwlq+BhS3ONdVsQPj79q7XgHM9HhzB9+qk0P
-// SIG // C9KN1zm9p/seyiRS6JF1dbOqRf1pUl7FAVxmgiCFgV8h
-// SIG // HIb/rDPXig7FDi3S0yEx2CUDVpIq8jEhG8anUFE1WYxM
-// SIG // +ni0S5KHwwKPKV4qyGDoDO+9AmDoma3Chyu5WDlW5cdt
-// SIG // qXTWsGPE3umtnX6AmlldUFLms4OVR4guKf+n5LIBCC6b
-// SIG // TiocfXPomqYjYTKx7AGMfaVLaaXmhQIDAQABo4IE3DCC
-// SIG // BNgwEgYJKwYBBAGCNxUBBAUCAwIAAjAjBgkrBgEEAYI3
-// SIG // FQIEFgQUEmgkQiFHy9RrvjHPIKTACyN/P0cwHQYDVR0O
-// SIG // BBYEFJZRhOBrb3v+2Aarw/KF5imuavnUMIIBBAYDVR0l
-// SIG // BIH8MIH5BgcrBgEFAgMFBggrBgEFBQcDAQYIKwYBBQUH
-// SIG // AwIGCisGAQQBgjcUAgEGCSsGAQQBgjcVBgYKKwYBBAGC
-// SIG // NwoDDAYJKwYBBAGCNxUGBggrBgEFBQcDCQYIKwYBBQUI
-// SIG // AgIGCisGAQQBgjdAAQEGCysGAQQBgjcKAwQBBgorBgEE
-// SIG // AYI3CgMEBgkrBgEEAYI3FQUGCisGAQQBgjcUAgIGCisG
-// SIG // AQQBgjcUAgMGCCsGAQUFBwMDBgorBgEEAYI3WwEBBgor
-// SIG // BgEEAYI3WwIBBgorBgEEAYI3WwMBBgorBgEEAYI3WwUB
-// SIG // BgorBgEEAYI3WwQBBgorBgEEAYI3WwQCMBkGCSsGAQQB
-// SIG // gjcUAgQMHgoAUwB1AGIAQwBBMAsGA1UdDwQEAwIBhjAS
-// SIG // BgNVHRMBAf8ECDAGAQH/AgEAMB8GA1UdIwQYMBaAFCle
-// SIG // UV5krjS566ycDaeMdQHRCQsoMIIBaAYDVR0fBIIBXzCC
-// SIG // AVswggFXoIIBU6CCAU+GMWh0dHA6Ly9jcmwubWljcm9z
-// SIG // b2Z0LmNvbS9wa2lpbmZyYS9jcmwvYW1lcm9vdC5jcmyG
-// SIG // I2h0dHA6Ly9jcmwyLmFtZS5nYmwvY3JsL2FtZXJvb3Qu
-// SIG // Y3JshiNodHRwOi8vY3JsMy5hbWUuZ2JsL2NybC9hbWVy
-// SIG // b290LmNybIYjaHR0cDovL2NybDEuYW1lLmdibC9jcmwv
-// SIG // YW1lcm9vdC5jcmyGgapsZGFwOi8vL0NOPWFtZXJvb3Qs
-// SIG // Q049QU1FUm9vdCxDTj1DRFAsQ049UHVibGljJTIwS2V5
-// SIG // JTIwU2VydmljZXMsQ049U2VydmljZXMsQ049Q29uZmln
-// SIG // dXJhdGlvbixEQz1BTUUsREM9R0JMP2NlcnRpZmljYXRl
-// SIG // UmV2b2NhdGlvbkxpc3Q/YmFzZT9vYmplY3RDbGFzcz1j
-// SIG // UkxEaXN0cmlidXRpb25Qb2ludDCCAasGCCsGAQUFBwEB
-// SIG // BIIBnTCCAZkwRwYIKwYBBQUHMAKGO2h0dHA6Ly9jcmwu
-// SIG // bWljcm9zb2Z0LmNvbS9wa2lpbmZyYS9jZXJ0cy9BTUVS
+// SIG // Oi8vY3JsMy5hbWUuZ2JsL2NybC9BTUUlMjBDUyUyMENB
+// SIG // JTIwMDEoMikuY3JshjFodHRwOi8vY3JsNC5hbWUuZ2Js
+// SIG // L2NybC9BTUUlMjBDUyUyMENBJTIwMDEoMikuY3JshoG9
+// SIG // bGRhcDovLy9DTj1BTUUlMjBDUyUyMENBJTIwMDEoMiks
+// SIG // Q049QlkyUEtJQ1NDQTAxLENOPUNEUCxDTj1QdWJsaWMl
+// SIG // MjBLZXklMjBTZXJ2aWNlcyxDTj1TZXJ2aWNlcyxDTj1D
+// SIG // b25maWd1cmF0aW9uLERDPUFNRSxEQz1HQkw/Y2VydGlm
+// SIG // aWNhdGVSZXZvY2F0aW9uTGlzdD9iYXNlP29iamVjdENs
+// SIG // YXNzPWNSTERpc3RyaWJ1dGlvblBvaW50MB8GA1UdIwQY
+// SIG // MBaAFJZRhOBrb3v+2Aarw/KF5imuavnUMB8GA1UdJQQY
+// SIG // MBYGCisGAQQBgjdbAQEGCCsGAQUFBwMDMA0GCSqGSIb3
+// SIG // DQEBCwUAA4IBAQDG1533NPfZ4bL0nuae9PWCGH0ZmNci
+// SIG // CejMn71r/igTKxx635KmcI38lYY/vhbu++jhMlN3V3Ke
+// SIG // AJEmuUdbTxtaXlhhJwWW/3i4GfQGjFIot6N3F9OuXURf
+// SIG // 8jc4LypadrWJV1l1bmZ/G75FiqMoEDF7DYjyYJ9BNUU3
+// SIG // alOgYyXygBJJjSfJR/8Vgd8hYCExm9DJgXDlSuKZ7ZeD
+// SIG // ailP2EGIO5+m0QGI1tyMKdc/YgPrJUw7NI9wmx8ET/J5
+// SIG // fxrrh21fdowYoGCYnphYtGhGBvnqDdaHXbVECC3gzbU+
+// SIG // nLfeFF30rr/jHxoXWzKfFcYCj5Xnw52bu5mDZB8jF/dH
+// SIG // vhlPMIII6DCCBtCgAwIBAgITHwAAAFHqj/accwyoOwAA
+// SIG // AAAAUTANBgkqhkiG9w0BAQsFADA8MRMwEQYKCZImiZPy
+// SIG // LGQBGRYDR0JMMRMwEQYKCZImiZPyLGQBGRYDQU1FMRAw
+// SIG // DgYDVQQDEwdhbWVyb290MB4XDTIxMDUyMTE4NDQxNFoX
+// SIG // DTI2MDUyMTE4NTQxNFowQTETMBEGCgmSJomT8ixkARkW
+// SIG // A0dCTDETMBEGCgmSJomT8ixkARkWA0FNRTEVMBMGA1UE
+// SIG // AxMMQU1FIENTIENBIDAxMIIBIjANBgkqhkiG9w0BAQEF
+// SIG // AAOCAQ8AMIIBCgKCAQEAyZpSCX0Bno1W1yqXMhT6BUlJ
+// SIG // ZWpa4p3xFeiTHO4vm2Q6C/azR5xwxnyYHrkSGDtS2P9X
+// SIG // +KDE64V20mmEQkubxnPNeOVnE2RvdPGxgwlq+BhS3ONd
+// SIG // VsQPj79q7XgHM9HhzB9+qk0PC9KN1zm9p/seyiRS6JF1
+// SIG // dbOqRf1pUl7FAVxmgiCFgV8hHIb/rDPXig7FDi3S0yEx
+// SIG // 2CUDVpIq8jEhG8anUFE1WYxM+ni0S5KHwwKPKV4qyGDo
+// SIG // DO+9AmDoma3Chyu5WDlW5cdtqXTWsGPE3umtnX6Amlld
+// SIG // UFLms4OVR4guKf+n5LIBCC6bTiocfXPomqYjYTKx7AGM
+// SIG // faVLaaXmhQIDAQABo4IE3DCCBNgwEgYJKwYBBAGCNxUB
+// SIG // BAUCAwIAAjAjBgkrBgEEAYI3FQIEFgQUEmgkQiFHy9Rr
+// SIG // vjHPIKTACyN/P0cwHQYDVR0OBBYEFJZRhOBrb3v+2Aar
+// SIG // w/KF5imuavnUMIIBBAYDVR0lBIH8MIH5BgcrBgEFAgMF
+// SIG // BggrBgEFBQcDAQYIKwYBBQUHAwIGCisGAQQBgjcUAgEG
+// SIG // CSsGAQQBgjcVBgYKKwYBBAGCNwoDDAYJKwYBBAGCNxUG
+// SIG // BggrBgEFBQcDCQYIKwYBBQUIAgIGCisGAQQBgjdAAQEG
+// SIG // CysGAQQBgjcKAwQBBgorBgEEAYI3CgMEBgkrBgEEAYI3
+// SIG // FQUGCisGAQQBgjcUAgIGCisGAQQBgjcUAgMGCCsGAQUF
+// SIG // BwMDBgorBgEEAYI3WwEBBgorBgEEAYI3WwIBBgorBgEE
+// SIG // AYI3WwMBBgorBgEEAYI3WwUBBgorBgEEAYI3WwQBBgor
+// SIG // BgEEAYI3WwQCMBkGCSsGAQQBgjcUAgQMHgoAUwB1AGIA
+// SIG // QwBBMAsGA1UdDwQEAwIBhjASBgNVHRMBAf8ECDAGAQH/
+// SIG // AgEAMB8GA1UdIwQYMBaAFCleUV5krjS566ycDaeMdQHR
+// SIG // CQsoMIIBaAYDVR0fBIIBXzCCAVswggFXoIIBU6CCAU+G
+// SIG // MWh0dHA6Ly9jcmwubWljcm9zb2Z0LmNvbS9wa2lpbmZy
+// SIG // YS9jcmwvYW1lcm9vdC5jcmyGI2h0dHA6Ly9jcmwyLmFt
+// SIG // ZS5nYmwvY3JsL2FtZXJvb3QuY3JshiNodHRwOi8vY3Js
+// SIG // My5hbWUuZ2JsL2NybC9hbWVyb290LmNybIYjaHR0cDov
+// SIG // L2NybDEuYW1lLmdibC9jcmwvYW1lcm9vdC5jcmyGgaps
+// SIG // ZGFwOi8vL0NOPWFtZXJvb3QsQ049QU1FUm9vdCxDTj1D
+// SIG // RFAsQ049UHVibGljJTIwS2V5JTIwU2VydmljZXMsQ049
+// SIG // U2VydmljZXMsQ049Q29uZmlndXJhdGlvbixEQz1BTUUs
+// SIG // REM9R0JMP2NlcnRpZmljYXRlUmV2b2NhdGlvbkxpc3Q/
+// SIG // YmFzZT9vYmplY3RDbGFzcz1jUkxEaXN0cmlidXRpb25Q
+// SIG // b2ludDCCAasGCCsGAQUFBwEBBIIBnTCCAZkwRwYIKwYB
+// SIG // BQUHMAKGO2h0dHA6Ly9jcmwubWljcm9zb2Z0LmNvbS9w
+// SIG // a2lpbmZyYS9jZXJ0cy9BTUVSb290X2FtZXJvb3QuY3J0
+// SIG // MDcGCCsGAQUFBzAChitodHRwOi8vY3JsMi5hbWUuZ2Js
+// SIG // L2FpYS9BTUVSb290X2FtZXJvb3QuY3J0MDcGCCsGAQUF
+// SIG // BzAChitodHRwOi8vY3JsMy5hbWUuZ2JsL2FpYS9BTUVS
 // SIG // b290X2FtZXJvb3QuY3J0MDcGCCsGAQUFBzAChitodHRw
-// SIG // Oi8vY3JsMi5hbWUuZ2JsL2FpYS9BTUVSb290X2FtZXJv
-// SIG // b3QuY3J0MDcGCCsGAQUFBzAChitodHRwOi8vY3JsMy5h
-// SIG // bWUuZ2JsL2FpYS9BTUVSb290X2FtZXJvb3QuY3J0MDcG
-// SIG // CCsGAQUFBzAChitodHRwOi8vY3JsMS5hbWUuZ2JsL2Fp
-// SIG // YS9BTUVSb290X2FtZXJvb3QuY3J0MIGiBggrBgEFBQcw
-// SIG // AoaBlWxkYXA6Ly8vQ049YW1lcm9vdCxDTj1BSUEsQ049
-// SIG // UHVibGljJTIwS2V5JTIwU2VydmljZXMsQ049U2Vydmlj
-// SIG // ZXMsQ049Q29uZmlndXJhdGlvbixEQz1BTUUsREM9R0JM
-// SIG // P2NBQ2VydGlmaWNhdGU/YmFzZT9vYmplY3RDbGFzcz1j
-// SIG // ZXJ0aWZpY2F0aW9uQXV0aG9yaXR5MA0GCSqGSIb3DQEB
-// SIG // CwUAA4ICAQBQECO3Tw/o317Rrd7yadqcswPx1LvIYymk
-// SIG // aTN6KcmuRt6HKa0Xe73Ux2/AQ30TfgA9GBJngweRykKB
-// SIG // usRzyOU17iIubJvy3gA21dwtqtB0DsoEv1U/ptVu2v++
-// SIG // doTCJ/i+GbssVXkgaX8H+6EOGEmT4evp4GbwR4HwWlc+
-// SIG // Dvf8HH8PdUA2Z04CvcwIfckSipbNm84jxJ8XjmTFTWsc
-// SIG // ldL9edj2NsY6iGnyJFIyur2PS7VRYyV3p1VAJp91gj1j
-// SIG // RQtWEyCB8P5g9nE3z8u0ANaU/hjwEQCrdGyravWgnf2J
-// SIG // tG+bT26YAokbc8m+32zUtXRO+NK3tAjhOu2FdsG3qNrF
-// SIG // 4sc7y37R/C+7Pcb/cFfhttqsirepZii4xStcjMODYuXz
-// SIG // Gm3IJs0b0owHG6oKd7ZOGvHpmmh9K8/DLriD/sq8bURD
-// SIG // 10qi/wuW8zM7IpLg1vcR9dIK2mc0pj44pc6UX0XbttP/
-// SIG // VEJgu3lT2eI9VjWtaKjx38xE9woSMyekPRtzTwgfuysF
-// SIG // 9DkJisr+yA4po/FPxpbBw9c/hBf32DH/GFxteS2pmjgK
-// SIG // IbMP8sDukmEq3lVvuWNJsybrZwQvQpvaM49fv+JKpLK5
-// SIG // YWYEfwksYRR9wU8Hh/ID9hRCEkbUoQ2W7mMpsp2Nbp/k
-// SIG // cn4ivfolUy3Q9Yf0scsQ6WTLYpm+AoCUJTGCGTUwghkx
-// SIG // AgEBMFgwQTETMBEGCgmSJomT8ixkARkWA0dCTDETMBEG
-// SIG // CgmSJomT8ixkARkWA0FNRTEVMBMGA1UEAxMMQU1FIENT
-// SIG // IENBIDAxAhM2AAAByXAhsYa3QLIdAAIAAAHJMA0GCWCG
-// SIG // SAFlAwQCAQUAoIGuMBkGCSqGSIb3DQEJAzEMBgorBgEE
-// SIG // AYI3AgEEMBwGCisGAQQBgjcCAQsxDjAMBgorBgEEAYI3
-// SIG // AgEVMC8GCSqGSIb3DQEJBDEiBCAa9gdjrbT69cX/Pbef
-// SIG // C1DHFSrDhvRR8R4UpiRaVfYnwTBCBgorBgEEAYI3AgEM
-// SIG // MTQwMqAUgBIATQBpAGMAcgBvAHMAbwBmAHShGoAYaHR0
-// SIG // cDovL3d3dy5taWNyb3NvZnQuY29tMA0GCSqGSIb3DQEB
-// SIG // AQUABIIBAARi+EuBTlaQUz6ELlo0tg/CN8PCe32NdQwh
-// SIG // P4iyX7PhGR1wJ1TFxVA9wOudbKqpxCK0MRxGsuN+nsMH
-// SIG // UEubiwil6NJkfMg4DZXIayfQTF3Sk/8kS8LC+sdNLQ1M
-// SIG // m14F4Q7rdrLCtNQgUuxo1Q5RKzHQo/qBGCAJbse2Uz9F
-// SIG // ubvFTZTs32fO/OoXjJU0wEXGcAj1HeL1bNyrcWNTmB+R
-// SIG // 71F/VXfeMcMUWPgegdRBQnk0n2coZsB6nwsRL5gleu21
-// SIG // MuzXiBpxY3PbmXeQqzn8231MS8tESasG4Jbp3QC2CQ4/
-// SIG // pbRbj6J30MbgdfcbNcKEeffh4ZD9WxvxFGnAdrrkL42h
-// SIG // ghb9MIIW+QYKKwYBBAGCNwMDATGCFukwghblBgkqhkiG
-// SIG // 9w0BBwKgghbWMIIW0gIBAzEPMA0GCWCGSAFlAwQCAQUA
-// SIG // MIIBUQYLKoZIhvcNAQkQAQSgggFABIIBPDCCATgCAQEG
-// SIG // CisGAQQBhFkKAwEwMTANBglghkgBZQMEAgEFAAQgyy2n
-// SIG // d9SowtuIh3Mt61zGdli9PwTRDIevPyya0Ir3wH4CBmRs
-// SIG // 1HRt2xgTMjAyMzA1MjQwMzQxMDIuMDI5WjAEgAIB9KCB
-// SIG // 0KSBzTCByjELMAkGA1UEBhMCVVMxEzARBgNVBAgTCldh
-// SIG // c2hpbmd0b24xEDAOBgNVBAcTB1JlZG1vbmQxHjAcBgNV
-// SIG // BAoTFU1pY3Jvc29mdCBDb3Jwb3JhdGlvbjElMCMGA1UE
-// SIG // CxMcTWljcm9zb2Z0IEFtZXJpY2EgT3BlcmF0aW9uczEm
-// SIG // MCQGA1UECxMdVGhhbGVzIFRTUyBFU046M0U3QS1FMzU5
-// SIG // LUEyNUQxJTAjBgNVBAMTHE1pY3Jvc29mdCBUaW1lLVN0
-// SIG // YW1wIFNlcnZpY2WgghFUMIIHDDCCBPSgAwIBAgITMwAA
-// SIG // Acn61Y4lIHQCXgABAAAByTANBgkqhkiG9w0BAQsFADB8
-// SIG // MQswCQYDVQQGEwJVUzETMBEGA1UECBMKV2FzaGluZ3Rv
-// SIG // bjEQMA4GA1UEBxMHUmVkbW9uZDEeMBwGA1UEChMVTWlj
-// SIG // cm9zb2Z0IENvcnBvcmF0aW9uMSYwJAYDVQQDEx1NaWNy
-// SIG // b3NvZnQgVGltZS1TdGFtcCBQQ0EgMjAxMDAeFw0yMjEx
-// SIG // MDQxOTAxMzhaFw0yNDAyMDIxOTAxMzhaMIHKMQswCQYD
-// SIG // VQQGEwJVUzETMBEGA1UECBMKV2FzaGluZ3RvbjEQMA4G
-// SIG // A1UEBxMHUmVkbW9uZDEeMBwGA1UEChMVTWljcm9zb2Z0
-// SIG // IENvcnBvcmF0aW9uMSUwIwYDVQQLExxNaWNyb3NvZnQg
-// SIG // QW1lcmljYSBPcGVyYXRpb25zMSYwJAYDVQQLEx1UaGFs
-// SIG // ZXMgVFNTIEVTTjozRTdBLUUzNTktQTI1RDElMCMGA1UE
-// SIG // AxMcTWljcm9zb2Z0IFRpbWUtU3RhbXAgU2VydmljZTCC
-// SIG // AiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBANZy
-// SIG // 4uWOb8/CvlqMYZO6hlv7wsYuXrkzNNU4hGxThvIO0hQd
-// SIG // FTI2IKOk4kc4DkPgjedzgTipcjB1s0S+Mb2ktN2ZSIHr
-// SIG // SCC2IgEqILBLZY8xJURzu3wxgxVnHc/pQjWJiaM7Wxtz
-// SIG // zK58W5VBx1JK+AuxAR29mNOxneRiQYD/PuQGTbE5bBxn
-// SIG // Mx7OOZpj+61IHDJ//3PEPxmEqnU+DlxC6ed4ffRJ8heM
-// SIG // 3LHdmRY8XY9ZT/EBsGWUuBfNiQRntqQq0mpMhY08cxSl
-// SIG // DsHEHq8AUf2GkJcu5rQq2uDzXMhEJvp/yw3Hv1VYkGvD
-// SIG // jNpwWRysOgsjKhMxSScuR4s8/Gesa6qiyrYvL4iVENBb
-// SIG // apE10kd//8PDwCsgZbyGExRfy8tyYd3G1XjoEprmzlcL
-// SIG // /JzHoXEG9gLcXFP5XchFKsvP7YRByFjWm8x18eTvQ+G7
-// SIG // UuqCXYC5h8a0wbRrHFUKsdM+f31CJCxO7W8H6KvOHBf1
-// SIG // ESxMsN6ueyldlOIDoXN+el2BFUHSV6OlRVgUA2G82p0N
-// SIG // uc2NtVApI/NtQsg/dIKqzt60D5XEKOnq8Ftgxdn7JoAG
-// SIG // 1as0LM+kZJmn8+K3te5Ju6ntPT7sB8OXt8eWSBhKFZXz
-// SIG // Zyb+vvOdbsCl+gKWRcT83kKO1v+QbWk5pGRIcGOQHQj4
-// SIG // D79GmiBEJ9qhezLxcAnLAgMBAAGjggE2MIIBMjAdBgNV
-// SIG // HQ4EFgQUBW+dZ0bCPKG+eDoUxXlRe0QuMsswHwYDVR0j
-// SIG // BBgwFoAUn6cVXQBeYl2D9OXSZacbUzUZ6XIwXwYDVR0f
-// SIG // BFgwVjBUoFKgUIZOaHR0cDovL3d3dy5taWNyb3NvZnQu
-// SIG // Y29tL3BraW9wcy9jcmwvTWljcm9zb2Z0JTIwVGltZS1T
-// SIG // dGFtcCUyMFBDQSUyMDIwMTAoMSkuY3JsMGwGCCsGAQUF
-// SIG // BwEBBGAwXjBcBggrBgEFBQcwAoZQaHR0cDovL3d3dy5t
-// SIG // aWNyb3NvZnQuY29tL3BraW9wcy9jZXJ0cy9NaWNyb3Nv
-// SIG // ZnQlMjBUaW1lLVN0YW1wJTIwUENBJTIwMjAxMCgxKS5j
-// SIG // cnQwDAYDVR0TAQH/BAIwADATBgNVHSUEDDAKBggrBgEF
-// SIG // BQcDCDANBgkqhkiG9w0BAQsFAAOCAgEANqi6nGbfR4pC
-// SIG // B3I+wJZx4Y6LsUozngWkxPhCvGl3FS5vXAPA9v2WNjlK
-// SIG // WLznYbgxFfYRJVZs6KYibpP8QWIenViU0YZku4VY6xra
-// SIG // s0hVtC337EcrI8ZKbqsoR4gQ8TFzBmehnc1H6lT9mXdj
-// SIG // vifwWECYLPTR2M/wjOF2kT/k9lTNyRNZkjtai2vpnweN
-// SIG // u0Ii4/yQu01GIIeEWPqCzBVbkCWb12Jf4yExX1KaSaAG
-// SIG // pAa9FXNq9ZD+Q4iWjb2Vif3LmGolkOJPcacOsBs96qu8
-// SIG // QFp5Rs7GsMBYY7cKuRB/7N+ywn3ocrgsPGUSfVt7YEhX
-// SIG // qQFTO7FBPj691Lvoj7wVeE7EwzRS9AlSD1/tVziemERm
-// SIG // CdpBxqaBnP+bIANiCkHJfe2Q2CSKosYMCjX7cje9DtAE
-// SIG // 26U1YbGzdNRVZYtB/r4HBocs5Oo6QMsBzw0kP8aBHhlO
-// SIG // PujxU1zETv3zMxnFHH9GR6mTJtFIaB/LTrZNfJOge+Si
-// SIG // V07WN2TO6U37q0r9kK7+c8wgYssrLTj8PyCSPpPaKU4G
-// SIG // rawt/S+vfysMrQ9Me7dI5k17ZS2Whr6EpY3csq+kA0VZ
-// SIG // KrAmi1EkrAIlnmr+aoOuFN5i5nnpKNBPUyecs7Tf43Is
-// SIG // 5R8dF7IDrjerLm9wj1ewADDIiqKXUGKoj17vSMb6l0+w
-// SIG // hP0jAtqXDckwggdxMIIFWaADAgECAhMzAAAAFcXna54C
-// SIG // m0mZAAAAAAAVMA0GCSqGSIb3DQEBCwUAMIGIMQswCQYD
-// SIG // VQQGEwJVUzETMBEGA1UECBMKV2FzaGluZ3RvbjEQMA4G
-// SIG // A1UEBxMHUmVkbW9uZDEeMBwGA1UEChMVTWljcm9zb2Z0
-// SIG // IENvcnBvcmF0aW9uMTIwMAYDVQQDEylNaWNyb3NvZnQg
-// SIG // Um9vdCBDZXJ0aWZpY2F0ZSBBdXRob3JpdHkgMjAxMDAe
-// SIG // Fw0yMTA5MzAxODIyMjVaFw0zMDA5MzAxODMyMjVaMHwx
+// SIG // Oi8vY3JsMS5hbWUuZ2JsL2FpYS9BTUVSb290X2FtZXJv
+// SIG // b3QuY3J0MIGiBggrBgEFBQcwAoaBlWxkYXA6Ly8vQ049
+// SIG // YW1lcm9vdCxDTj1BSUEsQ049UHVibGljJTIwS2V5JTIw
+// SIG // U2VydmljZXMsQ049U2VydmljZXMsQ049Q29uZmlndXJh
+// SIG // dGlvbixEQz1BTUUsREM9R0JMP2NBQ2VydGlmaWNhdGU/
+// SIG // YmFzZT9vYmplY3RDbGFzcz1jZXJ0aWZpY2F0aW9uQXV0
+// SIG // aG9yaXR5MA0GCSqGSIb3DQEBCwUAA4ICAQBQECO3Tw/o
+// SIG // 317Rrd7yadqcswPx1LvIYymkaTN6KcmuRt6HKa0Xe73U
+// SIG // x2/AQ30TfgA9GBJngweRykKBusRzyOU17iIubJvy3gA2
+// SIG // 1dwtqtB0DsoEv1U/ptVu2v++doTCJ/i+GbssVXkgaX8H
+// SIG // +6EOGEmT4evp4GbwR4HwWlc+Dvf8HH8PdUA2Z04CvcwI
+// SIG // fckSipbNm84jxJ8XjmTFTWscldL9edj2NsY6iGnyJFIy
+// SIG // ur2PS7VRYyV3p1VAJp91gj1jRQtWEyCB8P5g9nE3z8u0
+// SIG // ANaU/hjwEQCrdGyravWgnf2JtG+bT26YAokbc8m+32zU
+// SIG // tXRO+NK3tAjhOu2FdsG3qNrF4sc7y37R/C+7Pcb/cFfh
+// SIG // ttqsirepZii4xStcjMODYuXzGm3IJs0b0owHG6oKd7ZO
+// SIG // GvHpmmh9K8/DLriD/sq8bURD10qi/wuW8zM7IpLg1vcR
+// SIG // 9dIK2mc0pj44pc6UX0XbttP/VEJgu3lT2eI9VjWtaKjx
+// SIG // 38xE9woSMyekPRtzTwgfuysF9DkJisr+yA4po/FPxpbB
+// SIG // w9c/hBf32DH/GFxteS2pmjgKIbMP8sDukmEq3lVvuWNJ
+// SIG // sybrZwQvQpvaM49fv+JKpLK5YWYEfwksYRR9wU8Hh/ID
+// SIG // 9hRCEkbUoQ2W7mMpsp2Nbp/kcn4ivfolUy3Q9Yf0scsQ
+// SIG // 6WTLYpm+AoCUJTGCGc4wghnKAgEBMFgwQTETMBEGCgmS
+// SIG // JomT8ixkARkWA0dCTDETMBEGCgmSJomT8ixkARkWA0FN
+// SIG // RTEVMBMGA1UEAxMMQU1FIENTIENBIDAxAhM2AAAByGSC
+// SIG // ADC0I4J4AAIAAAHIMA0GCWCGSAFlAwQCAQUAoIGuMBkG
+// SIG // CSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwGCisGAQQB
+// SIG // gjcCAQsxDjAMBgorBgEEAYI3AgEVMC8GCSqGSIb3DQEJ
+// SIG // BDEiBCBBcljb0jaocYGtICToqF6TpKy6pcBSeHTmLOBQ
+// SIG // K5v93zBCBgorBgEEAYI3AgEMMTQwMqAUgBIATQBpAGMA
+// SIG // cgBvAHMAbwBmAHShGoAYaHR0cDovL3d3dy5taWNyb3Nv
+// SIG // ZnQuY29tMA0GCSqGSIb3DQEBAQUABIIBAJ4beKTQZBNR
+// SIG // kF4OQak/MPRSclimN+l6a3R01TyrbtOz6RZahgP4yXro
+// SIG // 5bPO1C5xtgF/Hm6O6dSAO3heMlBPeR66MPbLkd0xGSDZ
+// SIG // o+FrkJS27ouNVznNPzBCXHjrpBap4TeD0JvTkweN2ncP
+// SIG // VUkMc58J6VsjlcApWYqSWZGohV1qpwGOYGcudUAb0Ahd
+// SIG // Wmls4qHF+9tAR1hfc5o/BXaXzpAl4xW6AyYrKDTPSGAs
+// SIG // oRzRkSSWp8O51lgEk7iOIpQCDt0joKzC0Nivxcy8C11B
+// SIG // lr/LPYPXf8bdJxG/RbwGwelcfAy36MlmugfrCIueGZ2h
+// SIG // yKRfOzwsEwAsHbnOSKrsruKhgheWMIIXkgYKKwYBBAGC
+// SIG // NwMDATGCF4Iwghd+BgkqhkiG9w0BBwKgghdvMIIXawIB
+// SIG // AzEPMA0GCWCGSAFlAwQCAQUAMIIBUQYLKoZIhvcNAQkQ
+// SIG // AQSgggFABIIBPDCCATgCAQEGCisGAQQBhFkKAwEwMTAN
+// SIG // BglghkgBZQMEAgEFAAQgSk1N2jzP0VZyPMf66abOklg2
+// SIG // z35WlvG9jV4xT+5EOIMCBmW8ExYpFhgSMjAyNDAyMTIw
+// SIG // NTQ0MTcuNjJaMASAAgH0oIHRpIHOMIHLMQswCQYDVQQG
+// SIG // EwJVUzETMBEGA1UECBMKV2FzaGluZ3RvbjEQMA4GA1UE
+// SIG // BxMHUmVkbW9uZDEeMBwGA1UEChMVTWljcm9zb2Z0IENv
+// SIG // cnBvcmF0aW9uMSUwIwYDVQQLExxNaWNyb3NvZnQgQW1l
+// SIG // cmljYSBPcGVyYXRpb25zMScwJQYDVQQLEx5uU2hpZWxk
+// SIG // IFRTUyBFU046REMwMC0wNUUwLUQ5NDcxJTAjBgNVBAMT
+// SIG // HE1pY3Jvc29mdCBUaW1lLVN0YW1wIFNlcnZpY2WgghHt
+// SIG // MIIHIDCCBQigAwIBAgITMwAAAehQsIDPK3KZTQABAAAB
+// SIG // 6DANBgkqhkiG9w0BAQsFADB8MQswCQYDVQQGEwJVUzET
+// SIG // MBEGA1UECBMKV2FzaGluZ3RvbjEQMA4GA1UEBxMHUmVk
+// SIG // bW9uZDEeMBwGA1UEChMVTWljcm9zb2Z0IENvcnBvcmF0
+// SIG // aW9uMSYwJAYDVQQDEx1NaWNyb3NvZnQgVGltZS1TdGFt
+// SIG // cCBQQ0EgMjAxMDAeFw0yMzEyMDYxODQ1MjJaFw0yNTAz
+// SIG // MDUxODQ1MjJaMIHLMQswCQYDVQQGEwJVUzETMBEGA1UE
+// SIG // CBMKV2FzaGluZ3RvbjEQMA4GA1UEBxMHUmVkbW9uZDEe
+// SIG // MBwGA1UEChMVTWljcm9zb2Z0IENvcnBvcmF0aW9uMSUw
+// SIG // IwYDVQQLExxNaWNyb3NvZnQgQW1lcmljYSBPcGVyYXRp
+// SIG // b25zMScwJQYDVQQLEx5uU2hpZWxkIFRTUyBFU046REMw
+// SIG // MC0wNUUwLUQ5NDcxJTAjBgNVBAMTHE1pY3Jvc29mdCBU
+// SIG // aW1lLVN0YW1wIFNlcnZpY2UwggIiMA0GCSqGSIb3DQEB
+// SIG // AQUAA4ICDwAwggIKAoICAQDhQXdE0WzXG7wzeC9SGdH6
+// SIG // eVwdGlF6YgpU7weOFBkpW9yuEmJSDE1ADBx/0DTuRBap
+// SIG // lSD8CR1QqyQmxRDD/CdvDyeZFAcZ6l2+nlMssmZyC8TP
+// SIG // t1GTWAUt3GXUU6g0F0tIrFNLgofCjOvm3G0j482VutKS
+// SIG // 4wZT6bNVnBVsChr2AjmVbGDN/6Qs/EqakL5cwpGel1te
+// SIG // 7UO13dUwaPjOy0Wi1qYNmR8i7T1luj2JdFdfZhMPyqyq
+// SIG // /NDnZuONSbj8FM5xKBoar12ragC8/1CXaL1OMXBwGaRo
+// SIG // JTYtksi9njuq4wDkcAwitCZ5BtQ2NqPZ0lLiQB7O10Bm
+// SIG // 9zpHWn9x1/HmdAn4koMWKUDwH5sd/zDu4vi887FWxm54
+// SIG // kkWNvk8FeQ7ZZ0Q5gqGKW4g6revV2IdAxBobWdorqwvz
+// SIG // qL70WdsgDU/P5c0L8vYIskUJZedCGHM2hHIsNRyw9EFo
+// SIG // SolDM+yCedkz69787s8nIp55icLfDoKw5hak5G6MWF6d
+// SIG // 71tcNzV9+v9RQKMa6Uwfyquredd5sqXWCXv++hek4A15
+// SIG // WybIc6ufT0ilazKYZvDvoaswgjP0SeLW7mvmcw0FELzF
+// SIG // 1/uWaXElLHOXIlieKF2i/YzQ6U50K9dbhnMaDcJSsG0h
+// SIG // XLRTy/LQbsOD0hw7FuK0nmzotSx/5fo9g7fCzoFjk3tD
+// SIG // EwIDAQABo4IBSTCCAUUwHQYDVR0OBBYEFPo5W8o980kM
+// SIG // fRVQba6T34HwelLaMB8GA1UdIwQYMBaAFJ+nFV0AXmJd
+// SIG // g/Tl0mWnG1M1GelyMF8GA1UdHwRYMFYwVKBSoFCGTmh0
+// SIG // dHA6Ly93d3cubWljcm9zb2Z0LmNvbS9wa2lvcHMvY3Js
+// SIG // L01pY3Jvc29mdCUyMFRpbWUtU3RhbXAlMjBQQ0ElMjAy
+// SIG // MDEwKDEpLmNybDBsBggrBgEFBQcBAQRgMF4wXAYIKwYB
+// SIG // BQUHMAKGUGh0dHA6Ly93d3cubWljcm9zb2Z0LmNvbS9w
+// SIG // a2lvcHMvY2VydHMvTWljcm9zb2Z0JTIwVGltZS1TdGFt
+// SIG // cCUyMFBDQSUyMDIwMTAoMSkuY3J0MAwGA1UdEwEB/wQC
+// SIG // MAAwFgYDVR0lAQH/BAwwCgYIKwYBBQUHAwgwDgYDVR0P
+// SIG // AQH/BAQDAgeAMA0GCSqGSIb3DQEBCwUAA4ICAQCWfcJm
+// SIG // 2rwXtPi74km6PKAkni9+BWotq+QtDGgeT5F3ro7PsIUN
+// SIG // KRkUytuGqI8thL3Jcrb03x6DOppYJEA+pb6o2qPjFddO
+// SIG // 1TLqvSXrYm+OgCLL+7+3FmRmfkRu8rHvprab0O19wDbu
+// SIG // kgO8I5Oi1RegMJl8t5k/UtE0Wb3zAlOHnCjLGSzP/Do3
+// SIG // ptwhXokk02IvD7SZEBbPboGbtw4LCHsT2pFakpGOBh+I
+// SIG // SUMXBf835CuVNfddwxmyGvNSzyEyEk5h1Vh7tpwP7z7r
+// SIG // J+HsiP4sdqBjj6Avopuf4rxUAfrEbV6aj8twFs7WVHNi
+// SIG // IgrHNna/55kyrAG9Yt19CPvkUwxYK0uZvPl2WC39nfc0
+// SIG // jOTjivC7s/IUozE4tfy3JNkyQ1cNtvZftiX3j5Dt+eLO
+// SIG // euGDjvhJvYMIEkpkV68XLNH7+ZBfYa+PmfRYaoFFHCJK
+// SIG // EoRSZ3PbDJPBiEhZ9yuxMddoMMQ19Tkyftot6Ez0XhSm
+// SIG // wjYBq39DvBFWhlyDGBhrU3GteDWiVd9YGSB2WnxuFMy5
+// SIG // fbAK6o8PWz8QRMiptXHK3HDBr2wWWEcrrgcTuHZIJTqe
+// SIG // pNoYlx9VRFvj/vCXaAFcmkW1nk7VE+owaXr5RJjryDq9
+// SIG // ubkyDq1mdrF/geaRALXcNZbfNXIkhXzXA6a8CiamcQW/
+// SIG // DgmLJpiVQNriZYCHIDCCB3EwggVZoAMCAQICEzMAAAAV
+// SIG // xedrngKbSZkAAAAAABUwDQYJKoZIhvcNAQELBQAwgYgx
 // SIG // CzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpXYXNoaW5ndG9u
 // SIG // MRAwDgYDVQQHEwdSZWRtb25kMR4wHAYDVQQKExVNaWNy
-// SIG // b3NvZnQgQ29ycG9yYXRpb24xJjAkBgNVBAMTHU1pY3Jv
-// SIG // c29mdCBUaW1lLVN0YW1wIFBDQSAyMDEwMIICIjANBgkq
-// SIG // hkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA5OGmTOe0ciEL
-// SIG // eaLL1yR5vQ7VgtP97pwHB9KpbE51yMo1V/YBf2xK4OK9
-// SIG // uT4XYDP/XE/HZveVU3Fa4n5KWv64NmeFRiMMtY0Tz3cy
-// SIG // wBAY6GB9alKDRLemjkZrBxTzxXb1hlDcwUTIcVxRMTeg
-// SIG // Cjhuje3XD9gmU3w5YQJ6xKr9cmmvHaus9ja+NSZk2pg7
-// SIG // uhp7M62AW36MEBydUv626GIl3GoPz130/o5Tz9bshVZN
-// SIG // 7928jaTjkY+yOSxRnOlwaQ3KNi1wjjHINSi947SHJMPg
-// SIG // yY9+tVSP3PoFVZhtaDuaRr3tpK56KTesy+uDRedGbsoy
-// SIG // 1cCGMFxPLOJiss254o2I5JasAUq7vnGpF1tnYN74kpEe
-// SIG // HT39IM9zfUGaRnXNxF803RKJ1v2lIH1+/NmeRd+2ci/b
-// SIG // fV+AutuqfjbsNkz2K26oElHovwUDo9Fzpk03dJQcNIIP
-// SIG // 8BDyt0cY7afomXw/TNuvXsLz1dhzPUNOwTM5TI4CvEJo
-// SIG // LhDqhFFG4tG9ahhaYQFzymeiXtcodgLiMxhy16cg8ML6
-// SIG // EgrXY28MyTZki1ugpoMhXV8wdJGUlNi5UPkLiWHzNgY1
-// SIG // GIRH29wb0f2y1BzFa/ZcUlFdEtsluq9QBXpsxREdcu+N
-// SIG // +VLEhReTwDwV2xo3xwgVGD94q0W29R6HXtqPnhZyacau
-// SIG // e7e3PmriLq0CAwEAAaOCAd0wggHZMBIGCSsGAQQBgjcV
-// SIG // AQQFAgMBAAEwIwYJKwYBBAGCNxUCBBYEFCqnUv5kxJq+
-// SIG // gpE8RjUpzxD/LwTuMB0GA1UdDgQWBBSfpxVdAF5iXYP0
-// SIG // 5dJlpxtTNRnpcjBcBgNVHSAEVTBTMFEGDCsGAQQBgjdM
-// SIG // g30BATBBMD8GCCsGAQUFBwIBFjNodHRwOi8vd3d3Lm1p
-// SIG // Y3Jvc29mdC5jb20vcGtpb3BzL0RvY3MvUmVwb3NpdG9y
-// SIG // eS5odG0wEwYDVR0lBAwwCgYIKwYBBQUHAwgwGQYJKwYB
-// SIG // BAGCNxQCBAweCgBTAHUAYgBDAEEwCwYDVR0PBAQDAgGG
-// SIG // MA8GA1UdEwEB/wQFMAMBAf8wHwYDVR0jBBgwFoAU1fZW
-// SIG // y4/oolxiaNE9lJBb186aGMQwVgYDVR0fBE8wTTBLoEmg
-// SIG // R4ZFaHR0cDovL2NybC5taWNyb3NvZnQuY29tL3BraS9j
-// SIG // cmwvcHJvZHVjdHMvTWljUm9vQ2VyQXV0XzIwMTAtMDYt
-// SIG // MjMuY3JsMFoGCCsGAQUFBwEBBE4wTDBKBggrBgEFBQcw
-// SIG // AoY+aHR0cDovL3d3dy5taWNyb3NvZnQuY29tL3BraS9j
-// SIG // ZXJ0cy9NaWNSb29DZXJBdXRfMjAxMC0wNi0yMy5jcnQw
-// SIG // DQYJKoZIhvcNAQELBQADggIBAJ1VffwqreEsH2cBMSRb
-// SIG // 4Z5yS/ypb+pcFLY+TkdkeLEGk5c9MTO1OdfCcTY/2mRs
-// SIG // fNB1OW27DzHkwo/7bNGhlBgi7ulmZzpTTd2YurYeeNg2
-// SIG // LpypglYAA7AFvonoaeC6Ce5732pvvinLbtg/SHUB2Rje
-// SIG // bYIM9W0jVOR4U3UkV7ndn/OOPcbzaN9l9qRWqveVtihV
-// SIG // J9AkvUCgvxm2EhIRXT0n4ECWOKz3+SmJw7wXsFSFQrP8
-// SIG // DJ6LGYnn8AtqgcKBGUIZUnWKNsIdw2FzLixre24/LAl4
-// SIG // FOmRsqlb30mjdAy87JGA0j3mSj5mO0+7hvoyGtmW9I/2
-// SIG // kQH2zsZ0/fZMcm8Qq3UwxTSwethQ/gpY3UA8x1RtnWN0
-// SIG // SCyxTkctwRQEcb9k+SS+c23Kjgm9swFXSVRk2XPXfx5b
-// SIG // RAGOWhmRaw2fpCjcZxkoJLo4S5pu+yFUa2pFEUep8beu
-// SIG // yOiJXk+d0tBMdrVXVAmxaQFEfnyhYWxz/gq77EFmPWn9
-// SIG // y8FBSX5+k77L+DvktxW/tM4+pTFRhLy/AsGConsXHRWJ
-// SIG // jXD+57XQKBqJC4822rpM+Zv/Cuk0+CQ1ZyvgDbjmjJnW
-// SIG // 4SLq8CdCPSWU5nR0W2rRnj7tfqAxM328y+l7vzhwRNGQ
-// SIG // 8cirOoo6CGJ/2XBjU02N7oJtpQUQwXEGahC0HVUzWLOh
-// SIG // cGbyoYICyzCCAjQCAQEwgfihgdCkgc0wgcoxCzAJBgNV
-// SIG // BAYTAlVTMRMwEQYDVQQIEwpXYXNoaW5ndG9uMRAwDgYD
-// SIG // VQQHEwdSZWRtb25kMR4wHAYDVQQKExVNaWNyb3NvZnQg
-// SIG // Q29ycG9yYXRpb24xJTAjBgNVBAsTHE1pY3Jvc29mdCBB
-// SIG // bWVyaWNhIE9wZXJhdGlvbnMxJjAkBgNVBAsTHVRoYWxl
-// SIG // cyBUU1MgRVNOOjNFN0EtRTM1OS1BMjVEMSUwIwYDVQQD
-// SIG // ExxNaWNyb3NvZnQgVGltZS1TdGFtcCBTZXJ2aWNloiMK
-// SIG // AQEwBwYFKw4DAhoDFQB96YvL/h4Bm41ULOBt+nUcVgbd
-// SIG // DqCBgzCBgKR+MHwxCzAJBgNVBAYTAlVTMRMwEQYDVQQI
-// SIG // EwpXYXNoaW5ndG9uMRAwDgYDVQQHEwdSZWRtb25kMR4w
-// SIG // HAYDVQQKExVNaWNyb3NvZnQgQ29ycG9yYXRpb24xJjAk
-// SIG // BgNVBAMTHU1pY3Jvc29mdCBUaW1lLVN0YW1wIFBDQSAy
-// SIG // MDEwMA0GCSqGSIb3DQEBBQUAAgUA6Bf7mjAiGA8yMDIz
-// SIG // MDUyNDEwNTczMFoYDzIwMjMwNTI1MTA1NzMwWjB0MDoG
-// SIG // CisGAQQBhFkKBAExLDAqMAoCBQDoF/uaAgEAMAcCAQAC
-// SIG // AhKpMAcCAQACAhJaMAoCBQDoGU0aAgEAMDYGCisGAQQB
-// SIG // hFkKBAIxKDAmMAwGCisGAQQBhFkKAwKgCjAIAgEAAgMH
-// SIG // oSChCjAIAgEAAgMBhqAwDQYJKoZIhvcNAQEFBQADgYEA
-// SIG // OZo+LZ1gXfk0L9cX7YmAaE15Pbly5QyS4xG4XepsvKYP
-// SIG // +kKW3vvwHU1NqUTMeibqrWr4oPgZL11KjllC+sKg4OcR
-// SIG // +CqAElthMKqCRb/G3NJRiRGQR+xOaCFit73R5FNNv/VX
-// SIG // XN2e1aWSRd2XfRC2UXBONRV9c6BX+z7dgychPAoxggQN
-// SIG // MIIECQIBATCBkzB8MQswCQYDVQQGEwJVUzETMBEGA1UE
-// SIG // CBMKV2FzaGluZ3RvbjEQMA4GA1UEBxMHUmVkbW9uZDEe
-// SIG // MBwGA1UEChMVTWljcm9zb2Z0IENvcnBvcmF0aW9uMSYw
-// SIG // JAYDVQQDEx1NaWNyb3NvZnQgVGltZS1TdGFtcCBQQ0Eg
-// SIG // MjAxMAITMwAAAcn61Y4lIHQCXgABAAAByTANBglghkgB
-// SIG // ZQMEAgEFAKCCAUowGgYJKoZIhvcNAQkDMQ0GCyqGSIb3
-// SIG // DQEJEAEEMC8GCSqGSIb3DQEJBDEiBCC/Agh6z3tDAbKw
-// SIG // 4dMMyYscmbMMLO0jTbGek76XaEVpyjCB+gYLKoZIhvcN
-// SIG // AQkQAi8xgeowgecwgeQwgb0EIIF1zn9S3VFLECd4Kdh/
-// SIG // YA0jIYkA/8194V184dk5dv2BMIGYMIGApH4wfDELMAkG
-// SIG // A1UEBhMCVVMxEzARBgNVBAgTCldhc2hpbmd0b24xEDAO
-// SIG // BgNVBAcTB1JlZG1vbmQxHjAcBgNVBAoTFU1pY3Jvc29m
-// SIG // dCBDb3Jwb3JhdGlvbjEmMCQGA1UEAxMdTWljcm9zb2Z0
-// SIG // IFRpbWUtU3RhbXAgUENBIDIwMTACEzMAAAHJ+tWOJSB0
-// SIG // Al4AAQAAAckwIgQgrn7JLRYA9/7Lncz5WxqFyh+HfBI2
-// SIG // P1f8QM2o3GecAmYwDQYJKoZIhvcNAQELBQAEggIAmMy1
-// SIG // GWlDpJXh/HCr6DPSd0lRI9mdrrHP+chibpWMHyLrhkE2
-// SIG // 6HltYiL1Bc0moihaNYWhKfW9UXdyEGTBoCcpYquirnl5
-// SIG // HzrNVbglNpLqWXhN96TZx062dSHSTMCpRKD0030iNeft
-// SIG // u0D/ckczJ77BkBWUiq9lKDMa3hHx1KR6hVQXs+9FKjsi
-// SIG // ihddCgouA83LfEEEla3fy8cEYHaC6+PpoJ3tkEZfvzcV
-// SIG // UnOB5UnVQdugHVDLU4ktP7pflnTwv/tq26k2FD69zqNg
-// SIG // kUw4gmnjZWXhkyYaD4E/eB+kj4Y7FSzrP/VEQW0B37wa
-// SIG // P2Ntmy4gBMOXuoyNVGKieR3W2rVZXqdIIDnzezRAmasv
-// SIG // Cc4gXodBOiLOEcsPl0adVTZ0VP68kk6YCShbQrdanvlO
-// SIG // AUdHn2oUXqAyuXmV7O2eEjk1dvbGIuoADAQ+dkE4c6p0
-// SIG // r8FKq9LnzFBAj7YIn5ndVijL9vlFdUrsE81HbQ3o/z2c
-// SIG // Xb+fqpk2/0q94zSPb/s/Qm9aLLmyHr4kygCyAg0VRxRQ
-// SIG // vUDMwdqcnuN9Zeq5i4KLVBOvkD31gZzm/VcYwK5Rxev1
-// SIG // ZDQhgT+Ri57rjWPp4mLjCf2ouhhaC0AneulrZyp3deGx
-// SIG // SeiZMYQXvqbhBlNfdj+Vy71qBgfcdQrMq3PixxJCjFYW
-// SIG // 1L88IknUMxnPfOik1G8=
+// SIG // b3NvZnQgQ29ycG9yYXRpb24xMjAwBgNVBAMTKU1pY3Jv
+// SIG // c29mdCBSb290IENlcnRpZmljYXRlIEF1dGhvcml0eSAy
+// SIG // MDEwMB4XDTIxMDkzMDE4MjIyNVoXDTMwMDkzMDE4MzIy
+// SIG // NVowfDELMAkGA1UEBhMCVVMxEzARBgNVBAgTCldhc2hp
+// SIG // bmd0b24xEDAOBgNVBAcTB1JlZG1vbmQxHjAcBgNVBAoT
+// SIG // FU1pY3Jvc29mdCBDb3Jwb3JhdGlvbjEmMCQGA1UEAxMd
+// SIG // TWljcm9zb2Z0IFRpbWUtU3RhbXAgUENBIDIwMTAwggIi
+// SIG // MA0GCSqGSIb3DQEBAQUAA4ICDwAwggIKAoICAQDk4aZM
+// SIG // 57RyIQt5osvXJHm9DtWC0/3unAcH0qlsTnXIyjVX9gF/
+// SIG // bErg4r25PhdgM/9cT8dm95VTcVrifkpa/rg2Z4VGIwy1
+// SIG // jRPPdzLAEBjoYH1qUoNEt6aORmsHFPPFdvWGUNzBRMhx
+// SIG // XFExN6AKOG6N7dcP2CZTfDlhAnrEqv1yaa8dq6z2Nr41
+// SIG // JmTamDu6GnszrYBbfowQHJ1S/rboYiXcag/PXfT+jlPP
+// SIG // 1uyFVk3v3byNpOORj7I5LFGc6XBpDco2LXCOMcg1KL3j
+// SIG // tIckw+DJj361VI/c+gVVmG1oO5pGve2krnopN6zL64NF
+// SIG // 50ZuyjLVwIYwXE8s4mKyzbnijYjklqwBSru+cakXW2dg
+// SIG // 3viSkR4dPf0gz3N9QZpGdc3EXzTdEonW/aUgfX782Z5F
+// SIG // 37ZyL9t9X4C626p+Nuw2TPYrbqgSUei/BQOj0XOmTTd0
+// SIG // lBw0gg/wEPK3Rxjtp+iZfD9M269ewvPV2HM9Q07BMzlM
+// SIG // jgK8QmguEOqEUUbi0b1qGFphAXPKZ6Je1yh2AuIzGHLX
+// SIG // pyDwwvoSCtdjbwzJNmSLW6CmgyFdXzB0kZSU2LlQ+QuJ
+// SIG // YfM2BjUYhEfb3BvR/bLUHMVr9lxSUV0S2yW6r1AFemzF
+// SIG // ER1y7435UsSFF5PAPBXbGjfHCBUYP3irRbb1Hode2o+e
+// SIG // FnJpxq57t7c+auIurQIDAQABo4IB3TCCAdkwEgYJKwYB
+// SIG // BAGCNxUBBAUCAwEAATAjBgkrBgEEAYI3FQIEFgQUKqdS
+// SIG // /mTEmr6CkTxGNSnPEP8vBO4wHQYDVR0OBBYEFJ+nFV0A
+// SIG // XmJdg/Tl0mWnG1M1GelyMFwGA1UdIARVMFMwUQYMKwYB
+// SIG // BAGCN0yDfQEBMEEwPwYIKwYBBQUHAgEWM2h0dHA6Ly93
+// SIG // d3cubWljcm9zb2Z0LmNvbS9wa2lvcHMvRG9jcy9SZXBv
+// SIG // c2l0b3J5Lmh0bTATBgNVHSUEDDAKBggrBgEFBQcDCDAZ
+// SIG // BgkrBgEEAYI3FAIEDB4KAFMAdQBiAEMAQTALBgNVHQ8E
+// SIG // BAMCAYYwDwYDVR0TAQH/BAUwAwEB/zAfBgNVHSMEGDAW
+// SIG // gBTV9lbLj+iiXGJo0T2UkFvXzpoYxDBWBgNVHR8ETzBN
+// SIG // MEugSaBHhkVodHRwOi8vY3JsLm1pY3Jvc29mdC5jb20v
+// SIG // cGtpL2NybC9wcm9kdWN0cy9NaWNSb29DZXJBdXRfMjAx
+// SIG // MC0wNi0yMy5jcmwwWgYIKwYBBQUHAQEETjBMMEoGCCsG
+// SIG // AQUFBzAChj5odHRwOi8vd3d3Lm1pY3Jvc29mdC5jb20v
+// SIG // cGtpL2NlcnRzL01pY1Jvb0NlckF1dF8yMDEwLTA2LTIz
+// SIG // LmNydDANBgkqhkiG9w0BAQsFAAOCAgEAnVV9/Cqt4Swf
+// SIG // ZwExJFvhnnJL/Klv6lwUtj5OR2R4sQaTlz0xM7U518Jx
+// SIG // Nj/aZGx80HU5bbsPMeTCj/ts0aGUGCLu6WZnOlNN3Zi6
+// SIG // th542DYunKmCVgADsAW+iehp4LoJ7nvfam++Kctu2D9I
+// SIG // dQHZGN5tggz1bSNU5HhTdSRXud2f8449xvNo32X2pFaq
+// SIG // 95W2KFUn0CS9QKC/GbYSEhFdPSfgQJY4rPf5KYnDvBew
+// SIG // VIVCs/wMnosZiefwC2qBwoEZQhlSdYo2wh3DYXMuLGt7
+// SIG // bj8sCXgU6ZGyqVvfSaN0DLzskYDSPeZKPmY7T7uG+jIa
+// SIG // 2Zb0j/aRAfbOxnT99kxybxCrdTDFNLB62FD+CljdQDzH
+// SIG // VG2dY3RILLFORy3BFARxv2T5JL5zbcqOCb2zAVdJVGTZ
+// SIG // c9d/HltEAY5aGZFrDZ+kKNxnGSgkujhLmm77IVRrakUR
+// SIG // R6nxt67I6IleT53S0Ex2tVdUCbFpAUR+fKFhbHP+Crvs
+// SIG // QWY9af3LwUFJfn6Tvsv4O+S3Fb+0zj6lMVGEvL8CwYKi
+// SIG // excdFYmNcP7ntdAoGokLjzbaukz5m/8K6TT4JDVnK+AN
+// SIG // uOaMmdbhIurwJ0I9JZTmdHRbatGePu1+oDEzfbzL6Xu/
+// SIG // OHBE0ZDxyKs6ijoIYn/ZcGNTTY3ugm2lBRDBcQZqELQd
+// SIG // VTNYs6FwZvKhggNQMIICOAIBATCB+aGB0aSBzjCByzEL
+// SIG // MAkGA1UEBhMCVVMxEzARBgNVBAgTCldhc2hpbmd0b24x
+// SIG // EDAOBgNVBAcTB1JlZG1vbmQxHjAcBgNVBAoTFU1pY3Jv
+// SIG // c29mdCBDb3Jwb3JhdGlvbjElMCMGA1UECxMcTWljcm9z
+// SIG // b2Z0IEFtZXJpY2EgT3BlcmF0aW9uczEnMCUGA1UECxMe
+// SIG // blNoaWVsZCBUU1MgRVNOOkRDMDAtMDVFMC1EOTQ3MSUw
+// SIG // IwYDVQQDExxNaWNyb3NvZnQgVGltZS1TdGFtcCBTZXJ2
+// SIG // aWNloiMKAQEwBwYFKw4DAhoDFQCMJG4vg0juMOVn2BuK
+// SIG // ACUvP80FuqCBgzCBgKR+MHwxCzAJBgNVBAYTAlVTMRMw
+// SIG // EQYDVQQIEwpXYXNoaW5ndG9uMRAwDgYDVQQHEwdSZWRt
+// SIG // b25kMR4wHAYDVQQKExVNaWNyb3NvZnQgQ29ycG9yYXRp
+// SIG // b24xJjAkBgNVBAMTHU1pY3Jvc29mdCBUaW1lLVN0YW1w
+// SIG // IFBDQSAyMDEwMA0GCSqGSIb3DQEBCwUAAgUA6XO/3jAi
+// SIG // GA8yMDI0MDIxMTIxNTEyNloYDzIwMjQwMjEyMjE1MTI2
+// SIG // WjB3MD0GCisGAQQBhFkKBAExLzAtMAoCBQDpc7/eAgEA
+// SIG // MAoCAQACAg1gAgH/MAcCAQACAhO7MAoCBQDpdRFeAgEA
+// SIG // MDYGCisGAQQBhFkKBAIxKDAmMAwGCisGAQQBhFkKAwKg
+// SIG // CjAIAgEAAgMHoSChCjAIAgEAAgMBhqAwDQYJKoZIhvcN
+// SIG // AQELBQADggEBAGfvol3sfq/WGzypFXDNKmakMHbZamne
+// SIG // ivgnwPre28U38IGtVgywJjMLE4h1LNeo36/G9zVJN7iY
+// SIG // bHV4ld2VYqKW28Ock6uDmwSLw9HzxKz10ooVEB2Po2px
+// SIG // 56HBs/wztjSPiQ3BX/aq2JAQLtUOClpUp44yTXn7Rx4M
+// SIG // Jr1xaqQNsuzEsu4ScNvzfCnjW+ea/lV4cbJ3EUUP54Yt
+// SIG // YCoTh8TomKusBdnCAe1eqWBxJ+z0jhgSjZ0yQzU7bdkt
+// SIG // FkxIzR8UPwgNRgYbHwDma9xWjOyJa7vOqhDeGOSvgv08
+// SIG // IGEX0YaGhgR2/NDNl2qfSXNtNzloy//pajRtogyT8Asc
+// SIG // Q9gxggQNMIIECQIBATCBkzB8MQswCQYDVQQGEwJVUzET
+// SIG // MBEGA1UECBMKV2FzaGluZ3RvbjEQMA4GA1UEBxMHUmVk
+// SIG // bW9uZDEeMBwGA1UEChMVTWljcm9zb2Z0IENvcnBvcmF0
+// SIG // aW9uMSYwJAYDVQQDEx1NaWNyb3NvZnQgVGltZS1TdGFt
+// SIG // cCBQQ0EgMjAxMAITMwAAAehQsIDPK3KZTQABAAAB6DAN
+// SIG // BglghkgBZQMEAgEFAKCCAUowGgYJKoZIhvcNAQkDMQ0G
+// SIG // CyqGSIb3DQEJEAEEMC8GCSqGSIb3DQEJBDEiBCD49GZx
+// SIG // ndJbZsgOmBCFuHrb0nX4BRjVezBd8GpUNyEIaTCB+gYL
+// SIG // KoZIhvcNAQkQAi8xgeowgecwgeQwgb0EICrS2sTVAoQg
+// SIG // gkHR59pNqige0xfJT2J3U8W1Sc8H+OsdMIGYMIGApH4w
+// SIG // fDELMAkGA1UEBhMCVVMxEzARBgNVBAgTCldhc2hpbmd0
+// SIG // b24xEDAOBgNVBAcTB1JlZG1vbmQxHjAcBgNVBAoTFU1p
+// SIG // Y3Jvc29mdCBDb3Jwb3JhdGlvbjEmMCQGA1UEAxMdTWlj
+// SIG // cm9zb2Z0IFRpbWUtU3RhbXAgUENBIDIwMTACEzMAAAHo
+// SIG // ULCAzytymU0AAQAAAegwIgQgGgmOvrackuOJBVvEy6QZ
+// SIG // yDyaEs+iUKp6zl4exWOVsxMwDQYJKoZIhvcNAQELBQAE
+// SIG // ggIAr35YJ1tN/ZohnpYALOYuvQ2uyldsfg1tHHYiqgza
+// SIG // 8+syVnz9su27TkdwFwa8dI27goTudCtoE2uSS+ddYRud
+// SIG // o4PkiMYLgbBPdNenKNyX/Nilfs7jWJMGcTGYf9MRdldI
+// SIG // 9iCn2ria8taeh8tXzk37fLNvDe/1YhlAMu5V9XA98mVH
+// SIG // /m6oCZjCYRnusSYJOCBLlqkr6vZz8VnyJ+Fk/w6KjY9j
+// SIG // cK5Vp2VpBr8EU+RlrIIJWI3RMSO8UlnrN261QAGZl4xk
+// SIG // YB8YIupeAHD1QQr5hQka+946kclsRapP9AJX9vtD/CUA
+// SIG // acfJlgck6Qixq599s4fXqXjfwyzVsGgjTKgEM1xyUZ/T
+// SIG // nNfQov7DspcNZr10lq/PgVI6TmjNTmI86RbzPp3ePMzJ
+// SIG // 0X5BSiHr7oNKCjAlhWKn2IaNaWWKydX1xclKKZ+cmMX/
+// SIG // zgqiYjp6K5QQuY2eERopHvlQBy8R6XEVxRNjbfcuc7Em
+// SIG // l6MgmPdfEs/4tlQfgpD0zG1+7LNN2x6RgKA/Wt9HxdIG
+// SIG // s0+xLPWnZnLdvfuZXDMZ1m5bJmhGhZuXKzaHUmrLFnXC
+// SIG // HzpqvU1Y6BxDaQoOzMuFz+vvx2bez1abtGirnxecvOCv
+// SIG // J9ahbdroZ3Jr7BxiTyekI4Dlgj3aMhILo3fSAmdtW/vT
+// SIG // ogLcYuAcDc4ULwMxQWvd9SOil9g=
 // SIG // End signature block

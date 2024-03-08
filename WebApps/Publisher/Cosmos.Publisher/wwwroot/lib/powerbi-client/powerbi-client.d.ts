@@ -1,4 +1,4 @@
-// powerbi-client v2.22.4
+// powerbi-client v2.23.0
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 declare module "config" {
@@ -12,6 +12,7 @@ declare module "config" {
 declare module "errors" {
     export const APINotSupportedForRDLError = "This API is currently not supported for RDL reports";
     export const EmbedUrlNotSupported = "Embed URL is invalid for this scenario. Please use Power BI REST APIs to get the valid URL";
+    export const invalidEmbedUrlErrorMessage: string;
 }
 declare module "util" {
     import { HttpPostMessage } from 'http-post-message';
@@ -124,6 +125,11 @@ declare module "util" {
      * @returns {boolean}
      */
     export function isCreate(embedType: string): boolean;
+    /**
+     * Checks if the embedUrl has an allowed power BI domain
+     * @hidden
+     */
+    export function validateEmbedUrl(embedUrl: string): boolean;
 }
 declare module "embed" {
     import * as models from 'powerbi-models';
@@ -598,7 +604,7 @@ declare module "ifilterable" {
     }
 }
 declare module "visualDescriptor" {
-    import { ExportDataType, FiltersOperations, ICloneVisualRequest, ICloneVisualResponse, IExportDataResult, IFilter, ISlicerState, ISortByVisualRequest, IVisualLayout, VisualContainerDisplayMode } from 'powerbi-models';
+    import { ExportDataType, FiltersOperations, ICloneVisualRequest, ICloneVisualResponse, IExportDataResult, IFilter, ISlicerState, ISmartNarratives, ISortByVisualRequest, IVisualLayout, VisualContainerDisplayMode } from 'powerbi-models';
     import { IHttpPostMessageResponse } from 'http-post-message';
     import { IFilterable } from "ifilterable";
     import { IPageNode } from "page";
@@ -795,11 +801,21 @@ declare module "visualDescriptor" {
          * @returns {Promise<IHttpPostMessageResponse<void>>}
          */
         resizeVisual(width: number, height: number): Promise<IHttpPostMessageResponse<void>>;
+        /**
+         * Get insights for single visual
+         *
+         * ```javascript
+         * visual.getSmartNarrativeInsights();
+         * ```
+         *
+         * @returns {Promise<ISmartNarratives>}
+         */
+        getSmartNarrativeInsights(): Promise<ISmartNarratives>;
     }
 }
 declare module "page" {
     import { IHttpPostMessageResponse } from 'http-post-message';
-    import { DisplayOption, FiltersOperations, ICustomPageSize, IFilter, IVisual, LayoutType, PageSizeType, SectionVisibility, VisualContainerDisplayMode, IPageBackground, IPageWallpaper } from 'powerbi-models';
+    import { DisplayOption, FiltersOperations, ICustomPageSize, IFilter, IVisual, LayoutType, PageSizeType, SectionVisibility, VisualContainerDisplayMode, IPageBackground, IPageWallpaper, ISmartNarratives } from 'powerbi-models';
     import { IFilterable } from "ifilterable";
     import { IReportNode } from "report";
     import { VisualDescriptor } from "visualDescriptor";
@@ -895,6 +911,16 @@ declare module "page" {
          * @hidden
          */
         constructor(report: IReportNode, name: string, displayName?: string, isActivePage?: boolean, visibility?: SectionVisibility, defaultSize?: ICustomPageSize, defaultDisplayOption?: DisplayOption, mobileSize?: ICustomPageSize, background?: IPageBackground, wallpaper?: IPageWallpaper);
+        /**
+         * Get insights for report page
+         *
+         * ```javascript
+         * page.getSmartNarrativeInsights();
+         * ```
+         *
+         * @returns {Promise<ISmartNarratives>}
+         */
+        getSmartNarrativeInsights(): Promise<ISmartNarratives>;
         /**
          * Gets all page level filters within the report.
          *

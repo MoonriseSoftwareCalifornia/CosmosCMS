@@ -3148,6 +3148,10 @@ function pushAttribute(attr, state) {
             name = getMultiValue(name, attributes, attr.multiple) || name;
         }
         name = attrName(name, config);
+        if (config.options['jsx.enabled'] && attr.multiple) {
+            lQuote = expressionStart;
+            rQuote = expressionEnd;
+        }
         const prefix = valuePrefix
             ? getMultiValue(attr.name, valuePrefix, attr.multiple)
             : null;
@@ -4403,6 +4407,7 @@ var markupSnippets = {
 	"command": "command/",
 	"btn:s|button:s|button:submit" : "button[type=submit]",
 	"btn:r|button:r|button:reset" : "button[type=reset]",
+	"btn:b|button:b|button:button" : "button[type=button]",
 	"btn:d|button:d|button:disabled" : "button[disabled.]",
 	"fst:d|fset:d|fieldset:d|fieldset:disabled" : "fieldset[disabled.]",
 
@@ -4431,13 +4436,15 @@ var markupSnippets = {
 	"mn": "main",
 	"tem": "template",
 	"fset": "fieldset",
-	"datag": "datagrid",
 	"datal": "datalist",
 	"kg": "keygen",
 	"out": "output",
 	"det": "details",
 	"sum": "summary",
 	"cmd": "command",
+	"data": "data[value]",
+	"meter": "meter[value]",
+	"time": "time[datetime]",
 
 	"ri:d|ri:dpr": "img:s",
 	"ri:v|ri:viewport": "img:z",
@@ -4513,6 +4520,10 @@ var stylesheetSnippets = {
 	"bdts": "border-top-style",
 	"bdtw": "border-top-width",
 	"bdw": "border-width",
+  "bbs": "border-block-start",
+  "bbe": "border-block-end",
+  "bis": "border-inline-start",
+  "bie": "border-inline-end",
 	"bfv": "backface-visibility:hidden|visible",
 	"bg": "background:${1:#000}",
 	"bg:n": "background: none",
@@ -4527,6 +4538,7 @@ var stylesheetSnippets = {
 	"bgpy": "background-position-y",
 	"bgr": "background-repeat:no-repeat|repeat-x|repeat-y|space|round",
 	"bgsz": "background-size:contain|cover",
+  "bs": "block-size",
 	"bxsh": "box-shadow:${1:inset }${2:hoff} ${3:voff} ${4:blur} ${5:#000}|none",
 	"bxsz": "box-sizing:border-box|content-box|border-box",
 	"c": "color:${1:#000}",
@@ -4598,6 +4610,7 @@ var stylesheetSnippets = {
 	"gre": "grid-row-end",
 	"ga": "grid-area",
 	"h": "height",
+  "is": "inline-size",
 	"jc": "justify-content:start|end|stretch|flex-start|flex-end|center|space-between|space-around|space-evenly",
 	"ji": "justify-items:start|end|center|stretch",
 	"js": "justify-self:start|end|center|stretch",
@@ -4620,11 +4633,15 @@ var stylesheetSnippets = {
 	"ml": "margin-left",
 	"mr": "margin-right",
 	"mt": "margin-top",
+  "mbs": "margin-block-start",
+  "mbe": "margin-block-end",
+  "mis": "margin-inline-start",
+  "mie": "margin-inline-end",
 	"ol": "outline",
 	"olc": "outline-color:${1:#000}|invert",
 	"olo": "outline-offset",
 	"ols": "outline-style:none|dotted|dashed|solid|double|groove|ridge|inset|outset",
-	"olw": "outline-width|thin|medium|thick",
+	"olw": "outline-width:thin|medium|thick",
 	"op|opa": "opacity",
 	"ord": "order",
 	"ori": "orientation:landscape|portrait",
@@ -4642,6 +4659,14 @@ var stylesheetSnippets = {
 	"pos": "position:relative|absolute|relative|fixed|static",
 	"pr": "padding-right",
 	"pt": "padding-top",
+  "pbs": "padding-block-start",
+  "pbe": "padding-block-end",
+  "pis": "padding-inline-start",
+  "pie": "padding-inline-end",
+  "spbs": "scroll-padding-block-start",
+  "spbe": "scroll-padding-block-end",
+  "spis": "scroll-padding-inline-start",
+  "spie": "scroll-padding-inline-end",
 	"q": "quotes",
 	"qen": "quotes:'\\201C' '\\201D' '\\2018' '\\2019'",
 	"qru": "quotes:'\\00AB' '\\00BB' '\\201E' '\\201C'",
@@ -5815,7 +5840,7 @@ function getExpandOptions(syntax, filter) {
         type,
         options: combinedOptions,
         variables: {},
-        snippets: snippets,
+        snippets,
         syntax,
         // context: null,
         text: undefined,

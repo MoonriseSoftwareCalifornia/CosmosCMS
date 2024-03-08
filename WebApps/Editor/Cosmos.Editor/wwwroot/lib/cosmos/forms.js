@@ -7,7 +7,6 @@
 async function ccms___PostForm(endpoint, formName) {
     const form = document.forms[formName];
     const token = document.head.querySelector("meta[name='cwps-meta-af-value']").content;
-
     const response = await fetch(endpoint, {
         method: "POST",
         headers: {
