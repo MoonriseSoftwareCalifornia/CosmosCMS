@@ -154,7 +154,7 @@
 </form>
 
 <!-- Modal -->
-<div class="modal fade" id="updConfModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="updConfModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content text-bg-dark mt-5">
             <div class="modal-header">
@@ -170,7 +170,21 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="updateAll()">Confirm</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-bs-target='#runningModal' onclick="updateAll()">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="runningModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content text-bg-dark mt-5">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Applying Update</h5>
+            </div>
+            <div class="modal-body">
+                <h5>Working...</h5>
+                <p>The template update is being applied. This may take several minutes. Please wait until finished before closing this window.</p>
             </div>
         </div>
     </div>
@@ -199,6 +213,12 @@
     }
 
     function updateAll() {
+        const myModalEl = document.getElementById('updConfModal');
+        const modal = bootstrap.Modal.getInstance(myModalEl);
+        modal.hide();
+        const runningModal = document.getElementById('runningModal');
+        const rmodal = bootstrap.Modal.getInstance(runningModal);
+        rmodal.show();
         window.location.href = "@Url.Action("UpdateAll", "Templates", new { id = template.Id })";
     }
 

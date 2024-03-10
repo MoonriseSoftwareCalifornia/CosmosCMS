@@ -111,7 +111,7 @@ namespace Cosmos.Common.Data.Logic
             }
             else
             {
-                prefix = "/" + (System.Web.HttpUtility.UrlDecode(prefix.ToLower().Replace("%20", "_").Replace(" ", "_")) + "/").Trim('/');
+                prefix = (System.Web.HttpUtility.UrlDecode(prefix.ToLower().Replace("%20", "_").Replace(" ", "_")) + "/").Trim('/');
             }
 
             var skip = pageNo * pageSize;
@@ -145,7 +145,8 @@ namespace Cosmos.Common.Data.Logic
                 query = from t in DbContext.Pages
                         where t.Published <= DateTimeOffset.UtcNow &&
                         t.StatusCode != (int)StatusCodeEnum.Redirect
-                        && t.UrlPath.StartsWith(epath)
+                        && t.UrlPath != prefix
+                        && t.UrlPath.StartsWith(prefix)
                         && Regex.IsMatch(t.UrlPath, pattern)
                         select new TableOfContentsItem
                         {
