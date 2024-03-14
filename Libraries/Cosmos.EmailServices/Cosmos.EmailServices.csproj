@@ -7,9 +7,9 @@
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<Company>Moonrise Software LLC</Company>
-		<Version>8.0.4.10</Version>
-		<AssemblyVersion>8.0.4.10</AssemblyVersion>
-		<FileVersion>8.0.4.10</FileVersion>
+		<Version>8.0.4.11</Version>
+		<AssemblyVersion>8.0.4.11</AssemblyVersion>
+		<FileVersion>8.0.4.11</FileVersion>
 		<PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
 		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
 		<RepositoryUrl>https://github.com/MoonriseSoftwareCalifornia/AspNetCore.Identity.Services.EmailProviders</RepositoryUrl>
@@ -47,7 +47,7 @@
 
 		<PackageReference Include="HtmlAgilityPack" Version="1.11.59" />
 
-		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.2" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.3" />
 
 		<PackageReference Include="SendGrid" Version="9.29.2" />
 
