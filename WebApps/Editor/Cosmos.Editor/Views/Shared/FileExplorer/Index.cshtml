@@ -8,7 +8,6 @@
     var directoryOnly = (bool)ViewData["DirectoryOnly"];
     var editorExtensions = new string[] { ".js", ".css", ".html", ".htm", ".json", ".xml" };
     var imageEditorExtensions = new string[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
-    var container = (string)ViewData["Container"];
     var topDirectory = (string)ViewData["TopDirectory"];
     var rowCount = (int)ViewData["RowCount"];
     var sortOrder = (string)ViewData["sortOrder"];
@@ -25,9 +24,9 @@
 
     var target = Context.Request.Query["target"];
 
-    var baseUrl = @Url.Action(action, controller) + "?container=" + container + "&selectOne=" + selectOne + "&imagesOnly=" + imagesOnly + "&pageSize=" + pageSize + "&";
-    var showImageThumbUrl = @Url.Action(action, controller) + "?container=" + container + "&target=" + target + "&selectOne=" + selectOne + "&imagesOnly=true&pageSize=" + pageSize + "&";
-    var showFileListUrl = @Url.Action(action, controller) + "?container=" + container + "&target=" + target + "&selectOne=" + selectOne + "&imagesOnly=false&pageSize=" + pageSize + "&";
+    var baseUrl = @Url.Action(action, controller) + "?selectOne=" + selectOne + "&imagesOnly=" + imagesOnly + "&pageSize=" + pageSize + "&";
+    var showImageThumbUrl = @Url.Action(action, controller) + "?target=" + target + "&selectOne=" + selectOne + "&imagesOnly=true&pageSize=" + pageSize + "&";
+    var showFileListUrl = @Url.Action(action, controller) + "?target=" + target + "&selectOne=" + selectOne + "&imagesOnly=false&pageSize=" + pageSize + "&";
 
     if (directoryOnly)
     {
@@ -47,8 +46,6 @@
     var pathPrefix = (string)ViewData["PathPrefix"];
     var pathNames = (string)(string)ViewData["PathNames"];
     var pathParts = new List<string>();
-
-    //var containerCss = "container mt-5 pt-2";
 
     if (!string.IsNullOrEmpty(pathPrefix) && pathPrefix != "/")
     {
@@ -146,7 +143,6 @@
                                 <form id="frmNewFolder" class="d-flex" asp-action="NewFolder" method="post">
                                     <input type="hidden" name="ParentFolder" id="ParentFolder" value="@pathPrefix" />
                                     <input type="hidden" name="DirectoryOnly" id="DirectoryOnly" value="@directoryOnly" />
-                                    <input type="hidden" name="Container" id="DirectoryOnly" value="@container" />
                                     <input class="form-control form-control-sm me-2 text-dark" name="FolderName" id="FolderName" type="text" placeholder="New folder name" aria-label="New folder name" minlength="2" required />
                                     <button class="btn btn-sm btn-primary" type="submit">Create</button>
                                 </form>
@@ -176,7 +172,6 @@
                        id="filepond"
                        name="files"
                        data-file-metadata-path="@pathPrefix"
-                       data-file-metadata-container="@container"
                        multiple>
             </div>
         </div>
@@ -361,12 +356,12 @@
                                     </td>
                                     <td style="width:60px;">
                                         <div class='btn-group' role='group'>
-                                            @if (row.IsDirectory == false && container == "$web")
+                                            @if (row.IsDirectory == false)
                                             {
                                                 <button class="btn btn-sm btn-secondary ccms-clip-board" title="Copy URL to clipbard" data-clipboard-text="@options.Value.SiteSettings.BlobPublicUrl.TrimEnd('/')/@row.Path"><i class="fa-regular fa-clipboard"></i></button>
                                                 @if (editorExtensions.Contains(row.Extension))
                                                 {
-                                                    <a class='btn btn-sm btn-secondary' title='Monaco/VS Code editor' href='/FileManager/EditCode?path=@row.Path&container=@container'><img src="/images/monaco-vscode-logo.png" height="22" /></a>
+                                                    <a class='btn btn-sm btn-secondary' title='Monaco/VS Code editor' href='/FileManager/EditCode?path=@row.Path'><img src="/images/monaco-vscode-logo.png" height="22" /></a>
                                                 }
                                                 @if (imageEditorExtensions.Contains(row.Extension))
                                                 {
@@ -595,7 +590,7 @@
 
 
     FilePond.setOptions({
-        server: "@Url.Action("Process", controller)?container=@container"
+        server: "@Url.Action("Process", controller)"
     });
 
     pond.on('addfile', (error, file) => {
@@ -606,8 +601,7 @@
 
         replaceCssClass($("#btnProgress"), "btn-success", "btn-primary");
 
-        var relativePath = file.relativePath;
-        file.setMetadata("relativePath", relativePath);
+        file.setMetadata("relativePath", file.relativePath);
         file.setMetadata("fileName", file.filename);
         // Add up the total count of files to be uploaded
         totalFileCount++;
@@ -645,7 +639,7 @@
     // Event handlers
     document.addEventListener('FilePond:processfiles', (e) => {
         filePondMessage("");
-        window.location.href = "@Url.Action(action, controller)?target=@pathPrefix&container=@container";
+        window.location.href = "@Url.Action(action, controller)?target=@pathPrefix";
     });
 
     function savePath(path) {
@@ -985,7 +979,7 @@
                 }
                 next = function () {
                     showModal("busy", busyMsg);
-                    $.post('@Url.Action("Delete", controller)?container=@container',   // url
+                    $.post('@Url.Action("Delete", controller)',   // url
                         {
                             ParentPath: '@pathPrefix',
                             Paths: paths
@@ -1068,7 +1062,7 @@
                 next = function () {
                     setMode("");
                     showModal("busy", "Moving item(s)");
-                    $.post(urlPath + '?container=@container',
+                    $.post(urlPath,
                         {
                             Destination: dest,
                             Items: items
@@ -1114,7 +1108,7 @@
     }
 
     function download(p) {
-        window.location.href = encodeURI("@Url.Action("Download", controller)?path=" + p + "&container=@container");
+        window.location.href = encodeURI("@Url.Action("Download", controller)?path=" + p);
     }
 
 

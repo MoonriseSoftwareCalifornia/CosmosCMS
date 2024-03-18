@@ -75,6 +75,8 @@ namespace Cosmos.Cms.Controllers
             this.options = options;
             this.logger = logger;
             _storageContext = storageContext;
+            _storageContext.SetContainerName("$web");
+
             this.hostEnvironment = hostEnvironment;
             this.userManager = userManager;
             this.articleLogic = articleLogic;
@@ -103,16 +105,13 @@ namespace Cosmos.Cms.Controllers
         /// <param name="pageNo">Page number to get.</param>
         /// <param name="pageSize">Size of each page.</param>
         /// <param name="directoryOnly">Only return directories.</param>
-        /// <param name="container">Container to search within.</param>
         /// <param name="selectOne">Select one item triggered in UI.</param>
         /// <param name="imagesOnly">Show only images.</param>
         /// <param name="isNewSession">s a new session.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [HttpGet]
-        public async Task<IActionResult> Index(string target, string sortOrder = "asc", string currentSort = "Name", int pageNo = 0, int pageSize = 10, bool directoryOnly = false, string container = "$web", bool selectOne = false, bool imagesOnly = false, bool isNewSession = false)
+        public async Task<IActionResult> Index(string target, string sortOrder = "asc", string currentSort = "Name", int pageNo = 0, int pageSize = 10, bool directoryOnly = false, bool selectOne = false, bool imagesOnly = false, bool isNewSession = false)
         {
-            _storageContext.SetContainerName(container);
-
             _storageContext.CreateFolder("/pub");
 
             if (string.IsNullOrEmpty(target) || target == "/")
@@ -138,7 +137,6 @@ namespace Cosmos.Cms.Controllers
 
             ViewData["ArticleTitle"] = articleTitle;
             ViewData["DirectoryOnly"] = directoryOnly;
-            ViewData["Container"] = container;
             ViewData["Title"] = "Website File Manager";
             ViewData["StorageName"] = "Public File Storage";
             ViewData["TopDirectory"] = "/pub";
@@ -272,12 +270,10 @@ namespace Cosmos.Cms.Controllers
         /// Moves items to a new folder.
         /// </summary>
         /// <param name="model"></param>
-        /// <param name="container"></param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [HttpPost]
-        public async Task<IActionResult> Copy(MoveFilesViewModel model, string container = "$web")
+        public async Task<IActionResult> Copy(MoveFilesViewModel model)
         {
-            _storageContext.SetContainerName(container);
             _storageContext.CreateFolder("/pub");
 
             try
@@ -312,13 +308,11 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Moves items to a new folder.
         /// </summary>
-        /// <param name="model"></param>
-        /// <param name="container"></param>
+        /// <param name="model">Move file post model.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [HttpPost]
-        public async Task<IActionResult> Move(MoveFilesViewModel model, string container = "$web")
+        public async Task<IActionResult> Move(MoveFilesViewModel model)
         {
-            _storageContext.SetContainerName(container);
             _storageContext.CreateFolder("/pub");
 
             try
@@ -357,10 +351,9 @@ namespace Cosmos.Cms.Controllers
         /// Gets a unique GUID for FilePond.
         /// </summary>
         /// <param name="files">Files being uploaded.</param>
-        /// <param name="container">Container to use.</param>
         /// <returns>Returns an IActionResult.</returns>
         [HttpPost]
-        public ActionResult Process([FromForm] string files, [FromQuery] string container = "$web")
+        public ActionResult Process([FromForm] string files)
         {
             var parsed = JsonConvert.DeserializeObject<FilePondMetadata>(files);
 
@@ -376,10 +369,9 @@ namespace Cosmos.Cms.Controllers
         /// </summary>
         /// <param name="patch">Patch number</param>
         /// <param name="options">Upload options.</param>
-        /// <param name="container">Upload container name.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [HttpPatch]
-        public async Task<ActionResult> Process(string patch, string options = "", string container = "$web")
+        public async Task<ActionResult> Process(string patch, string options = "")
         {
             try
             {
@@ -389,7 +381,7 @@ namespace Cosmos.Cms.Controllers
                 var uploadOffset = long.Parse(Request.Headers["Upload-Offset"]);
 
                 // File name being uploaded
-                var UploadName = ((string)Request.Headers["Upload-Name"]);
+                var uploadName = (string)Request.Headers["Upload-Name"];
 
                 // Total size of the file in bytes
                 var uploadLenth = long.Parse(Request.Headers["Upload-Length"]);
@@ -406,7 +398,7 @@ namespace Cosmos.Cms.Controllers
 
                 var totalChunks = DivideByAndRoundUp(uploadLenth, contentSize);
 
-                var blobName = UrlEncode(UploadName);
+                var blobName = UrlEncode(uploadName);
 
                 var relativePath = UrlEncode(patchArray[0].TrimEnd('/'));
 
@@ -451,21 +443,8 @@ namespace Cosmos.Cms.Controllers
 
                 using var memoryStream = new MemoryStream();
                 await Request.Body.CopyToAsync(memoryStream);
-
-                _storageContext.SetContainerName(container);
                 _storageContext.AppendBlob(memoryStream, metaData);
 
-                // if (container == "$web")
-                // {
-                //    // Azure blob storage
-                //    _storageContext.SetContainerName(container);
-                //    _storageContext.AppendBlob(memoryStream, metaData);
-                // }
-                // else
-                // {
-                //    // Upload to local file storage
-                //    await AppendToFile(memoryStream, metaData);
-                // }
             }
             catch (Exception e)
             {
@@ -917,13 +896,11 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// New folder action.
         /// </summary>
-        /// <param name="model"></param>
+        /// <param name="model">New folder model.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> NewFolder(NewFolderViewModel model)
         {
-            _storageContext.SetContainerName(model.Container);
-
             var relativePath = string.Join('/', ParsePath(model.ParentFolder, model.FolderName));
             relativePath = UrlEncode(relativePath);
 
@@ -935,23 +912,16 @@ namespace Cosmos.Cms.Controllers
                 var fileManagerEntry = _storageContext.CreateFolder(relativePath);
             }
 
-            if (model.Container.Equals("$web"))
-            {
-                return RedirectToAction("Index", new { target = model.ParentFolder, directoryOnly = model.DirectoryOnly });
-            }
-
-            return RedirectToAction("Index", new { target = model.ParentFolder, directoryOnly = model.DirectoryOnly, container = model.Container });
+            return RedirectToAction("Index", new { target = model.ParentFolder, directoryOnly = model.DirectoryOnly });
         }
 
         /// <summary>
         /// Download a file.
         /// </summary>
         /// <param name="path">Path to the file to retrieve.</param>
-        /// <param name="container">Blob container where the file is stored.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task<IActionResult> Download(string path, string container = "$web")
+        public async Task<IActionResult> Download(string path)
         {
-            _storageContext.SetContainerName(container);
             var blob = await _storageContext.GetFileAsync(path);
 
             if (!blob.IsDirectory)
@@ -968,13 +938,11 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         ///     Creates a new entry, using relative path-ing, and normalizes entry name to lower case.
         /// </summary>
-        /// <param name="target"></param>
-        /// <param name="entry"></param>
-        /// <param name="container"></param>
-        /// <returns><see cref="JsonResult" />(<see cref="BlobService.FileManagerEntry" />).</returns>
-        public async Task<ActionResult> Create(string target, BlobService.FileManagerEntry entry, string container = "$web")
+        /// <param name="target">File or folder target.</param>
+        /// <param name="entry">File manager entry model.</param>
+        /// <returns><see cref="JsonResult" />(<see cref="FileManagerEntry" />).</returns>
+        public async Task<ActionResult> Create(string target, FileManagerEntry entry)
         {
-            _storageContext.SetContainerName(container);
             target = target == null ? string.Empty : target;
             entry.Path = target;
             entry.Name = UrlEncode(entry.Name);
@@ -1021,12 +989,10 @@ namespace Cosmos.Cms.Controllers
         ///     Deletes a folder, normalizes entry to lower case.
         /// </summary>
         /// <param name="model">Item to delete using relative path.</param>
-        /// <param name="container"></param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [HttpPost]
-        public async Task<ActionResult> Delete(DeleteBlobItemsViewModel model, string container = "$web")
+        public async Task<ActionResult> Delete(DeleteBlobItemsViewModel model)
         {
-            _storageContext.SetContainerName(container);
             foreach (var item in model.Paths)
             {
                 if (item.EndsWith('/'))
@@ -1046,13 +1012,11 @@ namespace Cosmos.Cms.Controllers
         /// Rename a blob item.
         /// </summary>
         /// <param name="model">Post view model.</param>
-        /// <param name="container">Container name.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Rename(RenameBlobViewModel model, string container = "$web")
+        public async Task<IActionResult> Rename(RenameBlobViewModel model)
         {
-            _storageContext.SetContainerName(container);
             if (!string.IsNullOrEmpty(model.ToBlobName))
             {
                 // Note rules:
@@ -1425,9 +1389,9 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Gets a thumbnail for the specified image.
         /// </summary>
-        /// <param name="target"></param>
-        /// <param name="width"></param>
-        /// <param name="height"></param>
+        /// <param name="target">Path to file.</param>
+        /// <param name="width">Width in pixels.</param>
+        /// <param name="height">Height in pixels.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         // [ResponseCache(NoStore = true)]
         public async Task<IActionResult> GetImageThumbnail(string target, int width = 120, int height = 120)
@@ -1441,9 +1405,8 @@ namespace Cosmos.Cms.Controllers
                 throw new NotSupportedException($"Image type {extension} not supported.");
             }
 
-            _storageContext.SetContainerName("$web");
             using var stream = await _storageContext.OpenBlobReadStreamAsync(target);
-            var image = await SixLabors.ImageSharp.Image.LoadAsync(stream);
+            var image = await Image.LoadAsync(stream);
             var newImage = image.Clone(i => i.Resize(new ResizeOptions() { Mode = ResizeMode.Crop, Position = AnchorPositionMode.Center, Size = new Size(width, height) }));
 
             using var outStream = new MemoryStream();
@@ -1454,50 +1417,18 @@ namespace Cosmos.Cms.Controllers
 
         #endregion
 
-        #region UPLOADER FUNCTIONS
-
-        ///// <summary>
-        /////     Removes a file
-        ///// </summary>
-        ///// <param name="fileNames"></param>
-        ///// <param name="path"></param>
-        ///// <returns></returns>
-        // public ActionResult Remove(string[] fileNames, string path)
-        // {
-        //    // Return an empty string to signify success
-        //    return Content("");
-        // }
-
-        ///// <summary>
-        /////     Used to directories, with files processed one chunk at a time, and normalizes the blob name to lower case.
-        ///// </summary>
-        ///// <param name="folders"></param>
-        ///// <param name="metaData"></param>
-        ///// <param name="path"></param>
-        ///// <returns></returns>
-        // [HttpPost]
-        // [RequestSizeLimit(
-        //    6291456)] // AWS S3 multi part upload requires 5 MB parts--no more, no less so pad the upload size by a MB just in case
-        // public async Task<ActionResult> UploadDirectory(IEnumerable<IFormFile> folders,
-        //    string metaData, string path)
-        // {
-        //    return await Upload(folders, metaData, path);
-        // }
-
         /// <summary>
         ///     Used to upload files, one chunk at a time, and normalizes the blob name to lower case.
         /// </summary>
-        /// <param name="files"></param>
-        /// <param name="metaData"></param>
-        /// <param name="path"></param>
+        /// <param name="files">Files being uploaded.</param>
+        /// <param name="metaData">File metadata.</param>
+        /// <param name="path">Path to where file should be uploaded.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [HttpPost]
         [RequestSizeLimit(
             6291456)] // AWS S3 multi part upload requires 5 MB parts--no more, no less so pad the upload size by a MB just in case
-        public async Task<ActionResult> Upload(IEnumerable<IFormFile> files,
-            string metaData, string path)
+        public async Task<ActionResult> Upload(IEnumerable<IFormFile> files, string metaData, string path = "")
         {
-            _storageContext.SetContainerName("$web");
             try
             {
                 if (files == null || files.Any() == false)
@@ -1579,8 +1510,6 @@ namespace Cosmos.Cms.Controllers
                 throw ex;
             }
         }
-
-        #endregion
     }
 
     /// <summary>

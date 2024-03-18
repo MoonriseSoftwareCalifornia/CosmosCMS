@@ -26,10 +26,5 @@ namespace Cosmos.Cms.Models
         /// Gets or sets a value indicating whether directory only mode for file browser.
         /// </summary>
         public bool DirectoryOnly { get; set; }
-
-        /// <summary>
-        /// Gets or sets directory only mode for file browser.
-        /// </summary>
-        public string Container { get; set; } = "$web";
     }
 }
