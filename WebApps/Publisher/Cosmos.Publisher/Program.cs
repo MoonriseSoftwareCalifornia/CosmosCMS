@@ -230,6 +230,7 @@ internal class Program
         // BEGIN
         // https://seankilleen.com/2020/06/solved-net-core-azure-ad-in-docker-container-incorrectly-uses-an-non-https-redirect-uri/
         app.UseForwardedHeaders();
+
         // END
 
         // Middle-ware proper order:
