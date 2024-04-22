@@ -192,16 +192,11 @@ namespace Cosmos.Cms.Data.Logic
             {
                 defaultTemplate = "<div class=\"container m-y-lg\">" +
                                   "<main class=\"main-primary\">" +
-                                  "<div class=\"row\">" +
-                                  "<div class=\"col-md-12\"><h1>Why Lorem Ipsum</h1><p>" +
-                                  LoremIpsum.WhyLoremIpsum + "</p></div>" +
-                                  "</div>" +
-                                  "<div class=\"row\">" +
-                                  "<div class=\"col-md-6\"><h2>Column 1</h2><p>" + LoremIpsum.SubSection1 +
-                                  "</p></div>" +
-                                  "<div class=\"col-md-6\"><h2>Column 2</h2><p>" + LoremIpsum.SubSection2 +
-                                  "</p></div>" +
-                                  "</div>" +
+                                      "<div class=\"row\">" +
+                                          "<div contenteditable='true' class=\"col-md-12\"><h1>Why Lorem Ipsum</h1><p>" +
+                                          LoremIpsum.WhyLoremIpsum + "</p></div>" +
+                                          "</div>" +
+                                      "</div>" +
                                   "</main>" +
                                   "</div>";
             }
