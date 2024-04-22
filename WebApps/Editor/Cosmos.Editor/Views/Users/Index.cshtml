@@ -65,6 +65,9 @@
                                     Email Address
                                 </th>
                                 <th scope="col">
+                                    Email Status
+                                </th>
+                                <th scope="col">
                                     Role membership
                                 </th>
                                 <th scope="col">
@@ -101,10 +104,23 @@
                                     </td>
                                     <td>
                                         <span class="text-light">@row.EmailAddress</span>
-                                        @if (row.EmailConfirmed)
-                                        {
-                                            <small class="d-block"><span class="badge badge-primary"> (confirmed) </span></small>
-                                        }
+                                    </td>
+                                    <td>
+                                        <div class="form-check form-switch">
+                                            @if (row.EmailConfirmed)
+                                            {
+                                                <input class="form-check-input btnConfirmEmail" title="Click to change status" data-ccms-userid='@row.UserId' type="checkbox" role="switch" id='@("switch" + row.UserId)' checked="checked">
+                                                <label class="form-check-label" for='"switch" + @row.UserId'>Email confirmed</label>
+                                            }
+                                            else
+                                            {
+                                                <input class="form-check-input btnConfirmEmail" title="Click to change status" data-ccms-userid='@row.UserId' type="checkbox" role="switch" id='@("switch" + row.UserId)'>
+                                                <label class="form-check-label" for='@("switch" + row.UserId)'><i class="fas fa-exclamation-triangle text-warning"></i> Email unconfirmed</label>
+                                            }
+                                            <div id='@("spin" + row.UserId)' class="spinner-border text-light" role="status" style="display:none;height:16px;width:16px;">
+                                                <span class="sr-only">Saving...</span>
+                                            </div>
+                                        </div>
                                     </td>
                                     <td>
                                         <span>@(string.Join(", ", row.RoleMembership))</span>
@@ -348,6 +364,34 @@
                 resetButtons();
 
             });
+        });
+
+        $(".btnConfirmEmail").on("click", function () {
+            let userId = $(this).attr("data-ccms-userid");
+            $("#spin" + userId).show();
+            if ($(this).is(":checked")) {
+                $.post(
+                    "@Url.Action("ConfirmEmail")/" + userId,
+                    function (data) {
+                        if (data === true) {
+                            document.location.reload();
+                        } else {
+                            alert("Error: " + data.Error);
+                        }
+                    }
+                );
+            } else {
+                $.post(
+                    "@Url.Action("UnconfirmEmail")/" + userId,
+                    function (data) {
+                        if (data === true) {
+                            document.location.reload();
+                        } else {
+                            alert("Error: " + data.Error);
+                        }
+                    }
+                );
+            }
         });
 
     });

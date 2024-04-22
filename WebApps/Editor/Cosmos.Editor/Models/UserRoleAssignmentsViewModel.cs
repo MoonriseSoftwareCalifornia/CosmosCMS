@@ -7,6 +7,7 @@
 
 namespace Cosmos.Cms.Models
 {
+    using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
 
     /// <summary>
@@ -14,6 +15,14 @@ namespace Cosmos.Cms.Models
     /// </summary>
     public class UserRoleAssignmentsViewModel
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UserRoleAssignmentsViewModel"/> class.
+        /// </summary>
+        public UserRoleAssignmentsViewModel()
+        {
+            this.RoleIds = new List<string>();
+        }
+
         /// <summary>
         /// Gets or sets user Id.
         /// </summary>
@@ -30,6 +39,6 @@ namespace Cosmos.Cms.Models
         /// Gets or sets role assignments for this user.
         /// </summary>
         [Display(Name = "Role Assignments")]
-        public string[] RoleIds { get; set; }
+        public List<string> RoleIds { get; set; }
     }
 }

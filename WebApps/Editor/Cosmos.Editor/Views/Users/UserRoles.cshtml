@@ -31,7 +31,7 @@
                         {
                             <div class="form-check">
 
-                                @if (Model.RoleIds != null && Model.RoleIds.Length > 0 && Model.RoleIds.Contains(role.Id))
+                                @if (Model.RoleIds != null && Model.RoleIds.Count > 0 && Model.RoleIds.Contains(role.Id))
                                 {
                                     <input class="form-check-input" type="checkbox" name="RoleIds" value="@role.Id" checked>
                                 }

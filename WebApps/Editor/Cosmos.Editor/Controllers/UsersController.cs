@@ -255,6 +255,68 @@ namespace Cosmos.Cms.Controllers
         }
 
         /// <summary>
+        /// Confirms a user's email address.
+        /// </summary>
+        /// <param name="id">User ID.</param>
+        /// <returns>Returns success for failure.</returns>
+        public async Task<IActionResult> ConfirmEmail(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                return NotFound();
+            }
+
+            var user = await userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            user.EmailConfirmed = true;
+            var result = await userManager.UpdateAsync(user);
+
+            if (result.Succeeded)
+            {
+                return Ok(true);
+            }
+            else
+            {
+                return BadRequest("Could not confirm email.");
+            }
+        }
+
+        /// <summary>
+        /// Unconfirms a user's email address.
+        /// </summary>
+        /// <param name="id">User ID.</param>
+        /// <returns>Success or failure.</returns>
+        public async Task<IActionResult> UnconfirmEmail(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                return NotFound();
+            }
+
+            var user = await userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            user.EmailConfirmed = false;
+            var result = await userManager.UpdateAsync(user);
+
+            if (result.Succeeded)
+            {
+                return Ok(true);
+            }
+            else
+            {
+                return BadRequest("Could not confirm email.");
+            }
+        }
+
+        /// <summary>
         /// Create a user.
         /// </summary>
         /// <returns>Returns a new View with a new <see cref="UserCreateViewModel"/>.</returns>
@@ -266,7 +328,7 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Create a user.
         /// </summary>
-        /// <param name="model"></param>
+        /// <param name="model">Create user view model.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -492,7 +554,7 @@ namespace Cosmos.Cms.Controllers
             {
                 Id = user.Id,
                 Email = user.Email,
-                RoleIds = roles.Select(s => s.Id).ToArray()
+                RoleIds = roles.Select(s => s.Id).ToList()
             };
         }
 
@@ -542,7 +604,7 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Resends a user's email confirmation.
         /// </summary>
-        /// <param name="Id"></param>
+        /// <param name="Id">User ID value.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [HttpPost]
         public async Task<IActionResult> ResendEmailConfirmation(string Id)
@@ -679,6 +741,7 @@ namespace Cosmos.Cms.Controllers
 
             var roles = new List<IdentityRole>();
 
+            
             foreach (var roleId in model.RoleIds)
             {
                 roles.Add(await roleManager.FindByIdAsync(roleId));
