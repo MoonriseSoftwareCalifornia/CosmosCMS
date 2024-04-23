@@ -27,9 +27,31 @@
                     <div asp-validation-summary="ModelOnly" class="text-light"></div>
 
                     <div class="input-group mb-3">
-                        <span class="input-group-text">Page URL: /</span>
-                        <input class="form-control" autocomplete="off" asp-for="Title" />
+                        <span class="input-group-text">Page Title: /</span>
+                        <input class="form-control" autocomplete="off" asp-for="Title" placeholder="Page title goes here." />
                         <input type="submit" value="Create" class="btn btn-primary" />
+                    </div>
+                    <p class="d-inline-flex gap-1">
+                        <a class="badge rounded-pill text-bg-primary" data-bs-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">
+                            Click to see important info about choosing page titles.
+                        </a>
+                    </p>
+                    <div class="collapse" id="collapseExample">
+                        <div class="card card-body text-dark">
+                            <h5>Choosing a Page Title</h5>
+                            <hr />
+                            <p>Page titles are automatically translated into page URLs.  Here are a few examples of how that works:</p>
+                            <ul>
+                                <li>A page title might be '<b>My Recipies</b>'<br />This is given a URL like this: '<b>https://www.mywebsite.com/my_recipies</b>'</li>
+                                <li>Titles can reflect a page heirarchy like this:<br />Page title: '<b>My Recipie/Chocolate Cake</b>'<br />Will have the URL: '<b>https://www.mywebsite.com/my_recipies/chocolate_cake</b>'</li>
+                            </ul>
+                            <p>Please follow these tips to make sure your page titles translate into URLs:</p>
+                            <ul>
+                                <li>Spaces are replaced with underscores '_'</li>
+                                <li>Special characters are removed</li>
+                                <li>Only use letters, numbers, and underscores</li>
+                            </ul>
+                        </div>
                     </div>
                     <span asp-validation-for="Title"></span>
 
@@ -127,12 +149,11 @@
     </div>
 </div>
 
-
 <div class="modal mt-5" id="modalAlert" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content bg-secondary text-light">
             <div class="modal-header">
-                <h5 class="modal-title">Page URL</h5>
+                <h5 class="modal-title">Page Title/URL</h5>
             </div>
             <div class="modal-body">
                 <div id="divSaveFirstDialog"></div>
@@ -164,7 +185,7 @@
     });
 
     function validateTitle(title) {
-        if (title.indexOf("{New Page Name}") > -1) {
+        if (title === null || typeof(title) === "undefined" || title === "") {
             $("#divSaveFirstDialog").html("Please replace {New Page Name} with the name of your page.");
             modalAlert.show();
             return false;

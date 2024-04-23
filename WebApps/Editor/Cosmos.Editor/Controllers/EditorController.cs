@@ -663,7 +663,7 @@ namespace Cosmos.Cms.Controllers
             return View(new CreatePageViewModel()
             {
                 Id = Guid.NewGuid(),
-                Title = title
+                Title = title == "{New Page Name}" ? string.Empty : title
             });
         }
 
