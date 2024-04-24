@@ -100,18 +100,23 @@ namespace Cosmos.Cms.Controllers
         /// File manager index page.
         /// </summary>
         /// <param name="target">Path to folder.</param>
+        /// <param name="selectOne">Select one item triggered in UI.</param>
         /// <param name="sortOrder">Sort order.</param>
         /// <param name="currentSort">Current or selected sort.</param>
         /// <param name="pageNo">Page number to get.</param>
         /// <param name="pageSize">Size of each page.</param>
         /// <param name="directoryOnly">Only return directories.</param>
-        /// <param name="selectOne">Select one item triggered in UI.</param>
         /// <param name="imagesOnly">Show only images.</param>
         /// <param name="isNewSession">s a new session.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [HttpGet]
-        public async Task<IActionResult> Index(string target, string sortOrder = "asc", string currentSort = "Name", int pageNo = 0, int pageSize = 10, bool directoryOnly = false, bool selectOne = false, bool imagesOnly = false, bool isNewSession = false)
+        public async Task<IActionResult> Index(string target, bool? selectOne, string sortOrder = "asc", string currentSort = "Name", int pageNo = 0, int pageSize = 10, bool directoryOnly = false, bool imagesOnly = false, bool isNewSession = false)
         {
+            if (selectOne == null)
+            {
+                selectOne = true;
+            }
+
             _storageContext.CreateFolder("/pub");
 
             if (string.IsNullOrEmpty(target) || target == "/")

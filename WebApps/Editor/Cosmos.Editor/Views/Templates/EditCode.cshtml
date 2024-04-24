@@ -7,10 +7,6 @@
     var aclass = "active";
 }
 
-<style>
- 
-</style>
-
 <nav class="code-tabs navbar">
     <ul class="nav nav-tabs " id="nav-tab">
         @{
@@ -37,6 +33,14 @@
     var editor;
     var fieldId;
     var ccmsEditorIsLocked = false;
+
+    // Current user
+    const ccms_editor_userid = "@this.Context.User.Identity.Name";
+    const isAuthor = @User.IsInRole("Authors").ToString().ToLower();
+    const isReviewer = @User.IsInRole("Reviewers").ToString().ToLower();
+    const hasModel = @((Model != null).ToString().ToLower());
+    // This needs global scope, so using var
+    var hasPermissionsSet = false;
 
     $("#frmSave").submit(function (e) {
         e.preventDefault();
@@ -223,6 +227,7 @@
         $('#tbPublished').prop("disabled", "true");
 
         $("#btnSaveAsDraft").hide();
+        $("#btnOpenInsertImage").hide();
         $("#liInsert").show();
         $("#divTitleGroup").show();
         $("#divTitle").html("@Model.Title");
@@ -235,7 +240,43 @@
             $(event.target).addClass("active");
         });
 
+        $("#btnOpenLink").click(function (e) {
+            if (openPickPageModal) {
+                openPickPageModal();
+            }
+            else {
+                alert("Could not find openPickPageModal().");
+            }
+        });
+
+        $("#btnOpenInsertFileLink").click(function (e) {
+            if (openInsertFileLinkModel) {
+                openInsertFileLinkModel();
+            }
+            else {
+                alert("Could not find openInsertFileLinkModel().");
+            }
+        });
+
+        $("#btnOpenInsertImage").click(function (e) {
+            if (openInsertImageModel) {
+                openInsertImageModel();
+            }
+            else {
+                alert("Could not find openInsertImageModel().");
+            }
+        });
+
+        if (hasModel && isReviewer === false && isAuthor === false && requiresAuthentication) {
+            $(".perm").show();
+        }
     });
+
+    function closeEditor() {
+        window.location.href = "@Url.Action("Index", "Templates", new {Model.Id})";
+    }
+
+    var timeout;
 
     $(window).bind('keydown', function (event) {
         if (event.ctrlKey || event.metaKey) {
@@ -247,12 +288,6 @@
             }
         }
     });
-
-    function closeEditor() {
-        window.location.href = "@Url.Action("Index", "Templates", new {Model.Id})";
-    }
-
-    var timeout;
 
     $(window).bind('keyup', function (event) {
        // Clear the timeout if it has already been set.
@@ -267,6 +302,91 @@
             }
         }, 1500);
     });
+
+    $(document).on("unload", function () {
+        // Close filemanager window if opened
+        if (typeof fileMgrPopup !== "undefined" && fileMgrPopup !== null && fileMgrPopup.location) {
+            fileMgrPopup.close();
+        }
+    });
+
+    function openPickPageModal() {
+
+        if (typeof editor === "undefined" || editor === null) {
+            alert("Error: Could not open code editor.");
+            return;
+        }
+
+        $("#combobox").val("");
+        const inputLinkText = $("#inputLinkText").val("");
+        const switchNewWindow = $("#switchNewWindow").prop('checked', false);
+        const inputLinkCss = $("#inputLinkCss").val("");
+        const inputLinkStyle = $("#inputLinkStyle").val("");
+
+        pickPageModal.show();
+    }
+
+    function openInsertFileLinkModel() {
+
+        if (typeof editor === "undefined" || editor === null) {
+            alert("Error: Could not open code editor.");
+            return;
+        }
+
+        openSelectFileModal("file");
+    }
+
+    function openInsertImageModel() {
+
+        if (typeof editor === "undefined" || editor === null) {
+            alert("Error: Could not open code editor.");
+            return;
+        }
+
+        openSelectFileModal("image");
+    }
+
+    function insertPageLink() {
+
+        const inputLinkText = $("#inputLinkText").val();
+        const switchNewWindow = $("#switchNewWindow").prop('checked');
+        const inputLinkCss = $("#inputLinkCss").val();
+        const inputLinkStyle = $("#inputLinkStyle").val();
+
+        if (typeof (inputLinkText) === "undefined" || inputLinkText === null || inputLinkText === "") {
+            $("#inputLinkTextError").show();
+            return false;
+        }
+
+        pickPageModal.hide();
+
+        const link = "<a href='/" + selectedAnchorData.url + "'>" + inputLinkText + "</a>";
+
+        // insert text here
+        editor.trigger('keyboard', 'type', { text: link });
+    }
+
+    function insertFileLink(path) {
+
+        clearFileMgrPaths();
+
+        const url = fileBaseUrl + "/" + path;
+
+        // insert text here
+        editor.trigger('keyboard', 'type', { text: url });
+    }
+
+    function insertImage(path) {
+
+        clearFileMgrPaths();
+
+        const url = fileBaseUrl + "/" + path;
+
+        const image = "<img src='" + url + "' />";
+
+        // insert text here
+        editor.trigger('keyboard', 'type', { text: image });
+    }
 
 </script>
 

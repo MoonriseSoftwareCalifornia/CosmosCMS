@@ -323,8 +323,8 @@
     <div class="modal" id="modalSelectFile" tabindex="-1">
         <div class="modal-dialog modal-xl">
             <div class="modal-content bg-dark text-white">
-                <div class="modal-body" style="height: 80vh;position:relative;">
-                    <div style="height:60px;width:100%;">
+                <div class="modal-body" style="height: 100vh;position:relative;">
+                    <div style="height:100%;width:100%;">
                         <button id="btnSelectFileAndClose" type="button" class="btn btn-sm btn-success" data-bs-dismiss="modal" disabled>Select and Close</button>
                         <button type="button" class="btn btn-sm btn-primary" data-bs-dismiss="modal">Cancel</button>
                         <button id="btnClear" type="button" class="btn btn-sm btn-primary" title="Clear list of selected items" style="display:none">Clear Selected</button>
@@ -437,7 +437,7 @@
         let isArticle = @((Model != null && (Model.GetType() == typeof(EditCodePostModel) || Model.GetType() == typeof(HtmlEditorViewModel))).ToString().ToLower());
         // Selected anchor data
         let selectedAnchorData;
-        let selectFileMode;
+        var selectFileMode;
 
         function openSelectFileModal(mode) {
 
@@ -452,11 +452,7 @@
                 url += "?target=";
             }
 
-            if (mode === "image" || mode === "bannerimage") {
-                $('#iframeSelectFile').attr('src', url + '&selectOne=true&imagesOnly=true&isNewSession=true&');
-            } else {
-                $('#iframeSelectFile').attr('src', url + '&selectOne=true&isNewSession=true&');
-            }
+            $('#iframeSelectFile').attr('src', url + '&selectOne=true&imagesOnly=true&isNewSession=true&');
 
             modalSelectFile.show();
 
@@ -826,7 +822,7 @@
             });
 
             $("#iframeSelectFile").on("load", function () {
-                clearFileMgrPaths();
+                //clearFileMgrPaths();
                 $("#spinFileMgrLoading").hide();
             });
 
@@ -906,8 +902,10 @@
         function clearFileMgrPaths() {
             let iframe = document.getElementById("iframeSelectFile");
             let iframeWin = iframe.contentWindow || iframe.contentDocument.parentWindow;
-            iframeWin.clearPaths();
-            iframeWin.reloadPaths();
+            if (iframeWin.clearPaths !== "undefined" && iframeWin.clearPaths !== null) {
+                iframeWin.clearPaths();
+            }
+            //iframeWin.reloadPaths();
         }
 
         function checkBannerImage() {

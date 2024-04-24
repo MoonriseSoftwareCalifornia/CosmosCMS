@@ -31,7 +31,9 @@
         }
     </ul>
 </nav>
+
 <div id="editspace" class="m-editor-container" style="display:none"></div>
+
 <form id="frmSave" asp-action="EditCode">
     <input type="hidden" asp-for="Id" value="@Model.Id" />
     <input type="hidden" asp-for="SaveAsNewVersion" />
@@ -341,92 +343,12 @@
         return timezone;
     }
 
-    function openPickPageModal() {
-
-        if (typeof editor === "undefined" || editor === null) {
-            alert("Error: Could not open code editor.");
-            return;
-        }
-
-        $("#combobox").val("");
-        const inputLinkText = $("#inputLinkText").val("");
-        const switchNewWindow = $("#switchNewWindow").prop('checked', false);
-        const inputLinkCss = $("#inputLinkCss").val("");
-        const inputLinkStyle = $("#inputLinkStyle").val("");
-
-        pickPageModal.show();
-    }
-
-    function openInsertFileLinkModel() {
-
-        if (typeof editor === "undefined" || editor === null) {
-            alert("Error: Could not open code editor.");
-            return;
-        }
-
-        openSelectFileModal("file");
-
-    }
-
-    function openInsertImageModel() {
-
-        if (typeof editor === "undefined" || editor === null) {
-            alert("Error: Could not open code editor.");
-            return;
-        }
-
-        openSelectFileModal("image");
-    }
-
-    function insertPageLink() {
-
-        const inputLinkText = $("#inputLinkText").val();
-        const switchNewWindow = $("#switchNewWindow").prop('checked');
-        const inputLinkCss = $("#inputLinkCss").val();
-        const inputLinkStyle = $("#inputLinkStyle").val();
-
-        if (typeof (inputLinkText) === "undefined" || inputLinkText === null || inputLinkText === "") {
-            $("#inputLinkTextError").show();
-            return false;
-        }
-
-        pickPageModal.hide();
-
-        const link = "<a href='/" + selectedAnchorData.url + "'>" + inputLinkText + "</a>";
-
-        // insert text here
-        editor.trigger('keyboard', 'type', { text: link });
-    }
-
-    function insertFileLink(path) {
-
-        clearFileMgrPaths();
-
-        const url = fileBaseUrl + "/" + path;
-
-        const link = "<a href='" + url + "'>" + path + "</a>";
-
-        // insert text here
-        editor.trigger('keyboard', 'type', { text: link });
-    }
-
-    function insertImage(path) {
-
-        clearFileMgrPaths();
-
-        const url = fileBaseUrl + "/" + path;
-
-        const image = "<img src='" + url + "' />";
-
-        // insert text here
-        editor.trigger('keyboard', 'type', { text: image });
-    }
-
     $(document).ready(function () {
 
         $("body").addClass("cwps-editor-container");
 
         $("#btnOtherPages").show();
+        $("#btnOpenInsertImage").hide();
 
         $("#lblTitle").html("Page URL: ");
         $("#modalChgTitleHeader").html("Change page URL: ");
@@ -533,6 +455,86 @@
             }
         }, 3500);
     });
+
+    function openPickPageModal() {
+
+        if (typeof editor === "undefined" || editor === null) {
+            alert("Error: Could not open code editor.");
+            return;
+        }
+
+        $("#combobox").val("");
+        const inputLinkText = $("#inputLinkText").val("");
+        const switchNewWindow = $("#switchNewWindow").prop('checked', false);
+        const inputLinkCss = $("#inputLinkCss").val("");
+        const inputLinkStyle = $("#inputLinkStyle").val("");
+
+        pickPageModal.show();
+    }
+
+    function openInsertFileLinkModel() {
+
+        if (typeof editor === "undefined" || editor === null) {
+            alert("Error: Could not open code editor.");
+            return;
+        }
+
+        openSelectFileModal("file");
+    }
+
+    function openInsertImageModel() {
+
+        if (typeof editor === "undefined" || editor === null) {
+            alert("Error: Could not open code editor.");
+            return;
+        }
+
+        openSelectFileModal("image");
+    }
+
+    function insertPageLink() {
+
+        const inputLinkText = $("#inputLinkText").val();
+        const switchNewWindow = $("#switchNewWindow").prop('checked');
+        const inputLinkCss = $("#inputLinkCss").val();
+        const inputLinkStyle = $("#inputLinkStyle").val();
+
+        if (typeof (inputLinkText) === "undefined" || inputLinkText === null || inputLinkText === "") {
+            $("#inputLinkTextError").show();
+            return false;
+        }
+
+        pickPageModal.hide();
+
+        const link = "<a href='/" + selectedAnchorData.url + "'>" + inputLinkText + "</a>";
+
+        // insert text here
+        editor.trigger('keyboard', 'type', { text: link });
+    }
+
+    function insertFileLink(path) {
+
+        clearFileMgrPaths();
+
+        const url = fileBaseUrl + "/" + path;
+
+        const link = "<a href='" + url + "'>" + path + "</a>";
+
+        // insert text here
+        editor.trigger('keyboard', 'type', { text: link });
+    }
+
+    function insertImage(path) {
+
+        clearFileMgrPaths();
+
+        const url = fileBaseUrl + "/" + path;
+
+        const image = "<img src='" + url + "' />";
+
+        // insert text here
+        editor.trigger('keyboard', 'type', { text: image });
+    }
 
 </script>
 

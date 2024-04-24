@@ -3,6 +3,7 @@
 @inject IOptions<CosmosConfig> options
 @model List<Cosmos.BlobService.FileManagerEntry>
 @{
+    var selectOne = (bool)ViewData["SelectOne"];
     var publisherUrl = ViewData["PublisherUrl"];
     var blobStaticWebsiteUrl = options.Value.SiteSettings.BlobPublicUrl;
     var directoryOnly = (bool)ViewData["DirectoryOnly"];
@@ -16,7 +17,6 @@
     var pageSize = (int)ViewData["pageSize"];
     var controller = (string)ViewData["Controller"];
     var action = (string)ViewData["Action"];
-    var selectOne = (bool)ViewData["SelectOne"];
     var imagesOnly = (bool)ViewData["ImagesOnly"];
     var storageName = (string)ViewData["StorageName"];
     var isNewSession = (bool)ViewData["isNewSession"];
@@ -514,13 +514,16 @@
     let renameModal = new bootstrap.Modal(document.getElementById('renameModal'));
     let modalCheckSaveFirst = new bootstrap.Modal(document.getElementById('modalCheckSaveFirst'));
     let showSelectedModal = new bootstrap.Modal(document.getElementById('showSelectedModal'));
+    let btnSelectFileAndClose = parent.document.getElementById("btnSelectFileAndClose");
+
     const isNewSession = @isNewSession.ToString().ToLower();
+    const selectOneFile = @selectOne.ToString().ToLower();
 
     // Image editor
     let imageEditorWindow = null;
 
     // Select one mode?
-    const selectOneFile = @(selectOne.ToString().ToLower());
+    // 
     // Set mode
     const directoryOnly = @(directoryOnly.ToString().ToLower());
     // Image browser on?
@@ -748,7 +751,7 @@
             }
 
             $(element).on("change", function () {
-                if (directoryOnly || selectOneFile) {
+                if (directoryOnly || selectOneFile === true) {
                     var isChecked = $(element).prop('checked');
                     $(".gridCheckBox").each(function (i, e) {
                         $(e).prop('checked', false);
@@ -884,9 +887,8 @@
         let arrayLength = paths.length;
 
 
-        if (selectOneFile) {
-            let btnSelectFileAndClose = parent.document.getElementById("btnSelectFileAndClose");
-            btnSelectFileAndClose.disabled = true;
+        if (selectOneFile === true) {
+            $(btnSelectFileAndClose).attr("disabled", "true");
         }
 
         if (arrayLength > 0) {
@@ -926,10 +928,8 @@
 
         if (arrayLength === 1) {
 
-            if (selectOneFile) {
-                let btnSelectFileAndClose = parent.document.getElementById("btnSelectFileAndClose");
-                btnSelectFileAndClose.disabled = false;
-
+            if (selectOneFile === true) {
+                $(btnSelectFileAndClose).removeAttr("disabled");
                 selectedFile = paths[0];
             }
 
