@@ -60,14 +60,6 @@
         font-weight: 900;
     }
 </style>
-@if (selectOne)
-{
-    <style>
-        #ccmsNavMenu {
-            display: none;
-        }
-    </style>
-}
 <link href="https://unpkg.com/filepond@4/dist/filepond.css" rel="stylesheet" />
 <partial name="_ValidationScriptsPartial" />
 <div class="container mt-3">
@@ -712,6 +704,12 @@
     });
 
     $(document).ready(function () {
+
+        if (window.parent.document == document) {
+            $("#ccmsNavMenu").show();
+        } else {
+            $("#ccmsNavMenu").hide();
+        };
 
         $("body").addClass("cwps-editor-container");
 
