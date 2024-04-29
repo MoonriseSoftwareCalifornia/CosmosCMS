@@ -137,9 +137,9 @@
     );
 
     filerobotImageEditor.render({
-        onClose: (closingReason) => {
-            console.log('Closing reason', closingReason);
+        onClose: (closingReason, haveNotSavedChanges) => {
             filerobotImageEditor.terminate();
+            window.location.href = "/FileManager/Index?target=" + folder;
         },
     });
 
