@@ -107,6 +107,12 @@
                             <li>
                                 <a class="dropdown-item" title="Open public (publisher) website" href="@options.Value.SiteSettings.PublisherUrl" target="_blank">Public Website</a>
                             </li>
+                            <li>
+                                <a class="dropdown-item" title="Open Cosmos documentation" href="https://docs.cosmosws.io/" target="_blank">Documentation</a>
+                            </li>
+                            <li>
+                                <span title="Cosmos Version" class="dropdown-item text-mute">@assemblyVersion.ToString()</span>
+                            </li>
                         </ul>
                     </li>
 
@@ -134,16 +140,14 @@
                         </div>
                     </li>
 
-                    <li class="nav-item" id="divAutoSave">
-                        <div class="form-check form-switch mt-2 ms-3">
+                    <li class="nav-item" id="divAutoSave" style="display:none">
+                        <div class="form-check form-switch">
                             <input id="swAutoSave" class="form-check-input" type="checkbox" role="checkbox" checked>
                             <label id="lblAutoSave" style="font-size:0.8rem" class="form-check-label text-light" for="swAutoSave">Autosave (on)</label>
                         </div>
                     </li>
-                    <li class="nav-item"><span title="Cosmos Version" class="nav-link text-mute">@assemblyVersion.ToString()</span></li>
-                    <li class="nav-item"><span id="spanWorkingVersionNo" title="Working version number" class="nav-link text-mute"></span></li>
                     <li class="nav-item" id="msgSaving">
-                        &nbsp; <div id="btnSavingStatus" class="btn btn-sm btn-secondary mt-1 ms-3 me-3" style="display:none">
+                        <div id="btnSavingStatus" class="btn btn-sm btn-secondary mt-1 ms-1 me-1" style="display:none">
                             <div id="spSaving" class="spinner-border spinner-border-sm text-light" role="status" style="display:none"></div>
                             <span id="btnSavingText">Saved</span>
                         </div>
@@ -151,7 +155,7 @@
                     <li class="nav-item">
                         <div id="msgSpecial" style="display:none"></div>
                         &nbsp;
-                        <div id="spinLoading" class="btn btn-sm btn-primary mt-1 ms-3 me-3">
+                        <div id="spinLoading" class="btn btn-sm btn-primary mt-1">
                             <div class="align-items-center text-light">
                                 <strong>Loading...</strong>
                                 <div class="spinner-border spinner-border-sm text-light" role="status"></div>
@@ -159,24 +163,23 @@
                         </div>
                     </li>
                     <li class="nav-item">
-                        <div id="divPublihedTitleGroup" class="input-group input-group-sm mt-1 ms-3 me-3" style="display:none">
-                            <a title='Set which users and roles can access this page.' id="btnArticleAccess" class='btn btn-sm perm' href="javascript:bgEditClick('permissions')"><i class="fa-solid fa-users"></i></a>
+                        <a title='Set which users and roles can access this page.' id="btnArticleAccess" class='btn btn-sm perm' href="javascript:bgEditClick('permissions')"><i class="fa-solid fa-users"></i></a>
+                    </li>
+                    <li class="nav-item">
+                        <div id="divPublihedTitleGroup" class="input-group input-group-sm mt-1" style="display:none">
                             <div id="lblPublished" class="input-group-text" style="height:31px;">Published:</div>
                             <input autocomplete="off" class="form-control text-truncate" name="tbPublished" id="tbPublished" placeholder="DRAFT (not published)" value="@((DateTimeOffset?)ViewData["Published"])" />
-                            <button class="btn btn-danger" title="Clicking this button publishes this page version immediately." type="button" id="btnPublishNow" onclick="bgEditClick('Publish')" style="display:none">Publish Now</button>
-                            <button class="btn btn-secondary" title="Clicking this button will make an editable draft of this page that is not published." type="button" id="btnDraftNow" onclick="bgEditClick('Draft')" style="display:none">Make Draft</button>
+                            <button class="btn btn-sm btn-danger" title="Clicking this button publishes this page version immediately." type="button" id="btnPublishNow" onclick="bgEditClick('Publish')" style="display:none">Publish Now</button>
+                            <button class="btn btn-sm btn-secondary" title="Clicking this button will make an editable draft of this page that is not published." type="button" id="btnDraftNow" onclick="bgEditClick('Draft')" style="display:none">Make Draft</button>
                         </div>
                     </li>
                     <li class="nav-item">
-                        <div id="divTitleGroup" class="input-group input-group-sm mt-1 ms-3 me-3 text-truncate" style="display:none">
-                            <span class="input-group-text" id="lblTitle" style="height:31px;">URL: /</span>
-                            <div title="@title" class="form-control d-inline-block text-truncate" id="divTitle" style="max-width: 150px;">@title</div>
+                        <div id="divTitleGroup" class="input-group input-group-sm mt-1 text-truncate" style="display:none">
+                            <span class="input-group-text" id="lblTitle" style="height:31px;">Title: </span>
+                            <div title="@title" class="form-control d-inline-block text-truncate" id="divTitle" style="min-width: 200px;">@title</div>
                         </div>
                     </li>
                 </ul>
-            </div>
-            <div class="d-flex">
-                <a target="_blank" title="Open Cosmos documentation" class="btn btn-sm btn-secondary" aria-current="page" href="https://www.moonrise.net/cosmos/documentation"><i class="fa-solid fa-circle-info"></i></a>
             </div>
         </div>
     </nav>
