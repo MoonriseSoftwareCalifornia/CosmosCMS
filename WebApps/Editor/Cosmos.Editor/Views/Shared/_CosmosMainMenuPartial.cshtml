@@ -264,10 +264,6 @@
         $("#iframeContactSupport").attr("src", "/Ccms__ContactUs/Index");
     });
     $("#btnNewPage").click(function (e) {
-        if (pagePath === "root") {
-            window.location.href = "@Url.Action("Create", "Editor")?title={New Page Name}";
-        } else {
-            window.location.href = "@Url.Action("Create", "Editor")?title=" + pageTitle + "/{New Page Name}";
-        }
+        window.location.href = "@Url.Action("Create", "Editor")";
     });
 </script>
