@@ -3,7 +3,7 @@
   "defaultProvider": "cdnjs",
   "libraries": [
     {
-      "library": "monaco-editor@0.47.0",
+      "library": "monaco-editor@0.48.0",
       "destination": "wwwroot/lib/monaco-editor/"
     },
     {
@@ -37,7 +37,7 @@
       "destination": "wwwroot/lib/fotorama"
     },
     {
-      "library": "powerbi-client@2.23.0",
+      "library": "powerbi-client@2.23.1",
       "destination": "wwwroot/lib/powerbi-client"
     }
   ]
