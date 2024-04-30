@@ -135,7 +135,7 @@
                                 <form id="frmNewFolder" class="d-flex" asp-action="NewFolder" method="post">
                                     <input type="hidden" name="ParentFolder" id="ParentFolder" value="@pathPrefix" />
                                     <input type="hidden" name="DirectoryOnly" id="DirectoryOnly" value="@directoryOnly" />
-                                    <input class="form-control form-control-sm me-2 text-dark" name="FolderName" id="FolderName" type="text" placeholder="New folder name" aria-label="New folder name" minlength="2" required />
+                                    <input class="form-control form-control-sm me-2" name="FolderName" style="backgound-color:white !important;color: black !important" id="FolderName" type="text" placeholder="New folder name" aria-label="New folder name" minlength="2" required />
                                     <button class="btn btn-sm btn-primary" type="submit">Create</button>
                                 </form>
                             </li>
@@ -146,9 +146,9 @@
         </div>
     </div>
 
-    @if (pathPrefix.StartsWith(topDirectory) && directoryOnly == false && selectOne == false)
+    @if (pathPrefix.StartsWith(topDirectory) && directoryOnly == false)
     {
-        <div class="row">
+        <div class="row uploader">
             <div class="col-md-12 justify-content-center text-light">
                 <button id="btnProgress" class="btn btn-sm  btn-primary" type="button" disabled style="display:none;">
                     <span class="spinner-border spinner-border-sm text-light" role="status" aria-hidden="true"></span>
@@ -156,7 +156,7 @@
                 </button>
             </div>
         </div>
-        <div class="row">
+        <div class="row uploader">
             <div class="col-md-12">
                 <!-- Filepond File Uploader -->
                 <input type="file"
