@@ -679,7 +679,7 @@ namespace Cosmos.Cms.Controllers
                     if (!await dbContext.Pages.CosmosAnyAsync() && !await dbContext.Articles.CosmosAnyAsync())
                     {
                         var homePageTemplate = await dbContext.Templates.FirstOrDefaultAsync(f => f.Title == "Home");
-                        var page = new Page()
+                        var page = new PublishedPage()
                         {
                             Title = "Home",
                             TemplateId = pages.First().Id

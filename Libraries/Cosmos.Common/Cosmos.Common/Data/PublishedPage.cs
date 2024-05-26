@@ -111,5 +111,10 @@ namespace Cosmos.Common.Data
         /// Gets or sets information about the person who authored this document.
         /// </summary>
         public string AuthorInfo { get; set; }
+
+        /// <summary>
+        /// Gets or sets the template ID.
+        /// </summary>
+        public Guid? TemplateId { get; set; }
     }
 }

@@ -293,6 +293,7 @@ namespace Cosmos.Cms.Data.Logic
         /// Gets or sets path where page is located.
         /// </summary>
         public string Path { get; set; }
+        public Guid TemplateId { get; internal set; }
     }
 
     /// <summary>
