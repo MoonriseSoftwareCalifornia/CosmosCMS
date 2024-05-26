@@ -180,6 +180,7 @@ namespace Cosmos.Cms.Data.Logic
                     var html = await client.GetStringAsync(uglifiedUrl.Code);
 
                     var template = ParseHtml<Template>(html);
+                    template.PageType = page.Type;
                     template.Description = page.Description;
                     template.Title = page.Type == "home" ? "Home Page" : page.Title;
                     template.CommunityLayoutId = communityLayoutId;

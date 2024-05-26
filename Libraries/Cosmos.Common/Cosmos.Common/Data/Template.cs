@@ -52,5 +52,14 @@ namespace Cosmos.Common.Data
         [Display(Name = "HTML Content")]
         [DataType(DataType.Html)]
         public string Content { get; set; }
+
+        /// <summary>
+        ///    Gets or sets the template page type.
+        /// </summary>
+        /// <remarks>
+        /// This is either 'home' or 'content'.
+        /// </remarks>
+        [Display(Name = "Page Type")]
+        public string PageType { get; set; }
     }
 }

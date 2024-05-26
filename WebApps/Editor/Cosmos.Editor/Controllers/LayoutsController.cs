@@ -668,12 +668,25 @@ namespace Cosmos.Cms.Controllers
                         Content = articleLogic.Ensure_ContentEditable_IsMarked(p.Content),
                         Description = p.Description,
                         LayoutId = layout.Id,
-                        Title = p.Title
+                        Title = p.Title,
+                        PageType = p.PageType
                     });
 
                     // Mark the content editable regions.
                     dbContext.Templates.AddRange(pages);
                     await dbContext.SaveChangesAsync();
+
+                    if (!await dbContext.Pages.CosmosAnyAsync() && !await dbContext.Articles.CosmosAnyAsync())
+                    {
+                        var homePageTemplate = await dbContext.Templates.FirstOrDefaultAsync(f => f.Title == "Home");
+                        var page = new Page()
+                        {
+                            Title = "Home",
+                            TemplateId = pages.First().Id
+                        };
+                        dbContext.Pages.Add(page);
+                        await dbContext.SaveChangesAsync();
+                    }
                 }
             }
             catch (Exception ex)
