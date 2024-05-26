@@ -1,5 +1,5 @@
-﻿// <copyright file="LayoutUtilities.cs" company="Cosmos Website Solutions, Inc.">
-// Copyright (c) Cosmos Website Solutions, Inc.. All rights reserved.
+﻿// <copyright file="LayoutUtilities.cs" company="Moonrise Software, LLC">
+// Copyright (c) Moonrise Software, LLC. All rights reserved.
 // Licensed under the GNU Public License, Version 3.0 (https://www.gnu.org/licenses/gpl-3.0.html)
 // See https://github.com/MoonriseSoftwareCalifornia/CosmosCMS
 // for more information concerning the license and the contributors participating to this project.
@@ -293,7 +293,11 @@ namespace Cosmos.Cms.Data.Logic
         /// Gets or sets path where page is located.
         /// </summary>
         public string Path { get; set; }
-        public Guid TemplateId { get; internal set; }
+
+        /// <summary>
+        /// Gets or sets the template ID.
+        /// </summary>
+        public Guid TemplateId { get; set; }
     }
 
     /// <summary>
