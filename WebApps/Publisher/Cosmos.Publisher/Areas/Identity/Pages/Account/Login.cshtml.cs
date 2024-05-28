@@ -105,7 +105,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
             ReturnUrl = returnUrl.Replace("http:", "https:");
 
             // If there are no users yet, go strait to the register page.
-
             if (userManager.Users.Count() == 0)
             {
                 return RedirectToPage("Register");
