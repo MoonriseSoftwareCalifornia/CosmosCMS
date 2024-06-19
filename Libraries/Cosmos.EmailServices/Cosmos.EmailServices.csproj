@@ -7,9 +7,9 @@
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<Company>Moonrise Software LLC</Company>
-		<Version>8.0.5.3</Version>
-		<AssemblyVersion>8.0.5.3</AssemblyVersion>
-		<FileVersion>8.0.5.3</FileVersion>
+		<Version>8.0.5.4</Version>
+		<AssemblyVersion>8.0.5.4</AssemblyVersion>
+		<FileVersion>8.0.5.4</FileVersion>
 		<PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
 		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
 		<RepositoryUrl></RepositoryUrl>
@@ -47,7 +47,7 @@
 
 		<PackageReference Include="HtmlAgilityPack" Version="1.11.61" />
 
-		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.5" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.6" />
 
 		<PackageReference Include="SendGrid" Version="9.29.3" />
 
