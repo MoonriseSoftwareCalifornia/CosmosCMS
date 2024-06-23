@@ -14,5 +14,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: Docker Login
+      run: docker login -u="${{ secrets.DOCKERLOGIN}}" -p="${{ secrets.DOCKERPASSWORD }}"
     - name: Build the Docker image
       run: docker build . --file WebApps/Editor/Cosmos.Editor/Dockerfile --tag my-image-name:latest
+    - name: Push container to Docker Hub
+      run: docker push toiyabe/cosmos-editor:latest
