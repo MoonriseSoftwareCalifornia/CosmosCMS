@@ -19,4 +19,4 @@ jobs:
     - name: Build the Docker image
       run: docker build . --file WebApps/Editor/Cosmos.Editor/Dockerfile --tag cosmos-editor:latest
     - name: Push container to Docker Hub
-      run: docker push ${{ secrets.DOCKERLOGIN}}/cosmos-editor
+      run: docker images
