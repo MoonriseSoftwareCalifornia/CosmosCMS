@@ -17,6 +17,6 @@ jobs:
     - name: Docker Login
       run: docker login -u="${{ secrets.DOCKERLOGIN}}" -p="${{ secrets.DOCKERPASSWORD }}"
     - name: Build the Docker image
-      run: docker build . -t cosmos-editor:latest
+      run: docker build . -file WebApps/Editor/Cosmos.Editor/Dockerfile -t cosmos-editor:latest
     - name: Push container to Docker Hub
       run: docker push ${{ secrets.DOCKERLOGIN}}/cosmos-editor
