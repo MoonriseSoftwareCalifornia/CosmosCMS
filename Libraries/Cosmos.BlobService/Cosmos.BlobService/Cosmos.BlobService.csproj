@@ -2,9 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <AssemblyVersion>8.0.5.4</AssemblyVersion>
-    <FileVersion>8.0.5.4</FileVersion>
-    <Version>8.0.5.4</Version>
+    <AssemblyVersion>8.0.5.6</AssemblyVersion>
+    <FileVersion>8.0.5.6</FileVersion>
+    <Version>8.0.5.6</Version>
     <Title>Cosmos CMS Azure Storage Provider</Title>
     <Authors>toiyabe62</Authors>
     <Company>Moonrise Software LLC</Company>
@@ -28,8 +28,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Storage.Blobs" Version="12.20.0" />
-    <PackageReference Include="Azure.Storage.Files.Shares" Version="12.18.0" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.21.1" />
+    <PackageReference Include="Azure.Storage.Files.Shares" Version="12.19.1" />
     <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.2" />
