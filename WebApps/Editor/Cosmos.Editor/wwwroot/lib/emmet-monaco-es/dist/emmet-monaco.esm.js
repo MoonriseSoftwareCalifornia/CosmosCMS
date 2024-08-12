@@ -2159,6 +2159,21 @@ function walk$1(node, fn, state) {
     node.children.forEach(callback);
 }
 /**
+ * Finds first child node that matches given `callback`
+ */
+function find$1(node, callback) {
+    for (let i = 0; i < node.children.length; i++) {
+        const child = node.children[i];
+        if (callback(child)) {
+            return child;
+        }
+        const result = find$1(child, callback);
+        if (result) {
+            return result;
+        }
+    }
+}
+/**
  * Finds node which is the deepest for in current node or node itself.
  */
 function findDeepest(node) {
@@ -2803,6 +2818,43 @@ function stringifyValue(value) {
 }
 function uniqueClass(item, ix, arr) {
     return !!item && arr.indexOf(item) === ix;
+}
+
+/**
+ * Preprocessor of `<label>` element: if it contains `<input>`, remove `for` attribute
+ * and `id` from input
+ */
+function label(node) {
+    if (node.name === 'label') {
+        const input = find$1(node, n => (n.name === 'input' || n.name === 'textarea'));
+        if (input) {
+            // Remove empty `for` attribute
+            if (node.attributes) {
+                node.attributes = node.attributes.filter(attr => {
+                    return !(attr.name === 'for' && isEmptyAttribute(attr));
+                });
+            }
+            // Remove empty `id` attribute
+            if (input.attributes) {
+                input.attributes = input.attributes.filter(attr => {
+                    return !(attr.name === 'id' && isEmptyAttribute(attr));
+                });
+            }
+        }
+    }
+}
+function isEmptyAttribute(attr) {
+    if (!attr.value) {
+        return true;
+    }
+    if (attr.value.length === 1) {
+        const token = attr.value[0];
+        if (token && typeof token !== 'string' && !token.name) {
+            // Attribute contains field
+            return true;
+        }
+    }
+    return false;
 }
 
 function walk(abbr, visitor, state) {
@@ -3558,6 +3610,9 @@ function transform(node, ancestors, config) {
     lorem(node, ancestors, config);
     if (config.syntax === 'xsl') {
         xsl(node);
+    }
+    if (config.type === 'markup') {
+        label(node);
     }
     if (config.options['bem.enabled']) {
         bem(node, ancestors, config);
@@ -4396,7 +4451,10 @@ var markupSnippets = {
 	"select": "select[name=${1} id=${1}]",
 	"select:d|select:disabled": "select[disabled.]",
 	"opt|option": "option[value]",
-	"textarea": "textarea[name=${1} id=${1} cols=${2:30} rows=${3:10}]",
+	"textarea": "textarea[name=${1} id=${1}]",
+	"tarea:c|textarea:cols":"textarea[name=${1} id=${1} cols=${2:30}]",
+	"tarea:r|textarea:rows":"textarea[name=${1} id=${1} rows=${3:10}]",
+	"tarea:cr|textarea:cols:rows":"textarea[name=${1} id=${1} cols=${2:30} rows=${3:10}]",
 	"marquee": "marquee[behavior direction]",
 	"menu:c|menu:context": "menu[type=context]",
 	"menu:t|menu:toolbar": "menu[type=toolbar]",
@@ -4698,10 +4756,10 @@ var stylesheetSnippets = {
 	"us": "user-select:none",
 	"v": "visibility:hidden|visible|collapse",
 	"va": "vertical-align:top|super|text-top|middle|baseline|bottom|text-bottom|sub",
-	"w": "width",
+	"w|wid": "width",
 	"whs": "white-space:nowrap|pre|pre-wrap|pre-line|normal",
 	"whsc": "white-space-collapse:normal|keep-all|loose|break-strict|break-all",
-	"wid": "widows",
+	"wido": "widows",
 	"wm": "writing-mode:lr-tb|lr-tb|lr-bt|rl-tb|rl-bt|tb-rl|tb-lr|bt-lr|bt-rl",
 	"wob": "word-break:normal|keep-all|break-all",
 	"wos": "word-spacing",
@@ -5894,7 +5952,8 @@ function expandAbbreviation(abbreviation, config) {
 }
 
 function isValidEmmetToken(tokens, index, syntax, language) {
-    const currentTokenType = tokens[index].type;
+    const currentToken = tokens[index];
+    const currentTokenType = currentToken.type;
     if (syntax === 'html') {
         // prevent emmet triggered within attributes
         return ((currentTokenType === '' && (index === 0 || tokens[index - 1].type === 'delimiter.html')) ||
@@ -5908,6 +5967,9 @@ function isValidEmmetToken(tokens, index, syntax, language) {
         return currentTokenType === 'tag.' + language;
     }
     if (syntax === 'jsx') {
+        if (currentToken.language === 'mdx' && currentTokenType === '') {
+            return true;
+        }
         // type must be `identifier` and not at start
         return (!!index &&
             ['identifier.js', 'type.identifier.js', 'identifier.ts', 'type.identifier.ts'].includes(currentTokenType));
