@@ -114,7 +114,7 @@ namespace Cosmos.Cms.Controllers
         {
             if (selectOne == null)
             {
-                selectOne = true;
+                selectOne = false;
             }
 
             _storageContext.CreateFolder("/pub");
