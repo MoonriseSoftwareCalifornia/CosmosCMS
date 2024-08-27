@@ -36,17 +36,28 @@ namespace Cosmos.EmailServices
             }
 
             // Attempt to add SMTP Email Provider.
-            var smtpConfig = configuration.GetSection("SmtpEmailProviderOptions").Get<SmtpEmailProviderOptions>();
-            if (smtpConfig != null)
+            try
             {
-                smtpConfig.DefaultFromEmailAddress = adminEmail;
-                services.AddSmtpEmailProvider(smtpConfig);
-                return;
+                var smtpConfig = configuration.GetSection("SmtpEmailProviderOptions").Get<SmtpEmailProviderOptions>();
+                if (smtpConfig != null
+                    && string.IsNullOrEmpty(smtpConfig.Host) == false
+                    && string.IsNullOrEmpty(smtpConfig.UserName) == false
+                    && string.IsNullOrEmpty(smtpConfig.Password) == false
+                    && smtpConfig.Port > 0)
+                {
+                    smtpConfig.DefaultFromEmailAddress = adminEmail;
+                    services.AddSmtpEmailProvider(smtpConfig);
+                    return;
+                }
+            }
+            catch
+            {
+                // Ignore and try the next provider.
             }
 
             // Attempt to add Azure Communication Email Provider.
             var azureCommunicationConnection = configuration.GetConnectionString("AzureCommunicationConnection");
-            if (azureCommunicationConnection != null)
+            if (!string.IsNullOrEmpty(azureCommunicationConnection))
             {
                 services.AddAzureCommunicationEmailSenderProvider(new AzureCommunicationEmailProviderOptions()
                 {
@@ -59,14 +70,12 @@ namespace Cosmos.EmailServices
 
             // Attempt to add SendGrid Email Provider.
             var sendGridApiKey = configuration.GetValue<string>("CosmosSendGridApiKey");
-            if (sendGridApiKey != null)
+            if (!string.IsNullOrEmpty(sendGridApiKey))
             {
                 var sendGridOptions = new SendGridEmailProviderOptions(sendGridApiKey, adminEmail);
                 services.AddSendGridEmailProvider(sendGridOptions);
                 return;
             }
-
-            throw new ConfigurationErrorsException("No email provider configuration found.");
         }
 
         /// <summary>
