@@ -22,9 +22,9 @@ namespace Cosmos.Cms.Services
     {
         private static readonly IDictionary<string, ImageFormat> ImageFormats = new Dictionary<string, ImageFormat>
         {
-            {"image/png", ImageFormat.Png},
-            {"image/gif", ImageFormat.Gif},
-            {"image/jpeg", ImageFormat.Jpeg}
+            { "image/png", ImageFormat.Png },
+            { "image/gif", ImageFormat.Gif },
+            { "image/jpeg", ImageFormat.Jpeg }
         };
 
         private readonly ImageResizer resizer;
@@ -41,10 +41,10 @@ namespace Cosmos.Cms.Services
         /// <summary>
         /// Create thumbnail.
         /// </summary>
-        /// <param name="source"></param>
-        /// <param name="desiredSize"></param>
-        /// <param name="contentType"></param>
-        /// <returns></returns>
+        /// <param name="source">Source stream data.</param>
+        /// <param name="desiredSize">Desired size of image.</param>
+        /// <param name="contentType">MIME type of image.</param>
+        /// <returns>Byte array.</returns>
         public byte[] Create(Stream source, ImageSizeModel desiredSize, string contentType)
         {
             using (var image = Image.FromStream(source))
@@ -74,10 +74,10 @@ namespace Cosmos.Cms.Services
         /// <summary>
         /// Create filkl.
         /// </summary>
-        /// <param name="source"></param>
-        /// <param name="desiredSize"></param>
-        /// <param name="contentType"></param>
-        /// <returns></returns>
+        /// <param name="source">Source data stream.</param>
+        /// <param name="desiredSize">Desired image size.</param>
+        /// <param name="contentType">MIME content type.</param>
+        /// <returns>Byte array.</returns>
         public byte[] CreateFill(Stream source, ImageSizeModel desiredSize, string contentType)
         {
             using (var image = Image.FromStream(source))
@@ -105,7 +105,7 @@ namespace Cosmos.Cms.Services
             }
         }
 
-        private Image FixedSize(Image imgPhoto, int Width, int Height, bool needToFill)
+        private Image FixedSize(Image imgPhoto, int width, int height, bool needToFill)
         {
             var sourceWidth = imgPhoto.Width;
             var sourceHeight = imgPhoto.Height;
@@ -118,8 +118,8 @@ namespace Cosmos.Cms.Services
             float nPercentW = 0;
             float nPercentH = 0;
 
-            nPercentW = Width / (float)sourceWidth;
-            nPercentH = Height / (float)sourceHeight;
+            nPercentW = width / (float)sourceWidth;
+            nPercentH = height / (float)sourceHeight;
             if (!needToFill)
             {
                 if (nPercentH < nPercentW)
@@ -136,13 +136,13 @@ namespace Cosmos.Cms.Services
                 if (nPercentH > nPercentW)
                 {
                     nPercent = nPercentH;
-                    destX = (int)Math.Round((Width -
+                    destX = (int)Math.Round((width - 
                                               sourceWidth * nPercent) / 2);
                 }
                 else
                 {
                     nPercent = nPercentW;
-                    destY = (int)Math.Round((Height -
+                    destY = (int)Math.Round((height -
                                               sourceHeight * nPercent) / 2);
                 }
             }
@@ -156,8 +156,8 @@ namespace Cosmos.Cms.Services
             var destHeight = (int)Math.Round(sourceHeight * nPercent);
 
             var bmPhoto = new Bitmap(
-                destWidth <= Width ? destWidth : Width,
-                destHeight < Height ? destHeight : Height,
+                destWidth <= width ? destWidth : width,
+                destHeight < height ? destHeight : height,
                 PixelFormat.Format32bppRgb);
 
             var grPhoto = Graphics.FromImage(bmPhoto);
