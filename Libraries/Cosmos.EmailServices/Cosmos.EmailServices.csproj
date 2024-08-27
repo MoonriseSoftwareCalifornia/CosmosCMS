@@ -7,9 +7,9 @@
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<Company>Moonrise Software LLC</Company>
-		<Version>8.0.5.7</Version>
-		<AssemblyVersion>8.0.5.7</AssemblyVersion>
-		<FileVersion>8.0.5.7</FileVersion>
+		<Version>8.0.6.1</Version>
+		<AssemblyVersion>8.0.6.1</AssemblyVersion>
+		<FileVersion>8.0.6.1</FileVersion>
 		<PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
 		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
 		<RepositoryUrl></RepositoryUrl>
@@ -45,7 +45,7 @@
 
 		<PackageReference Include="Azure.Communication.Email" Version="1.0.1" />
 
-		<PackageReference Include="HtmlAgilityPack" Version="1.11.63" />
+		<PackageReference Include="HtmlAgilityPack" Version="1.11.64" />
 
 		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.8" />
 
@@ -55,6 +55,8 @@
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
+
+		<PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>

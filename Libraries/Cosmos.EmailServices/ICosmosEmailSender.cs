@@ -16,6 +16,11 @@ namespace Cosmos.EmailServices
     public interface ICosmosEmailSender : IEmailSender
     {
         /// <summary>
+        /// Gets the status code of the last email send result.
+        /// </summary>
+        SendResult SendResult { get; }
+
+        /// <summary>
         /// Sends a password reset email.
         /// </summary>
         /// <param name="emailTo">To address.</param>

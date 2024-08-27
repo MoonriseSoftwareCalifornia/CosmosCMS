@@ -1,51 +1,44 @@
 ﻿@page
-@using SendGrid
 @using System.Net
+@using Cosmos.EmailServices
 @model ResendEmailConfirmationModel
 @{
     ViewData["Title"] = "Resend email confirmation";
     Html.ViewContext.ViewBag.BrowserTitle = "Resend email confirmation";
+    var response = (SendResult)ViewData["SendResult"];
 }
 
 <h1>@ViewData["Title"]</h1>
 <hr/>
 <div class="row">
-    @if (ViewData["SendGridResponse"] != null)
+    @if (ViewData["SendResult"] != null)
     {
-        var response = (Response) ViewData["SendGridResponse"];
         <div class="col-md-6">
             @if (response.StatusCode == HttpStatusCode.Accepted || response.StatusCode == HttpStatusCode.OK)
             {
-                <h4>Confirmation Email Sent</h4>
-                <p>Our email provider reports that the confirmation email has been sent.</p>
-                <p>If you did not receive an email, please check the following:</p>
-                <ul>
-                    <li>
-                        <p>Check your junk email folder for an email from us.</p>
-                    </li>
-                    <li>
-                        <p>
-                            Please make sure your email system will allow delivery of email from: <br/>
-                            no-reply@state.ca.gov.
-                        </p>
-                    </li>
-                </ul>
+                <h2 class="mb-5">Confirmation Email Sent <i class="fa-solid fa-circle-check alert-success"></i></h2>
+                <p class="mb-2">In a few minutes please check your email for a new confirmation email.  Click on the link in this email to confirm your account.</p>
+                <p class="mb-5">If you did not receive the email, please check your junk email folder, or contact your email administrator.</p>
+
+                <a class="btn btn-primary" href="/Identity/Account/Login">Return to Login</a>
             }
             else
             {
-                <h4>Problem Sending Confirmation Email</h4>
-                <p>
-                    Our email provider reports that there is a problem sending email.
+                <h2 class="mb-5">Problem Sending Confirmation Email</h2>
+                <p class="mb-2">
+                    There was a problem reported while attempting to send you the confirmation email.
                     Please contact us, and let us know what Email address you used.
                 </p>
-                <p>We apologize for the inconvenience.</p>
+                <p class="mb-5">We apologize for the inconvenience.</p>
+
+                <a class="btn btn-primary" href="/Identity/Account/Login">Return to Login</a>
             }
         </div>
     }
     else
     {
         <div class="col-md-6">
-            <h4>Enter your email.</h4>
+            <h4>Enter your email address.</h4>
             <form method="post">
                 <div asp-validation-summary="All" class="text-danger"></div>
                 <div class="form-group">

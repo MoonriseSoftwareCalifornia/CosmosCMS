@@ -37,18 +37,18 @@ namespace Cosmos.Cms.Controllers
         private readonly ILogger<UsersController> logger;
         private readonly RoleManager<IdentityRole> roleManager;
         private readonly UserManager<IdentityUser> userManager;
-        private readonly SendGridEmailSender emailSender;
+        private readonly ICosmosEmailSender emailSender;
         private readonly ApplicationDbContext dbContext;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UsersController"/> class.
         /// Constructor.
         /// </summary>
-        /// <param name="logger"></param>
-        /// <param name="userManager"></param>
-        /// <param name="roleManager"></param>
-        /// <param name="emailSender"></param>
-        /// <param name="dbContext"></param>
+        /// <param name="logger">Log service.</param>
+        /// <param name="userManager">User manager.</param>
+        /// <param name="roleManager">Role manager.</param>
+        /// <param name="emailSender">Email sender service.</param>
+        /// <param name="dbContext">Database context.</param>
         public UsersController(
             ILogger<UsersController> logger,
             UserManager<IdentityUser> userManager,
@@ -59,7 +59,7 @@ namespace Cosmos.Cms.Controllers
             this.logger = logger;
             this.userManager = userManager;
             this.roleManager = roleManager;
-            this.emailSender = (SendGridEmailSender)emailSender;
+            this.emailSender = (ICosmosEmailSender)emailSender;
             this.dbContext = dbContext;
         }
 
@@ -441,16 +441,24 @@ namespace Cosmos.Cms.Controllers
 
                     var identityUser = await userManager.GetUserAsync(User);
 
-                    await emailSender.SendEmailAsync(
-                        user.Email,
-                        "Create Password",
-                        $"A new user account was created for you by {identityUser.Email}. Now we need you to create a password for your account by  <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
-
-                    result.SendResult = new SendResult()
+                    try
                     {
-                        Message = await emailSender.Response.Body.ReadAsStringAsync(),
-                        StatusCode = emailSender.Response.StatusCode
-                    };
+                        await emailSender.SendEmailAsync(
+                            user.Email,
+                            "Create Password",
+                            $"A new user account was created for you by {identityUser.Email}. Now we need you to create a password for your account by  <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+
+                        result.SendResult = new SendResult()
+                        {
+                            Message = emailSender.SendResult.Message,
+                            StatusCode = emailSender.SendResult.StatusCode
+                        };
+
+                    }
+                    catch (Exception e)
+                    {
+                        ModelState.AddModelError(string.Empty, $"Could not send reset password email to: '{model.EmailAddress}'. Error: {e.Message}");
+                    }
 
                     result.UserCreateViewModel = model;
 
@@ -477,8 +485,8 @@ namespace Cosmos.Cms.Controllers
 
                     result.SendResult = new SendResult()
                     {
-                        Message = await emailSender.Response.Body.ReadAsStringAsync(),
-                        StatusCode = emailSender.Response.StatusCode
+                        Message = emailSender.SendResult.Message,
+                        StatusCode = emailSender.SendResult.StatusCode
                     };
 
                     result.UserCreateViewModel = model;
@@ -634,8 +642,8 @@ namespace Cosmos.Cms.Controllers
 
                 var sendResult = new SendResult()
                 {
-                    Message = await emailSender.Response.Body.ReadAsStringAsync(),
-                    StatusCode = emailSender.Response.StatusCode
+                    Message = emailSender.SendResult.Message,
+                    StatusCode = emailSender.SendResult.StatusCode
                 };
 
                 if (sendResult != null)

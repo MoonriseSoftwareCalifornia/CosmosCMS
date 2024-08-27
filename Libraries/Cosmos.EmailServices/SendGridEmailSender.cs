@@ -12,6 +12,7 @@ namespace Cosmos.EmailServices
     using Microsoft.Extensions.Options;
     using SendGrid;
     using SendGrid.Helpers.Mail;
+    using System.Net;
 
     /// <summary>
     ///     SendGrid Email sender service.
@@ -30,7 +31,13 @@ namespace Cosmos.EmailServices
         {
             this.options = options;
             this.logger = logger;
+            SendResult = new SendResult();
         }
+
+        /// <summary>
+        /// Gets the status code of the last email send result.
+        /// </summary>
+        public SendResult SendResult { get; private set; }
 
         /// <summary>
         /// Gets a value indicating whether indicates if client is in SendGrid <see href="https://docs.sendgrid.com/for-developers/sending-email/sandbox-mode">sandbox</see> mode.
@@ -96,7 +103,7 @@ namespace Cosmos.EmailServices
         {
             var message = new SendGridMessage();
 
-            message.SetFrom(new EmailAddress(emailFrom ?? "support@cosmosws.io"));
+            message.SetFrom(new EmailAddress(emailFrom ?? this.options.Value.DefaultFromEmailAddress));
             message.AddTo(emailTo);
             message.PlainTextContent = textVersion;
             message.HtmlContent = htmlVersion;
@@ -135,6 +142,9 @@ namespace Cosmos.EmailServices
 
                 Response = await client.SendEmailAsync(message);
 
+                SendResult.StatusCode = Response.StatusCode;
+                SendResult.Message = await Response.Body.ReadAsStringAsync();
+
                 if (!Response.IsSuccessStatusCode && options.Value.LogErrors)
                 {
                     logger.LogError(new Exception($"SendGrid status code: {Response.StatusCode}"), Response.Headers.ToString());
@@ -142,6 +152,9 @@ namespace Cosmos.EmailServices
             }
             catch (Exception e)
             {
+
+                SendResult.StatusCode = HttpStatusCode.BadRequest;
+                SendResult.Message = e.Message;
                 logger.LogError(e, e.Message);
             }
         }

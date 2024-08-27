@@ -79,9 +79,21 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
             }
 
             var user = await userManager.FindByEmailAsync(Input.Email);
+            var emailHandler = new EmailHandler(emailSender, logger);
             if (user == null)
             {
+                var admins = await userManager.GetUsersInRoleAsync("Administrators");
+
                 ModelState.AddModelError(string.Empty, "Verification email sent. Please check your email.");
+
+                await emailHandler.SendGeneralInfoTemplateEmail(
+                    "Unknown user tried to send an email confirmation.",
+                    "System Notification",
+                    Request.Host.Host,
+                    Request.Host.Host,
+                    $"<p>Someone tried to request a verification email to '{Input.Email}'.  This person does not have an account on this website.</p>",
+                    admins.Select(s => s.Email).ToList());
+
                 return Page();
             }
 
@@ -98,11 +110,9 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
             var homePage = await dbContext.Pages.Select(s => new { s.Title, s.UrlPath }).FirstOrDefaultAsync(f => f.UrlPath == "root");
             var websiteName = homePage.Title ?? Request.Host.Host;
 
-            var emailHandler = new EmailHandler(emailSender, logger);
             await emailHandler.SendCallbackTemplateEmail(EmailHandler.CallbackTemplate.NewAccountConfirmEmail, callbackUrl, Request.Host.Host, Input.Email, websiteName);
 
-            ViewData["SendGridResponse"] = ((SendGridEmailSender)emailSender).Response;
-            ModelState.AddModelError(string.Empty, "Verification email sent. Please check your email.");
+            ViewData["SendResult"] = emailSender.SendResult;
             return Page();
         }
 

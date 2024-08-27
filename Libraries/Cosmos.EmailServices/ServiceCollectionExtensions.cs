@@ -7,7 +7,9 @@
 
 namespace Cosmos.EmailServices
 {
+    using System.Configuration;
     using Microsoft.AspNetCore.Identity.UI.Services;
+    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Options;
 
@@ -16,6 +18,57 @@ namespace Cosmos.EmailServices
     /// </summary>
     public static class ServiceCollectionExtensions
     {
+
+        /// <summary>
+        /// Adds the Cosmos Email Services to the services collection.
+        /// </summary>
+        /// <param name="services">Startup services collection.</param>
+        /// <param name="configuration">System configuration.</param>
+        /// <remarks>
+        /// Tries to add an email service in this order:  SMTP, Azure Communication, SendGrid.
+        /// </remarks>
+        public static void AddCosmosEmailServices(this IServiceCollection services, IConfiguration configuration)
+        {
+            var adminEmail = configuration.GetValue<string>("AdminEmail");
+            if (adminEmail == null)
+            {
+                throw new ConfigurationErrorsException("No AdminEmail configuration found.");
+            }
+
+            // Attempt to add SMTP Email Provider.
+            var smtpConfig = configuration.GetSection("SmtpEmailProviderOptions").Get<SmtpEmailProviderOptions>();
+            if (smtpConfig != null)
+            {
+                smtpConfig.DefaultFromEmailAddress = adminEmail;
+                services.AddSmtpEmailProvider(smtpConfig);
+                return;
+            }
+
+            // Attempt to add Azure Communication Email Provider.
+            var azureCommunicationConnection = configuration.GetConnectionString("AzureCommunicationConnection");
+            if (azureCommunicationConnection != null)
+            {
+                services.AddAzureCommunicationEmailSenderProvider(new AzureCommunicationEmailProviderOptions()
+                {
+                    ConnectionString = azureCommunicationConnection,
+                    DefaultFromEmailAddress = adminEmail
+                });
+
+                return;
+            }
+
+            // Attempt to add SendGrid Email Provider.
+            var sendGridApiKey = configuration.GetValue<string>("CosmosSendGridApiKey");
+            if (sendGridApiKey != null)
+            {
+                var sendGridOptions = new SendGridEmailProviderOptions(sendGridApiKey, adminEmail);
+                services.AddSendGridEmailProvider(sendGridOptions);
+                return;
+            }
+
+            throw new ConfigurationErrorsException("No email provider configuration found.");
+        }
+
         /// <summary>
         /// Adds the SendGrid Email Provider to the services collection.
         /// </summary>

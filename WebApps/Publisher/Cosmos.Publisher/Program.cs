@@ -200,30 +200,8 @@ internal class Program
 
         builder.Services.AddControllersWithViews();
 
-        // Email provider
-        //
-        // Add services
-        var azureCommunicationConnection = builder.Configuration.GetConnectionString("AzureCommunicationConnection");
-
-        if (azureCommunicationConnection == null)
-        {
-            // Email provider
-            var sendGridApiKey = builder.Configuration.GetValue<string>("CosmosSendGridApiKey");
-            var adminEmail = "DoNotReply@cosmosws.io";
-            if (!string.IsNullOrEmpty(sendGridApiKey) && !string.IsNullOrEmpty(adminEmail))
-            {
-                var sendGridOptions = new SendGridEmailProviderOptions(sendGridApiKey, adminEmail);
-                builder.Services.AddSendGridEmailProvider(sendGridOptions);
-            }
-        }
-        else
-        {
-            builder.Services.AddAzureCommunicationEmailSenderProvider(new AzureCommunicationEmailProviderOptions()
-            {
-                ConnectionString = azureCommunicationConnection,
-                DefaultFromEmailAddress = "DoNotReply@cosmosws.io"
-            });
-        }
+        // Add Email services
+        builder.Services.AddCosmosEmailServices(builder.Configuration);
 
         var app = builder.Build();
 

@@ -7,10 +7,9 @@
 
 namespace Cosmos.EmailServices
 {
+    using System.Configuration;
     using System.Net;
     using System.Net.Mail;
-    using System.Text;
-    using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
 
     /// <summary>
@@ -18,73 +17,135 @@ namespace Cosmos.EmailServices
     /// </summary>
     public class SmtpEmailSender : ICosmosEmailSender
     {
-        private readonly IOptions<SmtpEmailProviderOptions> options;
-        private readonly ILogger<SendGridEmailSender> logger;
+        private readonly SmtpEmailProviderOptions options;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SmtpEmailSender"/> class.
         /// </summary>
         /// <param name="options">SMTP email provider options.</param>
-        /// <param name="logger">Logger.</param>
-        public SmtpEmailSender(IOptions<SmtpEmailProviderOptions> options, ILogger<SendGridEmailSender> logger)
+        public SmtpEmailSender(IOptions<SmtpEmailProviderOptions> options)
         {
-            this.options = options;
-            this.logger = logger;
+            this.options = options.Value;
+            if (options.Value == null)
+            {
+                throw new ConfigurationErrorsException("No SmtpEmailProviderOptions configuration found.");
+            }
+
+            SendResult = new SendResult();
+        }
+
+        /// <summary>
+        /// Gets the status code of the last email send result.
+        /// </summary>
+        public SendResult SendResult { get; private set; }
+
+        /// <summary>
+        /// IEmailSender send email method.
+        /// </summary>
+        /// <param name="emailTo">To email address.</param>
+        /// <param name="subject">Email subject.</param>
+        /// <param name="htmlMessage">Email message in HTML format.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        public Task SendEmailAsync(string emailTo, string subject, string htmlMessage)
+        {
+            return SendEmailAsync(emailTo, subject, htmlMessage, null);
         }
 
         /// <summary>
         ///     Send email method.
         /// </summary>
-        /// <param name="toEmail">To email address.</param>
+        /// <param name="emailTo">To email address.</param>
         /// <param name="subject">Email subject.</param>
-        /// <param name="message">Email message.</param>
+        /// <param name="htmlMessage">Email message in HTML format.</param>
+        /// <param name="emailFrom">From email message.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public Task SendEmailAsync(string toEmail, string subject, string message)
+        public Task SendEmailAsync(string emailTo, string subject, string htmlMessage, string? emailFrom = null)
         {
-            return Execute(subject, message, toEmail);
+            var message = new MailMessage();
+
+            if (string.IsNullOrEmpty(emailFrom))
+            {
+                emailFrom = options.DefaultFromEmailAddress;
+            }
+
+            message.Subject = subject;
+#pragma warning disable CS8604 // Possible null reference argument.
+            message.From = new MailAddress(emailFrom);
+#pragma warning restore CS8604 // Possible null reference argument.
+            message.To.Add(new MailAddress(emailTo));
+            message.Body = htmlMessage;
+            message.IsBodyHtml = true;
+
+            var task = Execute(message);
+            task.Wait();
+            return task;
         }
 
         /// <summary>
-        /// Sends an Email in both HTML and plain text format.
+        /// Sends and Email using a SendGrid mail template.
         /// </summary>
         /// <param name="emailTo">To email address.</param>
         /// <param name="subject">Email subject.</param>
-        /// <param name="textVersion">Plain text version.</param>
-        /// <param name="htmlVersion">HTML version.</param>
-        /// <param name="emailFrom">From email address.</param>
+        /// <param name="textVersion">Text version of the email.</param>
+        /// <param name="htmlVersion">HTML version of the email.</param>
+        /// <param name="emailFrom">Who the email is from.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public Task SendEmailAsync(string emailTo, string subject, string textVersion, string htmlVersion, string? emailFrom = null)
         {
-            return Execute(subject, htmlVersion, emailTo, textVersion);
+            var message = new MailMessage();
+
+            if (string.IsNullOrEmpty(emailFrom))
+            {
+                emailFrom = options.DefaultFromEmailAddress;
+            }
+
+            message.Subject = subject;
+#pragma warning disable CS8604 // Possible null reference argument.
+            message.From = new MailAddress(emailFrom);
+#pragma warning restore CS8604 // Possible null reference argument.
+            message.To.Add(new MailAddress(emailTo));
+            message.Body = textVersion;
+
+            if (!string.IsNullOrEmpty(htmlVersion))
+            {
+                message.AlternateViews.Add(AlternateView.CreateAlternateViewFromString(htmlVersion, null, "text/html"));
+                message.IsBodyHtml = true;
+            }
+            else
+            {
+                message.IsBodyHtml = false;
+            }
+
+            message.Subject = subject;
+
+            var task = Execute(message);
+            task.Wait();
+            return task;
         }
 
-        private async Task Execute(string subject, string html, string toEmail, string plainText = "")
+        private async Task Execute(MailMessage message)
         {
-            var client = new SmtpClient(options.Value.Host, options.Value.Port);
+            var client = new SmtpClient(options.Host, options.Port);
 
-            if (!string.IsNullOrEmpty(options.Value.Password))
+            if (!string.IsNullOrEmpty(options.Password))
             {
-                client.Credentials = new NetworkCredential(options.Value.UserName, options.Value.Password);
-                if (options.Value.UsesSsl)
+                client.Credentials = new NetworkCredential(options.UserName, options.Password);
+                if (options.UsesSsl)
                 {
                     client.EnableSsl = true;
                 }
             }
 
-            var msg = new MailMessage(options.Value.DefaultFromEmailAddress, toEmail, subject, html);
-
-            if (!string.IsNullOrEmpty(plainText))
-            {
-                msg.AlternateViews.Add(new AlternateView(new MemoryStream(Encoding.ASCII.GetBytes(plainText)), "text/plain"));
-            }
-
             try
             {
-                await client.SendMailAsync(msg);
+                await client.SendMailAsync(message);
+                SendResult.StatusCode = HttpStatusCode.OK;
+                SendResult.Message = "Email sent successfully.";
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                logger.LogError(e, e.Message);
+                SendResult.StatusCode = HttpStatusCode.BadRequest;
+                SendResult.Message = ex.Message;
             }
 
             return;

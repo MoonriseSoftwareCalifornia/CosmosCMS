@@ -13,9 +13,9 @@ namespace Cosmos.EmailServices
     public class SmtpEmailProviderOptions
     {
         /// <summary>
-        /// Gets or sets from email address.
+        /// Gets or sets the efault "from" email address.
         /// </summary>
-        public string DefaultFromEmailAddress { get; set; } = "donotreply@cosmosws.io";
+        public string? DefaultFromEmailAddress { get; set; }
 
         /// <summary>
         /// Gets or sets sMTP Host name.

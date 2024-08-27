@@ -10,6 +10,7 @@ namespace Cosmos.EmailServices
     using System.Diagnostics.CodeAnalysis;
     using System.Net;
     using Azure.Communication.Email;
+    using Azure.Core;
     using Microsoft.AspNetCore.Identity.UI.Services;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
@@ -17,7 +18,7 @@ namespace Cosmos.EmailServices
     /// <summary>
     /// Email sender for Azure Communications.
     /// </summary>
-    public class AzureCommunicationEmailSender : IEmailSender
+    public class AzureCommunicationEmailSender : ICosmosEmailSender
     {
         private readonly IOptions<AzureCommunicationEmailProviderOptions> options;
         private readonly ILogger<AzureCommunicationEmailSender> logger;
@@ -27,16 +28,17 @@ namespace Cosmos.EmailServices
         /// </summary>
         /// <param name="options">Provder options.</param>
         /// <param name="logger">ILogger.</param>
-        public AzureCommunicationEmailSender([NotNull] IOptions<AzureCommunicationEmailProviderOptions> options, [NotNull] ILogger<AzureCommunicationEmailSender> logger)
+        public AzureCommunicationEmailSender(IOptions<AzureCommunicationEmailProviderOptions> options, ILogger<AzureCommunicationEmailSender> logger)
         {
             this.options = options;
             this.logger = logger;
+            SendResult = new SendResult();
         }
 
         /// <summary>
         /// Gets result of the last email send.
         /// </summary>
-        public SendResult? SendResult { get; private set; }
+        public SendResult SendResult { get; private set; }
 
         /// <summary>
         /// Sends an email message.
@@ -60,41 +62,60 @@ namespace Cosmos.EmailServices
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task SendEmailAsync(string toEmail, string subject, string htmlMessage, string? fromEmail = null)
         {
+            await SendEmailAsync(toEmail, subject, string.Empty, htmlMessage, fromEmail);
+        }
+
+        /// <summary>
+        /// Sends an email and specifies the "from" email address.
+        /// </summary>
+        /// <param name="toEmail">To email address.</param>
+        /// <param name="subject">Email subject.</param>
+        /// <param name="textVersion">Email message in text form.</param>
+        /// <param name="htmlMessage">Email message in HTML.</param>
+        /// <param name="fromEmail">Who the email is from.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        public async Task SendEmailAsync(string toEmail, string subject, string textVersion, string htmlMessage, string? fromEmail = null)
+        {
             var emailClient = new EmailClient(options.Value.ConnectionString);
 
-            try
+            if (string.IsNullOrEmpty(fromEmail))
             {
-                if (string.IsNullOrEmpty(fromEmail))
-                {
-                    fromEmail = options.Value.DefaultFromEmailAddress;
-                }
-
-                var result = await emailClient.SendAsync(Azure.WaitUntil.Completed, fromEmail, toEmail, subject, htmlMessage);
-
-                var response = result.GetRawResponse();
-
-                SendResult = new SendResult();
-                SendResult.StatusCode = (HttpStatusCode)response.Status;
-
-                if (result.Value.Status == EmailSendStatus.Succeeded)
-                {
-                    SendResult.Message = $"Email successfully sent to: {toEmail}; Subject: {subject};";
-                }
-                else if (result.Value.Status == EmailSendStatus.Failed)
-                {
-                    SendResult.Message = $"Email FAILED attempting to send to: {toEmail}, with subject: {subject}, with error: {response.ReasonPhrase}";
-                }
-                else if (result.Value.Status == EmailSendStatus.Canceled)
-                {
-                    SendResult.Message = $"Email was CANCELED to: {toEmail}, with subject: {subject}, with reason: {response.ReasonPhrase}";
-                }
-
-                logger.LogInformation(SendResult.Message);
+                fromEmail = options.Value.DefaultFromEmailAddress;
             }
-            catch (Exception e)
+
+            EmailSendOperation result;
+
+            var aschtml = System.Text.Encoding.ASCII.GetString(System.Text.Encoding.ASCII.GetBytes(htmlMessage));
+
+            if (string.IsNullOrEmpty(textVersion))
             {
-                logger.LogError(e.Message, e);
+                result = await emailClient.SendAsync(Azure.WaitUntil.Completed, fromEmail, toEmail, subject, htmlContent: aschtml);
             }
+            else
+            {
+                var asctext = System.Text.Encoding.ASCII.GetString(System.Text.Encoding.ASCII.GetBytes(textVersion));
+                result = await emailClient.SendAsync(Azure.WaitUntil.Completed, fromEmail, toEmail, subject, aschtml, asctext);
+            }
+
+            var response = result.GetRawResponse();
+
+            SendResult = new SendResult();
+            SendResult.StatusCode = (HttpStatusCode)response.Status;
+
+            if (result.Value.Status == EmailSendStatus.Succeeded)
+            {
+                SendResult.Message = $"Email successfully sent to: {toEmail}; Subject: {subject};";
+            }
+            else if (result.Value.Status == EmailSendStatus.Failed)
+            {
+                SendResult.Message = $"Email FAILED attempting to send to: {toEmail}, with subject: {subject}, with error: {response.ReasonPhrase}";
+            }
+            else if (result.Value.Status == EmailSendStatus.Canceled)
+            {
+                SendResult.Message = $"Email was CANCELED to: {toEmail}, with subject: {subject}, with reason: {response.ReasonPhrase}";
+            }
+
+            logger.LogInformation(SendResult.Message);
         }
     }
 }

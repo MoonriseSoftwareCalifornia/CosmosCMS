@@ -30,7 +30,6 @@ namespace Cosmos.Cms
     using Microsoft.AspNetCore.HttpOverrides;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.RateLimiting;
-    using Microsoft.Azure.Cosmos.Fluent;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
@@ -188,31 +187,8 @@ namespace Cosmos.Cms
                 options.Cookie.IsEssential = true;
             });
 
-            
-            // Add services
-            var azureCommunicationConnection = Configuration.GetConnectionString("AzureCommunicationConnection");
-
-            if (azureCommunicationConnection == null)
-            {
-                // Email provider
-                var sendGridApiKey = Configuration.GetValue<string>("CosmosSendGridApiKey");
-                var adminEmail = "DoNotReply@cosmosws.io";
-                if (!string.IsNullOrEmpty(sendGridApiKey) && !string.IsNullOrEmpty(adminEmail))
-                {
-                    var sendGridOptions = new SendGridEmailProviderOptions(sendGridApiKey, adminEmail);
-                    services.AddSendGridEmailProvider(sendGridOptions);
-                }
-            }
-            else
-            {
-                services.AddAzureCommunicationEmailSenderProvider(new AzureCommunicationEmailProviderOptions()
-                {
-                    ConnectionString = azureCommunicationConnection,
-                    DefaultFromEmailAddress = "DoNotReply@cosmosws.io"
-                });
-            }
-
-            // End add SendGrid
+            // Add Email services
+            services.AddCosmosEmailServices(Configuration);
 
             // Add the BLOB and File Storage contexts for Cosmos
             services.AddCosmosStorageContext(Configuration);
