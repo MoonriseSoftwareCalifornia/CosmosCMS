@@ -2,56 +2,13 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "10.13.0.0",
     "metadata": {
-        "description": "Installs the Cosmos CMS wth all email options available."
+        "description": "Installs the Cosmos CMS integrated with SendGrid."
     },
     "parameters": {
         "administratorReplyEmail": {
             "type": "string",
             "metadata": {
                 "description": "Enter the 'no reply' administrator email address (Example: NoReply@mycompany.com)."
-            }
-        },
-        "smtpHostName": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "If you are using an SMTP relay, enter host name (Example: smtp.mycompany.com)."
-            }
-        },
-        "smtpPort": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "If you are using an SMTP relay, enter port number (Example: 587)."
-            }
-        },
-        "smtpEnableSsl": {
-            "type": "string",
-            "defaultValue": "",
-            "allowedValues": [ "", "true", "false" ],
-            "metadata": {
-                "description": "If you are using an SMTP relay, enter true or false to enable TLS/SSL."
-            }
-        },
-        "smtpUserName": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "If you are using an SMTP relay, enter user name (Example: smtpEmailUser)."
-            }
-        },
-        "smtpPassword": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "If you are using an SMTP relay, enter user password."
-            }
-        },
-        "azureCommunicationsConnectionString": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "If you are using Azure Communications for email, enter connection string."
             }
         },
         "sendGridApiKey": {
@@ -242,11 +199,11 @@
                         "CosmosSendGridApiKey": "[parameters('sendGridApiKey')]",
                         "CosmosPublisherUrl": "[concat('https://', variables('publisherName'), '.azurewebsites.net')]",
                         "CosmosBlobContainer": "$web",
-                        "SmtpEmailProviderOptions__Host": "[parameters('smtpHostName')]",
-                        "SmtpEmailProviderOptions__Port": "[parameters('smtpPort')]",
-                        "SmtpEmailProviderOptions__EnableSsl": "[parameters('smtpEnableSsl')]",
-                        "SmtpEmailProviderOptions__UserName": "[parameters('smtpUserName')]",
-                        "SmtpEmailProviderOptions__Password": "[parameters('smtpPassword')]",
+                        "SmtpEmailProviderOptions__Host": "",
+                        "SmtpEmailProviderOptions__Port": "",
+                        "SmtpEmailProviderOptions__EnableSsl": "",
+                        "SmtpEmailProviderOptions__UserName": "",
+                        "SmtpEmailProviderOptions__Password": "",
                         "DOCKER_REGISTRY_SERVER_PASSWORD": "",
                         "DOCKER_REGISTRY_SERVER_URL": "https://index.docker.io",
                         "DOCKER_REGISTRY_SERVER_USERNAME": "",
@@ -270,7 +227,7 @@
                             "type": "Custom"
                         },
                         "AzureCommunicationConnection": {
-                            "value": "[parameters('azureCommunicationsConnectionString')]",
+                            "value": "",
                             "type": "Custom"
                         }
                     }
@@ -432,11 +389,11 @@
                         "AzureBlobStorageEndPoint": "[reference(concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName')), '2018-07-01').primaryEndpoints.web]",
                         "CosmosRequiresAuthentication": "false",
                         "CosmosSendGridApiKey": "[parameters('sendGridApiKey')]",
-                        "SmtpEmailProviderOptions__Host": "[parameters('smtpHostName')]",
-                        "SmtpEmailProviderOptions__Port": "[parameters('smtpPort')]",
-                        "SmtpEmailProviderOptions__EnableSsl": "[parameters('smtpEnableSsl')]",
-                        "SmtpEmailProviderOptions__UserName": "[parameters('smtpUserName')]",
-                        "SmtpEmailProviderOptions__Password": "[parameters('smtpPassword')]",
+                        "SmtpEmailProviderOptions__Host": "",
+                        "SmtpEmailProviderOptions__Port": "",
+                        "SmtpEmailProviderOptions__EnableSsl": "",
+                        "SmtpEmailProviderOptions__UserName": "",
+                        "SmtpEmailProviderOptions__Password": "",
                         "DOCKER_REGISTRY_SERVER_PASSWORD": "",
                         "DOCKER_REGISTRY_SERVER_URL": "https://index.docker.io",
                         "DOCKER_REGISTRY_SERVER_USERNAME": "",
@@ -460,7 +417,7 @@
                             "type": "Custom"
                         },
                         "AzureCommunicationConnection": {
-                            "value": "[parameters('azureCommunicationsConnectionString')]",
+                            "value": "",
                             "type": "Custom"
                         }
                     }
