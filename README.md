@@ -1,6 +1,8 @@
-# Cosmos CMS
+# Cosmos
 
 Cosmos CMS is a modern content management system that is "out of the box" fast, secure, open, and easy to use.  Its cloud-first design comes with built-in integration with Content Distribution Networks (CDN) and Web Application Firewalls (WAF), and supports regional replication redundancy.
+
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fgithub.com%2FMoonriseSoftwareCalifornia%2FCosmosCMS%2Fblob%2Ffbf7c11f95ac19273fd0d04d423e888adcdb7854%2FArmTemplates%2FDevelopment%2Fazuredeploy.json)
 
 ## About
 
