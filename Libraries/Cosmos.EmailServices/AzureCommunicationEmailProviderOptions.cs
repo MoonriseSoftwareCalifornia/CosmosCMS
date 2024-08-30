@@ -20,6 +20,6 @@ namespace Cosmos.EmailServices
         /// <summary>
         /// Gets or sets default 'from' email address (if not using the default).
         /// </summary>
-        public string DefaultFromEmailAddress { get; set; } = "DoNotReply@cosmosws.io";
+        public string DefaultFromEmailAddress { get; set; } = "DoNotReply@moonrise.net";
     }
 }

@@ -4,8 +4,8 @@
 
 @if (SignInManager.IsSignedIn(User))
 {
-    <a class="btn btn-sm bg-dark text-light me-2" href="mailto:support@cosmosws.io?subject=Help Desk Message" title="Email Help Desk"><i class="fa-solid fa-bell-concierge"></i></a>
-    <a title="Open Cosmos documentation" target="_blank" class="btn btn-sm bg-dark text-light me-2" aria-current="page" href="https://docs.cosmosws.io"><i class="fa-solid fa-circle-info"></i></a>
+    <a class="btn btn-sm bg-dark text-light me-2" href="mailto:support@moonrise.net?subject=Help Desk Message" title="Email Help Desk"><i class="fa-solid fa-bell-concierge"></i></a>
+    <a title="Open Cosmos documentation" target="_blank" class="btn btn-sm bg-dark text-light me-2" aria-current="page" href="https://cosmos.moonrise.net"><i class="fa-solid fa-circle-info"></i></a>
     <a class="btn btn-sm bg-dark text-light me-2" title="User account settings." asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage"><i class="fa-solid fa-user"></i></a>
     <button id="btnNavLogoutButton" type="button" title="Log out" onclick="navLogout()" class="btn btn-sm bg-dark text-light" style="margin-top:-2px;"><i class="fa-solid fa-right-from-bracket"></i></button>
     <form name="frmNavLogout" class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new {area = ""})">
@@ -19,8 +19,8 @@
 else
 {
     <div>
-        <a class="btn btn-sm bg-dark text-light me-2" href="mailto:support@cosmosws.io?subject=Help Desk Message" title="Email Help Desk"><i class="fa-solid fa-bell-concierge"></i></a>
-        <a title="Open Cosmos documentation" target="_blank" class="nav-link active" aria-current="page" href="https://docs.cosmosws.io"><i class="fa-solid fa-circle-info"></i></a>
+        <a class="btn btn-sm bg-dark text-light me-2" href="mailto:support@moonrise.net?subject=Help Desk Message" title="Email Help Desk"><i class="fa-solid fa-bell-concierge"></i></a>
+        <a title="Open Cosmos documentation" target="_blank" class="nav-link active" aria-current="page" href="https://cosmos.moonrise.net"><i class="fa-solid fa-circle-info"></i></a>
         <a class="nav-link" asp-area="Identity" asp-page="/Account/Register">Register</a> |
         <a class="nav-link" asp-area="Identity" asp-page="/Account/Login">Login</a>
     </div>

@@ -115,7 +115,7 @@ namespace Cosmos.Cms.Common.Services.Configurations
                 cosmosConfig.MicrosoftAppId = microsoftAuth.ClientId;
             }
 
-            cosmosConfig.SendGridConfig.EmailFrom = "no-reply@cosmosws.io";
+            cosmosConfig.SendGridConfig.EmailFrom = "no-reply@moonrise.net";
             cosmosConfig.SendGridConfig.SendGridKey = GetValue<string>("CosmosSendGridApiKey");
 
             // Cosmos Endpoints
