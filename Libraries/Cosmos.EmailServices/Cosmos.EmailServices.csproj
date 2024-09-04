@@ -7,9 +7,9 @@
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<Company>Moonrise Software LLC</Company>
-		<Version>8.0.6.3</Version>
-		<AssemblyVersion>8.0.6.3</AssemblyVersion>
-		<FileVersion>8.0.6.3</FileVersion>
+		<Version>8.0.6.4</Version>
+		<AssemblyVersion>8.0.6.4</AssemblyVersion>
+		<FileVersion>8.0.6.4</FileVersion>
 		<PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
 		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
 		<RepositoryUrl></RepositoryUrl>

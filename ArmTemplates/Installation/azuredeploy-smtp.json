@@ -5,10 +5,10 @@
         "description": "Installs the Cosmos CMS with an SMTP Email provider."
     },
     "parameters": {
-        "administratorReplyEmail": {
+        "noReplyEmailAddress": {
             "type": "string",
             "metadata": {
-                "description": "Enter the 'no reply' administrator email address (Example: NoReply@mycompany.com)."
+                "description": "Enter the 'no reply' email address for your SMTP domain."
             }
         },
         "smtpHostName": {
@@ -222,7 +222,7 @@
                     },
                     "properties": {
                         "AzureBlobStorageEndPoint": "[reference(concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName')), '2018-07-01').primaryEndpoints.web]",
-                        "AdminEmail": "[parameters('administratorReplyEmail')]",
+                        "AdminEmail": "[parameters('noReplyEmailAddress')]",
                         "CosmosAllowSetup": "true",
                         "AllowLocalAccounts": "true",
                         "CosmosSendGridApiKey": "",
@@ -413,7 +413,7 @@
                         "displayName": "appsettings"
                     },
                     "properties": {
-                        "AdminEmail": "[parameters('administratorReplyEmail')]",
+                        "AdminEmail": "[parameters('noReplyEmailAddress')]",
                         "AllowLocalAccounts": "true",
                         "AzureBlobStorageEndPoint": "[reference(concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName')), '2018-07-01').primaryEndpoints.web]",
                         "CosmosRequiresAuthentication": "false",

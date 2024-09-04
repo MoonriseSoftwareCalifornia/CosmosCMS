@@ -5,10 +5,10 @@
         "description": "Installs the Cosmos CMS integrated with SendGrid."
     },
     "parameters": {
-        "administratorReplyEmail": {
+        "noReplyEmailAddress": {
             "type": "string",
             "metadata": {
-                "description": "Enter the 'no reply' administrator email address (Example: NoReply@mycompany.com)."
+                "description": "Enter the 'no reply' email address for your SendGrid email account."
             }
         },
         "sendGridApiKey": {
@@ -193,7 +193,7 @@
                     },
                     "properties": {
                         "AzureBlobStorageEndPoint": "[reference(concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName')), '2018-07-01').primaryEndpoints.web]",
-                        "AdminEmail": "[parameters('administratorReplyEmail')]",
+                        "AdminEmail": "[parameters('noReplyEmailAddress')]",
                         "CosmosAllowSetup": "true",
                         "AllowLocalAccounts": "true",
                         "CosmosSendGridApiKey": "[parameters('sendGridApiKey')]",
@@ -384,7 +384,7 @@
                         "displayName": "appsettings"
                     },
                     "properties": {
-                        "AdminEmail": "[parameters('administratorReplyEmail')]",
+                        "AdminEmail": "[parameters('noReplyEmailAddress')]",
                         "AllowLocalAccounts": "true",
                         "AzureBlobStorageEndPoint": "[reference(concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName')), '2018-07-01').primaryEndpoints.web]",
                         "CosmosRequiresAuthentication": "false",

@@ -78,10 +78,11 @@ namespace Cosmos.Cms
             services.AddApplicationInsightsTelemetry();
 
             // The Cosmos connection string
-            // It has been the case in the past where Linux web apps want upper case variable names.
             var connectionString = Configuration.GetConnectionString("ApplicationDbContextConnection");
             if (string.IsNullOrEmpty(connectionString))
             {
+                // It has been the case in the past where Linux web apps want upper case variable names.
+                // This is a check for that.
                 var list = Configuration.GetSection("ConnectionStrings").GetChildren();
                 var keys = new List<string>();
                 foreach (var item in list) 
@@ -93,8 +94,7 @@ namespace Cosmos.Cms
             }
 
             // Name of the Cosmos database to use
-            var cosmosIdentityDbName = Configuration.GetValue<string>("CosmosIdentityDbName") ??
-                Configuration.GetValue<string>("CosmosIdentityDbName".ToUpper());
+            var cosmosIdentityDbName = Configuration.GetValue<string>("CosmosIdentityDbName");
             if (string.IsNullOrEmpty(cosmosIdentityDbName))
             {
                 cosmosIdentityDbName = "cosmoscms";
@@ -147,8 +147,7 @@ namespace Cosmos.Cms
                 .AddDefaultTokenProviders();
 
             // Add shared data protection here
-            var blobConnection = Configuration.GetConnectionString("AzureBlobStorageConnectionString") ??
-                Configuration.GetConnectionString("AzureBlobStorageConnectionString".ToUpper());
+            var blobConnection = Configuration.GetConnectionString("AzureBlobStorageConnectionString");
             if (string.IsNullOrEmpty(blobConnection))
             {
                 throw new Exception("STARTUP: AzureBlobStorageConnectionString is null or empty");
