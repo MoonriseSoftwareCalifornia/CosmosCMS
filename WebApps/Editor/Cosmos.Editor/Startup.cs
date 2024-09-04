@@ -8,6 +8,8 @@
 namespace Cosmos.Cms
 {
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Security.Cryptography;
     using System.Text;
     using System.Threading.RateLimiting;
@@ -76,14 +78,23 @@ namespace Cosmos.Cms
             services.AddApplicationInsightsTelemetry();
 
             // The Cosmos connection string
+            // It has been the case in the past where Linux web apps want upper case variable names.
             var connectionString = Configuration.GetConnectionString("ApplicationDbContextConnection");
             if (string.IsNullOrEmpty(connectionString))
             {
-                throw new Exception("STARTUP: ApplicationDbContextConnection is null or empty.");
+                var list = Configuration.GetSection("ConnectionStrings").GetChildren();
+                var keys = new List<string>();
+                foreach (var item in list) 
+                {
+                    keys.Add(item.Key);
+                }
+
+                throw new Exception($"STARTUP: ApplicationDbContextConnection is null or empty. Did find: {string.Join(';', keys)}");
             }
 
             // Name of the Cosmos database to use
-            var cosmosIdentityDbName = Configuration.GetValue<string>("CosmosIdentityDbName");
+            var cosmosIdentityDbName = Configuration.GetValue<string>("CosmosIdentityDbName") ??
+                Configuration.GetValue<string>("CosmosIdentityDbName".ToUpper());
             if (string.IsNullOrEmpty(cosmosIdentityDbName))
             {
                 cosmosIdentityDbName = "cosmoscms";
@@ -114,7 +125,8 @@ namespace Cosmos.Cms
             }
 
             // Add the Cosmos database context here
-            var cosmosRegionName = Configuration.GetValue<string>("CosmosRegionName");
+            var cosmosRegionName = Configuration.GetValue<string>("CosmosRegionName") ?? 
+                Configuration.GetValue<string>("CosmosRegionName".ToUpper());
             if (string.IsNullOrEmpty(cosmosRegionName))
             {
                 services.AddDbContext<ApplicationDbContext>(options =>
@@ -135,7 +147,8 @@ namespace Cosmos.Cms
                 .AddDefaultTokenProviders();
 
             // Add shared data protection here
-            var blobConnection = Configuration.GetConnectionString("AzureBlobStorageConnectionString");
+            var blobConnection = Configuration.GetConnectionString("AzureBlobStorageConnectionString") ??
+                Configuration.GetConnectionString("AzureBlobStorageConnectionString".ToUpper());
             if (string.IsNullOrEmpty(blobConnection))
             {
                 throw new Exception("STARTUP: AzureBlobStorageConnectionString is null or empty");
