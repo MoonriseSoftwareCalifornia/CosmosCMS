@@ -85,13 +85,30 @@
                                 </div>
                                 <div class="form-check mb-4">
                                     @Html.HiddenFor(m => m.Input.AgreeToTerms)
+
+                                    <div style="font-size:8pt;">
+                                        <p>
+                                            Cosmos CMS is free software: you can use it, redistribute it, and/or modify
+                                            it under the terms of the  <a target="_blank" href="https://github.com/MoonriseSoftwareCalifornia/CosmosCMS?tab=GPL-3.0-1-ov-file#readme">
+                                                GNU General Public License Version 3
+                                            </a> as published by the
+                                            Free Software Foundation.
+                                        </p>
+                                        <p>
+                                            Cosmos CMS is distributed in the hope that it will be useful, but WITHOUT ANY
+                                            WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+                                            PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+                                        </p>
+                                        <p>Cosmos CMS &copy; @DateTime.UtcNow.Year <a target="_blank" href="https://www.moonrise.net">Moonrise Software LLC.</a></p>
+                                    </div>
+
                                     <input class="form-check-input" type="checkbox" value="true" id="chkTerms">
                                     <label class="form-check-label" for="flexCheckDefault">
-                                        Check here to indicate you have read and agree to our <a target="_blank" href="https://www.moonrise.net/Terms">Terms of Service</a> and
-                                        <a target="_blank" href="https://www.moonrise.net/User_Guidelines">User Guidelines</a>.
+                                        By checking this box, you agree to the terms and conditions of the GNU General
+                                        Public License Version 3.
                                     </label>
-                                    <span id="msgPleaseCheck" class="badge badge-warning" style="display:none">Please check before continuing.</span>
                                 </div>
+                                <h5 id="msgPleaseCheck" class="mt-4" style="display:none">Please check the box before continuing.</h5>
                                 <button type="submit" class="btn btn-dark">Create account</button>
                             </form>
                         </section>
