@@ -2,15 +2,15 @@
 
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
-		<AssemblyVersion>8.0.6.4</AssemblyVersion>
-		<FileVersion>8.0.6.4</FileVersion>
+		<AssemblyVersion>8.0.6.5</AssemblyVersion>
+		<FileVersion>8.0.6.5</FileVersion>
 		<Nullable>disable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<UserSecretsId>aspnet-Cosmos.Cms.Publisher-F1D91233-1093-41F8-B23F-43E81E1454FF</UserSecretsId>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 		<EnableSdkContainerSupport>true</EnableSdkContainerSupport>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
-		<Version>8.0.6.4</Version>
+		<Version>8.0.6.5</Version>
 		<DockerfileContext>..\..\..</DockerfileContext>
 	</PropertyGroup>
 
@@ -50,7 +50,7 @@
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.MicrosoftAccount" Version="8.0.8" />
 		<PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.8" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.8" />
-		<PackageReference Include="Microsoft.Extensions.Caching.Cosmos" Version="1.6.1" />
+		<PackageReference Include="Microsoft.Extensions.Caching.Cosmos" Version="1.6.2" />
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
 		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
 		  <PrivateAssets>all</PrivateAssets>

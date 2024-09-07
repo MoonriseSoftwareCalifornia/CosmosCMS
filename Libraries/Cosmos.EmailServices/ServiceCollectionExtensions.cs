@@ -18,7 +18,6 @@ namespace Cosmos.EmailServices
     /// </summary>
     public static class ServiceCollectionExtensions
     {
-
         /// <summary>
         /// Adds the Cosmos Email Services to the services collection.
         /// </summary>
@@ -29,11 +28,7 @@ namespace Cosmos.EmailServices
         /// </remarks>
         public static void AddCosmosEmailServices(this IServiceCollection services, IConfiguration configuration)
         {
-            var adminEmail = configuration.GetValue<string>("AdminEmail");
-            if (adminEmail == null)
-            {
-                throw new ConfigurationErrorsException("No AdminEmail configuration found.");
-            }
+            var adminEmail = configuration.GetValue<string>("AdminEmail") ?? throw new ConfigurationErrorsException("No AdminEmail configuration found.");
 
             // Attempt to add SMTP Email Provider.
             try
