@@ -7,6 +7,14 @@
       "destination": "wwwroot/lib/bootstrap"
     },
     {
+      "library": "cropperjs@1.6.2",
+      "destination": "/wwwroot/lib/cropperjs"
+    },
+    {
+      "library": "jquery-cropper@1.0.1",
+      "destination": "/wwwroot/lib/jquery-cropper"
+    },
+    {
       "library": "jquery-validate@1.21.0",
       "destination": "wwwroot/lib/jquery-validate"
     },

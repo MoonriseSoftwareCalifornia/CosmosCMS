@@ -14,7 +14,7 @@
         "webAppPlanChoice": {
             "type": "string",
             "defaultValue": "Basic Tier",
-            "allowedValues": [ "Basic Tier", "Premium Tier" ]
+            "allowedValues": [ "Free Tier", "Shared Tier", "Basic Tier", "Standard Tier", "Premium Tier" ]
         },
         "storageAccountType": {
             "type": "string",
@@ -120,7 +120,11 @@
                 "targetWorkerCount": 0,
                 "targetWorkerSizeId": 0,
                 "zoneRedundant": false
-            }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts', toLower(variables('accountName')))]"
+            ]
         },
         {
             "type": "Microsoft.Web/sites",
@@ -128,7 +132,8 @@
             "name": "[variables('editorName')]",
             "location": "[variables('location')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]"
+                "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
             ],
             "kind": "app,linux,container",
             "identity": {

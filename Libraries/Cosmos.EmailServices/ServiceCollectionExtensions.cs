@@ -71,6 +71,9 @@ namespace Cosmos.EmailServices
                 services.AddSendGridEmailProvider(sendGridOptions);
                 return;
             }
+
+            // Add a NoOp Email Sender.
+            services.AddNoOpEmailSender();
         }
 
         /// <summary>
@@ -104,6 +107,15 @@ namespace Cosmos.EmailServices
         {
             services.AddSingleton(Options.Create(options));
             services.AddTransient<IEmailSender, SmtpEmailSender>();
+        }
+
+        /// <summary>
+        /// Adds a NoOp Email Sender to the services collection.
+        /// </summary>
+        /// <param name="services">Startup services collection.</param>
+        public static void AddNoOpEmailSender(this IServiceCollection services)
+        {
+            services.AddTransient<IEmailSender, CosmosNoOpEmailSender>();
         }
     }
 }
