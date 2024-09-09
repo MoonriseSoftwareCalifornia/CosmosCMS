@@ -75,6 +75,17 @@ namespace Cosmos.Cms.Common.Services.Configurations
         public string DnsNames { get; set; } = string.Empty;
 
         /// <summary>
+        ///     Gets a value indicating whether gets whether to use default credentials to authenticate with CDN.
+        /// </summary>
+        public bool UseDefaultCredentials
+        {
+            get
+            {
+                return string.IsNullOrEmpty(this.ClientId) || string.IsNullOrEmpty(this.ClientSecret);
+            }
+        }
+
+        /// <summary>
         /// Indicates if CDN integration is configured.
         /// </summary>
         /// <returns>If true then a CDN or Front Door integration is configured.</returns>

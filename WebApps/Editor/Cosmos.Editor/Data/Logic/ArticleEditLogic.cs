@@ -852,8 +852,17 @@ namespace Cosmos.Cms.Data.Logic
             // Check for Azure Frontdoor, if available use that.
             if (azureCdnConfig.IsFrontDoorConfigured())
             {
-                var token = new ClientSecretCredential(azureCdnConfig.TenantId, azureCdnConfig.ClientId, azureCdnConfig.ClientSecret);
-                ArmClient client = new(token);
+                ArmClient client;
+
+                if (azureCdnConfig.UseDefaultCredentials)
+                {
+                    client = new ArmClient(new DefaultAzureCredential());
+                }
+                else
+                {
+                    var token = new ClientSecretCredential(azureCdnConfig.TenantId, azureCdnConfig.ClientId, azureCdnConfig.ClientSecret);
+                    client = new ArmClient(token);
+                }
 
                 var frontendEndpointResourceId = FrontDoorEndpointResource.CreateResourceIdentifier(
                     azureCdnConfig.SubscriptionId,
