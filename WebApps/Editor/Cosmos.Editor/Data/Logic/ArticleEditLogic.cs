@@ -849,21 +849,21 @@ namespace Cosmos.Cms.Data.Logic
         {
             purgeUrls = purgeUrls.Distinct().Select(s => s.Trim('/')).Select(s => s.Equals("root") ? "/" : "/" + s).ToList();
 
+            ArmClient client;
+
+            if (azureCdnConfig.UseDefaultCredentials)
+            {
+                client = new ArmClient(new DefaultAzureCredential());
+            }
+            else
+            {
+                var token = new ClientSecretCredential(azureCdnConfig.TenantId, azureCdnConfig.ClientId, azureCdnConfig.ClientSecret);
+                client = new ArmClient(token);
+            }
+
             // Check for Azure Frontdoor, if available use that.
             if (azureCdnConfig.IsFrontDoorConfigured())
             {
-                ArmClient client;
-
-                if (azureCdnConfig.UseDefaultCredentials)
-                {
-                    client = new ArmClient(new DefaultAzureCredential());
-                }
-                else
-                {
-                    var token = new ClientSecretCredential(azureCdnConfig.TenantId, azureCdnConfig.ClientId, azureCdnConfig.ClientSecret);
-                    client = new ArmClient(token);
-                }
-
                 var frontendEndpointResourceId = FrontDoorEndpointResource.CreateResourceIdentifier(
                     azureCdnConfig.SubscriptionId,
                     azureCdnConfig.ResourceGroup,
@@ -885,9 +885,6 @@ namespace Cosmos.Cms.Data.Logic
             }
             else if (azureCdnConfig.IsCdnConfigured())
             {
-                var token = new ClientSecretCredential(azureCdnConfig.TenantId, azureCdnConfig.ClientId, azureCdnConfig.ClientSecret);
-                ArmClient client = new (token);
-
                 var cdnResource = CdnEndpointResource.CreateResourceIdentifier(
                     azureCdnConfig.SubscriptionId,
                     azureCdnConfig.ResourceGroup,
