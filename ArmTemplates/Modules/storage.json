@@ -32,6 +32,14 @@
                 "name": "[if(equals(parameters('storageAccountType'), 'Locally-redundant storage'), 'Standard_LRS', 'Standard_RAGRS')]",
                 "tier": "Standard"
             }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+            "apiVersion": "2021-04-01",
+            "name": "[format('{0}/default/{1}', variables('storageAccountName'), '$web')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+            ]
         }
     ]
 }
