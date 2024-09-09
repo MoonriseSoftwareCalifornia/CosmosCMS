@@ -13,8 +13,8 @@
         },
         "webAppPlanChoice": {
             "type": "string",
-            "defaultValue": "Basic Tier",
-            "allowedValues": [ "Free Tier", "Shared Tier", "Basic Tier", "Standard Tier", "Premium Tier" ]
+            "defaultValue": "Premium Tier",
+            "allowedValues": [ "Free Tier", "Shared Tier", "Basic Tier", "Premium Tier" ]
         },
         "storageAccountType": {
             "type": "string",
@@ -41,7 +41,8 @@
         "storageAccountType": "[parameters('storageAccountType')]",
         "editorName": "[concat('editor-', uniquestring(resourceGroup().id))]",
         "publisherName": "[concat('publisher-', uniquestring(resourceGroup().id))]",
-        "databaseName": "cosmoscms"
+        "databaseName": "cosmoscms",
+        "azureCommunicationConnection": ""
     },
     "resources": [
         {
@@ -225,7 +226,7 @@
                             "type": "Custom"
                         },
                         "AzureCommunicationConnection": {
-                            "value": "",
+                            "value": "[variables('azureCommunicationConnection')]",
                             "type": "Custom"
                         }
                     }
