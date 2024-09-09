@@ -5,7 +5,7 @@
         "description": "Installs the Cosmos CMS integrated with Azure Email Communication Services."
     },
     "parameters": {
-        "noReplyEmailAddress": {
+        "administratorReplyEmail": {
             "type": "string",
             "metadata": {
                 "description": "The 'no reply' email address from your Azure 'Email Communication Services Domain'."
@@ -44,7 +44,11 @@
         "storageAccountName": "[concat('files', uniquestring(resourceGroup().id))]",
         "editorName": "[concat('editor-', uniquestring(resourceGroup().id))]",
         "publisherName": "[concat('publisher-', uniquestring(resourceGroup().id))]",
-        "databaseName": "cosmoscms"
+        "databaseName": "cosmoscms",
+        "adminEmail": "[parameters('administratorReplyEmail')]",
+        "storageAccountType": "[parameters('storageAccountType')]",
+        "webAppPlanChoice": "[parameters('webAppPlanChoice')]",
+        "azureCommunicationsConnectionString": "[parameters('azureCommunicationsConnectionString')]"
     },
     "resources": [
         {
@@ -91,7 +95,7 @@
             "location": "[resourceGroup().location]",
             "kind": "StorageV2",
             "sku": {
-                "name": "[if(equals(parameters('storageAccountType'), 'Locally-redundant storage'), 'Standard_LRS', 'Standard_RAGRS')]",
+                "name": "[if(equals(variables('storageAccountType'), 'Locally-redundant storage'), 'Standard_LRS', 'Standard_RAGRS')]",
                 "tier": "Standard"
             }
         },
@@ -110,9 +114,9 @@
             "location": "[variables('location')]",
             "sku": {
                 "name": "[variables('webAppPlanSku')]",
-                "tier": "[concat(if(equals(parameters('webAppPlanChoice'), 'Free Tier'), 'Free', ''),if(equals(parameters('webAppPlanChoice'), 'Shared Tier'), 'Shared', ''),if(equals(parameters('webAppPlanChoice'), 'Basic Tier'), 'Basic', ''),if(equals(parameters('webAppPlanChoice'), 'Standard Tier'), 'Standard', ''))]",
+                "tier": "[concat(if(equals(variables('webAppPlanChoice'), 'Free Tier'), 'Free', ''),if(equals(variables('webAppPlanChoice'), 'Shared Tier'), 'Shared', ''),if(equals(variables('webAppPlanChoice'), 'Basic Tier'), 'Basic', ''),if(equals(variables('webAppPlanChoice'), 'Standard Tier'), 'Standard', ''))]",
                 "size": "[variables('webAppPlanSku')]",
-                "family": "[concat(if(equals(parameters('webAppPlanChoice'), 'Free Tier'), 'F', ''),if(equals(parameters('webAppPlanChoice'), 'Shared Tier'), 'D', ''),if(equals(parameters('webAppPlanChoice'), 'Basic Tier'), 'B', ''),if(equals(parameters('webAppPlanChoice'), 'Standard Tier'), 'S', ''))]",
+                "family": "[concat(if(equals(variables('webAppPlanChoice'), 'Free Tier'), 'F', ''),if(equals(variables('webAppPlanChoice'), 'Shared Tier'), 'D', ''),if(equals(variables('webAppPlanChoice'), 'Basic Tier'), 'B', ''),if(equals(variables('webAppPlanChoice'), 'Standard Tier'), 'S', ''))]",
                 "capacity": 1
             },
             "kind": "linux",
@@ -193,7 +197,7 @@
                     },
                     "properties": {
                         "AzureBlobStorageEndPoint": "[reference(concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName')), '2018-07-01').primaryEndpoints.web]",
-                        "AdminEmail": "[parameters('noReplyEmailAddress')]",
+                        "AdminEmail": "[variables('adminEmail')]",
                         "CosmosAllowSetup": "true",
                         "AllowLocalAccounts": "true",
                         "CosmosSendGridApiKey": "",
@@ -227,7 +231,7 @@
                             "type": "Custom"
                         },
                         "AzureCommunicationConnection": {
-                            "value": "[parameters('azureCommunicationsConnectionString')]",
+                            "value": "[variables('azureCommunicationsConnectionString')]",
                             "type": "Custom"
                         }
                     }
@@ -384,7 +388,7 @@
                         "displayName": "appsettings"
                     },
                     "properties": {
-                        "AdminEmail": "[parameters('noReplyEmailAddress')]",
+                        "AdminEmail": "[variables('adminEmail')]",
                         "AllowLocalAccounts": "true",
                         "AzureBlobStorageEndPoint": "[reference(concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName')), '2018-07-01').primaryEndpoints.web]",
                         "CosmosRequiresAuthentication": "false",
@@ -417,7 +421,7 @@
                             "type": "Custom"
                         },
                         "AzureCommunicationConnection": {
-                            "value": "[parameters('azureCommunicationsConnectionString')]",
+                            "value": "[variables('azureCommunicationsConnectionString')]",
                             "type": "Custom"
                         }
                     }

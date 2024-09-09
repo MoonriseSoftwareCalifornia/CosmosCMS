@@ -30,11 +30,15 @@
     },
     "functions": [],
     "variables": {
+        "adminEmail": "[parameters('administratorReplyEmail')]",
         "webAppPlanSku": "[concat(if(equals(parameters('webAppPlanChoice'), 'Free Tier'), 'F1', ''),if(equals(parameters('webAppPlanChoice'), 'Shared Tier'), 'D1', ''),if(equals(parameters('webAppPlanChoice'), 'Basic Tier'), 'B1', ''), if(equals(parameters('webAppPlanChoice'), 'Standard Tier'), 'S1', ''), if(equals(parameters('webAppPlanChoice'), 'Premium Tier'), 'P0v3', ''))]",
+        "webAppTier": "[concat(if(equals(parameters('webAppPlanChoice'), 'Free Tier'), 'Free', ''),if(equals(parameters('webAppPlanChoice'), 'Shared Tier'), 'Shared', ''),if(equals(parameters('webAppPlanChoice'), 'Basic Tier'), 'Basic', ''),if(equals(parameters('webAppPlanChoice'), 'Standard Tier'), 'Standard', ''))]",
+        "webAppFamily": "[concat(if(equals(parameters('webAppPlanChoice'), 'Free Tier'), 'F', ''),if(equals(parameters('webAppPlanChoice'), 'Shared Tier'), 'D', ''),if(equals(parameters('webAppPlanChoice'), 'Basic Tier'), 'B', ''),if(equals(parameters('webAppPlanChoice'), 'Standard Tier'), 'S', ''))]",
         "appServicePlanName": "[concat('appplan', uniquestring(resourceGroup().id))]",
         "location": "[resourceGroup().location]",
         "accountName": "[concat('cosmos', uniqueString(resourceGroup().id))]",
         "storageAccountName": "[concat('files', uniquestring(resourceGroup().id))]",
+        "storageAccountType": "[parameters('storageAccountType')]",
         "editorName": "[concat('editor-', uniquestring(resourceGroup().id))]",
         "publisherName": "[concat('publisher-', uniquestring(resourceGroup().id))]",
         "databaseName": "cosmoscms"
@@ -76,23 +80,24 @@
             ]
         },
         {
-            "name": "linkedStorageTemplate",
-            "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2022-09-01",
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                    "relativePath": "../Modules/storage.json"
-                },
-                "parameters": {
-                    "storageAccountName": {
-                        "value": "[variables('storageAccountName')]"
-                    },
-                    "location": {
-                        "value": "[variables('location')]"
-                    }
-                }
+            "name": "[variables('storageAccountName')]",
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2021-04-01",
+            "tags": {},
+            "location": "[resourceGroup().location]",
+            "kind": "StorageV2",
+            "sku": {
+                "name": "[if(equals(variables('storageAccountType'), 'Locally-redundant storage'), 'Standard_LRS', 'Standard_RAGRS')]",
+                "tier": "Standard"
             }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+            "apiVersion": "2021-04-01",
+            "name": "[format('{0}/default/{1}', variables('storageAccountName'), '$web')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+            ]
         },
         {
             "type": "Microsoft.Web/serverfarms",
@@ -101,9 +106,9 @@
             "location": "[variables('location')]",
             "sku": {
                 "name": "[variables('webAppPlanSku')]",
-                "tier": "[concat(if(equals(parameters('webAppPlanChoice'), 'Free Tier'), 'Free', ''),if(equals(parameters('webAppPlanChoice'), 'Shared Tier'), 'Shared', ''),if(equals(parameters('webAppPlanChoice'), 'Basic Tier'), 'Basic', ''),if(equals(parameters('webAppPlanChoice'), 'Standard Tier'), 'Standard', ''))]",
+                "tier": "[variables('webAppTier')]",
                 "size": "[variables('webAppPlanSku')]",
-                "family": "[concat(if(equals(parameters('webAppPlanChoice'), 'Free Tier'), 'F', ''),if(equals(parameters('webAppPlanChoice'), 'Shared Tier'), 'D', ''),if(equals(parameters('webAppPlanChoice'), 'Basic Tier'), 'B', ''),if(equals(parameters('webAppPlanChoice'), 'Standard Tier'), 'S', ''))]",
+                "family": "[variables('webAppFamily')]",
                 "capacity": 1
             },
             "kind": "linux",
@@ -186,7 +191,7 @@
                     },
                     "properties": {
                         "AzureBlobStorageEndPoint": "[reference(concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName')), '2018-07-01').primaryEndpoints.web]",
-                        "AdminEmail": "[parameters('administratorReplyEmail')]",
+                        "AdminEmail": "[variables('adminEmail')]",
                         "CosmosAllowSetup": "true",
                         "AllowLocalAccounts": "true",
                         "CosmosSendGridApiKey": "",
@@ -379,7 +384,7 @@
                         "displayName": "appsettings"
                     },
                     "properties": {
-                        "AdminEmail": "[parameters('administratorReplyEmail')]",
+                        "AdminEmail": "[variables('adminEmail')]",
                         "AllowLocalAccounts": "true",
                         "AzureBlobStorageEndPoint": "[reference(concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName')), '2018-07-01').primaryEndpoints.web]",
                         "CosmosRequiresAuthentication": "false",
