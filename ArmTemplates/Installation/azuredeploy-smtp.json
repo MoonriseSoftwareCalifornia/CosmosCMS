@@ -66,18 +66,29 @@
     },
     "functions": [],
     "variables": {
+        "allowLocalAccounts": "true",
+        "adminEmail": "[parameters('noReplyEmailAddress')]",
+        "cosmosSendGridApiKey": "",
         "webAppPlanSku": "[concat(if(equals(parameters('webAppPlanChoice'), 'Free Tier'), 'F1', ''),if(equals(parameters('webAppPlanChoice'), 'Shared Tier'), 'D1', ''),if(equals(parameters('webAppPlanChoice'), 'Basic Tier'), 'B1', ''), if(equals(parameters('webAppPlanChoice'), 'Standard Tier'), 'S1', ''), if(equals(parameters('webAppPlanChoice'), 'Premium Tier'), 'P0v3', ''))]",
+        "webAppTier": "[concat(if(equals(parameters('webAppPlanChoice'), 'Free Tier'), 'Free', ''),if(equals(parameters('webAppPlanChoice'), 'Shared Tier'), 'Shared', ''),if(equals(parameters('webAppPlanChoice'), 'Basic Tier'), 'Basic', ''),if(equals(parameters('webAppPlanChoice'), 'Standard Tier'), 'Standard', ''))]",
+        "webAppFamily": "[concat(if(equals(parameters('webAppPlanChoice'), 'Free Tier'), 'F', ''),if(equals(parameters('webAppPlanChoice'), 'Shared Tier'), 'D', ''),if(equals(parameters('webAppPlanChoice'), 'Basic Tier'), 'B', ''),if(equals(parameters('webAppPlanChoice'), 'Standard Tier'), 'S', ''))]",
         "appServicePlanName": "[concat('appplan', uniquestring(resourceGroup().id))]",
         "location": "[resourceGroup().location]",
         "accountName": "[concat('cosmos', uniqueString(resourceGroup().id))]",
+        "smtpEmailProviderOptions__Host": "[parameters('smtpHostName')]",
+        "smtpEmailProviderOptions__Port": "[parameters('smtpPort')]",
+        "smtpEmailProviderOptions__EnableSsl":"[parameters('smtpEnableSsl')]",
+        "smtpEmailProviderOptions__UserName": "[parameters('smtpUserName')]",
+        "smtpEmailProviderOptions__Password": "[parameters('smtpPassword')]",
         "storageAccountName": "[concat('files', uniquestring(resourceGroup().id))]",
+        "storageAccountType": "[parameters('storageAccountType')]",
         "editorName": "[concat('editor-', uniquestring(resourceGroup().id))]",
         "publisherName": "[concat('publisher-', uniquestring(resourceGroup().id))]",
-        "databaseName": "cosmoscms"
+        "databaseName": "cosmoscms",
+        "azureCommunicationConnection": ""
     },
     "resources": [
         {
-
             "type": "Microsoft.DocumentDB/databaseAccounts",
             "apiVersion": "2022-05-15",
             "name": "[toLower(variables('accountName'))]",
@@ -120,7 +131,7 @@
             "location": "[resourceGroup().location]",
             "kind": "StorageV2",
             "sku": {
-                "name": "[if(equals(parameters('storageAccountType'), 'Locally-redundant storage'), 'Standard_LRS', 'Standard_RAGRS')]",
+                "name": "[if(equals(variables('storageAccountType'), 'Locally-redundant storage'), 'Standard_LRS', 'Standard_RAGRS')]",
                 "tier": "Standard"
             }
         },
@@ -139,9 +150,9 @@
             "location": "[variables('location')]",
             "sku": {
                 "name": "[variables('webAppPlanSku')]",
-                "tier": "[concat(if(equals(parameters('webAppPlanChoice'), 'Free Tier'), 'Free', ''),if(equals(parameters('webAppPlanChoice'), 'Shared Tier'), 'Shared', ''),if(equals(parameters('webAppPlanChoice'), 'Basic Tier'), 'Basic', ''),if(equals(parameters('webAppPlanChoice'), 'Standard Tier'), 'Standard', ''))]",
+                "tier": "[variables('webAppTier')]",
                 "size": "[variables('webAppPlanSku')]",
-                "family": "[concat(if(equals(parameters('webAppPlanChoice'), 'Free Tier'), 'F', ''),if(equals(parameters('webAppPlanChoice'), 'Shared Tier'), 'D', ''),if(equals(parameters('webAppPlanChoice'), 'Basic Tier'), 'B', ''),if(equals(parameters('webAppPlanChoice'), 'Standard Tier'), 'S', ''))]",
+                "family": "[variables('webAppFamily')]",
                 "capacity": 1
             },
             "kind": "linux",
@@ -164,7 +175,9 @@
             "name": "[variables('editorName')]",
             "location": "[variables('location')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]"
+                "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts', toLower(variables('accountName')))]"
             ],
             "kind": "app,linux,container",
             "identity": {
@@ -192,7 +205,7 @@
                     "numberOfWorkers": 1,
                     "linuxFxVersion": "DOCKER|toiyabe/cosmos-editor:latest",
                     "acrUseManagedIdentityCreds": false,
-                    "alwaysOn": true,
+                    "alwaysOn": false,
                     "http20Enabled": true,
                     "functionAppScaleLimit": 0,
                     "minimumElasticInstanceCount": 1
@@ -222,17 +235,17 @@
                     },
                     "properties": {
                         "AzureBlobStorageEndPoint": "[reference(concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName')), '2018-07-01').primaryEndpoints.web]",
-                        "AdminEmail": "[parameters('noReplyEmailAddress')]",
+                        "AdminEmail": "[variables('adminEmail')]",
                         "CosmosAllowSetup": "true",
-                        "AllowLocalAccounts": "true",
-                        "CosmosSendGridApiKey": "",
+                        "AllowLocalAccounts": "[variables('allowLocalAccounts')]",
+                        "CosmosSendGridApiKey": "[variables('cosmosSendGridApiKey')]",
                         "CosmosPublisherUrl": "[concat('https://', variables('publisherName'), '.azurewebsites.net')]",
                         "CosmosBlobContainer": "$web",
-                        "SmtpEmailProviderOptions__Host": "[parameters('smtpHostName')]",
-                        "SmtpEmailProviderOptions__Port": "[parameters('smtpPort')]",
-                        "SmtpEmailProviderOptions__EnableSsl": "[parameters('smtpEnableSsl')]",
-                        "SmtpEmailProviderOptions__UserName": "[parameters('smtpUserName')]",
-                        "SmtpEmailProviderOptions__Password": "[parameters('smtpPassword')]",
+                        "SmtpEmailProviderOptions__Host": "[variables('smtpEmailProviderOptions__Host')]",
+                        "SmtpEmailProviderOptions__Port": "[variables('smtpEmailProviderOptions__Port')]",
+                        "SmtpEmailProviderOptions__EnableSsl": "[variables('smtpEmailProviderOptions__EnableSsl')]",
+                        "SmtpEmailProviderOptions__UserName": "[variables('smtpEmailProviderOptions__UserName')]",
+                        "SmtpEmailProviderOptions__Password": "[variables('smtpEmailProviderOptions__Password')]",
                         "DOCKER_REGISTRY_SERVER_PASSWORD": "",
                         "DOCKER_REGISTRY_SERVER_URL": "https://index.docker.io",
                         "DOCKER_REGISTRY_SERVER_USERNAME": "",
@@ -256,7 +269,7 @@
                             "type": "Custom"
                         },
                         "AzureCommunicationConnection": {
-                            "value": "",
+                            "value": "[variables('azureCommunicationConnection')]",
                             "type": "Custom"
                         }
                     }
@@ -293,11 +306,10 @@
                 "acrUseManagedIdentityCreds": false,
                 "logsDirectorySizeLimit": 35,
                 "detailedErrorLoggingEnabled": false,
-                "publishingUsername": "$editor-eesdpurhg47xy",
                 "scmType": "None",
                 "use32BitWorkerProcess": true,
                 "webSocketsEnabled": false,
-                "alwaysOn": true,
+                "alwaysOn": false,
                 "managedPipelineMode": "Integrated",
                 "virtualApplications": [
                     {
@@ -351,7 +363,9 @@
             "name": "[variables('publisherName')]",
             "location": "[variables('location')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]"
+                "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts', toLower(variables('accountName')))]"
             ],
             "kind": "app,linux,container",
             "properties": {
@@ -380,14 +394,7 @@
                     "http20Enabled": true,
                     "functionAppScaleLimit": 0,
                     "minimumElasticInstanceCount": 1,
-                    "healthCheckPath": "/Identity/Account/Login",
-                    "cors": {
-                        "allowedOrigins": [
-                            "[concat('https://', variables('editorName'))]",
-                            "[concat('https://', variables('publisherName'))]"
-                        ],
-                        "supportCredentials": false
-                    }
+                    "healthCheckPath": "/Identity/Account/Login"
                 },
                 "scmSiteAlsoStopped": false,
                 "clientAffinityEnabled": true,
@@ -413,16 +420,16 @@
                         "displayName": "appsettings"
                     },
                     "properties": {
-                        "AdminEmail": "[parameters('noReplyEmailAddress')]",
-                        "AllowLocalAccounts": "true",
+                        "AdminEmail": "[variables('adminEmail')]",
+                        "AllowLocalAccounts": "[variables('allowLocalAccounts')]",
                         "AzureBlobStorageEndPoint": "[reference(concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName')), '2018-07-01').primaryEndpoints.web]",
                         "CosmosRequiresAuthentication": "false",
-                        "CosmosSendGridApiKey": "",
-                        "SmtpEmailProviderOptions__Host": "[parameters('smtpHostName')]",
-                        "SmtpEmailProviderOptions__Port": "[parameters('smtpPort')]",
-                        "SmtpEmailProviderOptions__EnableSsl": "[parameters('smtpEnableSsl')]",
-                        "SmtpEmailProviderOptions__UserName": "[parameters('smtpUserName')]",
-                        "SmtpEmailProviderOptions__Password": "[parameters('smtpPassword')]",
+                        "CosmosSendGridApiKey": "[variables('cosmosSendGridApiKey')]",
+                        "SmtpEmailProviderOptions__Host": "[variables('smtpEmailProviderOptions__Host')]",
+                        "SmtpEmailProviderOptions__Port": "[variables('smtpEmailProviderOptions__Port')]",
+                        "SmtpEmailProviderOptions__EnableSsl": "[variables('smtpEmailProviderOptions__EnableSsl')]",
+                        "SmtpEmailProviderOptions__UserName": "[variables('smtpEmailProviderOptions__UserName')]",
+                        "SmtpEmailProviderOptions__Password": "[variables('smtpEmailProviderOptions__Password')]",
                         "DOCKER_REGISTRY_SERVER_PASSWORD": "",
                         "DOCKER_REGISTRY_SERVER_URL": "https://index.docker.io",
                         "DOCKER_REGISTRY_SERVER_USERNAME": "",
@@ -446,7 +453,7 @@
                             "type": "Custom"
                         },
                         "AzureCommunicationConnection": {
-                            "value": "",
+                            "value": "[variables('azureCommunicationConnection')]",
                             "type": "Custom"
                         }
                     }
@@ -483,7 +490,6 @@
                 "acrUseManagedIdentityCreds": false,
                 "logsDirectorySizeLimit": 35,
                 "detailedErrorLoggingEnabled": false,
-                "publishingUsername": "$publisher-eesdpurhg47xy",
                 "scmType": "None",
                 "use32BitWorkerProcess": true,
                 "webSocketsEnabled": false,
@@ -503,13 +509,6 @@
                 "autoHealEnabled": false,
                 "vnetRouteAllEnabled": false,
                 "vnetPrivatePortsCount": 0,
-                "cors": {
-                    "allowedOrigins": [
-                        "https://editor-eesdpurhg47xy",
-                        "https://publisher-eesdpurhg47xy"
-                    ],
-                    "supportCredentials": false
-                },
                 "localMySqlEnabled": false,
                 "ipSecurityRestrictions": [
                     {
