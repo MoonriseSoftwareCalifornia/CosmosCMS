@@ -543,5 +543,10 @@
             }
         }
     ],
-    "outputs": {}
+    "outputs": {
+        "outBoundIpAddresses": {
+            "type": "string",
+            "value": "[concat('IMPORTANT: Your email provider may require IP address to be white-listed for email to be sent.  Please add these IP addresses to your provider account: ', reference(concat('Microsoft.Web/sites/', variables('editorName'))).properties.possibleOutboundIpAddresses)]"
+        }
+    }
 }
