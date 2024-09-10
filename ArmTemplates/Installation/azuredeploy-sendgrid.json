@@ -516,7 +516,7 @@
     "outputs": {
         "outBoundIpAddresses": {
             "type": "string",
-            "value": "[concat('IMPORTANT: SendGrid requires IP address to be white-listed for email to be sent.  Please add these IP addresses to your SendGrid account: ', reference(concat('Microsoft.Web/sites/', variables('editorName'))).properties.outboundIpAddresses)]"
+            "value": "[concat('IMPORTANT: SendGrid requires IP address to be white-listed for email to be sent.  Please add these IP addresses to your SendGrid account: ', reference(concat('Microsoft.Web/sites/', variables('editorName'))).properties.possibleOutboundIpAddresses)]"
         }
     }
 }
