@@ -77,7 +77,7 @@
         "accountName": "[concat('cosmos', uniqueString(resourceGroup().id))]",
         "smtpEmailProviderOptions__Host": "[parameters('smtpHostName')]",
         "smtpEmailProviderOptions__Port": "[parameters('smtpPort')]",
-        "smtpEmailProviderOptions__EnableSsl":"[parameters('smtpEnableSsl')]",
+        "smtpEmailProviderOptions__EnableSsl": "[parameters('smtpEnableSsl')]",
         "smtpEmailProviderOptions__UserName": "[parameters('smtpUserName')]",
         "smtpEmailProviderOptions__Password": "[parameters('smtpPassword')]",
         "storageAccountName": "[concat('files', uniquestring(resourceGroup().id))]",
@@ -542,10 +542,5 @@
             }
         }
     ],
-    "outputs": {
-        "outBoundIpAddresses": {
-            "type": "string",
-            "value": "[concat('IMPORTANT: Your email provider may require IP address to be white-listed for email to be sent.  Please add these IP addresses to your provider account: ', reference(concat('Microsoft.Web/sites/', variables('editorName'))).properties.possibleOutboundIpAddresses)]"
-        }
-    }
+    "outputs": {}
 }
