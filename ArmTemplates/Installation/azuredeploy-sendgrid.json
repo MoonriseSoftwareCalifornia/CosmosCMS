@@ -48,7 +48,7 @@
         "accountName": "[concat('cosmos', uniqueString(resourceGroup().id))]",
         "smtpEmailProviderOptions__Host": "",
         "smtpEmailProviderOptions__Port": "",
-        "smtpEmailProviderOptions__EnableSsl":"",
+        "smtpEmailProviderOptions__EnableSsl": "",
         "smtpEmailProviderOptions__UserName": "",
         "smtpEmailProviderOptions__Password": "",
         "storageAccountName": "[concat('files', uniquestring(resourceGroup().id))]",
@@ -513,5 +513,10 @@
             }
         }
     ],
-    "outputs": {}
+    "outputs": {
+        "outBoundIpAddresses": {
+            "type": "string",
+            "value": "[concat('SendGrid requires IP address to be white-listed for email to be sent.  Please add these IP addresses to your SendGrid account: ', reference(concat('Microsoft.Web/sites/', variables('editorName'))).properties.outboundIpAddresses)]"
+        }
+    }
 }
