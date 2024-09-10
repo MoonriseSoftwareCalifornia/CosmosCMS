@@ -32,7 +32,6 @@
     "variables": {
         "adminEmail": "[parameters('administratorReplyEmail')]",
         "cosmosSendGridApiKey": "",
-        "cosmosRequiresAuthentication": "false",
         "webAppPlanSku": "[concat(if(equals(parameters('webAppPlanChoice'), 'Free Tier'), 'F1', ''),if(equals(parameters('webAppPlanChoice'), 'Shared Tier'), 'D1', ''),if(equals(parameters('webAppPlanChoice'), 'Basic Tier'), 'B1', ''), if(equals(parameters('webAppPlanChoice'), 'Standard Tier'), 'S1', ''), if(equals(parameters('webAppPlanChoice'), 'Premium Tier'), 'P0v3', ''))]",
         "webAppTier": "[concat(if(equals(parameters('webAppPlanChoice'), 'Free Tier'), 'Free', ''),if(equals(parameters('webAppPlanChoice'), 'Shared Tier'), 'Shared', ''),if(equals(parameters('webAppPlanChoice'), 'Basic Tier'), 'Basic', ''),if(equals(parameters('webAppPlanChoice'), 'Standard Tier'), 'Standard', ''))]",
         "webAppFamily": "[concat(if(equals(parameters('webAppPlanChoice'), 'Free Tier'), 'F', ''),if(equals(parameters('webAppPlanChoice'), 'Shared Tier'), 'D', ''),if(equals(parameters('webAppPlanChoice'), 'Basic Tier'), 'B', ''),if(equals(parameters('webAppPlanChoice'), 'Standard Tier'), 'S', ''))]",
@@ -388,7 +387,7 @@
                         "AdminEmail": "[variables('adminEmail')]",
                         "AllowLocalAccounts": "[variables('allowLocalAccounts')]",
                         "AzureBlobStorageEndPoint": "[reference(concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName')), '2018-07-01').primaryEndpoints.web]",
-                        "CosmosRequiresAuthentication": "[variables('cosmosRequiresAuthentication')]",
+                        "CosmosRequiresAuthentication": "false",
                         "CosmosSendGridApiKey": "[variables('cosmosSendGridApiKey')]",
                         "SmtpEmailProviderOptions__Host": "[variables('smtpEmailProviderOptions__Host')]",
                         "SmtpEmailProviderOptions__Port": "[variables('smtpEmailProviderOptions__Port')]",
