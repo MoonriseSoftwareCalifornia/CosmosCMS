@@ -5,7 +5,7 @@
         "description": "Installs the Cosmos CMS without an Email provider."
     },
     "parameters": {
-        "administratorReplyEmail": {
+        "yourEmailAddress": {
             "type": "string",
             "metadata": {
                 "description": "Enter your email address."
@@ -14,7 +14,7 @@
         "webAppPlanChoice": {
             "type": "string",
             "defaultValue": "Premium Tier",
-            "allowedValues": [ "Free Tier", "Shared Tier", "Basic Tier", "Premium Tier" ]
+            "allowedValues": [ "Free Tier", "Basic Tier", "Premium Tier" ]
         },
         "storageAccountType": {
             "type": "string",
@@ -30,7 +30,8 @@
     },
     "functions": [],
     "variables": {
-        "adminEmail": "[parameters('administratorReplyEmail')]",
+        "allowLocalAccounts": "true",
+        "adminEmail": "[parameters('yourEmailAddress')]",
         "cosmosSendGridApiKey": "",
         "webAppPlanSku": "[concat(if(equals(parameters('webAppPlanChoice'), 'Free Tier'), 'F1', ''),if(equals(parameters('webAppPlanChoice'), 'Shared Tier'), 'D1', ''),if(equals(parameters('webAppPlanChoice'), 'Basic Tier'), 'B1', ''), if(equals(parameters('webAppPlanChoice'), 'Standard Tier'), 'S1', ''), if(equals(parameters('webAppPlanChoice'), 'Premium Tier'), 'P0v3', ''))]",
         "webAppTier": "[concat(if(equals(parameters('webAppPlanChoice'), 'Free Tier'), 'Free', ''),if(equals(parameters('webAppPlanChoice'), 'Shared Tier'), 'Shared', ''),if(equals(parameters('webAppPlanChoice'), 'Basic Tier'), 'Basic', ''),if(equals(parameters('webAppPlanChoice'), 'Standard Tier'), 'Standard', ''))]",
@@ -48,8 +49,7 @@
         "editorName": "[concat('editor-', uniquestring(resourceGroup().id))]",
         "publisherName": "[concat('publisher-', uniquestring(resourceGroup().id))]",
         "databaseName": "cosmoscms",
-        "azureCommunicationConnection": "",
-        "allowLocalAccounts": "true"
+        "azureCommunicationConnection": ""
     },
     "resources": [
         {

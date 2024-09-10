@@ -28,6 +28,8 @@ namespace Cosmos.Cms
     using Cosmos.EmailServices;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.DataProtection;
+    using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
+    using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.HttpOverrides;
     using Microsoft.AspNetCore.Identity;
@@ -85,7 +87,7 @@ namespace Cosmos.Cms
                 // This is a check for that.
                 var list = Configuration.GetSection("ConnectionStrings").GetChildren();
                 var keys = new List<string>();
-                foreach (var item in list) 
+                foreach (var item in list)
                 {
                     keys.Add(item.Key);
                 }
@@ -125,7 +127,7 @@ namespace Cosmos.Cms
             }
 
             // Add the Cosmos database context here
-            var cosmosRegionName = Configuration.GetValue<string>("CosmosRegionName") ?? 
+            var cosmosRegionName = Configuration.GetValue<string>("CosmosRegionName") ??
                 Configuration.GetValue<string>("CosmosRegionName".ToUpper());
             if (string.IsNullOrEmpty(cosmosRegionName))
             {
@@ -155,7 +157,12 @@ namespace Cosmos.Cms
 
             var container = new BlobContainerClient(blobConnection, "ekyes");
             container.CreateIfNotExists();
-            services.AddDataProtection().PersistKeysToAzureBlobStorage(container.GetBlobClient("keys.xml"));
+            services.AddDataProtection().UseCryptographicAlgorithms(
+                new AuthenticatedEncryptorConfiguration
+                {
+                    EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
+                    ValidationAlgorithm = ValidationAlgorithm.HMACSHA256
+                }).PersistKeysToAzureBlobStorage(container.GetBlobClient("keys.xml"));
 
             // ===========================================================
             // SUPPORTED OAuth Providers
