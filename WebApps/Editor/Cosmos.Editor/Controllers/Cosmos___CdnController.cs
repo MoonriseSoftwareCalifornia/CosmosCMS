@@ -40,10 +40,10 @@
         /// GEts the indext page.
         /// </summary>
         /// <returns>IActionResult</returns>
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             ViewData["Operation"] = null;
-            return View(GetCdnConfiguration());
+            return View(await GetCdnConfiguration());
         }
 
         /// <summary>
@@ -180,12 +180,12 @@
         {
             var cdnConfiguration = await dbContext.Settings.Where(f => f.Group == GROUPNAME).ToListAsync();
 
-            if (cdnConfiguration == null)
+            if (!cdnConfiguration.Any())
             {
-                return new AzureCdnConfig();
+                return new Cosmos.Editor.Services.AzureCdnConfig();
             }
 
-            return new AzureCdnConfig()
+            return new Cosmos.Editor.Services.AzureCdnConfig()
             {
                 ProfileName = cdnConfiguration.FirstOrDefault(f => f.Name == "ProfileName").Value,
                 ResourceGroup = cdnConfiguration.FirstOrDefault(f => f.Name == "ResourceGroupName").Value,
