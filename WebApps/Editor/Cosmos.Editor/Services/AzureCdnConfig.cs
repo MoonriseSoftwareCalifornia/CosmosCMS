@@ -5,116 +5,61 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
-namespace Cosmos.Cms.Common.Services.Configurations
+namespace Cosmos.Editor.Services
 {
+    using System;
     using System.ComponentModel.DataAnnotations;
-    using Cosmos.Common.Services.Configurations;
 
     /// <summary>
     ///     Configuration for Azure Front Door, Edgio or Microsoft CDN.
     /// </summary>
-    public class AzureCdnConfig : OAuth
+    public class AzureCdnConfig
     {
-        /// <summary>
-        ///     Gets or sets subscription Id.
-        /// </summary>
-        [Display(Name = "Subscription Id")]
-        public string SubscriptionId { get; set; } = string.Empty;
-
-        /// <summary>
-        ///     Gets or sets tenant Id.
-        /// </summary>
-        [Display(Name = "Tenant Id")]
-        public string TenantId { get; set; } = string.Empty;
-
-        /// <summary>
-        ///     Gets or sets azure Resource Group.
-        /// </summary>
-        [Display(Name = "Azure Resource Group")]
-        public string ResourceGroup { get; set; } = string.Empty;
-
         /// <summary>
         ///     Gets or sets end Point Name.
         /// </summary>
         [Display(Name = "End Point Name")]
+        [Required(AllowEmptyStrings = false, ErrorMessage = "End Point Name is required.")]
         public string EndPointName { get; set; } = string.Empty;
 
         /// <summary>
-        ///     Gets or sets CDN Provider Name.
+        /// Gets or sets a value indicating whether this is Azure frontdoor.
         /// </summary>
-        /// <remarks>Supported includes: Front Door, Microsoft or Edgio.</remarks>
-        [Display(Name = "CDN Provider Name")]
-        public string CdnProvider { get; set; } = string.Empty;
-
-        // ===========================================================
-        // Edgio or Microsoft speciifc fields.
+        [Display(Name = "Is Azure Front Door?")]
+        public bool IsFrontDoor { get; set; } = false;
 
         /// <summary>
-        ///     Gets or sets tenant Domain Name.
+        /// Gets or sets the CDN profile name.
         /// </summary>
-        [Display(Name = "Tenant Domain Name")]
-        public string TenantDomainName { get; set; } = string.Empty;
+        [Display(Name = "Profile Name")]
+        [Required(AllowEmptyStrings = false, ErrorMessage = "Profile Name is required.")]
+        public string ProfileName { get; set; } = string.Empty;
 
         /// <summary>
-        ///     Gets or sets CDN Profile Name.
+        ///     Gets or sets azure Resource Group.
         /// </summary>
-        [Display(Name = "CDN Profile Name")]
-        public string CdnProfileName { get; set; } = string.Empty;
-
-        // ===========================================================
-        // Front Door specific properties if not Edgio or Microsoft.
+        [Display(Name = "Resource Group Name")]
+        [Required(AllowEmptyStrings = false, ErrorMessage = "Resource Group Name is required.")]
+        public string ResourceGroup { get; set; } = string.Empty;
 
         /// <summary>
-        /// Gets or sets frontdoor name.
+        ///     Gets or sets subscription Id.
         /// </summary>
-        public string FrontDoorName { get; set; } = string.Empty;
-
-        /// <summary>
-        /// Gets or sets comma delimited list of DNS names to purge.
-        /// </summary>
-        public string DnsNames { get; set; } = string.Empty;
-
-        /// <summary>
-        ///     Gets a value indicating whether gets whether to use default credentials to authenticate with CDN.
-        /// </summary>
-        public bool UseDefaultCredentials
-        {
-            get
-            {
-                return string.IsNullOrEmpty(this.ClientId) || string.IsNullOrEmpty(this.ClientSecret);
-            }
-        }
+        [Display(Name = "Subscription Id")]
+        [Required(ErrorMessage = "Resource Group Name is required.")]
+        public Guid? SubscriptionId { get; set; }
 
         /// <summary>
         /// Indicates if CDN integration is configured.
         /// </summary>
         /// <returns>If true then a CDN or Front Door integration is configured.</returns>
-        public override bool IsConfigured()
+        public bool IsConfigured()
         {
-            return base.IsConfigured()
-                && SubscriptionId != string.Empty
-                && TenantId != string.Empty
+            return ProfileName != string.Empty
+                && SubscriptionId != null
                 && ResourceGroup != string.Empty
-                && EndPointName != string.Empty
-                && CdnProvider != string.Empty;
+                && EndPointName != string.Empty;
         }
 
-        /// <summary>
-        /// Indicates if CDN (Edgio or Microsoft) is configured.
-        /// </summary>
-        /// <returns>Returns true if configured.</returns>
-        public bool IsCdnConfigured()
-        {
-            return IsConfigured() && TenantDomainName != string.Empty && CdnProfileName != string.Empty;
-        }
-
-        /// <summary>
-        /// Indicates if Front Door is configured.
-        /// </summary>
-        /// <returns>Returns true if configured.</returns>
-        public bool IsFrontDoorConfigured()
-        {
-            return IsConfigured() && FrontDoorName != string.Empty && DnsNames != string.Empty;
-        }
     }
 }

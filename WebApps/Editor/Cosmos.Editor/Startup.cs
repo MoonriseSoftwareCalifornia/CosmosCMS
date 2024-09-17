@@ -39,6 +39,7 @@ namespace Cosmos.Cms
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Newtonsoft.Json.Serialization;
+    using Cosmos.Editor.Services;
 
     /// <summary>
     ///     Startup class for the website.

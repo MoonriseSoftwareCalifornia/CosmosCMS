@@ -68,6 +68,11 @@ namespace Cosmos.Cms.Common.Services.Configurations
         public StorageConfig StorageConfig { get; set; }
 
         /// <summary>
+        ///    Gets or sets a value indicating whether to use static website for the publisher
+        /// </summary>
+        public bool UseStaticPublisherWebsite { get; set; } = false;
+
+        /// <summary>
         ///     Gets or sets environment Variable Name.
         /// </summary>
         [RegularExpression(@"^[0-9, a-z, A-Z]{1,40}$", ErrorMessage = "Secret name can only contain numbers and letters.")]

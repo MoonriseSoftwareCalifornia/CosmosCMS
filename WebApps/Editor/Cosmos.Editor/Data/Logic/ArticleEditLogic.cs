@@ -23,6 +23,7 @@ namespace Cosmos.Cms.Data.Logic
     using Cosmos.Common.Data;
     using Cosmos.Common.Data.Logic;
     using Cosmos.Common.Models;
+    using Cosmos.Editor.Services;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.Extensions.Logging;
@@ -574,6 +575,13 @@ namespace Cosmos.Cms.Data.Logic
             // Make sure this saves now
             await DbContext.SaveChangesAsync();
 
+            // If we are publishing this to a static website, write it
+            // to the blob storage now.
+            if (this.CosmosOptions.Value.UseStaticPublisherWebsite)
+            {
+
+            }
+
             // IMPORTANT!
             // Handle title (and URL) changes for existing 
             await HandleTitleChange(article, oldTitle);
@@ -849,65 +857,60 @@ namespace Cosmos.Cms.Data.Logic
         {
             purgeUrls = purgeUrls.Distinct().Select(s => s.Trim('/')).Select(s => s.Equals("root") ? "/" : "/" + s).ToList();
 
-            ArmClient client;
+            ArmClient client = new ArmClient(new DefaultAzureCredential());
 
-            if (azureCdnConfig.UseDefaultCredentials)
+            try
             {
-                client = new ArmClient(new DefaultAzureCredential());
-            }
-            else
-            {
-                var token = new ClientSecretCredential(azureCdnConfig.TenantId, azureCdnConfig.ClientId, azureCdnConfig.ClientSecret);
-                client = new ArmClient(token);
-            }
-
-            // Check for Azure Frontdoor, if available use that.
-            if (azureCdnConfig.IsFrontDoorConfigured())
-            {
-                var frontendEndpointResourceId = FrontDoorEndpointResource.CreateResourceIdentifier(
-                    azureCdnConfig.SubscriptionId,
-                    azureCdnConfig.ResourceGroup,
-                    azureCdnConfig.FrontDoorName,
-                    azureCdnConfig.EndPointName);
-
-                var frontDoor = client.GetFrontDoorEndpointResource(frontendEndpointResourceId);
-
-                var purgeContent = new FrontDoorPurgeContent(purgeUrls);
-                var domains = azureCdnConfig.DnsNames.Split(',');
-                foreach (var domain in domains)
+                // Check for Azure Frontdoor, if available use that.
+                if (azureCdnConfig.IsConfigured() && azureCdnConfig.IsFrontDoor)
                 {
-                    purgeContent.Domains.Add(domain);
+                    var frontendEndpointResourceId = FrontDoorEndpointResource.CreateResourceIdentifier(
+                        azureCdnConfig.SubscriptionId.ToString(),
+                        azureCdnConfig.ResourceGroup,
+                        azureCdnConfig.ProfileName,
+                        azureCdnConfig.EndPointName);
+
+                    var frontDoor = client.GetFrontDoorEndpointResource(frontendEndpointResourceId);
+
+                    var purgeContent = new FrontDoorPurgeContent(purgeUrls);
+
+                    var result = await frontDoor.PurgeContentAsync(WaitUntil.Started, purgeContent);
+
+                    logger.LogInformation(logger.IsEnabled(LogLevel.Information) ? $"Successfully began Front Door purge of {string.Join(",", purgeUrls)} from Azure Front Door on {DateTimeOffset.UtcNow.ToString()}." : string.Empty);
+
+                    return result;
                 }
+                else if (azureCdnConfig.IsConfigured())
+                {
+                    var cdnResource = CdnEndpointResource.CreateResourceIdentifier(
+                        azureCdnConfig.SubscriptionId.ToString(),
+                        azureCdnConfig.ResourceGroup,
+                        azureCdnConfig.ProfileName,
+                        azureCdnConfig.EndPointName);
 
-                var result = await frontDoor.PurgeContentAsync(WaitUntil.Started, purgeContent);
+                    var cdnEndpoint = client.GetCdnEndpointResource(cdnResource);
 
-                return result;
+                    ArmOperation operation = null;
+
+                    if (purgeUrls.Count > 100 || purgeUrls.Any(p => p.Equals("/") || p.Equals("/*")))
+                    {
+                        operation = cdnEndpoint.PurgeContent(Azure.WaitUntil.Started, new PurgeContent(new string[] { "/*" }));
+                    }
+                    else
+                    {
+                        // 100 paths or less, no need to page or use wildcard
+                        var purgeContent = new PurgeContent(purgeUrls);
+                        operation = cdnEndpoint.PurgeContent(WaitUntil.Started, purgeContent);
+                    }
+
+                    logger.LogInformation(logger.IsEnabled(LogLevel.Information) ? $"Successfully began CDN purge of {string.Join(",", purgeUrls)} on {DateTimeOffset.UtcNow.ToString()}." : string.Empty);
+
+                    return operation;
+                }
             }
-            else if (azureCdnConfig.IsCdnConfigured())
+            catch (Exception ex)
             {
-                var cdnResource = CdnEndpointResource.CreateResourceIdentifier(
-                    azureCdnConfig.SubscriptionId,
-                    azureCdnConfig.ResourceGroup,
-                    azureCdnConfig.FrontDoorName,
-                    azureCdnConfig.EndPointName);
-
-                var cdnEndpoint = client.GetCdnEndpointResource(cdnResource);
-
-
-                ArmOperation operation = null;
-
-                if (purgeUrls.Count > 100 || purgeUrls.Any(p => p.Equals("/") || p.Equals("/*")))
-                {
-                    operation = cdnEndpoint.PurgeContent(Azure.WaitUntil.Started, new PurgeContent(new string[] { "/*" }));
-                }
-                else
-                {
-                    // 100 paths or less, no need to page or use wildcard
-                    var purgeContent = new PurgeContent(purgeUrls);
-                    operation = cdnEndpoint.PurgeContent(Azure.WaitUntil.Started, purgeContent);
-                }
-
-                return operation;
+                logger.LogError(ex, ex.Message);
             }
 
             return null;
@@ -1296,7 +1299,7 @@ namespace Cosmos.Cms.Data.Logic
 
             articleNumbersToUpdate.Add(article.ArticleNumber);
 
-            //  Validate that title is not already taken.
+            // Validate that title is not already taken.
             if (!await ValidateTitle(newTitle, article.ArticleNumber))
             {
                 throw new Exception($"Title '{newTitle}' already taken");

@@ -1,0 +1,71 @@
+﻿@using Cosmos.Editor.Services
+@model AzureCdnConfig
+
+@{
+    ViewData["Title"] = "CDN/Front Door Configuration";
+}
+
+<div class="pt-3">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card bg-secondary text-light pb-4">
+                <div class="card-header">
+                    <h3 class="card-title">@ViewData["Title"]</h3>
+                    <p>Before completing the section below, please make sure you have:</p>
+                    <ul>
+                        <li>Created a CDN or Front Door profile in Azure with an endpoint in the profile..</li>
+                        <li>Created </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <form id="registerForm" method="post">
+                        <h2>Configuration Settings</h2>
+                        <hr />
+                        <div asp-validation-summary="All" class="text-danger"></div>
+                        <div class="mb-3 form-check">
+                            <input class="form-control" asp-for="IsFrontDoor" type="checkbox" class="form-check-input" />
+                            <label asp-for="IsFrontDoor" class="form-check-label"></label> (Check if this is Azure Front Door.)
+                            <span asp-validation-for="IsFrontDoor" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <input asp-for="SubscriptionId" type="checkbox" class="form-check-input" aria-required="true" />
+                            <label asp-for="SubscriptionId" class="form-check-label"></label>
+                            <span asp-validation-for="SubscriptionId" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ResourceGroup"></label>
+                            <input class="form-control" asp-for="ResourceGroup" />
+                            <span asp-validation-for="ResourceGroup" class="text-danger"></span>
+                            <span class="text-muted">This is the resource group name where CDN or Front Door is installed.</span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ProfileName"></label>
+                            <input class="form-control" asp-for="ProfileName" />
+                            <span asp-validation-for="ProfileName" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="EndPointName"></label>
+                            <input class="form-control" asp-for="EndPointName" />
+                            <span asp-validation-for="EndPointName" class="text-danger"></span>
+                        </div>
+
+                        <button id="registerSubmit" type="submit" class="btn btn-sm btn-primary">Register User</button>
+                        <a asp-action="Index" class="btn btn-sm btn-secondary">Cancel <i class="fa-solid fa-circle-arrow-right"></i></a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $("body").addClass("cwps-editor-container");
+    });
+</script>
+
+<partial name="_ValidationScriptsPartial" />
