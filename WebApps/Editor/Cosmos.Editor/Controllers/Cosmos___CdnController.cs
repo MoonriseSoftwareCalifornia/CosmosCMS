@@ -72,19 +72,33 @@
             cdnConfiguration.EndPointName = cdnEndpoint.EndPointName;
 
             // Try making a connection to the CDN to validate the configuration.
-            var operation = await TestConnection(cdnConfiguration);
-
-            var result = await operation.WaitForCompletionResponseAsync();
-
-            if (result.IsError)
+            try
             {
-                ModelState.AddModelError("EndPointName", result.ReasonPhrase);
+                var operation = await TestConnection(cdnConfiguration);
+                ViewData["Operation"] = operation;
+
+                var result = await operation.WaitForCompletionResponseAsync();
+
+                if (result.IsError)
+                {
+                    ModelState.AddModelError("ProfileName", $"ERROR: {result.ReasonPhrase }");
+                    return View(cdnEndpoint);
+                }
+            }
+            catch (RequestFailedException ex)
+            {
+                ModelState.AddModelError("ProfileName", $"ERROR: {ex.ErrorCode}");
+                return View(cdnEndpoint);
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("ProfileName", $"ERROR: {ex.Message}");
                 return View(cdnEndpoint);
             }
 
+
             await dbContext.SaveChangesAsync();
 
-            ViewData["Operation"] = operation;
 
             return View("Index", cdnEndpoint);
         }
