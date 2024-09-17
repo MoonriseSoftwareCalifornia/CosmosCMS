@@ -4,7 +4,13 @@
 @{
     ViewData["Title"] = "CDN/Front Door Configuration";
 }
-
+<style>
+    .text-danger {
+        color: white !important;
+        font-style: italic !important;
+        font-weight: bold !important;
+    }
+</style>
 <div class="pt-3">
     <div class="row justify-content-center">
         <div class="col-md-6">
@@ -53,10 +59,29 @@
                             <span asp-validation-for="EndPointName" class="text-danger"></span>
                         </div>
 
-                        <button id="registerSubmit" type="submit" class="btn btn-sm btn-primary">Test and Save</button>
+                        <button id="btnSave" type="submit" class="btn btn-sm btn-primary">Test and Save Settings <i class="fa-solid fa-circle-arrow-right"></i></button>
                         <a asp-action="Index" class="btn btn-sm btn-secondary">Cancel <i class="fa-solid fa-circle-arrow-right"></i></a>
+                        <button id="btnRemove" data-bs-toggle="modal" data-bs-target="#confirmRemoveModal" class="btn btn-sm btn-secondary">Remove Settings <i class="fa-solid fa-circle-arrow-right"></i></button>
                     </form>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade mt-5" id="confirmRemoveModal" tabindex="-1" aria-labelledby="confirmRemoveModal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Remove</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to remove the current CDN settings?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a asp-action="Remove" type="button" asp-action="Remove" class="btn btn-primary">Save changes</a>
             </div>
         </div>
     </div>

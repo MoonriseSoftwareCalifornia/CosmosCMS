@@ -6,16 +6,13 @@
     using Azure;
     using Azure.Identity;
     using Azure.ResourceManager;
-    using Azure.ResourceManager.Cdn.Models;
     using Azure.ResourceManager.Cdn;
-    using Cosmos.Cms.Models;
+    using Azure.ResourceManager.Cdn.Models;
     using Cosmos.Common.Data;
+    using Cosmos.Editor.Services;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
-    using Microsoft.Azure.Cosmos.Serialization.HybridRow.RecordIO;
     using Microsoft.EntityFrameworkCore;
-    using Microsoft.Extensions.Logging;
-    using Cosmos.Editor.Services;
 
     /// <summary>
     /// The CDN controller.
