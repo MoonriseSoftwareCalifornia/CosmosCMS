@@ -245,10 +245,19 @@ internal class Program
             app.UseCors("AllowedOrigPolicy");
         }
 
-        //app.UseResponseCaching(); // https://docs.microsoft.com/en-us/aspnet/core/performance/caching/middleware?view=aspnetcore-3.1
+        app.UseResponseCaching(); // https://docs.microsoft.com/en-us/aspnet/core/performance/caching/middleware?view=aspnetcore-3.1
         
         app.UseAuthentication();
         app.UseAuthorization();
+
+        app.MapGet("CCMS-XSRF-TOKEN", (IAntiforgery forgeryService, HttpContext context) =>
+        {
+            var tokens = forgeryService.GetAndStoreTokens(context);
+            context.Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken!,
+                    new CookieOptions { HttpOnly = false });
+
+            return Results.Ok();
+        });
 
         app.MapControllerRoute(
             name: "pub",

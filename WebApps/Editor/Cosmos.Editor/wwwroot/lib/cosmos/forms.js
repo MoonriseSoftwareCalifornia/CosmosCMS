@@ -5,12 +5,22 @@
  * @returns
  */
 async function ccms___PostForm(endpoint, formName) {
+
     const form = document.forms[formName];
-    const token = document.head.querySelector("meta[name='cwps-meta-af-value']").content;
+
+    let result = await fetch("/CCMS-XSRF-TOKEN", {
+        method: "GET"
+    });
+
+    const xsrfToken = result.cookie
+        .split("; ")
+        .find(row => row.startsWith("XSRF-TOKEN="))
+        .split("=")[1];
+
     const response = await fetch(endpoint, {
         method: "POST",
         headers: {
-            RequestVerificationToken: token
+            RequestVerificationToken: xsrfToken
         },
         body: new FormData(form)
     });
@@ -27,3 +37,4 @@ function ccms___ElementExists(element) {
     }
     return true;
 }
+
