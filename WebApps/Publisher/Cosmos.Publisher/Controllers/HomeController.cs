@@ -63,6 +63,67 @@ namespace Cosmos.Cms.Publisher.Controllers
         /// <returns>Returns an <see cref="IActionResult"/>.</returns>
         public async Task<IActionResult> Index()
         {
+            if (Request.Method == "HEAD")
+            {
+                try
+                {
+                    var article = await articleLogic.GetPublishedPageByUrl(HttpContext.Request.Path, HttpContext.Request.Query["lang"], TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(20), true); // ?? await _articleLogic.GetByUrl(id, langCookie);
+
+                    if (article == null)
+                    {
+                        return NotFound();
+                    }
+
+                    if (options.Value.SiteSettings.CosmosRequiresAuthentication)
+                    {
+                        if (!await CosmosUtilities.AuthUser(dbContext, User, article.ArticleNumber))
+                        {
+                            if (!User.Identity.IsAuthenticated)
+                            {
+                                return Unauthorized();
+                            }
+                        }
+
+                        ControllerContext.HttpContext.Response.Headers.Expires = DateTimeOffset.UtcNow.AddMinutes(-30).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
+                        Response.Headers.ETag = Guid.NewGuid().ToString();
+                        Response.Headers.LastModified = DateTimeOffset.UtcNow.AddMinutes(-30).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
+                        Response.Headers.CacheControl = "no-store,no-cache";
+                    }
+                    else
+                    {
+                        Response.Headers.Expires = article.Expires.HasValue ?
+                            article.Expires.Value.ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'") :
+                            DateTimeOffset.UtcNow.AddMinutes(1).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
+                        Response.Headers.ETag = article.Id.ToString();
+                        Response.Headers.LastModified = article.Updated.ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
+                        ControllerContext.HttpContext.Response.Headers.CacheControl = "max-age=60, stale-while-revalidate=59";
+                    }
+
+                    return Ok("Ok");
+                }
+                catch (Microsoft.Azure.Cosmos.CosmosException e)
+                {
+                    string message = e.Message;
+                    logger.LogError(e, message);
+
+                    if (HttpContext.Request.Query["mode"] == "json")
+                    {
+                        return NotFound();
+                    }
+
+                    Response.StatusCode = (int)HttpStatusCode.NotFound;
+                    return NotFound();
+                }
+                catch (Exception e)
+                {
+                    string message = e.Message;
+                    logger.LogError(e, message);
+
+                    Response.StatusCode = (int)HttpStatusCode.NotFound;
+                    return NotFound();
+                }
+            }
+
             try
             {
                 var article = await articleLogic.GetPublishedPageByUrl(HttpContext.Request.Path, HttpContext.Request.Query["lang"], TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(20)); // ?? await _articleLogic.GetByUrl(id, langCookie);
@@ -84,6 +145,8 @@ namespace Cosmos.Cms.Publisher.Controllers
                     }
                 }
 
+                var headers = Request.GetTypedHeaders();
+
                 if (options.Value.SiteSettings.CosmosRequiresAuthentication)
                 {
                     if (!await CosmosUtilities.AuthUser(dbContext, User, article.ArticleNumber))
@@ -99,15 +162,16 @@ namespace Cosmos.Cms.Publisher.Controllers
                     Response.Headers.Expires = DateTimeOffset.UtcNow.AddMinutes(-30).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
                     Response.Headers.ETag = Guid.NewGuid().ToString();
                     Response.Headers.LastModified = DateTimeOffset.UtcNow.AddMinutes(-30).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
-                    Response.Headers.CacheControl = "no-store,no-cache";
+                    Response.Headers.CacheControl = new Microsoft.Extensions.Primitives.StringValues("no -store,no-cache");
                 }
                 else
                 {
                     Response.Headers.Expires = article.Expires.HasValue ?
                         article.Expires.Value.ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'") :
-                        DateTimeOffset.UtcNow.AddMinutes(3).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
+                        DateTimeOffset.UtcNow.AddMinutes(1).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
                     Response.Headers.ETag = article.Id.ToString();
                     Response.Headers.LastModified = article.Updated.ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
+                    ControllerContext.HttpContext.Response.Headers.CacheControl = "max-age=20, stale-while-revalidate=119";
                 }
 
                 if (HttpContext.Request.Query["mode"] == "json")

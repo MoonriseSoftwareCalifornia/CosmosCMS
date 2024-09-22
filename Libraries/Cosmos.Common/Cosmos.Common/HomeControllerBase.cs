@@ -255,7 +255,7 @@ namespace Cosmos.Common
         {
             try
             {
-                _ = await dbContext.Users.Select(s => s.Id).FirstOrDefaultAsync();
+                _ = await dbContext.Database.CanConnectAsync();
                 return Ok();
             }
             catch

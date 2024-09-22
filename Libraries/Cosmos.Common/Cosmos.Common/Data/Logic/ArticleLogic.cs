@@ -188,6 +188,7 @@ namespace Cosmos.Common.Data.Logic
         /// <param name="lang">Language to return content as.</param>
         /// <param name="cacheSpan">Length of time for cache to exist.</param>
         /// <param name="layoutCache">Layout cache duration.</param>
+        /// <param name="headRequest">Is this a head request?</param>
         /// <returns>
         ///     <see cref="ArticleViewModel" />.
         /// </returns>
@@ -204,7 +205,7 @@ namespace Cosmos.Common.Data.Logic
         ///     </para>
         ///     <para>NOTE: Cannot access articles that have been deleted.</para>
         /// </remarks>
-        public virtual async Task<ArticleViewModel> GetPublishedPageByUrl(string urlPath, string lang = "", TimeSpan? cacheSpan = null, TimeSpan? layoutCache = null)
+        public virtual async Task<ArticleViewModel> GetPublishedPageByUrl(string urlPath, string lang = "", TimeSpan? cacheSpan = null, TimeSpan? layoutCache = null, bool headRequest = false)
         {
             urlPath = urlPath?.ToLower().Trim(new char[] { ' ', '/' });
             if (string.IsNullOrEmpty(urlPath) || urlPath.Trim() == "/")
@@ -214,6 +215,30 @@ namespace Cosmos.Common.Data.Logic
 
             if (memoryCache == null || cacheSpan == null)
             {
+
+                if (headRequest)
+                {
+                    var header = await DbContext.Pages.WithPartitionKey(urlPath)
+                        .Where(a => a.Published <= DateTimeOffset.UtcNow)
+                        .Select(s => new
+                        {
+                            s.ArticleNumber,
+                            s.Id,
+                            s.Expires,
+                            s.Updated,
+                            s.VersionNumber
+                        })
+                        .OrderByDescending(o => o.VersionNumber).AsNoTracking().FirstOrDefaultAsync();
+                    return new ArticleViewModel()
+                    {
+                        Expires = header.Expires,
+                        Updated = header.Updated,
+                        VersionNumber = header.VersionNumber,
+                        Id = header.Id,
+                        ArticleNumber = header.ArticleNumber
+                    };
+                }
+
                 var entity = await DbContext.Pages.WithPartitionKey(urlPath)
                .Where(a => a.Published <= DateTimeOffset.UtcNow)
                .OrderByDescending(o => o.VersionNumber).AsNoTracking().FirstOrDefaultAsync();
