@@ -253,8 +253,7 @@ internal class Program
         app.MapGet("CCMS-XSRF-TOKEN", (IAntiforgery forgeryService, HttpContext context) =>
         {
             var tokens = forgeryService.GetAndStoreTokens(context);
-            context.Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken!,
-                    new CookieOptions { HttpOnly = false });
+            context.Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken!, new CookieOptions { HttpOnly = false });
 
             return Results.Ok();
         });

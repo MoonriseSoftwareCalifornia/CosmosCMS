@@ -1,21 +1,42 @@
 ﻿/**
- * Posts a form and adds the Cosmos antiforgery validation token.
- * @param {any} endpoint
- * @param {any} formName
- * @returns
+ * Determines if an alement exists on the current page.
+ * @param {any} element
+ * @returns {boolean}
  */
-async function ccms___PostForm(endpoint, formName) {
+function ccms___ElementExists(element) {
+    if (typeof (element) === "undefined" || element === null || element === "") {
+        return false;
+    }
+    return true;
+}
 
-    const form = document.forms[formName];
+/**
+ * Retrieves the antiforgery token from the server.
+ * @returns {string}
+ */
+async function ccms___GetXsrfToken() {
 
     let result = await fetch("/CCMS-XSRF-TOKEN", {
         method: "GET"
     });
 
-    const xsrfToken = result.cookie
+    return result.cookie
         .split("; ")
         .find(row => row.startsWith("XSRF-TOKEN="))
         .split("=")[1];
+}
+
+/**
+ * Posts a form and adds the Cosmos antiforgery validation token.
+ * @param {any} endpoint
+ * @param {any} formName
+ * @returns {Promise<Response>}
+ */
+async function ccms___PostForm(endpoint, formName) {
+
+    const form = document.forms[formName];
+
+    const xsrfToken = ccms___GetXsrfToken();
 
     const response = await fetch(endpoint, {
         method: "POST",
@@ -26,15 +47,3 @@ async function ccms___PostForm(endpoint, formName) {
     });
     return response;
 }
-/**
- * Determines if an alement exists on the current page.
- * @param {any} element
- * @returns
- */
-function ccms___ElementExists(element) {
-    if (typeof (element) === "undefined" || element === null || element === "") {
-        return false;
-    }
-    return true;
-}
-
