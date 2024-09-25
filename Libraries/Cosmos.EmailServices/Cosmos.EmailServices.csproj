@@ -45,7 +45,7 @@
 
 		<PackageReference Include="Azure.Communication.Email" Version="1.0.1" />
 
-		<PackageReference Include="HtmlAgilityPack" Version="1.11.65" />
+		<PackageReference Include="HtmlAgilityPack" Version="1.11.66" />
 
 		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.8" />
 
