@@ -7,9 +7,9 @@
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<Company>Moonrise Software LLC</Company>
-		<Version>8.0.6.9</Version>
-		<AssemblyVersion>8.0.6.9</AssemblyVersion>
-		<FileVersion>8.0.6.9</FileVersion>
+		<Version>8.0.7.1</Version>
+		<AssemblyVersion>8.0.7.1</AssemblyVersion>
+		<FileVersion>8.0.7.1</FileVersion>
 		<PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
 		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
 		<RepositoryUrl></RepositoryUrl>
@@ -21,17 +21,6 @@
 		<Title>Cosmos CMS IEmail Services</Title>
 		<Copyright>Copyright 2023 (c) Moonrise Software, LLC.</Copyright>
 	</PropertyGroup>
-
-
-	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
-		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="7.0.5" />
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0" />
-	</ItemGroup>
-
-	<ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
-		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="7.0.14" />
-	</ItemGroup>
 
 	<ItemGroup>
 	  <None Remove="stylecop.json" />

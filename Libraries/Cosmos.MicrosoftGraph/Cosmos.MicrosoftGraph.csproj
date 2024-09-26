@@ -1,0 +1,54 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+	  <Nullable>enable</Nullable>
+	  <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	  <GenerateDocumentationFile>true</GenerateDocumentationFile>
+	  <Company>Moonrise Software LLC</Company>
+	  <Version>8.0.7.1</Version>
+	  <AssemblyVersion>8.0.7.1</AssemblyVersion>
+	  <FileVersion>8.0.7.1</FileVersion>
+	  <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+	  <RepositoryUrl></RepositoryUrl>
+	  <RepositoryType>git</RepositoryType>
+	  <PackageTags>Microsoft Graph, Cosmos CMS</PackageTags>
+	  <Description>This provices Microsoft Graph utilities for Cosmos CMS.</Description>
+	  <PackageProjectUrl></PackageProjectUrl>
+	  <PackageReleaseNotes>Documentation dependencies updated.</PackageReleaseNotes>
+	  <Title>Microsoft Graph Utilities for Cosmos</Title>
+	  <Copyright>Copyright 2024 (c) Moonrise Software, LLC.</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="stylecop.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="stylecop.json" />
+  </ItemGroup>
+
+	<ItemGroup>
+
+		<PackageReference Include="Azure.Identity" Version="1.12.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Authorization" Version="8.0.8" />
+		<PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="8.0.2" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
+		<PackageReference Include="Microsoft.Graph.Beta" Version="5.78.0-preview" />
+
+		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+
+		<PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
+	</ItemGroup>
+
+</Project>
