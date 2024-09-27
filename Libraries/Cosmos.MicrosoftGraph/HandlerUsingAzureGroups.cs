@@ -31,7 +31,7 @@ namespace Cosmos.MicrosoftGraph
             ArgumentNullException.ThrowIfNull(requirement);
 
             var claimIdentityprovider = context.User.Claims.FirstOrDefault(t => t.Type == "group"
-                && t.Value == requirement.GroupId);
+                && t.Value == requirement.GroupDisplayName);
 
             if (claimIdentityprovider != null)
             {

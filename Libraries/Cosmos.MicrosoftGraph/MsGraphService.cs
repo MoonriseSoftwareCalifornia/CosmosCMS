@@ -12,21 +12,32 @@ namespace Cosmos.MicrosoftGraph
     using Microsoft.Graph.Beta;
     using Microsoft.Graph.Beta.Models;
 
+    /// <summary>
+    /// This class is used to interact with the Microsoft Graph API. It is used to get the user's profile, the user's app roles, the user's member groups, and the user's groups.
+    /// </summary>
     // SEE: https://damienbod.com/2021/09/06/using-azure-security-groups-in-asp-net-core-with-an-azure-b2c-identity-provider/
     public class MsGraphService
     {
-        private readonly GraphServiceClient _graphServiceClient;
-        private readonly string? _tenantId;
+        private readonly GraphServiceClient graphServiceClient;
+        private readonly string? tenantId;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MsGraphService"/> class.
+        /// </summary>
+        /// <param name="graphServiceClient">Graph service client.</param>
         public MsGraphService(GraphServiceClient graphServiceClient)
         {
-            _graphServiceClient = graphServiceClient;
+            this.graphServiceClient = graphServiceClient;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MsGraphService"/> class.
+        /// </summary>
+        /// <param name="configuration">App configuration.</param>
         public MsGraphService(IConfiguration configuration)
         {
-            string[]? scopes = configuration.GetValue<string>("User.Read.All")?.Split(' ');
-            _tenantId = configuration.GetValue<string>("AzureAd:TenantId");
+            string[]? scopes = configuration.GetValue<string>("User.Read.All Group.Read.All GroupMember.Read.All Directory.Read.All")?.Split(' ');
+            tenantId = configuration.GetValue<string>("AzureAd:TenantId");
 
             // Values from app registration
             var clientId = configuration.GetValue<string>("AzureAd:ClientId");
@@ -39,21 +50,21 @@ namespace Cosmos.MicrosoftGraph
 
             // https://docs.microsoft.com/dotnet/api/azure.identity.clientsecretcredential
             var clientSecretCredential = new ClientSecretCredential(
-                _tenantId, clientId, clientSecret, options);
+                tenantId, clientId, clientSecret, options);
 
-            _graphServiceClient = new GraphServiceClient(clientSecretCredential, scopes);
+            graphServiceClient = new GraphServiceClient(clientSecretCredential, scopes);
         }
 
         public async Task<User?> GetGraphApiUser(string userId)
         {
-            return await _graphServiceClient.Users[userId]
+            return await graphServiceClient.Users[userId]
                     .GetAsync(c => c.QueryParameters.Select = new[] { "Identities", "displayName" });
         }
 
         public async Task<List<User>> GetUsersAsync()
         {
             var users = new List<User>();
-            var userCollectionResponse = await _graphServiceClient.Users.GetAsync(c => c.QueryParameters.Select = new[] { "Identities", "displayName" });
+            var userCollectionResponse = await graphServiceClient.Users.GetAsync(c => c.QueryParameters.Select = new[] { "Identities", "displayName" });
 
             if (userCollectionResponse != null && userCollectionResponse.Value != null)
             {
@@ -65,37 +76,32 @@ namespace Cosmos.MicrosoftGraph
 
         public async Task<AppRoleAssignmentCollectionResponse?> GetGraphApiUserAppRoles(string userId)
         {
-            return await _graphServiceClient.Users[userId]
+            return await graphServiceClient.Users[userId]
                     .AppRoleAssignments
                     .GetAsync();
         }
 
-        public async Task<Microsoft.Graph.Beta.Users.Item.GetMemberGroups.GetMemberGroupsPostResponse?> GetGraphApiUserMemberGroups(string userId)
+        public async Task<List<Group>?> GetGraphApiUserMemberGroups(string userId)
         {
-            var requestBody = new Microsoft.Graph.Beta.AdministrativeUnits.Item.GetMemberGroups.GetMemberGroupsPostRequestBody
-            {
-                SecurityEnabledOnly = true
-            };
+            var groups = await graphServiceClient.Users[userId].MemberOf.GraphGroup.GetAsync();
+            return groups.Value;
+        }
 
-            var result = await _graphServiceClient.Users[userId]
-                .GetMemberGroups
-                .PostAsGetMemberGroupsPostResponseAsync(new Microsoft.Graph.Beta.Users.Item.GetMemberGroups.GetMemberGroupsPostRequestBody()
-                {
-                    SecurityEnabledOnly = true
-                });
-
-            return result;
+        public async Task<List<Group>?> GetGroupsAsync()
+        {
+            var groups = await graphServiceClient.Groups.GetAsync();
+            return groups.Value;
         }
 
         public async Task<Profile?> GetUserProfile(string userId)
         {
-            var result = await _graphServiceClient.Users[userId].Profile.GetAsync();
+            var result = await graphServiceClient.Users[userId].Profile.GetAsync();
             return result;
         }
 
         public async Task<string?> GetGroupNameAsync(string groupId)
         {
-            var group = await _graphServiceClient.Groups[groupId].GetAsync();
+            var group = await graphServiceClient.Groups[groupId].GetAsync();
             return group?.DisplayName;
         }
     }

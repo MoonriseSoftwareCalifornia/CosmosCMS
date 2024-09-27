@@ -189,26 +189,26 @@ builder.Services.AddRazorPages()
 
 // Add authorization handler
 builder.Services.AddSingleton<IAuthorizationHandler, HandlerUsingAzureGroups>();
-var userGroupId = builder.Configuration.GetValue<string>("AzureAd:GroupId")!;
-if (string.IsNullOrEmpty(userGroupId))
+var userGroup = builder.Configuration.GetValue<string>("AzureAd:UserGroup")!;
+if (string.IsNullOrEmpty(userGroup))
 {
     throw new InvalidOperationException("User group id is missing.");
 }
 
-var adminGroupId = builder.Configuration.GetValue<string>("AzureAd:AdminGroupId");
+var adminGroup = builder.Configuration.GetValue<string>("AzureAd:AdminGroup");
 
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("UserPolicy", policy =>
     {
-        policy.Requirements.Add(new GroupAuthorizationRequirement(userGroupId));
+        policy.Requirements.Add(new GroupAuthorizationRequirement(userGroup));
     });
 
-    if (!string.IsNullOrEmpty(adminGroupId))
+    if (!string.IsNullOrEmpty(adminGroup))
     {
         options.AddPolicy("AdminPolicy", policy =>
         {
-            policy.Requirements.Add(new GroupAuthorizationRequirement(adminGroupId));
+            policy.Requirements.Add(new GroupAuthorizationRequirement(adminGroup));
         });
     }
 });

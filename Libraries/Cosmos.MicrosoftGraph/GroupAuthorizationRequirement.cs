@@ -18,16 +18,16 @@ namespace Cosmos.MicrosoftGraph
         /// <summary>
         /// Initializes a new instance of the <see cref="GroupAuthorizationRequirement"/> class.
         /// </summary>
-        /// <param name="groupId">Group ID.</param>
-        public GroupAuthorizationRequirement(string groupId)
+        /// <param name="groupName">Group display name.</param>
+        public GroupAuthorizationRequirement(string groupName)
         {
-            GroupId = groupId;
+            GroupDisplayName = groupName;
         }
 
         /// <summary>
-        /// Gets the Entra ID Group ID.
+        /// Gets the Entra ID Group display name.
         /// </summary>
-        public string GroupId { get; }
+        public string GroupDisplayName { get; }
 
     }
 }

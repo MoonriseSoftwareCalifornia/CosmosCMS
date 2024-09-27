@@ -41,13 +41,19 @@ namespace Cosmos.MicrosoftGraph
 
                 if (objectIdentifier != null)
                 {
-                    var groupIds = await msGraphService.GetGraphApiUserMemberGroups(objectIdentifier.Value);
+                    var groups = await msGraphService.GetGraphApiUserMemberGroups(objectIdentifier.Value);
 
-
-
-                    foreach (var groupId in groupIds!.Value!.ToList())
+                    if (groups != null)
                     {
-                        claimsIdentity.AddClaim(new Claim(groupClaimType, groupId));
+                        foreach (var group in groups)
+                        {
+                            if (!string.IsNullOrEmpty(group.DisplayName) && !string.IsNullOrEmpty(group.Id))
+                            {
+                                var claim = new Claim(groupClaimType, group.DisplayName);
+                                claim.Properties.Add("id", group.Id);
+                                claimsIdentity.AddClaim(claim);
+                            }
+                        }
                     }
                 }
             }

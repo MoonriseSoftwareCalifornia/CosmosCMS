@@ -37,7 +37,6 @@ namespace Cosmos.Publisher.B2C.Controllers
             this.configuration = configuration;
         }
 
-
         /// <summary>
         /// Gets the default Customer IDs from the configuration file.
         /// </summary>
@@ -89,11 +88,15 @@ namespace Cosmos.Publisher.B2C.Controllers
         /// <summary>
         /// Determins if a user is a member of a group.
         /// </summary>
-        /// <param name="groupId">ID of group in question.</param>
+        /// <param name="groupName">ID of group in question.</param>
         /// <returns>True or false.</returns>
-        public bool IsMemberOfGroup(string groupId)
+        public bool IsMemberOfGroup(string groupName)
         {
-            return User.Claims.Any(t => t.Type == "group" && t.Value == groupId);
+            if (groupName.Equals("anonymous", StringComparison.CurrentCultureIgnoreCase))
+            {
+                return true;
+            }
+            return User.Claims.Any(t => t.Type == "group" && t.Value == groupName);
         }
     }
 }

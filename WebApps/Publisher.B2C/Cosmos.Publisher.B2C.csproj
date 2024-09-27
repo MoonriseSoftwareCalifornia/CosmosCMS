@@ -9,7 +9,7 @@
 		<EnableSdkContainerDebugging>True</EnableSdkContainerDebugging>
 		<ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:8.0</ContainerBaseImage>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-		<Version>8.0.7.1</Version>
+		<Version>8.0.7.2</Version>
 		<DockerfileContext>..\..</DockerfileContext>
 	</PropertyGroup>
 
