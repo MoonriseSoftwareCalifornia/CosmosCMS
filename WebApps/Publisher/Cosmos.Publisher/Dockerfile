@@ -16,7 +16,7 @@ COPY ["Libraries/Cosmos.EmailServices/Cosmos.EmailServices.csproj", "Libraries/C
 RUN dotnet restore "./WebApps/Publisher/Cosmos.Publisher/Cosmos.Publisher.csproj"
 COPY . .
 WORKDIR "/src/WebApps/Publisher/Cosmos.Publisher"
-RUN dotnet buildx build "./Cosmos.Publisher.csproj" --sbom=true --provenance=true -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "./Cosmos.Publisher.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release

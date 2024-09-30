@@ -19,7 +19,7 @@ COPY ["Libraries/Cosmos.MicrosoftGraph/Cosmos.MicrosoftGraph.csproj", "Libraries
 RUN dotnet restore "./WebApps/Publisher.B2C/Cosmos.Publisher.B2C.csproj"
 COPY . .
 WORKDIR "/src/WebApps/Publisher.B2C"
-RUN dotnet buildx build "./Cosmos.Publisher.B2C.csproj" --sbom=true --provenance=true -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "./Cosmos.Publisher.B2C.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
