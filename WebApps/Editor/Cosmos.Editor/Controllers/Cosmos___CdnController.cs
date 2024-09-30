@@ -147,10 +147,6 @@
                 ModelState.AddModelError("ProfileName", $"ERROR: {ex.Message}");
                 return View(config);
             }
-
-            await dbContext.SaveChangesAsync();
-
-            return View("Index", config);
         }
 
 
@@ -193,7 +189,11 @@
                     azureCdnConfig.EndPointName);
 
                 var frontDoor = client.GetFrontDoorEndpointResource(frontendEndpointResourceId);
+
+                var t = await frontDoor.GetAsync();
+
                 var purgeContent = new FrontDoorPurgeContent(new[] { "/" });
+                purgeContent.Domains.Add(t.Value.Data.HostName);
 
                 var operation = await frontDoor.PurgeContentAsync(WaitUntil.Started, purgeContent);
 
