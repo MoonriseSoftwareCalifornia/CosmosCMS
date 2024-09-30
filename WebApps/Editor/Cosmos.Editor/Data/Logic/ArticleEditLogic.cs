@@ -1069,7 +1069,7 @@ namespace Cosmos.Cms.Data.Logic
         {
             var articleNumber = DbContext.Articles.Max(m => m.ArticleNumber) + 1;
 
-            return new()
+            return new ()
             {
                 Id = template.Id,
                 ArticleNumber = articleNumber,

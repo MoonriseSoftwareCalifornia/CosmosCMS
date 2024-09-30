@@ -79,18 +79,22 @@ namespace Cosmos.MicrosoftGraph
                 {
                     value = config.GetValue<string>(key);
                 }
+
                 if (string.IsNullOrEmpty(value))
                 {
                     value = config.GetValue<string>(key.ToUpper());
                 }
+
                 if (string.IsNullOrEmpty(value))
                 {
                     value = config.GetValue<string>(key.ToLower());
                 }
+
                 if (string.IsNullOrEmpty(value))
                 {
                     throw new Exception($"Could not find a value for {key} in the configuration file.");
                 }
+
                 return value;
             }
             else

@@ -96,6 +96,7 @@ namespace Cosmos.Publisher.B2C.Controllers
             {
                 return true;
             }
+
             return User.Claims.Any(t => t.Type == "group" && t.Value == groupName);
         }
     }

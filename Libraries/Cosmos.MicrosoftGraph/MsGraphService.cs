@@ -55,12 +55,21 @@ namespace Cosmos.MicrosoftGraph
             graphServiceClient = new GraphServiceClient(clientSecretCredential, scopes);
         }
 
+        /// <summary>
+        /// Getst the user's object from the Microsoft Graph API.
+        /// </summary>
+        /// <param name="userId">User ID</param>
+        /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
         public async Task<User?> GetGraphApiUser(string userId)
         {
             return await graphServiceClient.Users[userId]
                     .GetAsync(c => c.QueryParameters.Select = new[] { "Identities", "displayName" });
         }
 
+        /// <summary>
+        /// Gets the users from the Microsoft Graph API.
+        /// </summary>
+        /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
         public async Task<List<User>> GetUsersAsync()
         {
             var users = new List<User>();
@@ -74,6 +83,11 @@ namespace Cosmos.MicrosoftGraph
             return users;
         }
 
+        /// <summary>
+        /// Gets the user's app roles from the Microsoft Graph API.
+        /// </summary>
+        /// <param name="userId">User ID.</param>
+        /// <returns>User role assignments.</returns>
         public async Task<AppRoleAssignmentCollectionResponse?> GetGraphApiUserAppRoles(string userId)
         {
             return await graphServiceClient.Users[userId]
@@ -81,24 +95,43 @@ namespace Cosmos.MicrosoftGraph
                     .GetAsync();
         }
 
+        /// <summary>
+        /// Gets the user's member groups from the Microsoft Graph API.
+        /// </summary>
+        /// <param name="userId">User ID.</param>
+        /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
         public async Task<List<Group>?> GetGraphApiUserMemberGroups(string userId)
         {
             var groups = await graphServiceClient.Users[userId].MemberOf.GraphGroup.GetAsync();
             return groups.Value;
         }
 
+        /// <summary>
+        /// Gets the user's groups from the Microsoft Graph API.
+        /// </summary>
+        /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
         public async Task<List<Group>?> GetGroupsAsync()
         {
             var groups = await graphServiceClient.Groups.GetAsync();
             return groups.Value;
         }
 
+        /// <summary>
+        /// Gets the user's profile from the Microsoft Graph API.
+        /// </summary>
+        /// <param name="userId">User ID.</param>
+        /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
         public async Task<Profile?> GetUserProfile(string userId)
         {
             var result = await graphServiceClient.Users[userId].Profile.GetAsync();
             return result;
         }
 
+        /// <summary>
+        /// Gets the group name from the Microsoft Graph API.
+        /// </summary>
+        /// <param name="groupId">Group ID.</param>
+        /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
         public async Task<string?> GetGroupNameAsync(string groupId)
         {
             var group = await graphServiceClient.Groups[groupId].GetAsync();

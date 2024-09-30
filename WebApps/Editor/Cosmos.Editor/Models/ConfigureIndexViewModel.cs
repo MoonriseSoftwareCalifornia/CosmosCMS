@@ -124,7 +124,7 @@ namespace Cosmos.Cms.Models
         /// <returns>Returns a Cosmos <see cref="CosmosConfig"/>.</returns>
         public CosmosConfig GetConfig()
         {
-            return new()
+            return new ()
             {
                 SendGridConfig = SendGridConfig,
                 SiteSettings = SiteSettings,

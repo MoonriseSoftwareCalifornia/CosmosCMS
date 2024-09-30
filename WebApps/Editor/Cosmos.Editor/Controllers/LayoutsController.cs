@@ -493,6 +493,7 @@ namespace Cosmos.Cms.Controllers
                     throw;
                 }
             }
+
             ViewData["PageTitle"] = layout.EditorTitle;
             return View(layout);
         }

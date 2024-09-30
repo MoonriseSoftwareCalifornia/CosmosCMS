@@ -461,7 +461,7 @@ namespace Cosmos.Cms.Controllers
             var guid = Guid.NewGuid();
 
             // Template preview
-            ArticleViewModel model = new()
+            ArticleViewModel model = new ()
             {
                 ArticleNumber = 1,
                 LanguageCode = string.Empty,

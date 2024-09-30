@@ -32,7 +32,7 @@ namespace Cosmos.MicrosoftGraph
         /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
         public async Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
         {
-            ClaimsIdentity claimsIdentity = new();
+            ClaimsIdentity claimsIdentity = new ();
             var groupClaimType = "group";
             if (!principal.HasClaim(claim => claim.Type == groupClaimType))
             {
