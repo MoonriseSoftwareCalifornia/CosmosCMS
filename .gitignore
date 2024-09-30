@@ -362,3 +362,5 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /WebApps/Publisher.B2C/appsettings.Development.json
+/WebApps/Editor/Cosmos.Editor/Cosmos.Editor.csproj
+/WebApps/Publisher.B2C/appsettings.json
