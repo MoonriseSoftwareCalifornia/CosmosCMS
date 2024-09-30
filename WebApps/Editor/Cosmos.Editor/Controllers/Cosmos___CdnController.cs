@@ -135,14 +135,7 @@
             {
                 var operation = await TestConnection(config);
                 ViewData["Operation"] = operation;
-
-                var result = await operation.WaitForCompletionResponseAsync();
-
-                if (result.IsError)
-                {
-                    ModelState.AddModelError("ProfileName", $"ERROR: {result.ReasonPhrase}");
-                    return View(config);
-                }
+                return View(config);
             }
             catch (RequestFailedException ex)
             {
