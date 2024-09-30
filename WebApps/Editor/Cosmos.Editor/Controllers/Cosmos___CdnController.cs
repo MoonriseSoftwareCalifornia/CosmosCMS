@@ -1,6 +1,7 @@
 ﻿namespace Cosmos.Editor.Controllers
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using Azure;
@@ -40,67 +41,123 @@
         public async Task<IActionResult> Index()
         {
             ViewData["Operation"] = null;
-            return View(await GetCdnConfiguration());
+
+            var settings = await GetCdnConfiguration();
+
+            var model = new AzureCdnConfig
+            {
+                ProfileName = settings.FirstOrDefault(f => f.Name == "ProfileName")?.Value,
+                ResourceGroup = settings.FirstOrDefault(f => f.Name == "ResourceGroupName")?.Value,
+                IsFrontDoor = bool.Parse(settings.FirstOrDefault(f => f.Name == "IsFrontDoor")?.Value ?? "false"),
+                SubscriptionId = Guid.Parse(settings.FirstOrDefault(f => f.Name == "SubscriptionId")?.Value ?? Guid.Empty.ToString()),
+                EndPointName = settings.FirstOrDefault(f => f.Name == "EndPointName")?.Value,
+            };
+
+            return View(model);
         }
 
         /// <summary>
         /// Updates the CDN configuration.
         /// </summary>
-        /// <param name="cdnEndpoint">The CDN end point configuration.</param>
+        /// <param name="config">The CDN end point configuration.</param>
         /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Index(AzureCdnConfig cdnEndpoint)
+        public async Task<IActionResult> Index(AzureCdnConfig config)
         {
             if (!ModelState.IsValid)
             {
-                return View(cdnEndpoint);
+                return View(config);
             }
 
-            var cdnConfiguration = await GetCdnConfiguration();
+            var settings = await GetCdnConfiguration();
 
-            if (cdnConfiguration == null)
+            var profileName = settings.FirstOrDefault(f => f.Name == "ProfileName");
+            if (profileName == null)
             {
-                return NotFound();
+                profileName = new Setting { Group = GROUPNAME, Name = "ProfileName", Value = config.ProfileName };
+                dbContext.Settings.Add(profileName);
+            }
+            else
+            {
+                profileName.Value = config.ProfileName;
             }
 
-            cdnConfiguration.ProfileName = cdnEndpoint.ProfileName;
-            cdnConfiguration.EndPointName = cdnEndpoint.EndPointName;
-            cdnConfiguration.ResourceGroup = cdnEndpoint.ResourceGroup;
-            cdnConfiguration.IsFrontDoor = cdnEndpoint.IsFrontDoor;
-            cdnConfiguration.SubscriptionId = cdnEndpoint.SubscriptionId;
-            cdnConfiguration.EndPointName = cdnEndpoint.EndPointName;
+            var resourceGroupName = settings.FirstOrDefault(f => f.Name == "ResourceGroupName");
+            if (resourceGroupName == null)
+            {
+                resourceGroupName = new Setting { Group = GROUPNAME, Name = "ResourceGroupName", Value = config.ResourceGroup };
+                dbContext.Settings.Add(resourceGroupName);
+            }
+            else
+            {
+                resourceGroupName.Value = config.ResourceGroup;
+            }
+
+            var isFrontDoor = settings.FirstOrDefault(f => f.Name == "IsFrontDoor");
+            if (isFrontDoor == null)
+            {
+                isFrontDoor = new Setting { Group = GROUPNAME, Name = "IsFrontDoor", Value = config.IsFrontDoor.ToString() };
+                dbContext.Settings.Add(isFrontDoor);
+            }
+            else
+            {
+                isFrontDoor.Value = config.IsFrontDoor.ToString();
+            }
+
+            var subscriptionId = settings.FirstOrDefault(f => f.Name == "SubscriptionId");
+            if (subscriptionId == null)
+            {
+                subscriptionId = new Setting { Group = GROUPNAME, Name = "SubscriptionId", Value = config.SubscriptionId.ToString() };
+                dbContext.Settings.Add(subscriptionId);
+            }
+            else
+            {
+                subscriptionId.Value = config.SubscriptionId.ToString();
+            }
+
+            var endPointName = settings.FirstOrDefault(f => f.Name == "EndPointName");
+            if (endPointName == null)
+            {
+                endPointName = new Setting { Group = GROUPNAME, Name = "EndPointName", Value = config.EndPointName };
+                dbContext.Settings.Add(endPointName);
+            }
+            else
+            {
+                endPointName.Value = config.EndPointName;
+            }
+
+            // Save the changes to the database.
+            await dbContext.SaveChangesAsync();
 
             // Try making a connection to the CDN to validate the configuration.
             try
             {
-                var operation = await TestConnection(cdnConfiguration);
+                var operation = await TestConnection(config);
                 ViewData["Operation"] = operation;
 
                 var result = await operation.WaitForCompletionResponseAsync();
 
                 if (result.IsError)
                 {
-                    ModelState.AddModelError("ProfileName", $"ERROR: {result.ReasonPhrase }");
-                    return View(cdnEndpoint);
+                    ModelState.AddModelError("ProfileName", $"ERROR: {result.ReasonPhrase}");
+                    return View(config);
                 }
             }
             catch (RequestFailedException ex)
             {
                 ModelState.AddModelError("ProfileName", $"ERROR: {ex.ErrorCode}");
-                return View(cdnEndpoint);
+                return View(config);
             }
             catch (Exception ex)
             {
                 ModelState.AddModelError("ProfileName", $"ERROR: {ex.Message}");
-                return View(cdnEndpoint);
+                return View(config);
             }
-
 
             await dbContext.SaveChangesAsync();
 
-
-            return View("Index", cdnEndpoint);
+            return View("Index", config);
         }
 
 
@@ -121,28 +178,12 @@
             return RedirectToAction("Index");
         }
 
-        /// <summary>
-        /// Tests the CDN connection.
-        /// </summary>
-        /// <returns>A <see cref="Task{Response}"/> representing the result of the asynchronous operation.</returns>
-        public async Task<IActionResult> Test()
-        {
-            var cdnConfiguration = await GetCdnConfiguration();
-
-            if (cdnConfiguration == null)
-            {
-                return NotFound();
-            }
-
-            var operation = await TestConnection(cdnConfiguration);
-
-            var result = await operation.WaitForCompletionResponseAsync();
-
-            return Json(result);
-        }
-
         private async Task<ArmOperation> TestConnection(AzureCdnConfig azureCdnConfig)
         {
+            var settings = await GetCdnConfiguration();
+
+
+
             if (!azureCdnConfig.IsConfigured())
             {
                 throw new InvalidOperationException("CDN configuration is not complete.");
@@ -187,23 +228,16 @@
         /// Gets a CDN configuration.
         /// </summary>
         /// <returns>AzureCdnEndpoint.</returns>
-        private async Task<AzureCdnConfig> GetCdnConfiguration()
+        private async Task<List<Setting>> GetCdnConfiguration()
         {
-            var cdnConfiguration = await dbContext.Settings.Where(f => f.Group == GROUPNAME).ToListAsync();
+            var settings = await dbContext.Settings.Where(f => f.Group == GROUPNAME).ToListAsync();
 
-            if (!cdnConfiguration.Any())
+            if (settings.Any())
             {
-                return new Cosmos.Editor.Services.AzureCdnConfig();
+                return settings;
             }
 
-            return new Cosmos.Editor.Services.AzureCdnConfig()
-            {
-                ProfileName = cdnConfiguration.FirstOrDefault(f => f.Name == "ProfileName").Value,
-                ResourceGroup = cdnConfiguration.FirstOrDefault(f => f.Name == "ResourceGroupName").Value,
-                IsFrontDoor = bool.Parse(cdnConfiguration.FirstOrDefault(f => f.Name == "IsFrontDoor").Value),
-                SubscriptionId = Guid.Parse(cdnConfiguration.FirstOrDefault(f => f.Name == "SubscriptionId").Value),
-                EndPointName = cdnConfiguration.FirstOrDefault(f => f.Name == "EndPointName").Value
-            };
+            return new List<Setting>();
         }
     }
 }
