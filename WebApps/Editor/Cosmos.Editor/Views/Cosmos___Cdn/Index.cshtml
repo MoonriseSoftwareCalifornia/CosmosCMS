@@ -2,7 +2,7 @@
 @model AzureCdnConfig
 
 @{
-    ViewData["Title"] = "CDN/Front Door Configuration";
+    ViewData["Title"] = "CDN Setup";
 }
 <style>
     .text-danger {
@@ -17,18 +17,15 @@
             <div class="card bg-secondary text-light pb-4">
                 <div class="card-header">
                     <h3 class="card-title">@ViewData["Title"]</h3>
-                    <p>Before completing the section below, please make sure you have:</p>
-                    <ul>
-                        <li>Created a CDN or Front Door profile in Azure with an endpoint in the profile. <a href="" class="text-light">Go <i class="fa-solid fa-circle-arrow-right"></i></a></li>
-                        <li>Enabled this website to access the CDN/Front Door profile.<a href="" class="text-light">Go <i class="fa-solid fa-circle-arrow-right"></i></a></li>
-                    </ul>
+                    <p>For help in setting up CDN integration, see our <a class="text-light" target="_blank" href="https://cosmos.moonrise.net/cdn_setup">documentation</a>.</p>
+                    
                 </div>
                 <div class="card-body">
                     <form id="registerForm" method="post">
                         <h2>Configuration Settings</h2>
                         <hr />
                         <div asp-validation-summary="All" class="text-danger"></div>
-                        <div class="mb-3 form-check">
+                        <div class="mb-3 form-check" style="display:none;">
                             <input class="form-check-input" asp-for="IsFrontDoor" type="checkbox" class="form-check-input" />
                             <label asp-for="IsFrontDoor" class="form-check-label"></label> (Check if this is Azure Front Door.)
                             <span asp-validation-for="IsFrontDoor" class="text-danger"></span>
