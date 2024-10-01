@@ -18,10 +18,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Remove="Views\Home\Index.cshtml.BAK" />
-	</ItemGroup>
-
-	<ItemGroup>
 	  <AdditionalFiles Include="stylecop.json" />
 	</ItemGroup>
 
@@ -49,10 +45,6 @@
 
 	<ItemGroup>
 		<ContainerPort Include="8081" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Content Include="Views\Home\Index.cshtml.BAK" />
 	</ItemGroup>
 
 	<ItemGroup>
