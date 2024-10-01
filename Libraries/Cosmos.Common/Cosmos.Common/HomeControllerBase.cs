@@ -67,6 +67,11 @@ namespace Cosmos.Common
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> CCMS_GetArticleFolderContents(string path = "")
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var articleNumber = await GetArticleNumberFromRequestHeaders();
 
             if (articleNumber == null)
@@ -94,16 +99,13 @@ namespace Cosmos.Common
             int? pageNo,
             int? pageSize)
         {
-            try
+            if (!ModelState.IsValid)
             {
-                var result = await articleLogic.GetTOC(page, pageNo ?? 0, pageSize ?? 10, orderByPub ?? false);
-                return Json(result);
+                return BadRequest(ModelState);
             }
-            catch (Exception e)
-            {
-                logger.LogError(e.Message, e);
-                throw;
-            }
+
+            var result = await articleLogic.GetTOC(page, pageNo ?? 0, pageSize ?? 10, orderByPub ?? false);
+            return Json(result);
         }
 
         /// <summary>
@@ -116,68 +118,60 @@ namespace Cosmos.Common
         [EnableRateLimiting("fixed")]
         public async Task<IActionResult> CCMS_POSTCONTACT_INFO(ContactViewModel model)
         {
-            try
+            if (model == null)
             {
-                if (model == null)
+                return NotFound();
+            }
+
+            model.Id = Guid.NewGuid();
+            model.Created = DateTimeOffset.UtcNow;
+            model.Updated = DateTimeOffset.UtcNow;
+
+            if (ModelState.IsValid)
+            {
+                var contact = await dbContext.Contacts.FirstOrDefaultAsync(f => f.Email.ToLower() == model.Email.ToLower());
+
+                if (contact == null)
                 {
-                    return NotFound();
+                    dbContext.Contacts.Add(new Data.Contact() { Email = model.Email.ToLower(), FirstName = model.FirstName, LastName = model.LastName, Phone = model.Phone });
+                }
+                else
+                {
+                    contact.Updated = DateTimeOffset.UtcNow;
+                    contact.FirstName = model.FirstName;
+                    contact.LastName = model.LastName;
+                    contact.Phone = model.Phone;
                 }
 
-                model.Id = Guid.NewGuid();
-                model.Created = DateTimeOffset.UtcNow;
-                model.Updated = DateTimeOffset.UtcNow;
+                await dbContext.SaveChangesAsync();
 
-                if (ModelState.IsValid)
+                // MailChimp? If so add contact to list.
+                var settings = await dbContext.Settings.Where(w => w.Group == "MailChimp").ToListAsync();
+                if (settings.Count > 0)
                 {
-                    var contact = await dbContext.Contacts.FirstOrDefaultAsync(f => f.Email.ToLower() == model.Email.ToLower());
+                    var key = settings.FirstOrDefault(f => f.Name == "ApiKey");
+                    var list = settings.FirstOrDefault(f => f.Name == "ContactListName");
+                    IMailChimpManager manager = new MailChimpManager(key.Value);
 
-                    if (contact == null)
-                    {
-                        dbContext.Contacts.Add(new Data.Contact() { Email = model.Email.ToLower(), FirstName = model.FirstName, LastName = model.LastName, Phone = model.Phone });
-                    }
-                    else
-                    {
-                        contact.Updated = DateTimeOffset.UtcNow;
-                        contact.FirstName = model.FirstName;
-                        contact.LastName = model.LastName;
-                        contact.Phone = model.Phone;
-                    }
+                    var lists = await manager.Lists.GetAllAsync();
+                    var mclist = lists.FirstOrDefault(w => w.Name.Equals(list.Value, StringComparison.OrdinalIgnoreCase));
 
-                    await dbContext.SaveChangesAsync();
+                    var member = new Member { FullName = $"{model.FirstName} {model.LastName}", EmailAddress = contact.Email, StatusIfNew = MailChimp.Net.Models.Status.Subscribed };
 
-                    // MailChimp? If so add contact to list.
-                    var settings = await dbContext.Settings.Where(w => w.Group == "MailChimp").ToListAsync();
-                    if (settings.Count > 0)
-                    {
-                        var key = settings.FirstOrDefault(f => f.Name == "ApiKey");
-                        var list = settings.FirstOrDefault(f => f.Name == "ContactListName");
-                        IMailChimpManager manager = new MailChimpManager(key.Value);
+                    member.LastChanged = DateTimeOffset.UtcNow.ToString();
 
-                        var lists = await manager.Lists.GetAllAsync();
-                        var mclist = lists.FirstOrDefault(w => w.Name.Equals(list.Value, StringComparison.OrdinalIgnoreCase));
+                    member.MergeFields.Add("FNAME", model.FirstName);
+                    member.MergeFields.Add("LNAME", model.LastName);
 
-                        var member = new Member { FullName = $"{model.FirstName} {model.LastName}", EmailAddress = contact.Email, StatusIfNew = MailChimp.Net.Models.Status.Subscribed };
+                    var updated = await manager.Members.AddOrUpdateAsync(mclist.Id, member);
 
-                        member.LastChanged = DateTimeOffset.UtcNow.ToString();
-
-                        member.MergeFields.Add("FNAME", model.FirstName);
-                        member.MergeFields.Add("LNAME", model.LastName);
-
-                        var updated = await manager.Members.AddOrUpdateAsync(mclist.Id, member);
-
-                        logger.LogInformation($"Add or updated {updated.FullName} {updated.EmailAddress} with MailChimp on {updated.LastChanged}.");
-                    }
-
-                    return Json(model);
+                    logger.LogInformation($"Add or updated {updated.FullName} {updated.EmailAddress} with MailChimp on {updated.LastChanged}.");
                 }
 
-                return BadRequest(ModelState);
+                return Json(model);
             }
-            catch (Exception e)
-            {
-                logger.LogError(e.Message, e);
-                throw;
-            }
+
+            return BadRequest(ModelState);
         }
 
         /// <summary>
@@ -192,6 +186,11 @@ namespace Cosmos.Common
         [HttpGet]
         public async Task<IActionResult> CCMS_GET_POWER_BI_TOKEN(Guid? reportId, Guid? workspaceId, Guid? additionalDataset = null)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             if (!reportId.HasValue || !workspaceId.HasValue)
             {
                 return NotFound("Report or workspace ID missing or not found.");

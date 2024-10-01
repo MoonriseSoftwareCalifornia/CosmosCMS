@@ -112,6 +112,11 @@ namespace Cosmos.Cms.Controllers
         [HttpGet]
         public async Task<IActionResult> Index(string target, bool? selectOne, string sortOrder = "asc", string currentSort = "Name", int pageNo = 0, int pageSize = 10, bool directoryOnly = false, bool imagesOnly = false, bool isNewSession = false)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             if (selectOne == null)
             {
                 selectOne = false;
@@ -274,11 +279,16 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Moves items to a new folder.
         /// </summary>
-        /// <param name="model"></param>
+        /// <param name="model">Post model.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [HttpPost]
         public async Task<IActionResult> Copy(MoveFilesViewModel model)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             _storageContext.CreateFolder("/pub");
 
             try
@@ -318,6 +328,11 @@ namespace Cosmos.Cms.Controllers
         [HttpPost]
         public async Task<IActionResult> Move(MoveFilesViewModel model)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             _storageContext.CreateFolder("/pub");
 
             try
@@ -585,11 +600,16 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Imports a page.
         /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
+        /// <param name="id">Page ID number.</param>
+        /// <returns>IActionResult.</returns>
         [Authorize(Roles = "Administrators, Editors, Authors, Team Members")]
         public IActionResult ImportPage(int? id)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             if (id.HasValue)
             {
                 ViewData["ArticleId"] = id.Value;
@@ -602,15 +622,22 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Import a view.
         /// </summary>
-        /// <param name="files"></param>
-        /// <param name="metaData"></param>
+        /// <param name="files">Files.</param>
+        /// <param name="metaData">Metadata.</param>
         /// <param name="id">Article ID.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [HttpPost]
         [Authorize(Roles = "Administrators, Editors, Authors, Team Members")]
-        public async Task<IActionResult> ImportPage(IEnumerable<IFormFile> files,
-            string metaData, string id)
+        public async Task<IActionResult> ImportPage(
+            IEnumerable<IFormFile> files,
+            string metaData,
+            string id)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             if (files == null || files.Any() == false || Guid.TryParse(id, out Guid Id) == false)
             {
                 return null;
@@ -773,8 +800,8 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Removes nodes from a parent node by XPath.
         /// </summary>
-        /// <param name="originalNode"></param>
-        /// <param name="nodesToRemove"></param>
+        /// <param name="originalNode">Origin node.</param>
+        /// <param name="nodesToRemove">Nodes to remove.</param>
         private void RemoveNodes(ref HtmlAgilityPack.HtmlNode originalNode, IEnumerable<HtmlAgilityPack.HtmlNode> nodesToRemove)
         {
             foreach (var node in nodesToRemove)
@@ -790,9 +817,9 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Determines if nodes are equal.
         /// </summary>
-        /// <param name="node1"></param>
-        /// <param name="node2"></param>
-        /// <returns></returns>
+        /// <param name="node1">HtmlNode.</param>
+        /// <param name="node2">Compare to HtmlNode.</param>
+        /// <returns>boolean</returns>
         /// <remarks>Compares node name, node type, and attributes.</remarks>
         private bool NodesAreEqual(HtmlAgilityPack.HtmlNode node1, HtmlAgilityPack.HtmlNode node2)
         {
@@ -1434,6 +1461,11 @@ namespace Cosmos.Cms.Controllers
             6291456)] // AWS S3 multi part upload requires 5 MB parts--no more, no less so pad the upload size by a MB just in case
         public async Task<ActionResult> Upload(IEnumerable<IFormFile> files, string metaData, string path = "")
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             try
             {
                 if (files == null || files.Any() == false)
@@ -1515,107 +1547,5 @@ namespace Cosmos.Cms.Controllers
                 throw ex;
             }
         }
-    }
-
-    /// <summary>
-    /// Page import constants.
-    /// </summary>
-    public static class PageImportConstants
-    {
-        /// <summary>
-        /// Marks the start of the head injection.
-        /// </summary>
-        public const string COSMOS_HEAD_START = "<!--  BEGIN: Cosmos Layout HEAD content inject (not editable). -->";
-
-        /// <summary>
-        /// Marks the end of the head injection.
-        /// </summary>
-        public const string COSMOS_HEAD_END = "<!--  END: Cosmos HEAD inject (not editable). -->";
-
-        /// <summary>
-        /// Marks the beginning of the optional head script injection.
-        /// </summary>
-        public const string COSMOS_HEAD_SCRIPTS_START = "<!-- BEGIN: Optional Cosmos script section injected (not editable). -->";
-
-        /// <summary>
-        /// Marks the end of the optional head script injection.
-        /// </summary>
-        public const string COSMOS_HEAD_SCRIPTS_END = "<!-- END: Optional Cosmos script section injected  (not editable). -->";
-
-        /// <summary>
-        /// Marks the beginning of the header injection.
-        /// </summary>
-        public const string COSMOS_BODY_HEADER_START = "<!-- BEGIN: Cosmos Layout BODY HEADER content (not editable) -->";
-
-        /// <summary>
-        /// Marks the end of the header injection.
-        /// </summary>
-        public const string COSMOS_BODY_HEADER_END = "<!-- END: Cosmos Layout BODY HEADER content (not editable) -->";
-
-        /// <summary>
-        /// Marks the start of the footer injection.
-        /// </summary>
-        public const string COSMOS_BODY_FOOTER_START = "<!-- BEGIN: Cosmos Layout BODY FOOTER (not editable) -->";
-
-        /// <summary>
-        /// Marks the end of the footer injection.
-        /// </summary>
-        public const string COSMOS_BODY_FOOTER_END = "<!-- END: Cosmos Layout BODY FOOTER (not editable) -->";
-
-        /// <summary>
-        /// Marks the start of Google Translate injection.
-        /// </summary>
-        public const string COSMOS_GOOGLE_TRANSLATE_START = "<!-- BEGIN: Google Translate v3 (not editable) -->";
-
-        /// <summary>
-        /// Marks the endo of Google Translate injection.
-        /// </summary>
-        public const string COSMOS_GOOGLE_TRANSLATE_END = "<!-- END: Google Translate v3 (not editable) -->";
-
-        /// <summary>
-        /// Marks the start of the end-of-body script injection.
-        /// </summary>
-        public const string COSMOS_BODY_END_SCRIPTS_START = "<!-- BEGIN: Optional Cosmos script section injected (not editable). -->";
-
-        /// <summary>
-        /// Marks the end of the end-of-body script injection.
-        /// </summary>
-        public const string COSMOS_BODY_END_SCRIPTS_END = "<!-- END: Optional Cosmos script section (not editable). -->";
-    }
-
-    /// <summary>
-    /// Layout import marker constants.
-    /// </summary>
-    public static class LayoutImportConstants
-    {
-        /// <summary>
-        /// Marks the start of the head injection.
-        /// </summary>
-        public const string COSMOS_HEAD_START = "<!--  BEGIN: Cosmos Layout HEAD content. -->";
-
-        /// <summary>
-        /// Marks the end of the head injection.
-        /// </summary>
-        public const string COSMOS_HEAD_END = "<!--  END: Cosmos Layout HEAD content. -->";
-
-        /// <summary>
-        /// Marks the beginning of the header injection.
-        /// </summary>
-        public const string COSMOS_BODY_HEADER_START = "<!-- BEGIN: Cosmos Layout BODY HEADER content -->";
-
-        /// <summary>
-        /// Marks the end of the header injection.
-        /// </summary>
-        public const string COSMOS_BODY_HEADER_END = "<!-- END: Cosmos Layout BODY HEADER content -->";
-
-        /// <summary>
-        /// Marks the start of the footer injection.
-        /// </summary>
-        public const string COSMOS_BODY_FOOTER_START = "<!-- BEGIN: Cosmos Layout BODY FOOTER content -->";
-
-        /// <summary>
-        /// Marks the end of the footer injection.
-        /// </summary>
-        public const string COSMOS_BODY_FOOTER_END = "<!-- END: Cosmos Layout BODY FOOTER content -->";
     }
 }

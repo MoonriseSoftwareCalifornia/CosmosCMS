@@ -60,6 +60,11 @@ namespace Cosmos.IdentityManagement.Website.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(string RoleName)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             if (string.IsNullOrEmpty(RoleName))
             {
                 return BadRequest("Rule name is required.");
