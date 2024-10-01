@@ -5,6 +5,8 @@ Cosmos CMS is a modern content management system that is "out of the box" fast, 
 
 [Get Started/Install](https://www.moonrise.net/Cosmos)
 
+[![CodeQL](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml)
+
 ## About
 
 Cosmos is a "headless" content management system of the ["Decoupled" variety](https://en.wikipedia.org/wiki/Headless_content_management_system#Decoupled_CMS), meaning content distribution is separated from content management. This provides significant performance and security benefits.
