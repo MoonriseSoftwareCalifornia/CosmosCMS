@@ -215,7 +215,6 @@ namespace Cosmos.Common.Data.Logic
 
             if (memoryCache == null || cacheSpan == null)
             {
-
                 if (headRequest)
                 {
                     var header = await DbContext.Pages.WithPartitionKey(urlPath)

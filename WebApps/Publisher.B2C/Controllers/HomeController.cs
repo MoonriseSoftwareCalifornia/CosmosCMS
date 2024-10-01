@@ -148,7 +148,7 @@ public class HomeController : B2CBaseController
                 return View("__NotFound");
             }
 
-            if (options.Value.SiteSettings.CosmosRequiresAuthentication && article.)
+            if (options.Value.SiteSettings.CosmosRequiresAuthentication)
             {
                 if (User == null || User.Identity == null || !User.Identity.IsAuthenticated)
                 {
@@ -158,7 +158,9 @@ public class HomeController : B2CBaseController
 
                 // Check if user is a member of the group, if not alert that the person needs permission.
                 var isMember = IsMemberOfGroup(userGroupName);
-                if (!User.Identity.IsAuthenticated || !isMember)
+                var isMemberOfAdminGroup = IsMemberOfGroup("Admin");
+
+                if (!isMember && !isMemberOfAdminGroup)
                 {
                     return View("__NeedPermission");
                 }

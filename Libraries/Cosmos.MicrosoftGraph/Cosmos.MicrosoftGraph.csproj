@@ -1,34 +1,38 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-	  <Nullable>enable</Nullable>
-	  <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-	  <GenerateDocumentationFile>true</GenerateDocumentationFile>
-	  <Company>Moonrise Software LLC</Company>
-	  <Version>8.0.7.7</Version>
-	  <AssemblyVersion>8.0.7.7</AssemblyVersion>
-	  <FileVersion>8.0.7.7</FileVersion>
-	  <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
-	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-	  <RepositoryUrl></RepositoryUrl>
-	  <RepositoryType>git</RepositoryType>
-	  <PackageTags>Microsoft Graph, Cosmos CMS</PackageTags>
-	  <Description>This provices Microsoft Graph utilities for Cosmos CMS.</Description>
-	  <PackageProjectUrl></PackageProjectUrl>
-	  <PackageReleaseNotes>Documentation dependencies updated.</PackageReleaseNotes>
-	  <Title>Microsoft Graph Utilities for Cosmos</Title>
-	  <Copyright>Copyright 2024 (c) Moonrise Software, LLC.</Copyright>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<Company>Moonrise Software LLC</Company>
+		<Version>8.0.7.7</Version>
+		<AssemblyVersion>8.0.7.7</AssemblyVersion>
+		<FileVersion>8.0.7.7</FileVersion>
+		<PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+		<RepositoryUrl></RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageTags>Microsoft Graph, Cosmos CMS</PackageTags>
+		<Description>This provices Microsoft Graph utilities for Cosmos CMS.</Description>
+		<PackageProjectUrl></PackageProjectUrl>
+		<PackageReleaseNotes>Documentation dependencies updated.</PackageReleaseNotes>
+		<Title>Microsoft Graph Utilities for Cosmos</Title>
+		<Copyright>Copyright 2024 (c) Moonrise Software, LLC.</Copyright>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <None Remove="stylecop.json" />
-  </ItemGroup>
+	<ItemGroup>
+		<None Remove="stylecop.json" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <AdditionalFiles Include="stylecop.json" />
-  </ItemGroup>
+	<PropertyGroup>
+		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<AdditionalFiles Include="stylecop.json" />
+	</ItemGroup>
 
 	<ItemGroup>
 

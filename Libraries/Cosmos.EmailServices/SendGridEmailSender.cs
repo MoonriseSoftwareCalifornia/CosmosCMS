@@ -152,7 +152,6 @@ namespace Cosmos.EmailServices
             }
             catch (Exception e)
             {
-
                 SendResult.StatusCode = HttpStatusCode.BadRequest;
                 SendResult.Message = e.Message;
                 logger.LogError(e, e.Message);

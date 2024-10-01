@@ -13,6 +13,10 @@
 		<DockerfileContext>..\..</DockerfileContext>
 	</PropertyGroup>
 
+	<PropertyGroup>
+		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+	</PropertyGroup>
+	
 	<ItemGroup>
 	  <Content Remove="stylecop.json" />
 	</ItemGroup>

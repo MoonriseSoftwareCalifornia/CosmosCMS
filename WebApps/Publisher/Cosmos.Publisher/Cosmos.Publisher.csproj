@@ -30,6 +30,10 @@
 		<Content Include="Views\Home\Index.cshtml.BAK" />
 	</ItemGroup>
 
+	<PropertyGroup>
+		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+	</PropertyGroup>
+	
 	<ItemGroup>
 		<None Include="Areas\Identity\Pages\_ViewStart.cshtml" />
 		<None Include="wwwroot\ccms\js\cosmosUtils.js" />
