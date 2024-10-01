@@ -28,6 +28,5 @@ namespace Cosmos.MicrosoftGraph
         /// Gets the Entra ID Group display name.
         /// </summary>
         public string GroupDisplayName { get; }
-
     }
 }

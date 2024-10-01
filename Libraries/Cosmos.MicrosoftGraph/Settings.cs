@@ -19,10 +19,12 @@ namespace Cosmos.MicrosoftGraph
         /// Gets or sets the Entra ID client ID.
         /// </summary>
         public string? ClientId { get; set; }
+
         /// <summary>
         /// Gets or sets the Azure Tenant ID.
         /// </summary>
         public string? TenantId { get; set; }
+
         /// <summary>
         /// Gets or sets the application client secret.
         /// </summary>
@@ -41,10 +43,8 @@ namespace Cosmos.MicrosoftGraph
         {
             IConfiguration config = new ConfigurationBuilder()
                 .AddUserSecrets(Assembly.GetExecutingAssembly())
-                // appsettings.json is required
-                .AddJsonFile("local.settings.json", optional: true)
-                // appsettings.Development.json" is optional, values override appsettings.json
-                .AddJsonFile($"appsettings.Development.json", optional: true)
+                .AddJsonFile("local.settings.json", optional: true) // appsettings.json is required
+                .AddJsonFile($"appsettings.Development.json", optional: true) // appsettings.Development.json" is optional, values override appsettings.json
                 .AddEnvironmentVariables()
                 .Build();
             return LoadSettings(config);
@@ -54,7 +54,7 @@ namespace Cosmos.MicrosoftGraph
         /// Loads the settings from the given configuration..
         /// </summary>
         /// <param name="config">Application configuration.</param>
-        /// <returns>Settings</returns>
+        /// <returns>Settings.</returns>
         public static Settings LoadSettings(IConfiguration config)
         {
             var settings = new Settings();
@@ -73,7 +73,7 @@ namespace Cosmos.MicrosoftGraph
         {
             if (config != null)
             {
-                string value = config[key];
+                var value = config[key];
 
                 if (string.IsNullOrEmpty(value))
                 {

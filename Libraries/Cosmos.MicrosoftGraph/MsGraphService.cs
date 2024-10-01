@@ -45,7 +45,7 @@ namespace Cosmos.MicrosoftGraph
 
             var options = new TokenCredentialOptions
             {
-                AuthorityHost = AzureAuthorityHosts.AzurePublicCloud
+                AuthorityHost = AzureAuthorityHosts.AzurePublicCloud,
             };
 
             // https://docs.microsoft.com/dotnet/api/azure.identity.clientsecretcredential
@@ -58,7 +58,7 @@ namespace Cosmos.MicrosoftGraph
         /// <summary>
         /// Getst the user's object from the Microsoft Graph API.
         /// </summary>
-        /// <param name="userId">User ID</param>
+        /// <param name="userId">User ID.</param>
         /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
         public async Task<User?> GetGraphApiUser(string userId)
         {
@@ -103,7 +103,7 @@ namespace Cosmos.MicrosoftGraph
         public async Task<List<Group>?> GetGraphApiUserMemberGroups(string userId)
         {
             var groups = await graphServiceClient.Users[userId].MemberOf.GraphGroup.GetAsync();
-            return groups.Value;
+            return groups?.Value;
         }
 
         /// <summary>
@@ -113,7 +113,7 @@ namespace Cosmos.MicrosoftGraph
         public async Task<List<Group>?> GetGroupsAsync()
         {
             var groups = await graphServiceClient.Groups.GetAsync();
-            return groups.Value;
+            return groups?.Value;
         }
 
         /// <summary>

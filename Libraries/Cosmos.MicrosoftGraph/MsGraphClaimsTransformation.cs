@@ -11,6 +11,9 @@ namespace Cosmos.MicrosoftGraph
     using System.Security.Claims;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// This class is used to transform the claims principal and add the group claims.
+    /// </summary>
     // SEE: https://damienbod.com/2021/09/06/using-azure-security-groups-in-asp-net-core-with-an-azure-b2c-identity-provider/
     public class MsGraphClaimsTransformation
     {

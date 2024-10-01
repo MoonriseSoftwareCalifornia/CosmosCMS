@@ -29,7 +29,7 @@ namespace Cosmos.MicrosoftGraph
             TimeSpan retryInterval,
             int maxAttemptCount = 5)
         {
-            Do<object>(
+            Do<object?>(
                 () =>
                 {
                     action();
