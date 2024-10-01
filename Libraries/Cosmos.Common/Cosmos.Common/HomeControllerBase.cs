@@ -67,27 +67,16 @@ namespace Cosmos.Common
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> CCMS_GetArticleFolderContents(string path = "")
         {
-            try
+            var articleNumber = await GetArticleNumberFromRequestHeaders();
+
+            if (articleNumber == null)
             {
-                string r = Request.Headers["referer"];
-                var url = new Uri(r);
-
-                var articleNumber = await GetArticleNumberFromRequestHeaders();
-
-                if (articleNumber == null)
-                {
-                    return NotFound("Page not found.");
-                }
-
-                var contents = await CosmosUtilities.GetArticleFolderContents(storageContext, articleNumber.Value, path);
-
-                return Json(contents);
+                return NotFound("Page not found.");
             }
-            catch (Exception e)
-            {
-                logger.LogError(e.Message, e);
-                throw;
-            }
+
+            var contents = await CosmosUtilities.GetArticleFolderContents(storageContext, articleNumber.Value, path);
+
+            return Json(contents);
         }
 
         /// <summary>

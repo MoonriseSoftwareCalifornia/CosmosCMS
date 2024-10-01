@@ -80,6 +80,11 @@ namespace Cosmos.Cms.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> CcmsContentIndex(string target, int? articleNumber = null, int? versionNumber = null)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             if (!await EnsureLayoutExists())
             {
                 return RedirectToAction("Index", "Layouts");
@@ -111,6 +116,11 @@ namespace Cosmos.Cms.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> EditList(string target)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var article = await articleLogic.GetByUrl(target);
 
             var data = await dbContext.Articles.OrderByDescending(o => o.VersionNumber)
@@ -127,117 +137,116 @@ namespace Cosmos.Cms.Controllers
         }
 
         /// <summary>
-        /// Index page.
+        /// Gets the index page.
         /// </summary>
+        /// <param name="lang">Language code.</param>
+        /// <param name="mode">json or nothing.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [AllowAnonymous]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string lang = "", string mode = "")
         {
-            try
+            if (!ModelState.IsValid) 
             {
-                if (User.Identity?.IsAuthenticated == false)
-                {
-                    // See if we need to register a new user.
-                    if (await dbContext.Users.CosmosAnyAsync())
-                    {
-                        return Redirect("~/Identity/Account/Login");
-                    }
+                return BadRequest(ModelState);
+            }
 
-                    return Redirect("~/Identity/Account/Register");
+            if (User.Identity?.IsAuthenticated == false)
+            {
+                // See if we need to register a new user.
+                if (await dbContext.Users.CosmosAnyAsync())
+                {
+                    return Redirect("~/Identity/Account/Login");
+                }
+
+                return Redirect("~/Identity/Account/Register");
+            }
+            else
+            {
+                // Make sure the user's claims identity has an account here.
+                var user = await userManager.GetUserAsync(User);
+
+                if (user == null)
+                {
+                    Response.Cookies.Delete("CosmosAuthCookie");
+                    return Redirect("~/Identity/Account/Logout");
+                }
+
+                if (options.Value.SiteSettings.AllowSetup && (await dbContext.Users.CountAsync()) == 1 && !User.IsInRole("Administrators"))
+                {
+                    await userManager.AddToRoleAsync(user, "Administrators");
+                }
+
+                if (!User.IsInRole("Reviewers") && !User.IsInRole("Authors") && !User.IsInRole("Editors") &&
+                    !User.IsInRole("Administrators"))
+                {
+                    return View("~/Views/Home/AccessPending.cshtml");
+                }
+            }
+
+            if (options.Value.SiteSettings.AllowSetup)
+            {
+                // Enable static website for Azure BLOB storage
+                if (!options.Value.SiteSettings.CosmosRequiresAuthentication)
+                {
+                    await storageContext.EnableAzureStaticWebsite();
                 }
                 else
                 {
-                    // Make sure the user's claims identity has an account here.
-                    var user = await userManager.GetUserAsync(User);
-
-                    if (user == null)
-                    {
-                        Response.Cookies.Delete("CosmosAuthCookie");
-                        return Redirect("~/Identity/Account/Logout");
-                    }
-
-                    if (options.Value.SiteSettings.AllowSetup && (await dbContext.Users.CountAsync()) == 1 && !User.IsInRole("Administrators"))
-                    {
-                        await userManager.AddToRoleAsync(user, "Administrators");
-                    }
-
-                    if (!User.IsInRole("Reviewers") && !User.IsInRole("Authors") && !User.IsInRole("Editors") &&
-                        !User.IsInRole("Administrators"))
-                    {
-                        return View("~/Views/Home/AccessPending.cshtml");
-                    }
+                    await storageContext.DisableAzureStaticWebsite();
                 }
+            }
 
-                if (options.Value.SiteSettings.AllowSetup)
+            // If we do not yet have a layout, go to a page where we can select one.
+            if (!await EnsureLayoutExists())
+            {
+                return RedirectToAction("Index", "Layouts");
+            }
+
+            // If there are not web pages yet, let's go create a new home page.
+            if (!await EnsureArticleExists())
+            {
+                return RedirectToAction("Index", "Editor");
+            }
+
+            // If yes, do NOT include headers that allow caching. 
+            Response.Headers[HeaderNames.CacheControl] = "no-store";
+
+            // Response.Headers[HeaderNames.Pragma] = "no-cache"; This conflicts with Azure Frontdoor premium with private links and affinity set.
+            var article = await articleLogic.GetByUrl(HttpContext.Request.Path, lang);
+
+            // Article not found?
+            // try getting a version not published.
+            if (article == null)
+            {
+                // See if a page is un-published, but does exist, let us edit it.
+                article = await articleLogic.GetByUrl(HttpContext.Request.Path, lang, false);
+
+                if (article != null)
                 {
-                    // Enable static website for Azure BLOB storage
-                    if (options.Value.SiteSettings.CosmosRequiresAuthentication == false)
+                    // Go into edit mode
+                    if (!string.IsNullOrEmpty(article.Content) && article.Content.ToLower().Contains(" data-ccms-ceid="))
                     {
-                        await storageContext.EnableAzureStaticWebsite();
+                        return RedirectToAction("Edit", "Editor", new { id = article.ArticleNumber });
                     }
-                    else
-                    {
-                        await storageContext.DisableAzureStaticWebsite();
-                    }
+
+                    return RedirectToAction("EditCode", "Editor", new { id = article.ArticleNumber });
                 }
 
-                // If we do not yet have a layout, go to a page where we can select one.
-                if (!await EnsureLayoutExists())
-                {
-                    return RedirectToAction("Index", "Layouts");
-                }
+                // Create your own not found page for a graceful page for users.
+                article = await articleLogic.GetByUrl("/not_found", lang);
 
-                // If there are not web pages yet, let's go create a new home page.
-                if (!await EnsureArticleExists())
-                {
-                    return RedirectToAction("Index", "Editor");
-                }
+                HttpContext.Response.StatusCode = 404;
 
-                // If yes, do NOT include headers that allow caching. 
-                Response.Headers[HeaderNames.CacheControl] = "no-store";
-
-                // Response.Headers[HeaderNames.Pragma] = "no-cache"; This conflicts with Azure Frontdoor premium with private links and affinity set.
-                var article = await articleLogic.GetByUrl(HttpContext.Request.Path, HttpContext.Request.Query["lang"]); // ?? await _articleLogic.GetByUrl(id, langCookie);
-
-                // Article not found?
-                // try getting a version not published.
                 if (article == null)
                 {
-                    // See if a page is un-published, but does exist, let us edit it.
-                    article = await articleLogic.GetByUrl(HttpContext.Request.Path, HttpContext.Request.Query["lang"], false);
-
-                    if (article != null)
-                    {
-                        // Go into edit mode
-                        if (!string.IsNullOrEmpty(article.Content) && article.Content.ToLower().Contains(" data-ccms-ceid="))
-                        {
-                            return RedirectToAction("Edit", "Editor", new { id = article.ArticleNumber });
-                        }
-
-                        return RedirectToAction("EditCode", "Editor", new { id = article.ArticleNumber });
-                    }
-
-                    // Create your own not found page for a graceful page for users.
-                    article = await articleLogic.GetByUrl("/not_found", HttpContext.Request.Query["lang"]);
-
-                    HttpContext.Response.StatusCode = 404;
-
-                    if (article == null)
-                    {
-                        return NotFound();
-                    }
+                    return NotFound();
                 }
-
-                article.EditModeOn = false;
-                article.ReadWriteMode = true;
-
-                return View(article);
             }
-            catch (Exception e)
-            {
-                logger.LogError(e, e.Message);
-                throw;
-            }
+
+            article.EditModeOn = false;
+            article.ReadWriteMode = true;
+
+            return View(article);
         }
 
         /// <summary>
@@ -248,41 +257,32 @@ namespace Cosmos.Cms.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> Preview(int articleNumber, int? versionNumber = null)
         {
-            try
+            if (!ModelState.IsValid)
             {
-                ViewData["EditModeOn"] = false;
-                var article = await articleLogic.Get(articleNumber, versionNumber);
-
-                // Check base header
-                // article.UrlPath = $"/home/preview/{id}";
-                // _articleLogic.UpdateHeadBaseTag(article);
-
-                // Home/Preview/154
-                if (article != null)
-                {
-                    article.ReadWriteMode = false;
-                    article.EditModeOn = false;
-
-                    return View("Preview", article);
-                }
-
-                return NotFound();
+                return BadRequest(ModelState);
             }
-            catch (Exception e)
+
+            ViewData["EditModeOn"] = false;
+            var article = await articleLogic.Get(articleNumber, versionNumber);
+
+            // Home/Preview/154
+            if (article != null)
             {
-                logger.LogError(e, e.Message);
-                throw;
+                article.ReadWriteMode = false;
+                article.EditModeOn = false;
+
+                return View("Preview", article);
             }
+
+            return NotFound();
         }
 
         /// <summary>
-        /// Error page.
+        /// Gets the error page.
         /// </summary>
         /// <returns>Returns an <see cref="IActionResult"/>.</returns>
         public IActionResult Error()
         {
-            // Response.Headers[HeaderNames.CacheControl] = "no-store";
-            // Response.Headers[HeaderNames.Pragma] = "no-cache";
             ViewData["EditModeOn"] = false;
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }

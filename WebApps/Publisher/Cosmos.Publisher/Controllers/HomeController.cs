@@ -58,75 +58,81 @@ namespace Cosmos.Cms.Publisher.Controllers
         }
 
         /// <summary>
+        /// Handles the head request.
+        /// </summary>
+        /// <returns>IActionResult.</returns>
+        [HttpHead]
+        [ActionName("Index")]
+        public async Task<IActionResult> CCMS___Head()
+        {
+            try
+            {
+                var article = await articleLogic.GetPublishedPageByUrl(HttpContext.Request.Path, string.Empty, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(20), true);
+
+                if (article == null)
+                {
+                    return NotFound();
+                }
+
+                if (options.Value.SiteSettings.CosmosRequiresAuthentication)
+                {
+                    if (!await CosmosUtilities.AuthUser(dbContext, User, article.ArticleNumber) && !User.Identity.IsAuthenticated)
+                    {
+                        return Unauthorized();
+                    }
+
+                    ControllerContext.HttpContext.Response.Headers.Expires = DateTimeOffset.UtcNow.AddMinutes(-30).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
+                    Response.Headers.ETag = Guid.NewGuid().ToString();
+                    Response.Headers.LastModified = DateTimeOffset.UtcNow.AddMinutes(-30).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
+                    Response.Headers.CacheControl = "no-store,no-cache";
+                }
+                else
+                {
+                    Response.Headers.Expires = article.Expires.HasValue ?
+                        article.Expires.Value.ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'") :
+                        DateTimeOffset.UtcNow.AddMinutes(1).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
+                    Response.Headers.ETag = article.Id.ToString();
+                    Response.Headers.LastModified = article.Updated.ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
+                    ControllerContext.HttpContext.Response.Headers.CacheControl = "max-age=60, stale-while-revalidate=59";
+                }
+
+                return Ok("Ok");
+            }
+            catch (Microsoft.Azure.Cosmos.CosmosException e)
+            {
+                string message = e.Message;
+                logger.LogError(e, message);
+
+                Response.StatusCode = (int)HttpStatusCode.NotFound;
+                return NotFound();
+            }
+            catch (Exception e)
+            {
+                string message = e.Message;
+                logger.LogError(e, message);
+
+                Response.StatusCode = (int)HttpStatusCode.NotFound;
+                return NotFound();
+            }
+        }
+
+        /// <summary>
         /// Index view.
         /// </summary>
+        /// <param name="lang">Language code.</param>
+        /// <param name="mode">json or nothing.</param>
         /// <returns>Returns an <see cref="IActionResult"/>.</returns>
-        public async Task<IActionResult> Index()
+        [HttpGet]
+        public async Task<IActionResult> Index(string lang = "", string mode = "")
         {
-            if (Request.Method == "HEAD")
+            if (!ModelState.IsValid)
             {
-                try
-                {
-                    var article = await articleLogic.GetPublishedPageByUrl(HttpContext.Request.Path, HttpContext.Request.Query["lang"], TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(20), true); // ?? await _articleLogic.GetByUrl(id, langCookie);
-
-                    if (article == null)
-                    {
-                        return NotFound();
-                    }
-
-                    if (options.Value.SiteSettings.CosmosRequiresAuthentication)
-                    {
-                        if (!await CosmosUtilities.AuthUser(dbContext, User, article.ArticleNumber))
-                        {
-                            if (!User.Identity.IsAuthenticated)
-                            {
-                                return Unauthorized();
-                            }
-                        }
-
-                        ControllerContext.HttpContext.Response.Headers.Expires = DateTimeOffset.UtcNow.AddMinutes(-30).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
-                        Response.Headers.ETag = Guid.NewGuid().ToString();
-                        Response.Headers.LastModified = DateTimeOffset.UtcNow.AddMinutes(-30).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
-                        Response.Headers.CacheControl = "no-store,no-cache";
-                    }
-                    else
-                    {
-                        Response.Headers.Expires = article.Expires.HasValue ?
-                            article.Expires.Value.ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'") :
-                            DateTimeOffset.UtcNow.AddMinutes(1).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
-                        Response.Headers.ETag = article.Id.ToString();
-                        Response.Headers.LastModified = article.Updated.ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
-                        ControllerContext.HttpContext.Response.Headers.CacheControl = "max-age=60, stale-while-revalidate=59";
-                    }
-
-                    return Ok("Ok");
-                }
-                catch (Microsoft.Azure.Cosmos.CosmosException e)
-                {
-                    string message = e.Message;
-                    logger.LogError(e, message);
-
-                    if (HttpContext.Request.Query["mode"] == "json")
-                    {
-                        return NotFound();
-                    }
-
-                    Response.StatusCode = (int)HttpStatusCode.NotFound;
-                    return NotFound();
-                }
-                catch (Exception e)
-                {
-                    string message = e.Message;
-                    logger.LogError(e, message);
-
-                    Response.StatusCode = (int)HttpStatusCode.NotFound;
-                    return NotFound();
-                }
+                return BadRequest(ModelState);
             }
 
             try
             {
-                var article = await articleLogic.GetPublishedPageByUrl(HttpContext.Request.Path, HttpContext.Request.Query["lang"], TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(20)); // ?? await _articleLogic.GetByUrl(id, langCookie);
+                var article = await articleLogic.GetPublishedPageByUrl(HttpContext.Request.Path, lang, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(20));
 
                 if (article == null)
                 {
@@ -136,16 +142,9 @@ namespace Cosmos.Cms.Publisher.Controllers
                         return View("__UnderConstruction");
                     }
 
-                    HttpContext.Response.StatusCode = 404;
-
-                    if (article == null)
-                    {
-                        Response.StatusCode = (int)HttpStatusCode.NotFound;
-                        return View("__NotFound");
-                    }
+                    Response.StatusCode = (int)HttpStatusCode.NotFound;
+                    return View("__NotFound");
                 }
-
-                var headers = Request.GetTypedHeaders();
 
                 if (options.Value.SiteSettings.CosmosRequiresAuthentication)
                 {
@@ -174,7 +173,7 @@ namespace Cosmos.Cms.Publisher.Controllers
                     ControllerContext.HttpContext.Response.Headers.CacheControl = "max-age=20, stale-while-revalidate=119";
                 }
 
-                if (HttpContext.Request.Query["mode"] == "json")
+                if (mode == "json")
                 {
                     article.Layout = null;
                     return Json(article);
@@ -187,7 +186,7 @@ namespace Cosmos.Cms.Publisher.Controllers
                 string message = e.Message;
                 logger.LogError(e, message);
 
-                if (HttpContext.Request.Query["mode"] == "json")
+                if (mode == "json")
                 {
                     return NotFound();
                 }
@@ -200,7 +199,7 @@ namespace Cosmos.Cms.Publisher.Controllers
                 string message = e.Message;
                 logger.LogError(e, message);
 
-                if (HttpContext.Request.Query["mode"] == "json")
+                if (mode == "json")
                 {
                     return NotFound();
                 }

@@ -5,15 +5,10 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
-
 namespace Cosmos.Publisher.B2C.Controllers;
 
-using System.Diagnostics;
-using System.Net;
-using System.Text;
 using Cosmos.BlobService;
 using Cosmos.Cms.Common.Services.Configurations;
-using Cosmos.Common;
 using Cosmos.Common.Data;
 using Cosmos.Common.Data.Logic;
 using Cosmos.Common.Models;
@@ -22,6 +17,9 @@ using Cosmos.Publisher.B2C.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using System.Diagnostics;
+using System.Net;
+using System.Text;
 
 /// <summary>
 /// Home page controller.
@@ -59,78 +57,85 @@ public class HomeController : B2CBaseController
         this.articleLogic = articleLogic;
         this.options = options;
         this.dbContext = dbContext;
-        this.userGroupName = configuration.GetValue<string>("AzureAd:UserGroup")!;
+        this.userGroupName = configuration.GetValue<string>("AzureAd:UserGroup") !;
+    }
+
+    /// <summary>
+    /// Handles the head request.
+    /// </summary>
+    /// <returns>IActionResult.</returns>
+    [HttpHead]
+    [ActionName("Index")]
+    public async Task<IActionResult> CCMS___Head()
+    {
+        try
+        {
+            var article = await articleLogic.GetPublishedPageByUrl(HttpContext.Request.Path, string.Empty, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(20), true);
+
+            if (article == null)
+            {
+                return NotFound();
+            }
+
+            if (options.Value.SiteSettings.CosmosRequiresAuthentication)
+            {
+                if (User == null || User.Identity == null || !User.Identity.IsAuthenticated || !IsMemberOfGroup(this.userGroupName))
+                {
+                    return Unauthorized();
+                }
+
+                ControllerContext.HttpContext.Response.Headers.Expires = DateTimeOffset.UtcNow.AddMinutes(-30).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
+                Response.Headers.ETag = Guid.NewGuid().ToString();
+                Response.Headers.LastModified = DateTimeOffset.UtcNow.AddMinutes(-30).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
+                Response.Headers.CacheControl = "no-store,no-cache";
+            }
+            else
+            {
+                Response.Headers.Expires = article.Expires.HasValue ?
+                    article.Expires.Value.ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'") :
+                    DateTimeOffset.UtcNow.AddMinutes(1).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
+                Response.Headers.ETag = article.Id.ToString();
+                Response.Headers.LastModified = article.Updated.ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
+                ControllerContext.HttpContext.Response.Headers.CacheControl = "max-age=60, stale-while-revalidate=59";
+            }
+
+            return Ok("Ok");
+        }
+        catch (Microsoft.Azure.Cosmos.CosmosException e)
+        {
+            string message = e.Message;
+            logger.LogError(e, message);
+
+            Response.StatusCode = (int)HttpStatusCode.NotFound;
+            return NotFound();
+        }
+        catch (Exception e)
+        {
+            string message = e.Message;
+            logger.LogError(e, message);
+
+            Response.StatusCode = (int)HttpStatusCode.NotFound;
+            return NotFound();
+        }
     }
 
     /// <summary>
     /// Index view.
     /// </summary>
+    /// <param name="lang">Language code.</param>
+    /// <param name="mode">json or nothing.</param>
     /// <returns>Returns an <see cref="IActionResult"/>.</returns>
-    public async Task<IActionResult> Index()
+    [HttpGet]
+    public async Task<IActionResult> Index(string lang = "", string mode = "")
     {
-        if (Request.Method == "HEAD")
+        if (!ModelState.IsValid)
         {
-            try
-            {
-                var article = await articleLogic.GetPublishedPageByUrl(HttpContext.Request.Path, HttpContext.Request.Query["lang"], TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(20), true); // ?? await _articleLogic.GetByUrl(id, langCookie);
-
-                if (article == null)
-                {
-                    return NotFound();
-                }
-
-
-                if (options.Value.SiteSettings.CosmosRequiresAuthentication)
-                {
-                    if (User == null || User.Identity == null || User.Identity.IsAuthenticated == false || IsMemberOfGroup(this.userGroupName) == false)
-                    {
-                        return Unauthorized();
-                    }
-
-                    ControllerContext.HttpContext.Response.Headers.Expires = DateTimeOffset.UtcNow.AddMinutes(-30).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
-                    Response.Headers.ETag = Guid.NewGuid().ToString();
-                    Response.Headers.LastModified = DateTimeOffset.UtcNow.AddMinutes(-30).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
-                    Response.Headers.CacheControl = "no-store,no-cache";
-                }
-                else
-                {
-                    Response.Headers.Expires = article.Expires.HasValue ?
-                        article.Expires.Value.ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'") :
-                        DateTimeOffset.UtcNow.AddMinutes(1).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
-                    Response.Headers.ETag = article.Id.ToString();
-                    Response.Headers.LastModified = article.Updated.ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
-                    ControllerContext.HttpContext.Response.Headers.CacheControl = "max-age=60, stale-while-revalidate=59";
-                }
-
-                return Ok("Ok");
-            }
-            catch (Microsoft.Azure.Cosmos.CosmosException e)
-            {
-                string message = e.Message;
-                logger.LogError(e, message);
-
-                if (HttpContext.Request.Query["mode"] == "json")
-                {
-                    return NotFound();
-                }
-
-                Response.StatusCode = (int)HttpStatusCode.NotFound;
-                return NotFound();
-            }
-            catch (Exception e)
-            {
-                string message = e.Message;
-                logger.LogError(e, message);
-
-                Response.StatusCode = (int)HttpStatusCode.NotFound;
-                return NotFound();
-            }
+            return BadRequest(ModelState);
         }
 
         try
         {
-            var article = await articleLogic.GetPublishedPageByUrl(HttpContext.Request.Path, HttpContext.Request.Query["lang"], TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(20)); // ?? await _articleLogic.GetByUrl(id, langCookie);
-
+            var article = await articleLogic.GetPublishedPageByUrl(HttpContext.Request.Path, lang, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(20));
             if (article == null)
             {
                 if (!await dbContext.Pages.CosmosAnyAsync())
@@ -139,20 +144,13 @@ public class HomeController : B2CBaseController
                     return View("__UnderConstruction");
                 }
 
-                HttpContext.Response.StatusCode = 404;
-
-                if (article == null)
-                {
-                    Response.StatusCode = (int)HttpStatusCode.NotFound;
-                    return View("__NotFound");
-                }
+                Response.StatusCode = (int)HttpStatusCode.NotFound;
+                return View("__NotFound");
             }
 
-            var headers = Request.GetTypedHeaders();
-
-            if (options.Value.SiteSettings.CosmosRequiresAuthentication)
+            if (options.Value.SiteSettings.CosmosRequiresAuthentication && article.)
             {
-                if (User == null || User.Identity == null || User.Identity.IsAuthenticated == false)
+                if (User == null || User.Identity == null || !User.Identity.IsAuthenticated)
                 {
                     // Entra ID B2C Login page.
                     return RedirectToAction("SignIn", "Account", new { area = "MicrosoftIdentity" });
@@ -180,7 +178,7 @@ public class HomeController : B2CBaseController
                 ControllerContext.HttpContext.Response.Headers.CacheControl = "max-age=20, stale-while-revalidate=119";
             }
 
-            if (HttpContext.Request.Query["mode"] == "json")
+            if (mode == "json")
             {
                 article.Layout = null;
                 return Json(article);
@@ -193,7 +191,7 @@ public class HomeController : B2CBaseController
             string message = e.Message;
             logger.LogError(e, message);
 
-            if (HttpContext.Request.Query["mode"] == "json")
+            if (mode == "json")
             {
                 return NotFound();
             }
@@ -206,7 +204,7 @@ public class HomeController : B2CBaseController
             string message = e.Message;
             logger.LogError(e, message);
 
-            if (HttpContext.Request.Query["mode"] == "json")
+            if (mode == "json")
             {
                 return NotFound();
             }

@@ -18,73 +18,6 @@
                 "description": "If you are using Azure Communications for email, enter connection string."
             }
         },
-        "AzureAdInstance": {
-            "type": "string",
-            "metadata": {
-                "description": "Azure B2C Instance (e.g. https://mydomain.b2clogin.com/)"
-            }
-        },
-        "AzureAdDomain": {
-            "type": "string",
-            "metadata": {
-                "description": "Azure B2C domain (e.g. mydomain.onmicrosoft.com)"
-            }
-        },
-        "AzureAdTenantId": {
-            "type": "string",
-            "metadata": {
-                "description": "Azure B2C TenantId."
-            }
-        },
-        "AzureAdClientId": {
-            "type": "string",
-            "metadata": {
-                "description": "Azure B2C Entra Id registered application ClientId."
-            }
-        },
-        "AzureAdSignUpSignInPolicyId": {
-            "type": "string",
-            "metadata": {
-                "description": "Azure B2C sign up and sign in policy ID."
-            }
-        },
-        "AzureAdResetSignUpSignInPolicyId": {
-            "type": "string",
-            "metadata": {
-                "description": "Azure B2C sign up and sign in policy ID."
-            }
-        },
-        "AzureAdResetPasswordPolicyId": {
-            "type": "string",
-            "metadata": {
-                "description": "Azure B2C reset password policy ID."
-            }
-        },
-        "AzureAdEditProfilePolicyId": {
-            "type": "string",
-            "metadata": {
-                "description": "Azure B2C edit profile policy ID."
-            }
-        },
-        "AzureAdEnablePiiLogging": {
-            "type": "string",
-            "defaultValue": true,
-            "metadata": {
-                "description": "Azure CD PII Logging enabled?"
-            }
-        },
-        "AzureAdUserGroup": {
-            "type": "string",
-            "metadata": {
-                "description": "The group name that grants user access."
-            }
-        },
-        "AzureAdAdminGroup": {
-            "type": "string",
-            "metadata": {
-                "description": "The name of the elevated permissions users."
-            }
-        },
         "webAppPlanChoice": {
             "type": "string",
             "defaultValue": "Premium Tier",
@@ -100,14 +33,56 @@
             "metadata": {
                 "description": "Storage account type."
             }
+        },
+        "AzureB2CAdInstanceUrl": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "If you are using Azure Communications for email, enter connection string."
+            }
+        },
+        "AzureB2CDomain": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "If you are using Azure Communications for email, enter connection string."
+            }
+        },
+        "AzureB2CTenantId": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "If you are using Azure Communications for email, enter connection string."
+            }
+        },
+        "AzureB2CClientId": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "If you are using Azure Communications for email, enter connection string."
+            }
+        },
+        "AzureB2CClientSecret": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "If you are using Azure Communications for email, enter connection string."
+            }
+        },
+        "AzureB2CSignUpSignInPolicyId": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "If you are using Azure Communications for email, enter connection string."
+            }
         }
     },
     "functions": [],
     "variables": {
         "allowLocalAccounts": "true",
         "adminEmail": "[parameters('administratorReplyEmail')]",
-        "AzureAdB2CCallbackPath": "/signin-oidc",
-        "AzureAdB2CSignedOutCallbackPath": "[concat('/signout', parameters('AzureAdSignUpSignInPolicyId'))]",
+        "azureB2CCallbackPath": "/signin-oidc",
+        "azureB2CSignedOutCallbackPath": "/signout/B2C_1_susi",
         "cosmosSendGridApiKey": "",
         "webAppPlanSku": "[concat(if(equals(parameters('webAppPlanChoice'), 'Free Tier'), 'F1', ''),if(equals(parameters('webAppPlanChoice'), 'Shared Tier'), 'D1', ''),if(equals(parameters('webAppPlanChoice'), 'Basic Tier'), 'B1', ''), if(equals(parameters('webAppPlanChoice'), 'Standard Tier'), 'S1', ''), if(equals(parameters('webAppPlanChoice'), 'Premium Tier'), 'P0v3', ''))]",
         "webAppTier": "[concat(if(equals(parameters('webAppPlanChoice'), 'Free Tier'), 'Free', ''),if(equals(parameters('webAppPlanChoice'), 'Shared Tier'), 'Shared', ''),if(equals(parameters('webAppPlanChoice'), 'Basic Tier'), 'Basic', ''),if(equals(parameters('webAppPlanChoice'), 'Standard Tier'), 'Standard', ''))]",
@@ -428,7 +403,7 @@
                 "hyperV": false,
                 "siteConfig": {
                     "numberOfWorkers": 1,
-                    "linuxFxVersion": "DOCKER|toiyabe/cosmos-publisher-b2c:latest",
+                    "linuxFxVersion": "DOCKER|toiyabe/cosmos-publisher:latest",
                     "acrUseManagedIdentityCreds": false,
                     "alwaysOn": true,
                     "http20Enabled": true,
@@ -463,19 +438,7 @@
                         "AdminEmail": "[variables('adminEmail')]",
                         "AllowLocalAccounts": "[variables('allowLocalAccounts')]",
                         "AzureBlobStorageEndPoint": "[reference(concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName')), '2018-07-01').primaryEndpoints.web]",
-                        "AzureAd__Instance": "[parameters('AzureAdInstance')]",
-                        "AzureAd__Domain": "[parameters('AzureAdDomain')]",
-                        "AzureAd__TenantId": "[parameters('AzureAdTenantId')]",
-                        "AzureAd__ClientId": "[parameters('AzureAdClientId')]",
-                        "AzureAd__CallbackPath": "[variables('AzureAdB2CCallbackPath')]",
-                        "AzureAd__SignUpSignInPolicyId": "[parameters('AzureAdSignUpSignInPolicyId')]",
-                        "AzureAd__SignedOutCallbackPath": "[variables('AzureAdB2CSignedOutCallbackPath')]",
-                        "AzureAd__ResetPasswordPolicyId": "[parameters('AzureAdResetPasswordPolicyId')]",
-                        "AzureAd__EditProfilePolicyId": "[parameters('AzureAdEditProfilePolicyId')]",
-                        "AzureAd__EnablePiiLogging": "[parameters('AzureAdEnablePiiLogging')]",
-                        "AzureAd__UserGroup": "[parameters('AzureAdUserGroup')]",
-                        "AzureAd__AdminGroup": "[parameters('AzureAdAdminGroup')]",
-                        "CosmosRequiresAuthentication": "true",
+                        "CosmosRequiresAuthentication": "false",
                         "CosmosSendGridApiKey": "[variables('cosmosSendGridApiKey')]",
                         "SmtpEmailProviderOptions__Host": "[variables('smtpEmailProviderOptions__Host')]",
                         "SmtpEmailProviderOptions__Port": "[variables('smtpEmailProviderOptions__Port')]",
@@ -534,7 +497,7 @@
                     "hostingstart.html"
                 ],
                 "netFrameworkVersion": "v4.0",
-                "linuxFxVersion": "DOCKER|toiyabe/cosmos-publisher-b2c:latest",
+                "linuxFxVersion": "DOCKER|toiyabe/cosmos-publisher:latest",
                 "requestTracingEnabled": false,
                 "remoteDebuggingEnabled": false,
                 "remoteDebuggingVersion": "VS2022",
