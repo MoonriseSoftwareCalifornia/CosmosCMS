@@ -1775,7 +1775,7 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         ///     Gets a role list, and allows for filtering.
         /// </summary>
-        /// <param name="text"></param>
+        /// <param name="text">Filter string.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [HttpGet]
         public async Task<IActionResult> Get_RoleList(string text)
