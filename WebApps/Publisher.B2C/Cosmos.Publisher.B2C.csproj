@@ -9,7 +9,7 @@
 		<EnableSdkContainerDebugging>True</EnableSdkContainerDebugging>
 		<ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:8.0</ContainerBaseImage>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-		<Version>8.0.7.8</Version>
+		<Version>8.0.8.1</Version>
 		<DockerfileContext>..\..</DockerfileContext>
 	</PropertyGroup>
 
@@ -19,6 +19,9 @@
 	
 	<ItemGroup>
 	  <Content Remove="stylecop.json" />
+	  <Content Remove="wwwroot\ccms\js\cosmosUtils.js" />
+	  <Content Remove="wwwroot\ccms\js\GoogleTranslations.js" />
+	  <Content Remove="wwwroot\ccms\js\TimeUtils.js" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -49,6 +52,12 @@
 
 	<ItemGroup>
 		<ContainerPort Include="8081" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="wwwroot\ccms\js\cosmosUtils.js" />
+	  <None Include="wwwroot\ccms\js\GoogleTranslations.js" />
+	  <None Include="wwwroot\ccms\js\TimeUtils.js" />
 	</ItemGroup>
 
 	<ItemGroup>

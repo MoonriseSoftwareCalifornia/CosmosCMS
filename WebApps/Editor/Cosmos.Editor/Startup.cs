@@ -9,7 +9,6 @@ namespace Cosmos.Cms
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Security.Cryptography;
     using System.Text;
     using System.Threading.RateLimiting;
@@ -25,11 +24,12 @@ namespace Cosmos.Cms
     using Cosmos.Common.Data;
     using Cosmos.Common.Services.Configurations;
     using Cosmos.Common.Services.PowerBI;
+    using Cosmos.Editor.Services;
     using Cosmos.EmailServices;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.DataProtection;
-    using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
     using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
+    using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.HttpOverrides;
     using Microsoft.AspNetCore.Identity;
@@ -39,7 +39,6 @@ namespace Cosmos.Cms
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Newtonsoft.Json.Serialization;
-    using Cosmos.Editor.Services;
 
     /// <summary>
     ///     Startup class for the website.

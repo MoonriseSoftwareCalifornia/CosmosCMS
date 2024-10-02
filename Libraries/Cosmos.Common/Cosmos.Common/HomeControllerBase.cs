@@ -234,6 +234,23 @@ namespace Cosmos.Common
         }
 
         /// <summary>
+        /// Searches published articles by keyword or phrase.
+        /// </summary>
+        /// <param name="searchTxt">Search string.</param>
+        /// <returns>JsonResult</returns>
+        [HttpPost]
+        public async Task<IActionResult> CCMS___SEARCH(string searchTxt)
+        {
+            if (string.IsNullOrEmpty(searchTxt))
+            {
+                return BadRequest("Search term is required.");
+            }
+
+            var result = await articleLogic.Search(searchTxt);
+            return Json(result);
+        }
+
+        /// <summary>
         /// Returns a health check.
         /// </summary>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>

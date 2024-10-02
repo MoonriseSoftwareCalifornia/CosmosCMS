@@ -1,0 +1,52 @@
+.ck-content .image.image_resized img {
+    width: 100%;
+}
+
+.ck-content .image img {
+    display: block;
+    height: auto;
+    margin: 0 auto;
+    max-width: 100%;
+    min-width: 100%;
+}
+
+img,
+svg {
+    vertical-align: middle;
+}
+
+/* Added fall 2023 */
+.image_resized {
+    height: auto !important;
+}
+
+.ck-content .image {
+    display: table;
+    clear: both;
+    margin: .9em auto;
+    min-width: 50px;
+    text-align: center;
+}
+
+.ck-content .image-style-side {
+    float: right;
+    margin-left: var(--ck-image-style-spacing);
+    max-width: 50%;
+}
+
+/* @ckeditor/ckeditor5-image/theme/imageresize.css */
+.ck-content .image.image_resized > figcaption {
+    display: block;
+}
+
+/* @ckeditor/ckeditor5-image/theme/imagecaption.css */
+.ck-content .image > figcaption {
+    display: table-caption;
+    caption-side: bottom;
+    word-break: break-word;
+    color: var(--ck-color-image-caption-text);
+    background-color: var(--ck-color-image-caption-background);
+    padding: .6em;
+    font-size: .75em;
+    outline-offset: -1px;
+}

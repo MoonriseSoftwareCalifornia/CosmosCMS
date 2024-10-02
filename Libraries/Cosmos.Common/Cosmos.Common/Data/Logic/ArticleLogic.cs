@@ -8,6 +8,7 @@
 namespace Cosmos.Common.Data.Logic
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Text;
     using System.Text.RegularExpressions;
@@ -15,6 +16,7 @@ namespace Cosmos.Common.Data.Logic
     using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Common.Data;
     using Cosmos.Common.Models;
+    using MailChimp.Net.Models;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Caching.Distributed;
     using Microsoft.Extensions.Caching.Memory;
@@ -300,6 +302,41 @@ namespace Cosmos.Common.Data.Logic
             }
 
             return model;
+        }
+
+        /// <summary>
+        /// Searches for articles.  This is a full text search.  This is a very expensive operation and should be used sparingly.
+        /// </summary>
+        /// <param name="text">Search text.</param>
+        /// <returns>List of articles</returns>
+        public async Task<List<TableOfContentsItem>> Search(string text)
+        {
+            text = text.ToLower();
+            var results = await DbContext.Pages
+                .Where(a => a.Published <= DateTimeOffset.UtcNow)
+                .Where(a => a.Content.ToLower().Contains(text) || a.Title.ToLower().Contains(text))
+                .OrderByDescending(o => o.Title)
+                .Select(s => new TableOfContentsItem
+                {
+                    UrlPath = s.UrlPath,
+                    Title = s.Title,
+                    Published = s.Published.Value,
+                    Updated = s.Updated,
+                    BannerImage = s.BannerImage,
+                    AuthorInfo = s.AuthorInfo
+                }).ToListAsync();
+
+            var model = results.Select(s => new TableOfContentsItem
+            {
+                UrlPath = s.UrlPath == "root" ? "/" : $"/{s.UrlPath.TrimStart('/')}",
+                Title = s.Title,
+                Published = s.Published,
+                Updated = s.Updated,
+                BannerImage = $"/{s.BannerImage.TrimStart('/')}",
+                AuthorInfo = s.AuthorInfo
+            }).ToList();
+
+            return results;
         }
 
         /// <summary>
