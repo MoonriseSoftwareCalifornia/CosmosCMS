@@ -338,7 +338,7 @@ namespace Cosmos.Common.Data.Logic
                 Published = s.Published,
                 Title = s.Title,
                 Updated = s.Updated,
-                UrlPath = s.UrlPath == "root" ? "/" : s.UrlPath
+                UrlPath = s.UrlPath == "/root" ? "/" : s.UrlPath
             }).ToList();
         }
 
