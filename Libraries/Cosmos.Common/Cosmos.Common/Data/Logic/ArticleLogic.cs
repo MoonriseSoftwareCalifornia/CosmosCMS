@@ -311,6 +311,11 @@ namespace Cosmos.Common.Data.Logic
         /// <returns>List of articles</returns>
         public async Task<List<TableOfContentsItem>> Search(string text)
         {
+            if (string.IsNullOrEmpty(text))
+            {
+                return new List<TableOfContentsItem>();
+            }
+
             text = text.ToLower();
             var results = await DbContext.Pages
                 .Where(a => a.Published <= DateTimeOffset.UtcNow)
@@ -318,25 +323,23 @@ namespace Cosmos.Common.Data.Logic
                 .OrderByDescending(o => o.Title)
                 .Select(s => new TableOfContentsItem
                 {
-                    UrlPath = s.UrlPath,
+                    UrlPath = "/" + s.UrlPath,
                     Title = s.Title,
                     Published = s.Published.Value,
                     Updated = s.Updated,
-                    BannerImage = s.BannerImage,
+                    BannerImage = "/" + s.BannerImage,
                     AuthorInfo = s.AuthorInfo
                 }).ToListAsync();
 
-            var model = results.Select(s => new TableOfContentsItem
+            return results.Select(s => new TableOfContentsItem()
             {
-                UrlPath = s.UrlPath == "root" ? "/" : $"/{s.UrlPath.TrimStart('/')}",
-                Title = s.Title,
+                AuthorInfo = s.AuthorInfo,
+                BannerImage = s.BannerImage,
                 Published = s.Published,
+                Title = s.Title,
                 Updated = s.Updated,
-                BannerImage = $"/{s.BannerImage.TrimStart('/')}",
-                AuthorInfo = s.AuthorInfo
+                UrlPath = s.UrlPath == "root" ? "/" : s.UrlPath
             }).ToList();
-
-            return results;
         }
 
         /// <summary>
