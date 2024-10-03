@@ -222,6 +222,11 @@ namespace Cosmos.Common
         [HttpGet]
         public async Task<IActionResult> CCMS_GET_POWER_BI_RDL_TOKEN(Guid reportId, Guid workspaceId)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             if (powerBiTokenService.IsConfigured)
             {
                 // TODO: This is to check security.
@@ -241,6 +246,11 @@ namespace Cosmos.Common
         [HttpPost]
         public async Task<IActionResult> CCMS___SEARCH(string searchTxt)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             if (string.IsNullOrEmpty(searchTxt))
             {
                 return BadRequest("Search term is required.");
@@ -258,6 +268,11 @@ namespace Cosmos.Common
         [EnableRateLimiting("fixed")]
         public async Task<IActionResult> CCMS_UTILITIES_NET_PING_HEALTH_CHECK()
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             try
             {
                 _ = await dbContext.Database.CanConnectAsync();

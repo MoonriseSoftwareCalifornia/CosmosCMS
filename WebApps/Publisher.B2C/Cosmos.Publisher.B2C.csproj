@@ -19,9 +19,6 @@
 	
 	<ItemGroup>
 	  <Content Remove="stylecop.json" />
-	  <Content Remove="wwwroot\ccms\js\cosmosUtils.js" />
-	  <Content Remove="wwwroot\ccms\js\GoogleTranslations.js" />
-	  <Content Remove="wwwroot\ccms\js\TimeUtils.js" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -55,9 +52,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Include="wwwroot\ccms\js\cosmosUtils.js" />
-	  <None Include="wwwroot\ccms\js\GoogleTranslations.js" />
-	  <None Include="wwwroot\ccms\js\TimeUtils.js" />
+	  <Content Include="..\Editor\Cosmos.Editor\wwwroot\css\ckeditor-content.css" Link="wwwroot\css\ckeditor-content.css" />
+	  <Content Include="..\Editor\Cosmos.Editor\wwwroot\css\imagestyle.css" Link="wwwroot\css\imagestyle.css" />
+	  <Content Include="..\Publisher\Cosmos.Publisher\wwwroot\css\site.css" Link="wwwroot\css\site.css" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -65,6 +62,25 @@
 	  <ProjectReference Include="..\..\Libraries\Cosmos.Common\Cosmos.Common\Cosmos.Common.csproj" />
 	  <ProjectReference Include="..\..\Libraries\Cosmos.EmailServices\Cosmos.EmailServices.csproj" />
 	  <ProjectReference Include="..\..\Libraries\Cosmos.MicrosoftGraph\Cosmos.MicrosoftGraph.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="wwwroot\ccms\js\" />
+	  <Folder Include="wwwroot\js\" />
+	  <Folder Include="wwwroot\lib\cosmos\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="..\Editor\Cosmos.Editor\wwwroot\ccms\js\cosmosUtils.js" Link="wwwroot\ccms\js\cosmosUtils.js" />
+	  <None Include="..\Editor\Cosmos.Editor\wwwroot\ccms\js\GoogleTranslations.js" Link="wwwroot\ccms\js\GoogleTranslations.js" />
+	  <None Include="..\Editor\Cosmos.Editor\wwwroot\ccms\js\TimeUtils.js" Link="wwwroot\ccms\js\TimeUtils.js" />
+	  <None Include="..\Editor\Cosmos.Editor\wwwroot\lib\cosmos\crumbs.js" Link="wwwroot\lib\cosmos\crumbs.js" />
+	  <None Include="..\Editor\Cosmos.Editor\wwwroot\lib\cosmos\forms.js" Link="wwwroot\lib\cosmos\forms.js" />
+	  <None Include="..\Editor\Cosmos.Editor\wwwroot\lib\cosmos\jquery-powerbi.js" Link="wwwroot\lib\cosmos\jquery-powerbi.js" />
+	  <None Include="..\Editor\Cosmos.Editor\wwwroot\lib\cosmos\nav-builder.js" Link="wwwroot\lib\cosmos\nav-builder.js" />
+	  <None Include="..\Editor\Cosmos.Editor\wwwroot\lib\cosmos\powerbi.js" Link="wwwroot\lib\cosmos\powerbi.js" />
+	  <None Include="..\Editor\Cosmos.Editor\wwwroot\lib\cosmos\toc.js" Link="wwwroot\lib\cosmos\toc.js" />
+	  <None Include="..\Publisher\Cosmos.Publisher\wwwroot\js\site.js" Link="wwwroot\js\site.js" />
 	</ItemGroup>
 
 </Project>
