@@ -334,6 +334,11 @@ namespace Cosmos.Cms.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> Edit(Guid Id)
         {
+            if (ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var template = await dbContext.Templates.FirstOrDefaultAsync(f => f.Id == Id);
             ViewData["Title"] = template.Title;
 
@@ -355,20 +360,18 @@ namespace Cosmos.Cms.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(TemplateEditViewModel model)
         {
-            ViewData["Title"] = model.Title;
-
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                var template = await dbContext.Templates.FirstOrDefaultAsync(f => f.Id == model.Id);
-                template.Title = model.Title;
-                template.Description = model.Description;
-
-                await dbContext.SaveChangesAsync();
-
-                return RedirectToAction("Index");
+                return View(model);
             }
 
-            return View(model);
+            var template = await dbContext.Templates.FirstOrDefaultAsync(f => f.Id == model.Id);
+            template.Title = model.Title;
+            template.Description = model.Description;
+
+            await dbContext.SaveChangesAsync();
+
+            return RedirectToAction("Index");
         }
 
         /// <summary>
@@ -485,7 +488,7 @@ namespace Cosmos.Cms.Controllers
             var guid = Guid.NewGuid();
 
             // Template preview
-            ArticleViewModel model = new ()
+            ArticleViewModel model = new()
             {
                 ArticleNumber = 1,
                 LanguageCode = string.Empty,

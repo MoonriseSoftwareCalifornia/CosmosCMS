@@ -30,6 +30,15 @@ namespace Cosmos.Cms.Data.Logic
         /// </summary>
         private const string COSMOSLAYOUTSREPO = "https://cosmos-layouts.moonrise.net";
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LayoutUtilities"/> class.
+        /// </summary>
+        public LayoutUtilities()
+        {
+            var task = LoadCatalog();
+            task.Wait();
+        }
+
         private string ParseAttributes(HtmlAttributeCollection collection)
         {
             if (collection == null)
@@ -64,8 +73,6 @@ namespace Cosmos.Cms.Data.Logic
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<List<Page>> GetPageTemplates(string id)
         {
-            await LoadCatalog();
-
             using var client = new HttpClient();
 
             var layout = CommunityCatalog.LayoutCatalog.FirstOrDefault(f => f.Id == id);
@@ -78,16 +85,6 @@ namespace Cosmos.Cms.Data.Logic
             var data = await client.GetStringAsync($"{COSMOSLAYOUTSREPO}/Layouts/{layout.Id}/catalog.json");
             var root = JsonConvert.DeserializeObject<PageRoot>(data);
             return root.Pages.OrderBy(o => o.Title).ToList();
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="LayoutUtilities"/> class.
-        /// Constructor.
-        /// </summary>
-        public LayoutUtilities()
-        {
-            var task = LoadCatalog();
-            task.Wait();
         }
 
         /// <summary>
@@ -114,14 +111,20 @@ namespace Cosmos.Cms.Data.Logic
         /// <summary>
         /// Gets a specified layout.
         /// </summary>
-        /// <param name="layoutId"></param>
-        /// <param name="isDefault"></param>
+        /// <param name="layoutId">Layout ID.</param>
+        /// <param name="isDefault">Is default layout.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<Layout> GetCommunityLayout(string layoutId, bool isDefault)
         {
             var item = CommunityCatalog.LayoutCatalog.FirstOrDefault(f => f.Id == layoutId);
+
+            if (item == null)
+            {
+                throw new Exception("Not found.");
+            }
+
             using var client = new HttpClient();
-            var url = $"{COSMOSLAYOUTSREPO}/Layouts/{layoutId}/layout.html";
+            var url = $"{COSMOSLAYOUTSREPO}/Layouts/{item.Id}/layout.html";
             var html = await client.GetStringAsync(url);
 
             var layout = ParseHtml(html);
@@ -174,8 +177,6 @@ namespace Cosmos.Cms.Data.Logic
             {
                 communityLayoutId = DefaultLayoutId;
             }
-
-            await LoadCatalog();
 
             using var client = new HttpClient();
 
