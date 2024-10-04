@@ -60,12 +60,22 @@ namespace Cosmos.Cms.Data.Logic
         /// <summary>
         /// Get template pages for a layout.
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="id">Layout ID.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<List<Page>> GetPageTemplates(string id)
         {
+            await LoadCatalog();
+
             using var client = new HttpClient();
-            var data = await client.GetStringAsync($"{COSMOSLAYOUTSREPO}/Layouts/{id}/catalog.json");
+
+            var layout = CommunityCatalog.LayoutCatalog.FirstOrDefault(f => f.Id == id);
+
+            if (layout == null)
+            {
+                return new List<Page>();
+            }
+
+            var data = await client.GetStringAsync($"{COSMOSLAYOUTSREPO}/Layouts/{layout.Id}/catalog.json");
             var root = JsonConvert.DeserializeObject<PageRoot>(data);
             return root.Pages.OrderBy(o => o.Title).ToList();
         }
@@ -156,26 +166,35 @@ namespace Cosmos.Cms.Data.Logic
         /// <summary>
         /// Gets a page template.
         /// </summary>
-        /// <param name="communityLayoutId"></param>
+        /// <param name="communityLayoutId">Community layout ID.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<List<Template>> GetCommunityTemplatePages(string communityLayoutId = "")
         {
-            var tempates = new List<Template>();
-
             if (string.IsNullOrEmpty(communityLayoutId))
             {
                 communityLayoutId = DefaultLayoutId;
             }
 
-            var pages = await GetPageTemplates(communityLayoutId);
+            await LoadCatalog();
 
             using var client = new HttpClient();
+
+            var layout = CommunityCatalog.LayoutCatalog.FirstOrDefault(f => f.Id == communityLayoutId);
+
+            if (layout == null)
+            {
+                return new List<Template>();
+            }
+
+            var tempates = new List<Template>();
+
+            var pages = await GetPageTemplates(layout.Id);
 
             foreach (var page in pages)
             {
                 try
                 {
-                    var url = $"{COSMOSLAYOUTSREPO}/Layouts/{communityLayoutId}/{page.Path}";
+                    var url = $"{COSMOSLAYOUTSREPO}/Layouts/{layout.Id}/{page.Path}";
                     var uglifiedUrl = NUglify.Uglify.Html(url);
                     var html = await client.GetStringAsync(uglifiedUrl.Code);
 
@@ -183,7 +202,7 @@ namespace Cosmos.Cms.Data.Logic
                     template.PageType = page.Type;
                     template.Description = page.Description;
                     template.Title = page.Type == "home" ? "Home Page" : page.Title;
-                    template.CommunityLayoutId = communityLayoutId;
+                    template.CommunityLayoutId = layout.Id;
                     tempates.Add(template);
                 }
                 catch (Exception e)

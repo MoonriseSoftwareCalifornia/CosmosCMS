@@ -286,7 +286,7 @@ namespace Cosmos.Cms.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return View(model);
             }
 
             _storageContext.CreateFolder("/pub");
@@ -330,7 +330,7 @@ namespace Cosmos.Cms.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return View(model);
             }
 
             _storageContext.CreateFolder("/pub");
@@ -375,6 +375,11 @@ namespace Cosmos.Cms.Controllers
         [HttpPost]
         public ActionResult Process([FromForm] string files)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var parsed = JsonConvert.DeserializeObject<FilePondMetadata>(files);
 
             var mime = MimeTypeMap.GetMimeType(Path.GetExtension(parsed.FileName));
@@ -393,6 +398,11 @@ namespace Cosmos.Cms.Controllers
         [HttpPatch]
         public async Task<ActionResult> Process(string patch, string options = "")
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             try
             {
                 var patchArray = patch.Split('|');
@@ -483,6 +493,11 @@ namespace Cosmos.Cms.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> SimpleUpload(string Id)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var file = Request.Form.Files.FirstOrDefault();
 
             if (file.Length > (1048576 * 25))
@@ -526,64 +541,6 @@ namespace Cosmos.Cms.Controllers
                 return Json(ReturnSimpleErrorMessage(e.Message));
             }
         }
-
-        //private async Task<FileUploadMetaData> SaveImage(Image image, string directory, string fileName, string extension, string contentType)
-        //{
-        //    // jpeg, png, gif, bmp, webp and tiff
-        //    using var img = new MemoryStream();
-
-        //    switch (extension)
-        //    {
-        //        case ".jpeg":
-        //            await image.SaveAsJpegAsync(img);
-        //            break;
-        //        case ".png":
-        //            await image.SaveAsPngAsync(img);
-        //            break;
-        //        case ".gif":
-        //            await image.SaveAsGifAsync(img);
-        //            break;
-        //        case ".bmp":
-        //            await image.SaveAsBmpAsync(img);
-        //            break;
-        //        case ".webp":
-        //            await image.SaveAsWebpAsync(img);
-        //            break;
-        //        case ".tiff":
-        //            await image.SaveAsTiffAsync(img);
-        //            break;
-        //    }
-
-        //    contentType = MimeTypeMap.GetMimeType(extension);
-
-        //    var metadata = new FileUploadMetaData()
-        //    {
-        //        ChunkIndex = 0,
-        //        ContentType = contentType,
-        //        FileName = fileName,
-        //        RelativePath = UrlEncode(directory + fileName),
-        //        TotalChunks = 1,
-        //        TotalFileSize = img.Length,
-        //        UploadUid = Guid.NewGuid().ToString()
-        //    };
-
-        //    _storageContext.DeleteFile(metadata.RelativePath);
-        //    _storageContext.AppendBlob(img, metadata);
-
-        //    return metadata;
-        //}
-
-        //private Rectangle GetRectangle(Image image, decimal percent)
-        //{
-        //    // First step down
-        //    var x = (int)Math.Round(image.Width * percent);
-        //    var y = (int)Math.Round(image.Height * percent);
-
-        //    var xdif = (int)Math.Round((image.Width - x) / (decimal)2);
-        //    var ydif = (int)Math.Round((image.Height - y) / (decimal)2);
-
-        //    return new Rectangle(xdif, ydif, x, y);
-        //}
 
         private dynamic ReturnSimpleErrorMessage(string message)
         {
@@ -911,6 +868,11 @@ namespace Cosmos.Cms.Controllers
         /// </remarks>
         public string UrlEncode(string path)
         {
+            if (!ModelState.IsValid)
+            {
+                return string.Empty;
+            }
+
             var parts = ParsePath(path);
             var urlEncodedParts = new List<string>();
             foreach (var part in parts)
@@ -933,6 +895,11 @@ namespace Cosmos.Cms.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> NewFolder(NewFolderViewModel model)
         {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
             var relativePath = string.Join('/', ParsePath(model.ParentFolder, model.FolderName));
             relativePath = UrlEncode(relativePath);
 
@@ -954,6 +921,16 @@ namespace Cosmos.Cms.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> Download(string path)
         {
+            if (string.IsNullOrEmpty(path))
+            {
+                return NotFound();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var blob = await _storageContext.GetFileAsync(path);
 
             if (!blob.IsDirectory)
@@ -975,6 +952,11 @@ namespace Cosmos.Cms.Controllers
         /// <returns><see cref="JsonResult" />(<see cref="FileManagerEntry" />).</returns>
         public async Task<ActionResult> Create(string target, FileManagerEntry entry)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             target = target == null ? string.Empty : target;
             entry.Path = target;
             entry.Name = UrlEncode(entry.Name);
@@ -1025,6 +1007,11 @@ namespace Cosmos.Cms.Controllers
         [HttpPost]
         public async Task<ActionResult> Delete(DeleteBlobItemsViewModel model)
         {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
             foreach (var item in model.Paths)
             {
                 if (item.EndsWith('/'))
@@ -1049,6 +1036,11 @@ namespace Cosmos.Cms.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Rename(RenameBlobViewModel model)
         {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
             if (!string.IsNullOrEmpty(model.ToBlobName))
             {
                 // Note rules:
@@ -1087,6 +1079,11 @@ namespace Cosmos.Cms.Controllers
         /// <returns>Processed path as an array.</returns>
         public string[] ParsePath(params string[] pathParts)
         {
+            if (!ModelState.IsValid)
+            {
+                return new string[] { string.Empty };
+            }
+
             if (pathParts == null)
             {
                 return new string[] { };
@@ -1138,10 +1135,15 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Edit code for a file.
         /// </summary>
-        /// <param name="path"></param>
+        /// <param name="path">URL or path to code.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> EditCode(string path)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             try
             {
                 var extension = Path.GetExtension(path.ToLower());
@@ -1228,12 +1230,17 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Save the file.
         /// </summary>
-        /// <param name="model"></param>
+        /// <param name="model">Code post model.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditCode(FileManagerEditCodeViewModel model)
         {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
             var extension = Path.GetExtension(model.Path.ToLower());
 
             var filter = options.Value.SiteSettings.AllowedFileTypes.Split(',');
@@ -1328,6 +1335,11 @@ namespace Cosmos.Cms.Controllers
         /// <returns></returns>
         public IActionResult EditImage(string target)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             if (string.IsNullOrEmpty(target))
             {
                 return NotFound();
@@ -1353,6 +1365,11 @@ namespace Cosmos.Cms.Controllers
         [HttpPost]
         public async Task<IActionResult> EditImage([FromBody] FileRobotImagePost model)
         {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
             // FileRobotImagePost model
             //     = new FileRobotImagePost()
             //     {
@@ -1370,6 +1387,7 @@ namespace Cosmos.Cms.Controllers
             var data = model.imageBase64.Split(',')[1];
 
             byte[] imageBytes = Convert.FromBase64String(data);
+
             // Create a stream and build an image object
             using var ms = new MemoryStream(imageBytes);
 
@@ -1428,6 +1446,11 @@ namespace Cosmos.Cms.Controllers
         // [ResponseCache(NoStore = true)]
         public async Task<IActionResult> GetImageThumbnail(string target, int width = 120, int height = 120)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var extension = Path.GetExtension(target.ToLower());
 
             var filter = new[] { ".png", ".jpg", ".gif", ".jpeg", ".webp" };

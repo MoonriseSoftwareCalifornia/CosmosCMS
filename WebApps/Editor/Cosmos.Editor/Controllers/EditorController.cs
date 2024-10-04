@@ -377,7 +377,7 @@ namespace Cosmos.Cms.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return View(model);
             }
 
             var t = model;
@@ -875,7 +875,7 @@ namespace Cosmos.Cms.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return View(model);
             }
 
             string title = string.Empty;
@@ -985,7 +985,7 @@ namespace Cosmos.Cms.Controllers
 
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return View(model);
             }
 
             var user = await userManager.GetUserAsync(User);
@@ -1005,7 +1005,7 @@ namespace Cosmos.Cms.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return View(model);
             }
 
             if (model == null)
@@ -1639,7 +1639,7 @@ namespace Cosmos.Cms.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return View(model);
             }
 
             var saveError = new StringBuilder();
@@ -1766,7 +1766,7 @@ namespace Cosmos.Cms.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return View(model);
             }
 
             if (model.ArticleNumber.HasValue)

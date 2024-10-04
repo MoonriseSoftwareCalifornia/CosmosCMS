@@ -66,13 +66,18 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// User account inventory.
         /// </summary>
-        /// <param name="sortOrder"></param>
-        /// <param name="currentSort"></param>
-        /// <param name="pageNo"></param>
-        /// <param name="pageSize"></param>
+        /// <param name="sortOrder">Sort direction.</param>
+        /// <param name="currentSort">Current sort field.</param>
+        /// <param name="pageNo">Page number.</param>
+        /// <param name="pageSize">Page size.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> AuthorInfos(string sortOrder = "asc", string currentSort = "EmailAddress", int pageNo = 0, int pageSize = 10)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             ViewData["sortOrder"] = sortOrder;
             ViewData["currentSort"] = currentSort;
             ViewData["pageNo"] = pageNo;
@@ -130,13 +135,18 @@ namespace Cosmos.Cms.Controllers
         }
 
         /// <summary>
-        /// 
+        /// Gets an author info to edit.
         /// </summary>
-        /// <param name="Id"></param>
+        /// <param name="id">User Id.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task<IActionResult> AuthorInfoEdit(string Id)
+        public async Task<IActionResult> AuthorInfoEdit(string id)
         {
-            return View(await dbContext.AuthorInfos.FindAsync(Id));
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            return View(await dbContext.AuthorInfos.FindAsync(id));
         }
 
         /// <summary>
@@ -160,14 +170,19 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// User account inventory.
         /// </summary>
-        /// <param name="Id"></param>
-        /// <param name="sortOrder"></param>
-        /// <param name="currentSort"></param>
-        /// <param name="pageNo"></param>
-        /// <param name="pageSize"></param>
+        /// <param name="id">User ID.</param>
+        /// <param name="sortOrder">Sort direction.</param>
+        /// <param name="currentSort">Current sort field.</param>
+        /// <param name="pageNo">Page number.</param>
+        /// <param name="pageSize">Page size.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task<IActionResult> Index(string Id = "", string sortOrder = "asc", string currentSort = "EmailAddress", int pageNo = 0, int pageSize = 10)
+        public async Task<IActionResult> Index(string id = "", string sortOrder = "asc", string currentSort = "EmailAddress", int pageNo = 0, int pageSize = 10)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             ViewData["sortOrder"] = sortOrder;
             ViewData["currentSort"] = currentSort;
             ViewData["pageNo"] = pageNo;
@@ -175,9 +190,9 @@ namespace Cosmos.Cms.Controllers
 
             var query = dbContext.Users.AsQueryable();
 
-            if (!string.IsNullOrEmpty(Id))
+            if (!string.IsNullOrEmpty(id))
             {
-                var identityRole = await roleManager.FindByIdAsync(Id);
+                var identityRole = await roleManager.FindByIdAsync(id);
 
                 var usersInRole = await userManager.GetUsersInRoleAsync(identityRole.Name);
 
@@ -261,6 +276,11 @@ namespace Cosmos.Cms.Controllers
         /// <returns>Returns success for failure.</returns>
         public async Task<IActionResult> ConfirmEmail(string id)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             if (string.IsNullOrEmpty(id))
             {
                 return NotFound();
@@ -292,6 +312,11 @@ namespace Cosmos.Cms.Controllers
         /// <returns>Success or failure.</returns>
         public async Task<IActionResult> UnconfirmEmail(string id)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             if (string.IsNullOrEmpty(id))
             {
                 return NotFound();
@@ -517,6 +542,11 @@ namespace Cosmos.Cms.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteUsers(string userIds)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             if (userManager.Users.Count() < 2)
             {
                 ModelState.AddModelError(string.Empty, "Cannot delete the last user account.");
@@ -572,6 +602,11 @@ namespace Cosmos.Cms.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> GetRoles(string text)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var query = roleManager.Roles.OrderBy(o => o.Name).Select(s => new
             {
                 s.Id,
@@ -595,6 +630,11 @@ namespace Cosmos.Cms.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> RoleMembership([Bind("id")] string id)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var user = await userManager.FindByIdAsync(id);
 
             if (user == null)
@@ -617,6 +657,11 @@ namespace Cosmos.Cms.Controllers
         [HttpPost]
         public async Task<IActionResult> ResendEmailConfirmation(string Id)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var user = await userManager.FindByIdAsync(Id);
             if (user == null)
             {
@@ -673,6 +718,11 @@ namespace Cosmos.Cms.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> UserRoles(string id)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             ViewData["RoleList"] = await roleManager.Roles.OrderBy(o => o.Name).ToListAsync();
 
             var model = await GetRoleAssignmentsForUser(id);
@@ -688,6 +738,11 @@ namespace Cosmos.Cms.Controllers
         [HttpGet]
         public async Task<IActionResult> SendPasswordReset(string emailAddress)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var user = await userManager.FindByEmailAsync(emailAddress);
             if (user == null)
             {
@@ -716,12 +771,17 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Updates a user's role assignments.
         /// </summary>
-        /// <param name="model"></param>
+        /// <param name="model">User role post model.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UserRoles(UserRoleAssignmentsViewModel model)
         {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
             var user = await userManager.FindByIdAsync(model.Id);
 
             var exisitingRoles = await userManager.GetRolesAsync(user);
@@ -749,7 +809,6 @@ namespace Cosmos.Cms.Controllers
 
             var roles = new List<IdentityRole>();
 
-            
             foreach (var roleId in model.RoleIds)
             {
                 roles.Add(await roleManager.FindByIdAsync(roleId));

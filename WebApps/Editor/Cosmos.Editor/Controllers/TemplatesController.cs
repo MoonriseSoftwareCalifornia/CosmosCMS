@@ -61,6 +61,11 @@ namespace Cosmos.Cms.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> Index(string sortOrder = "asc", string currentSort = "Title", int pageNo = 0, int pageSize = 10)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var defautLayout = await dbContext.Layouts.FirstOrDefaultAsync(f => f.IsDefault);
 
             ViewData["Layouts"] = await BaseGetLayoutListItems();
@@ -135,6 +140,11 @@ namespace Cosmos.Cms.Controllers
         /// <returns>Returns an <see cref="IActionResult"/>.</returns>
         public async Task<IActionResult> Pages(Guid id, string sortOrder = "asc", string currentSort = "Title", int pageNo = 0, int pageSize = 10, string filter = "")
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var template = await dbContext.Templates.FirstOrDefaultAsync(f => f.Id == id);
 
             if (template == null)
@@ -368,6 +378,11 @@ namespace Cosmos.Cms.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> EditCode(Guid id)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var entity = await dbContext.Templates.FirstOrDefaultAsync(f => f.Id == id);
 
             var model = new TemplateCodeEditorViewModel
@@ -404,6 +419,10 @@ namespace Cosmos.Cms.Controllers
         [HttpPost]
         public async Task<IActionResult> EditCode(TemplateCodeEditorViewModel model)
         {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
 
             // Check for nested editable regions.
             if (!NestedEditableRegionValidation.Validate(model.Content))
@@ -456,6 +475,11 @@ namespace Cosmos.Cms.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> Preview(Guid id)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var entity = await dbContext.Templates.FirstOrDefaultAsync(f => f.Id == id);
 
             var guid = Guid.NewGuid();
@@ -492,6 +516,11 @@ namespace Cosmos.Cms.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> Trash(Guid id)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var entity = await dbContext.Templates.FirstOrDefaultAsync(f => f.Id == id);
 
             dbContext.Templates.Remove(entity);
@@ -509,6 +538,11 @@ namespace Cosmos.Cms.Controllers
         /// <returns>Returns a redirect to the live editor.</returns>
         public async Task<IActionResult> UpdatePage(int id, Guid templateId)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var template = await dbContext.Templates.FirstOrDefaultAsync(f => f.Id == templateId);
             if (template == null)
             {
@@ -527,6 +561,11 @@ namespace Cosmos.Cms.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> UpdateAll(Guid id)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var pages = await dbContext.ArticleCatalog.Where(w => w.TemplateId == id).ToListAsync();
             var template = await dbContext.Templates.AsNoTracking().FirstOrDefaultAsync(f => f.Id == id);
             if (template == null)
