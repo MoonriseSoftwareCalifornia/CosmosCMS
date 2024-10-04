@@ -7,6 +7,9 @@ Cosmos CMS is a modern content management system that is "out of the box" fast, 
 
 [![CodeQL](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml)
 [![Publish Docker Images CI](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=MoonriseSoftwareCalifornia_CosmosCMS&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=MoonriseSoftwareCalifornia_CosmosCMS)
+
+[![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-white.svg)](https://sonarcloud.io/summary/new_code?id=MoonriseSoftwareCalifornia_CosmosCMS)
 
 ## About
 
