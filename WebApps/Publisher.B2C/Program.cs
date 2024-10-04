@@ -14,7 +14,6 @@ using Cosmos.Common.Data.Logic;
 using Cosmos.Common.Services.PowerBI;
 using Cosmos.EmailServices;
 using Cosmos.MicrosoftGraph;
-using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
@@ -256,14 +255,6 @@ app.UseResponseCaching(); // https://docs.microsoft.com/en-us/aspnet/core/perfor
 app.UseAuthentication();
 
 app.UseAuthorization();
-
-app.MapGet("CCMS-XSRF-TOKEN", (IAntiforgery forgeryService, HttpContext context) =>
-{
-    var tokens = forgeryService.GetAndStoreTokens(context);
-    context.Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken!, new CookieOptions { HttpOnly = false });
-
-    return Results.Ok();
-});
 
 app.MapControllerRoute(
     name: "pub",

@@ -317,24 +317,36 @@ namespace Cosmos.Common.Data.Logic
             }
 
             text = text.ToLower();
-            var results = await DbContext.Pages
-                .Where(a => a.Published <= DateTimeOffset.UtcNow)
-                .Where(a => a.Content.ToLower().Contains(text) || a.Title.ToLower().Contains(text))
-                .OrderByDescending(o => o.Title)
-                .Select(s => new TableOfContentsItem
+
+            var query = DbContext.Pages
+                .Where(a => a.Published <= DateTimeOffset.UtcNow && (a.Content.ToLower().Contains(text) || a.Title.ToLower().Contains(text))).AsQueryable();
+
+            var terms = text.Split(' ');
+
+            if (terms != null && terms.Length > 1)
+            {
+                foreach (var term in terms)
                 {
-                    UrlPath = "/" + s.UrlPath,
-                    Title = s.Title,
-                    Published = s.Published.Value,
-                    Updated = s.Updated,
-                    BannerImage = "/" + s.BannerImage,
-                    AuthorInfo = s.AuthorInfo
-                }).ToListAsync();
+                    query = query.Where(a => a.Content.ToLower().Contains(term) || a.Title.ToLower().Contains(term));
+                }
+            }
+
+            query = query.OrderByDescending(o => o.Title);
+
+            var results = await query.Select(s => new TableOfContentsItem
+            {
+                UrlPath = "/" + s.UrlPath,
+                Title = s.Title,
+                Published = s.Published.Value,
+                Updated = s.Updated,
+                BannerImage = "/" + s.BannerImage,
+                AuthorInfo = s.AuthorInfo
+            }).ToListAsync();
 
             return results.Select(s => new TableOfContentsItem()
             {
                 AuthorInfo = s.AuthorInfo,
-                BannerImage = s.BannerImage,
+                BannerImage = string.IsNullOrEmpty(s.BannerImage) ? string.Empty : "/" + s.BannerImage,
                 Published = s.Published,
                 Title = s.Title,
                 Updated = s.Updated,
