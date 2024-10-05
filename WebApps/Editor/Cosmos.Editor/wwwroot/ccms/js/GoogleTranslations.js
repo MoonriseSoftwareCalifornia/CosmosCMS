@@ -10,10 +10,10 @@
 $(function() {
 
     // Get parameters send to this script
-    var scriptTag = $("#ccms-lang-script");
-    var ccmsLangDisplayName = scriptTag.attr("data-lang");
+    const scriptTag = $("#ccms-lang-script");
+    const ccmsLangDisplayName = scriptTag.attr("data-lang");
     // Construct a bootstrap drop down control here.
-    var ctrl =
+    let ctrl =
         "<div class=\"input-group mb-2\"><div class=\"dropdown\"><div class=\"input-group-prepend\"><div class=\"input-group-text input-group-text-sm\">Language: </div>";
     ctrl +=
         "<button class=\"form-control btn btn-primary dropdown-toggle\" type=\"button\" id=\"ccms-lang-choice-btn\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"false\">" +
@@ -27,7 +27,7 @@ $(function() {
     // The div to hold the language drop down.
     $("#ccms-lang-dd-ctrl").html(ctrl);
 
-    var langCode = $.urlParam("lang");
+    const langCode = $.urlParam("lang");
 
     if (langCode === null) {
         langCode = "en-US";
@@ -36,7 +36,7 @@ $(function() {
     function loadLangList() {
         $.get("/Home/GetSupportedLanguages?lang=" + langCode,
             function(data) {
-                var ddList = ""; // Initialize a string object
+                let ddList = ""; // Initialize a string object
                 $.each(data,
                     function(index, item) {
                         ddList += "<li><a class=\"dropdown-item\" href=\"javascript:langSelect('" +
@@ -56,12 +56,12 @@ $(function() {
 
     // modify URLs for language choice
     if (langCode.toLowerCase().startsWith("en") === false) {
-        var elements = $("a");
+        const elements = $("a");
         if (elements !== null && typeof (elements) !== "undefined" && elements.length > 0) {
-            var prefixes = getPrefixes();
+            let prefixes = getPrefixes();
             $.each(elements,
                 function(index, item) {
-                    var href = $(item).attr("href");
+                    let href = $(item).attr("href");
                     if (href !== null && typeof (href) !== "undefined") {
                         href = href.toLowerCase();
                         $.each(prefixes,
@@ -76,7 +76,7 @@ $(function() {
         }
     }
 
-    var toast =
+    let toast =
         "<div id=\"cms-lang-choice-toast\" class=\"toast\" role=\"alert\" aria-live=\"assertive\" aria-atomic=\"true\" data-delay=\"3000\" style=\"position: absolute; min-height: 200px; top: 200px; right: 100px;\">";
     toast += "<div class=\"toast-header\">";
     toast += "<strong class=\"mr-auto\">Language Change</strong>";
@@ -100,13 +100,12 @@ $(function() {
 });
 
 function getPrefixes() {
-    var dns = window.location.hostname.toLowerCase();
-    var prefixes = new Array("/", "https://" + dns, "http://" + dns, "https://" + dns + "/", "http://" + dns + "/");
+    const dns = window.location.hostname.toLowerCase();
+    let prefixes = new Array("/", "https://" + dns, "https://" + dns + "/");
     if (!dns.startsWith("www.")) {
-        var www = "www." + dns;
+        const www = "www." + dns;
         prefixes.push("https://" + www);
         prefixes.push("https://" + www);
-        prefixes.push("http://" + www + "/");
         prefixes.push("https://" + www + "/");
     }
     return prefixes;
@@ -114,7 +113,7 @@ function getPrefixes() {
 
 function langSelect(lang, lbl) {
     $("#ccms-lang-choice-btn").html(lbl);
-    var t = $("#cms-lang-choice-toast");
+    const t = $("#cms-lang-choice-toast");
     t.toast("show");
     if (lang.startsWith("en")) {
         window.location.href = window.location.href.split("?")[0];
