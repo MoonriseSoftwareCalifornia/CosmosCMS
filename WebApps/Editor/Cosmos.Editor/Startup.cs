@@ -9,13 +9,14 @@ namespace Cosmos.Cms
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Security.Cryptography;
     using System.Text;
     using System.Threading.RateLimiting;
     using System.Threading.Tasks;
     using System.Web;
     using AspNetCore.Identity.CosmosDb.Extensions;
-    using Azure.Storage.Blobs;
+    using Azure.Identity;
     using Cosmos.BlobService;
     using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Cms.Data.Logic;
@@ -111,29 +112,54 @@ namespace Cosmos.Cms
             //  required containers.
             if (option.Value.SiteSettings.AllowSetup)
             {
-                try
+                var tempParts = connectionString.Split(";").Where(w => !string.IsNullOrEmpty(w)).Select(part => part.Split('=')).ToDictionary(sp => sp[0], sp => sp[1]);
+                var tempEndPoint = tempParts["AccountEndpoint"];
+                var tempBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+
+                if (tempParts["AccountKey"] == "AccessToken")
                 {
-                    var options = Cosmos.Common.Data.ServiceCollectionExtensions.Get(connectionString, cosmosIdentityDbName);
-                    using var dbContext = new ApplicationDbContext(options);
-                    dbContext.Database.EnsureCreated();
+                    tempBuilder.UseCosmos(tempEndPoint, new DefaultAzureCredential(), cosmosIdentityDbName);
                 }
-                catch (Exception e)
+                else
                 {
-                    throw new Exception("STARTUP: Could not initialize database with error.", e);
+                    tempBuilder.UseCosmos(connectionString, cosmosIdentityDbName);
+                }
+
+                using (var dbContext = new ApplicationDbContext(tempBuilder.Options))
+                {
+                    dbContext.Database.EnsureCreated();
                 }
             }
 
             // Add the Cosmos database context here
-            var cosmosRegionName = Configuration.GetValue<string>("CosmosRegionName") ??
-                Configuration.GetValue<string>("CosmosRegionName".ToUpper());
-            if (string.IsNullOrEmpty(cosmosRegionName))
+            var cosmosRegionName = Configuration.GetValue<string>("CosmosRegionName");
+            var conpartsDict = connectionString.Split(";").Where(w => !string.IsNullOrEmpty(w)).Select(part => part.Split('=')).ToDictionary(sp => sp[0], sp => sp[1]);
+            var endpoint = conpartsDict["AccountEndpoint"];
+            services.AddDbContext<ApplicationDbContext>(options =>
             {
-                services.AddCosmosDbContext(connectionString, cosmosIdentityDbName);
-            }
-            else
-            {
-                services.AddCosmosDbContext(connectionString, cosmosIdentityDbName, cosmosRegionName);
-            }
+                if (string.IsNullOrEmpty(cosmosRegionName))
+                {
+                    if (conpartsDict["AccountKey"] == "AccessToken")
+                    {
+                        options.UseCosmos(endpoint, new DefaultAzureCredential(), cosmosIdentityDbName);
+                    }
+                    else
+                    {
+                        options.UseCosmos(connectionString, cosmosIdentityDbName);
+                    }
+                }
+                else
+                {
+                    if (conpartsDict["AccountKey"] == "AccessToken")
+                    {
+                        options.UseCosmos(endpoint, new DefaultAzureCredential(), cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
+                    }
+                    else
+                    {
+                        options.UseCosmos(connectionString, cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
+                    }
+                }
+            });
 
             // Add Cosmos Identity here
             services.AddCosmosIdentity<ApplicationDbContext, IdentityUser, IdentityRole, string>(
@@ -318,12 +344,12 @@ namespace Cosmos.Cms
             else
             {
                 var appUli = new Uri(option.Value.SiteSettings.PublisherUrl);
-                var endpoint = new Microsoft.Azure.SignalR.ServiceEndpoint(signalRConnection);
+                var sendpoint = new Microsoft.Azure.SignalR.ServiceEndpoint(signalRConnection);
                 var appName = GetHashString(appUli.DnsSafeHost);
 
                 services.AddSignalR().AddAzureSignalR(config =>
                 {
-                    config.Endpoints = new[] { endpoint };
+                    config.Endpoints = new[] { sendpoint };
                     config.ApplicationName = $"H{appName}";
                 });
             }

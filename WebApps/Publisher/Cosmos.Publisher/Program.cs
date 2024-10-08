@@ -24,6 +24,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Azure.Cosmos.Fluent;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Serialization;
+using Azure.Identity;
 
 /// <summary>
 /// Main program.
@@ -57,8 +58,12 @@ internal class Program
             });
         }
 
-        // Add services to the container.
+        // Get the DB connection string.
         var connectionString = builder.Configuration.GetConnectionString("ApplicationDbContextConnection");
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            throw new InvalidOperationException("Connection string is missing.");
+        }
 
         // Name of the Cosmos database to use
         var cosmosIdentityDbName = builder.Configuration.GetValue<string>("CosmosIdentityDbName");
@@ -69,14 +74,33 @@ internal class Program
 
         // Add the Cosmos database context here
         var cosmosRegionName = builder.Configuration.GetValue<string>("CosmosRegionName");
-        if (string.IsNullOrEmpty(cosmosRegionName))
+        var conpartsDict = connectionString.Split(";").Where(w => !string.IsNullOrEmpty(w)).Select(part => part.Split('=')).ToDictionary(sp => sp[0], sp => sp[1]);
+        var endpoint = conpartsDict["AccountEndpoint"];
+        builder.Services.AddDbContext<ApplicationDbContext>(options =>
         {
-            builder.Services.AddCosmosDbContext(connectionString, cosmosIdentityDbName);
-        }
-        else
-        {
-            builder.Services.AddCosmosDbContext(connectionString, cosmosIdentityDbName, cosmosRegionName);
-        }
+            if (string.IsNullOrEmpty(cosmosRegionName))
+            {
+                if (conpartsDict["AccountKey"] == "AccessToken")
+                {
+                    options.UseCosmos(endpoint, new DefaultAzureCredential(), cosmosIdentityDbName);
+                }
+                else
+                {
+                    options.UseCosmos(connectionString, cosmosIdentityDbName);
+                }
+            }
+            else
+            {
+                if (conpartsDict["AccountKey"] == "AccessToken")
+                {
+                    options.UseCosmos(endpoint, new DefaultAzureCredential(), cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
+                }
+                else
+                {
+                    options.UseCosmos(connectionString, cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
+                }
+            }
+        });
 
         // Add the BLOB and File Storage contexts for Cosmos
         builder.Services.AddCosmosStorageContext(builder.Configuration);
@@ -84,12 +108,7 @@ internal class Program
         // Add shared data protection here
         var container = Cosmos.BlobService.ServiceCollectionExtensions.GetBlobContainerClient(builder.Configuration, "pkyes");
         container.CreateIfNotExists();
-        builder.Services.AddDataProtection().UseCryptographicAlgorithms(
-                new AuthenticatedEncryptorConfiguration
-                {
-                    EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
-                    ValidationAlgorithm = ValidationAlgorithm.HMACSHA256
-                }).PersistKeysToAzureBlobStorage(container.GetBlobClient("keys.xml"));
+        builder.Services.AddDataProtection().PersistKeysToAzureBlobStorage(container.GetBlobClient("keys.xml"));
 
         builder.Services.AddMvc()
                         .AddNewtonsoftJson(options =>
