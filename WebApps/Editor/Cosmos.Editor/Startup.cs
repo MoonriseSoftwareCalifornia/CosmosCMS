@@ -106,7 +106,6 @@ namespace Cosmos.Cms
             // 1. Create the database if it does not already exist.
             // 2. Create the required containers if they do not already exist.
             // IMPORTANT: Remove this variable if after first run. It will improve startup performance.
-            // var setupCosmosDb = Configuration.GetValue<bool?>("SetupCosmosDb");
 
             // If the following is set, it will create the Cosmos database and
             //  required containers.
@@ -114,10 +113,8 @@ namespace Cosmos.Cms
             {
                 try
                 {
-                    var builder1 = new DbContextOptionsBuilder<ApplicationDbContext>();
-                    builder1.UseCosmos(connectionString, cosmosIdentityDbName);
-
-                    using var dbContext = new ApplicationDbContext(builder1.Options);
+                    var options = Cosmos.Common.Data.ServiceCollectionExtensions.Get(connectionString, cosmosIdentityDbName);
+                    using var dbContext = new ApplicationDbContext(options);
                     dbContext.Database.EnsureCreated();
                 }
                 catch (Exception e)
@@ -131,15 +128,11 @@ namespace Cosmos.Cms
                 Configuration.GetValue<string>("CosmosRegionName".ToUpper());
             if (string.IsNullOrEmpty(cosmosRegionName))
             {
-                services.AddDbContext<ApplicationDbContext>(options =>
-                  options.UseCosmos(connectionString: connectionString, databaseName: cosmosIdentityDbName));
+                services.AddCosmosDbContext(connectionString, cosmosIdentityDbName);
             }
             else
             {
-                services.AddDbContext<ApplicationDbContext>(options =>
-                {
-                    options.UseCosmos(connectionString: connectionString, databaseName: cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
-                });
+                services.AddCosmosDbContext(connectionString, cosmosIdentityDbName, cosmosRegionName);
             }
 
             // Add Cosmos Identity here

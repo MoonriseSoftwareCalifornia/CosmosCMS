@@ -69,15 +69,11 @@ internal class Program
         var cosmosRegionName = builder.Configuration.GetValue<string>("CosmosRegionName");
         if (string.IsNullOrEmpty(cosmosRegionName))
         {
-            builder.Services.AddDbContext<ApplicationDbContext>(options =>
-              options.UseCosmos(connectionString: connectionString, databaseName: cosmosIdentityDbName));
+            builder.Services.AddCosmosDbContext(connectionString, cosmosIdentityDbName);
         }
         else
         {
-            builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            {
-                options.UseCosmos(connectionString: connectionString, databaseName: cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
-            });
+            builder.Services.AddCosmosDbContext(connectionString, cosmosIdentityDbName, cosmosRegionName);
         }
 
         // Add the BLOB and File Storage contexts for Cosmos

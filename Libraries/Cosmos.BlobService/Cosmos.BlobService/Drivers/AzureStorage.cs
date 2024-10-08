@@ -14,6 +14,7 @@ namespace Cosmos.BlobService.Drivers
     using System.Text;
     using System.Threading.Tasks;
     using Azure;
+    using Azure.Identity;
     using Azure.Storage.Blobs;
     using Azure.Storage.Blobs.Models;
     using Azure.Storage.Blobs.Specialized;
@@ -36,7 +37,18 @@ namespace Cosmos.BlobService.Drivers
         public AzureStorage(AzureStorageConfig config, string containerName = "$web")
         {
             this.containerName = containerName;
-            blobServiceClient = new BlobServiceClient(config.AzureBlobStorageConnectionString);
+            var conparts = config.AzureBlobStorageConnectionString.Split(';');
+            var conpartsDict = conparts.Where(w => !string.IsNullOrEmpty(w)).Select(part => part.Split('=')).ToDictionary(sp => sp[0], sp => sp[1]);
+
+            if (conpartsDict["AccountKey"] == "AccessToken")
+            {
+                var endpoint = conpartsDict["AccountEndpoint"];
+                blobServiceClient = new BlobServiceClient(new Uri(endpoint), new DefaultAzureCredential());
+            }
+            else
+            {
+                blobServiceClient = new BlobServiceClient(config.AzureBlobStorageConnectionString);
+            }
         }
 
         /// <summary>
@@ -45,7 +57,6 @@ namespace Cosmos.BlobService.Drivers
         /// <returns>Returns the number of bytes consumed for the container as a <see cref="long"/>.</returns>
         public async Task<long> GetBytesConsumed()
         {
-            var info = await blobServiceClient.GetAccountInfoAsync();
             var container = blobServiceClient.GetBlobContainerClient(containerName);
             long bytesConsumed = 0;
             var blobs = container.GetBlobsAsync().AsPages();
@@ -103,7 +114,6 @@ namespace Cosmos.BlobService.Drivers
             var buffer = new byte[2621440]; // 2.5 MB.
             while ((bytesRead = loadMemoryStream.Read(buffer, 0, buffer.Length)) > 0)
             {
-                // Stream stream = new MemoryStream(buffer);
                 var newArray = new Span<byte>(buffer, 0, bytesRead).ToArray();
                 Stream stream = new MemoryStream(newArray)
                 {
@@ -188,7 +198,7 @@ namespace Cosmos.BlobService.Drivers
 
             var blobClient = await GetBlobAsync(fullPath);
 
-            if (await blobClient.ExistsAsync() == false)
+            if (!await blobClient.ExistsAsync())
             {
                 var byteArray = Encoding.ASCII.GetBytes($"This is a folder stub file for {path}.");
                 await using var stream = new MemoryStream(byteArray);
@@ -246,8 +256,7 @@ namespace Cosmos.BlobService.Drivers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task DeleteIfExistsAsync(string path)
         {
-            var containerClient =
-                blobServiceClient.GetBlobContainerClient(containerName);
+            var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
             await containerClient.DeleteBlobIfExistsAsync(path, DeleteSnapshotsOption.IncludeSnapshots);
         }
 
@@ -275,7 +284,7 @@ namespace Cosmos.BlobService.Drivers
                     ExposedHeaders = "*"
                 };
                 properties.Cors = new List<BlobCorsRule>() { corsRule };
-                blobServiceClient.SetProperties(properties);
+                await blobServiceClient.SetPropertiesAsync(properties);
             }
         }
 
@@ -290,8 +299,7 @@ namespace Cosmos.BlobService.Drivers
             if (properties.StaticWebsite.Enabled)
             {
                 properties.StaticWebsite.Enabled = false;
-
-                blobServiceClient.SetProperties(properties);
+                await blobServiceClient.SetPropertiesAsync(properties);
             }
         }
 
