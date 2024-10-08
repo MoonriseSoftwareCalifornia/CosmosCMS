@@ -142,13 +142,7 @@ namespace Cosmos.Cms
                 .AddDefaultTokenProviders();
 
             // Add shared data protection here
-            var blobConnection = Configuration.GetConnectionString("AzureBlobStorageConnectionString");
-            if (string.IsNullOrEmpty(blobConnection))
-            {
-                throw new Exception("STARTUP: AzureBlobStorageConnectionString is null or empty");
-            }
-
-            var container = new BlobContainerClient(blobConnection, "ekyes");
+            var container = BlobService.ServiceCollectionExtensions.GetBlobContainerClient(Configuration, "ekyes");
             container.CreateIfNotExists();
             services.AddDataProtection().UseCryptographicAlgorithms(
                 new AuthenticatedEncryptorConfiguration

@@ -42,8 +42,8 @@ namespace Cosmos.BlobService.Drivers
 
             if (conpartsDict["AccountKey"] == "AccessToken")
             {
-                var endpoint = conpartsDict["AccountEndpoint"];
-                blobServiceClient = new BlobServiceClient(new Uri(endpoint), new DefaultAzureCredential());
+                var accountName = conpartsDict["AccountName"];
+                blobServiceClient = new BlobServiceClient(new Uri($"https://{accountName}.blob.core.windows.net/"), new DefaultAzureCredential());
             }
             else
             {
