@@ -141,7 +141,7 @@ namespace Cosmos.Cms
                 {
                     if (conpartsDict["AccountKey"] == "AccessToken")
                     {
-                        options.UseCosmos(endpoint, new DefaultAzureCredential(), cosmosIdentityDbName);
+                        options.UseCosmos(endpoint, (Azure.Core.TokenCredential) new DefaultAzureCredential(), cosmosIdentityDbName);
                     }
                     else
                     {
