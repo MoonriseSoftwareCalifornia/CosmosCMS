@@ -8,6 +8,9 @@
 namespace Cosmos.BlobService
 {
     using System;
+    using System.Linq;
+    using Azure.Identity;
+    using Azure.Storage.Blobs;
     using Cosmos.BlobService.Config;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
@@ -63,6 +66,33 @@ namespace Cosmos.BlobService
 
             services.AddSingleton(Options.Create(cosmosConfig));
             services.AddTransient<StorageContext>();
+        }
+
+        /// <summary>
+        /// Adds the storage context to the services collection.
+        /// </summary>
+        /// <param name="config">Startup configuration.</param>
+        /// <param name="container">The container to use.</param>
+        /// <returns>Blob service client.</returns>
+        public static BlobContainerClient GetBlobContainerClient(IConfiguration config, string container = "$web")
+        {
+            var connectionString = config.GetConnectionString("AzureBlobStorageConnectionString");
+            var conparts = connectionString.Split(';');
+            var conpartsDict = conparts.Where(w => !string.IsNullOrEmpty(w)).Select(part => part.Split('=')).ToDictionary(sp => sp[0], sp => sp[1]);
+
+            BlobServiceClient blobServiceClient = null;
+
+            if (conpartsDict["AccountKey"] == "AccessToken")
+            {
+                var accountName = conpartsDict["AccountName"];
+                blobServiceClient = new BlobServiceClient(new Uri($"https://{accountName}.blob.core.windows.net/"), new DefaultAzureCredential());
+            }
+            else
+            {
+                blobServiceClient = new BlobServiceClient(connectionString);
+            }
+
+            return blobServiceClient.GetBlobContainerClient(container);
         }
 
         private static string GetKeyValue(IConfiguration config, string key)
