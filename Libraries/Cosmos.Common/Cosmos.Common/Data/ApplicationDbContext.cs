@@ -7,6 +7,7 @@
 
 namespace Cosmos.Common.Data
 {
+    using System;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
     using Microsoft.AspNetCore.Identity;
@@ -98,6 +99,18 @@ namespace Cosmos.Common.Data
         public async Task<bool> IsConfigured()
         {
             return await this.Database.CanConnectAsync();
+        }
+
+        /// <summary>
+        /// Modify logging to simple logging service.
+        /// </summary>
+        /// <param name="optionsBuilder">DbContextOptionsBuilder</param>
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            // https://github.com/dotnet/efcore/issues/33328
+            // Note this is done because using the default azure credential causes problems here.
+            optionsBuilder.LogTo(Console.WriteLine);
+            base.OnConfiguring(optionsBuilder);
         }
 
         /// <summary>
