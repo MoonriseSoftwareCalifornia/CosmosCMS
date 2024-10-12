@@ -11,6 +11,7 @@ namespace Cosmos.Cms.Models
     using Azure.ResourceManager;
     using Cosmos.Cms.Data.Logic;
     using Cosmos.Common.Models;
+    using Cosmos.Editor.Controllers;
 
     /// <summary>
     ///     <see cref="ArticleEditLogic.Save(HtmlEditorViewModel, string)" /> result.
@@ -30,7 +31,7 @@ namespace Cosmos.Cms.Models
         /// <summary>
         /// Gets or sets will return an ARM Operation if CDN purged.
         /// </summary>
-        public ArmOperation ArmOperation { get; set; } = null;
+        public List<CdnResult> CdnResults { get; set; } = null;
 
         /// <summary>
         ///     Gets or sets urls that need to be flushed.

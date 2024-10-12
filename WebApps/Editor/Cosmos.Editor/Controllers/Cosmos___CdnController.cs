@@ -21,7 +21,10 @@
     [Authorize(Roles = "Administrators,Editors")]
     public class Cosmos___CdnController : Controller
     {
-        private const string GROUPNAME = "AZURECDN";
+        /// <summary>
+        /// CDN group name constant.
+        /// </summary>
+        public static readonly string GROUPNAME = "CDN";
 
         private readonly ApplicationDbContext dbContext;
 
@@ -35,6 +38,23 @@
         }
 
         /// <summary>
+        /// Gets a CDN configuration.
+        /// </summary>
+        /// <param name="dbContext">Database context.</param>
+        /// <returns>AzureCdnEndpoint.</returns>
+        public static async Task<List<Setting>> GetCdnConfiguration(ApplicationDbContext dbContext)
+        {
+            var settings = await dbContext.Settings.Where(f => f.Group == GROUPNAME).ToListAsync();
+
+            if (settings.Any())
+            {
+                return settings;
+            }
+
+            return new List<Setting>();
+        }
+
+        /// <summary>
         /// GEts the indext page.
         /// </summary>
         /// <returns>IActionResult</returns>
@@ -42,16 +62,9 @@
         {
             ViewData["Operation"] = null;
 
-            var settings = await GetCdnConfiguration();
+            var settings = await GetCdnConfiguration(dbContext);
 
-            var model = new AzureCdnConfig
-            {
-                ProfileName = settings.FirstOrDefault(f => f.Name == "ProfileName")?.Value,
-                ResourceGroup = settings.FirstOrDefault(f => f.Name == "ResourceGroupName")?.Value,
-                IsFrontDoor = bool.Parse(settings.FirstOrDefault(f => f.Name == "IsFrontDoor")?.Value ?? "false"),
-                SubscriptionId = Guid.Parse(settings.FirstOrDefault(f => f.Name == "SubscriptionId")?.Value ?? Guid.Empty.ToString()),
-                EndPointName = settings.FirstOrDefault(f => f.Name == "EndPointName")?.Value,
-            };
+            var model = new CdnService(settings);
 
             return View(model);
         }
@@ -63,16 +76,66 @@
         /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Index(AzureCdnConfig config)
+        public async Task<IActionResult> Index(CdnService config)
         {
             if (!ModelState.IsValid)
             {
                 return View(config);
             }
 
-            var settings = await GetCdnConfiguration();
+            // If any of the Azure CDN fields are set, then all of them must be set.
+            if (!string.IsNullOrEmpty(config.ResourceGroup)
+                || !string.IsNullOrEmpty(config.ProfileName)
+                || !string.IsNullOrEmpty(config.EndPointName)
+                || config.SubscriptionId.HasValue)
+            {
+                if (string.IsNullOrEmpty(config.ResourceGroup))
+                {
+                    ModelState.AddModelError("ResourceGroup", "ERROR: Resource Group is required.");
+                }
 
-            var profileName = settings.FirstOrDefault(f => f.Name == "ProfileName");
+                if (string.IsNullOrEmpty(config.ProfileName))
+                {
+                    ModelState.AddModelError("ProfileName", "ERROR: Profile Name is required.");
+                }
+
+                if (string.IsNullOrEmpty(config.EndPointName))
+                {
+                    ModelState.AddModelError("EndPointName", "ERROR: End Point Name is required.");
+                }
+
+                if (config.SubscriptionId == null)
+                {
+                    ModelState.AddModelError("SubscriptionId", "ERROR: Subscription Id is required.");
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    return View(config);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(config.SucuriApiKey) || !string.IsNullOrEmpty(config.SucuriApiSecret))
+            {
+                if (string.IsNullOrEmpty(config.SucuriApiKey))
+                {
+                    ModelState.AddModelError("SucuriApiKey", "ERROR Sucuri API Key is required.");
+                }
+
+                if (string.IsNullOrEmpty(config.SucuriApiSecret))
+                {
+                    ModelState.AddModelError("SucuriApiSecret", "ERROR Sucuri API Secret is required.");
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    return View(config);
+                }
+            }
+
+            var settings = await GetCdnConfiguration(dbContext);
+
+            var profileName = settings.Find(f => f.Name == "ProfileName");
             if (profileName == null)
             {
                 profileName = new Setting { Group = GROUPNAME, Name = "ProfileName", Value = config.ProfileName };
@@ -83,7 +146,7 @@
                 profileName.Value = config.ProfileName;
             }
 
-            var resourceGroupName = settings.FirstOrDefault(f => f.Name == "ResourceGroupName");
+            var resourceGroupName = settings.Find(f => f.Name == "ResourceGroupName");
             if (resourceGroupName == null)
             {
                 resourceGroupName = new Setting { Group = GROUPNAME, Name = "ResourceGroupName", Value = config.ResourceGroup };
@@ -94,7 +157,7 @@
                 resourceGroupName.Value = config.ResourceGroup;
             }
 
-            var isFrontDoor = settings.FirstOrDefault(f => f.Name == "IsFrontDoor");
+            var isFrontDoor = settings.Find(f => f.Name == "IsFrontDoor");
             if (isFrontDoor == null)
             {
                 isFrontDoor = new Setting { Group = GROUPNAME, Name = "IsFrontDoor", Value = config.IsFrontDoor.ToString() };
@@ -105,7 +168,7 @@
                 isFrontDoor.Value = config.IsFrontDoor.ToString();
             }
 
-            var subscriptionId = settings.FirstOrDefault(f => f.Name == "SubscriptionId");
+            var subscriptionId = settings.Find(f => f.Name == "SubscriptionId");
             if (subscriptionId == null)
             {
                 subscriptionId = new Setting { Group = GROUPNAME, Name = "SubscriptionId", Value = config.SubscriptionId.ToString() };
@@ -116,7 +179,7 @@
                 subscriptionId.Value = config.SubscriptionId.ToString();
             }
 
-            var endPointName = settings.FirstOrDefault(f => f.Name == "EndPointName");
+            var endPointName = settings.Find(f => f.Name == "EndPointName");
             if (endPointName == null)
             {
                 endPointName = new Setting { Group = GROUPNAME, Name = "EndPointName", Value = config.EndPointName };
@@ -127,24 +190,56 @@
                 endPointName.Value = config.EndPointName;
             }
 
-            // Save the changes to the database.
-            await dbContext.SaveChangesAsync();
+            var sucuriApiKey = settings.Find(f => f.Name == "SucuriApiKey");
+            if (sucuriApiKey == null)
+            {
+                sucuriApiKey = new Setting
+                {
+                    Group = GROUPNAME,
+                    Name = "SucuriApiKey",
+                    Value = config.SucuriApiKey,
+                };
+                dbContext.Settings.Add(sucuriApiKey);
+            }
+            else
+            {
+                sucuriApiKey.Value = config.SucuriApiKey;
+            }
+
+            var sucuriApiSecret = settings.Find(f => f.Name == "SucuriApiSecret");
+            if (sucuriApiSecret == null)
+            {
+                sucuriApiSecret = new Setting
+                {
+                    Group = GROUPNAME,
+                    Name = "SucuriApiSecret",
+                    Value = config.SucuriApiSecret,
+                };
+                dbContext.Settings.Add(sucuriApiSecret);
+            }
+            else
+            {
+                sucuriApiSecret.Value = config.SucuriApiSecret;
+            }
 
             // Try making a connection to the CDN to validate the configuration.
             try
             {
                 var operation = await TestConnection(config);
                 ViewData["Operation"] = operation;
+
+                // Save the changes to the database.
+                await dbContext.SaveChangesAsync();
                 return View(config);
             }
             catch (RequestFailedException ex)
             {
-                ModelState.AddModelError("ProfileName", $"ERROR: {ex.ErrorCode}");
+                ModelState.AddModelError("", $"ERROR: {ex.ErrorCode}");
                 return View(config);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("ProfileName", $"ERROR: {ex.Message}");
+                ModelState.AddModelError("", $"ERROR: {ex.Message}");
                 return View(config);
             }
         }
@@ -167,21 +262,17 @@
             return RedirectToAction("Index");
         }
 
-        private async Task<ArmOperation> TestConnection(AzureCdnConfig azureCdnConfig)
+        private async Task<CdnResult> TestConnection(CdnService azureCdnConfig)
         {
-            var settings = await GetCdnConfiguration();
-
-
-
             if (!azureCdnConfig.IsConfigured())
             {
                 throw new InvalidOperationException("CDN configuration is not complete.");
             }
 
-            ArmClient client = new ArmClient(new DefaultAzureCredential());
-
-            if (azureCdnConfig.IsFrontDoor)
+            if (azureCdnConfig.ConfiguredCdnTypes().Contains(CdnType.AzureFrontDoor))
             {
+                ArmClient client = new ArmClient(new DefaultAzureCredential());
+
                 var frontendEndpointResourceId = FrontDoorEndpointResource.CreateResourceIdentifier(
                     azureCdnConfig.SubscriptionId.ToString(),
                     azureCdnConfig.ResourceGroup,
@@ -197,40 +288,44 @@
 
                 var operation = await frontDoor.PurgeContentAsync(WaitUntil.Started, purgeContent);
 
-                return operation;
+                return new CdnResult()
+                {
+                    Id = operation.Id,
+                    IsSuccessStatusCode = operation.HasCompleted
+                };
             }
-            else
+            else if (azureCdnConfig.ConfiguredCdnTypes().Contains(CdnType.AzureCdn))
             {
                 var cdnResource = CdnEndpointResource.CreateResourceIdentifier(
-                       azureCdnConfig.SubscriptionId.ToString(),
-                       azureCdnConfig.ResourceGroup,
-                       azureCdnConfig.ProfileName,
-                       azureCdnConfig.EndPointName);
-
+                           azureCdnConfig.SubscriptionId.ToString(),
+                           azureCdnConfig.ResourceGroup,
+                           azureCdnConfig.ProfileName,
+                           azureCdnConfig.EndPointName);
+                ArmClient client = new ArmClient(new DefaultAzureCredential());
                 var cdnEndpoint = client.GetCdnEndpointResource(cdnResource);
-
                 var purgeContent = new PurgeContent(new[] { "/" });
-
                 var operation = await cdnEndpoint.PurgeContentAsync(WaitUntil.Started, purgeContent);
-
-                return operation;
+                return new CdnResult()
+                {
+                    Id = operation.Id,
+                    IsSuccessStatusCode = operation.HasCompleted
+                };
             }
-        }
 
-        /// <summary>
-        /// Gets a CDN configuration.
-        /// </summary>
-        /// <returns>AzureCdnEndpoint.</returns>
-        private async Task<List<Setting>> GetCdnConfiguration()
-        {
-            var settings = await dbContext.Settings.Where(f => f.Group == GROUPNAME).ToListAsync();
-
-            if (settings.Any())
+            if (azureCdnConfig.ConfiguredCdnTypes().Contains(CdnType.Sucuri))
             {
-                return settings;
+                var sucuri = new SucuriCdnService(azureCdnConfig.SucuriApiKey, azureCdnConfig.SucuriApiSecret);
+
+                _ = await sucuri.PurgeContentAsync(new[] { "/" });
+
+                return new CdnResult()
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    IsSuccessStatusCode = true
+                };
             }
 
-            return new List<Setting>();
+            return null;
         }
     }
 }

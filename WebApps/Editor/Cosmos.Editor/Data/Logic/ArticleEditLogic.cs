@@ -23,6 +23,7 @@ namespace Cosmos.Cms.Data.Logic
     using Cosmos.Common.Data;
     using Cosmos.Common.Data.Logic;
     using Cosmos.Common.Models;
+    using Cosmos.Editor.Controllers;
     using Cosmos.Editor.Services;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Caching.Memory;
@@ -39,9 +40,6 @@ namespace Cosmos.Cms.Data.Logic
     /// </remarks>
     public class ArticleEditLogic : ArticleLogic
     {
-        private readonly ILogger<ArticleEditLogic> logger;
-        private readonly AzureCdnConfig azureCdnConfig;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="ArticleEditLogic"/> class.
         ///     Constructor.
@@ -49,23 +47,16 @@ namespace Cosmos.Cms.Data.Logic
         /// <param name="dbContext">Database context.</param>
         /// <param name="memoryCache">Memory cache.</param>
         /// <param name="config">Cosmos configuration.</param>
-        /// <param name="logger">Log service.</param>
-        /// <param name="azureCdnConfig">Azure front door of CDN configuration.</param>
         public ArticleEditLogic(
             ApplicationDbContext dbContext,
             IMemoryCache memoryCache,
-            IOptions<CosmosConfig> config,
-            ILogger<ArticleEditLogic> logger,
-            IOptions<AzureCdnConfig> azureCdnConfig
-            )
+            IOptions<CosmosConfig> config)
             : base(
                 dbContext,
                 config,
                 memoryCache,
                 true)
         {
-            this.logger = logger;
-            this.azureCdnConfig = azureCdnConfig.Value;
         }
 
         /// <summary>
@@ -245,7 +236,7 @@ namespace Cosmos.Cms.Data.Logic
 
             if (isFirstArticle)
             {
-                await HandlePublishing(article, userId);
+                await HandlePublishing(article);
             }
 
             // Finally update the catalog entry
@@ -283,7 +274,7 @@ namespace Cosmos.Cms.Data.Logic
 
             await DbContext.SaveChangesAsync();
 
-            await HandlePublishing(oldHomeArticle.OrderBy(o => o.VersionNumber).LastOrDefault(f => f.Published.HasValue), userId);
+            await HandlePublishing(oldHomeArticle.OrderBy(o => o.VersionNumber).LastOrDefault(f => f.Published.HasValue));
 
             // Make new page root
             var newHomeArticle = await DbContext.Articles.Where(w => w.ArticleNumber == model.ArticleNumber).ToListAsync();
@@ -303,7 +294,7 @@ namespace Cosmos.Cms.Data.Logic
 
             var published = newHomeArticle.OrderBy(o => o.VersionNumber).LastOrDefault(f => f.Published.HasValue);
 
-            await HandlePublishing(published, userId);
+            await HandlePublishing(published);
 
             // await HandleLogEntry(published, $"Article {published.ArticleNumber} is now the new home page.", userId);
         }
@@ -579,7 +570,7 @@ namespace Cosmos.Cms.Data.Logic
             // to the blob storage now.
             if (this.CosmosOptions.Value.UseStaticPublisherWebsite)
             {
-
+                // TODO: Write to blob storage
             }
 
             // IMPORTANT!
@@ -588,7 +579,7 @@ namespace Cosmos.Cms.Data.Logic
 
             // HANDLE PUBLISHING OF AN ARTICLE
             // This can be a new or existing article.
-            var armOperaton = await HandlePublishing(article, userId);
+            var results = await HandlePublishing(article);
 
             // Finally update the catalog entry
             await UpdateCatalogEntry(article.ArticleNumber, (StatusCodeEnum)article.StatusCode);
@@ -597,7 +588,7 @@ namespace Cosmos.Cms.Data.Logic
             {
                 ServerSideSuccess = true,
                 Model = model,
-                ArmOperation = armOperaton
+                CdnResults = results
             };
 
             return result;
@@ -847,75 +838,6 @@ namespace Cosmos.Cms.Data.Logic
             await DbContext.SaveChangesAsync();
         }
 
-
-        /// <summary>
-        /// Purges the CDN (or Front Door) if either is configured.
-        /// </summary>
-        /// <param name="purgeUrls">Purge URL Paths.</param>
-        /// <returns>ArmOperation results.</returns>
-        public async Task<ArmOperation> PurgeCdn(List<string> purgeUrls)
-        {
-            purgeUrls = purgeUrls.Distinct().Select(s => s.Trim('/')).Select(s => s.Equals("root") ? "/" : "/" + s).ToList();
-
-            ArmClient client = new ArmClient(new DefaultAzureCredential());
-
-            try
-            {
-                // Check for Azure Frontdoor, if available use that.
-                if (azureCdnConfig.IsConfigured() && azureCdnConfig.IsFrontDoor)
-                {
-                    var frontendEndpointResourceId = FrontDoorEndpointResource.CreateResourceIdentifier(
-                        azureCdnConfig.SubscriptionId.ToString(),
-                        azureCdnConfig.ResourceGroup,
-                        azureCdnConfig.ProfileName,
-                        azureCdnConfig.EndPointName);
-
-                    var frontDoor = client.GetFrontDoorEndpointResource(frontendEndpointResourceId);
-
-                    var purgeContent = new FrontDoorPurgeContent(purgeUrls);
-
-                    var result = await frontDoor.PurgeContentAsync(WaitUntil.Started, purgeContent);
-
-                    logger.LogInformation(logger.IsEnabled(LogLevel.Information) ? $"Successfully began Front Door purge of {string.Join(",", purgeUrls)} from Azure Front Door on {DateTimeOffset.UtcNow.ToString()}." : string.Empty);
-
-                    return result;
-                }
-                else if (azureCdnConfig.IsConfigured())
-                {
-                    var cdnResource = CdnEndpointResource.CreateResourceIdentifier(
-                        azureCdnConfig.SubscriptionId.ToString(),
-                        azureCdnConfig.ResourceGroup,
-                        azureCdnConfig.ProfileName,
-                        azureCdnConfig.EndPointName);
-
-                    var cdnEndpoint = client.GetCdnEndpointResource(cdnResource);
-
-                    ArmOperation operation = null;
-
-                    if (purgeUrls.Count > 100 || purgeUrls.Any(p => p.Equals("/") || p.Equals("/*")))
-                    {
-                        operation = cdnEndpoint.PurgeContent(Azure.WaitUntil.Started, new PurgeContent(new string[] { "/*" }));
-                    }
-                    else
-                    {
-                        // 100 paths or less, no need to page or use wildcard
-                        var purgeContent = new PurgeContent(purgeUrls);
-                        operation = cdnEndpoint.PurgeContent(WaitUntil.Started, purgeContent);
-                    }
-
-                    logger.LogInformation(logger.IsEnabled(LogLevel.Information) ? $"Successfully began CDN purge of {string.Join(",", purgeUrls)} on {DateTimeOffset.UtcNow.ToString()}." : string.Empty);
-
-                    return operation;
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, ex.Message);
-            }
-
-            return null;
-        }
-
         /// <summary>
         ///     Provides a standard method for turning a title into a URL Encoded path.
         /// </summary>
@@ -927,7 +849,6 @@ namespace Cosmos.Cms.Data.Logic
         /// </remarks>
         private string NormailizeArticleUrl(string title)
         {
-            // return HttpUtility.UrlEncode(title.Trim().Replace(" ", "_").ToLower()).Replace("%2f", "/");
             return title.Trim().Replace(" ", "_").ToLower();
         }
 
@@ -984,7 +905,7 @@ namespace Cosmos.Cms.Data.Logic
             if (entities.Any(a => a.Published.HasValue))
             {
                 var last = entities.OrderByDescending(a => a.Published.Value).LastOrDefault();
-                await HandlePublishing(last, userId);
+                await HandlePublishing(last);
             }
 
             // Finally update the catalog entry
@@ -995,17 +916,15 @@ namespace Cosmos.Cms.Data.Logic
         /// Logic handing logic for publishing articles and saves changes to the database.
         /// </summary>
         /// <param name="article">Article entity.</param>
-        /// <param name="userId">Current user ID.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         /// <remarks>
         /// If article is published, it adds the correct versions to the public pages collection. If not, 
         /// the article is removed from the public pages collection.
         /// </remarks>
-        private async Task<ArmOperation> HandlePublishing(Article article, string userId)
+        private async Task<List<CdnResult>> HandlePublishing(Article article)
         {
             if (article.Published.HasValue)
             {
-                // await HandleLogEntry(article, $"Published for: {article.Published.Value}.", userId);
                 try
                 {
                     var others = await DbContext.Articles.Where(w => w.ArticleNumber == article.ArticleNumber && w.Published != null && w.Id != article.Id).ToListAsync();
@@ -1069,7 +988,7 @@ namespace Cosmos.Cms.Data.Logic
         {
             var articleNumber = DbContext.Articles.Max(m => m.ArticleNumber) + 1;
 
-            return new ()
+            return new()
             {
                 Id = template.Id,
                 ArticleNumber = articleNumber,
@@ -1186,7 +1105,7 @@ namespace Cosmos.Cms.Data.Logic
         /// </summary>
         /// <param name="articleNumber">Article number to publish.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        private async Task<ArmOperation> UpdatePublishedPages(int articleNumber)
+        private async Task<List<CdnResult>> UpdatePublishedPages(int articleNumber)
         {
             // Now we are going to update the Pages table
             var itemsToPublish = await DbContext.Articles.Where(w => w.ArticleNumber == articleNumber && w.Published != null)
@@ -1254,14 +1173,9 @@ namespace Cosmos.Cms.Data.Logic
             {
                 var purgeUrls = paths.Select(s => "/" + s.Trim('/')).ToList();
 
-                try
-                {
-                    return await PurgeCdn(purgeUrls);
-                }
-                catch (Exception e)
-                {
-                    logger.LogError("CDN Error:", e);
-                }
+                var settings = await Cosmos___CdnController.GetCdnConfiguration(DbContext);
+                var cdnService = new CdnService(settings);
+                return await cdnService.PurgeCdn(purgeUrls);
             }
 
             return null;

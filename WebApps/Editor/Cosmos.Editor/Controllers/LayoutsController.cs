@@ -19,6 +19,7 @@ namespace Cosmos.Cms.Controllers
     using Cosmos.Cms.Services;
     using Cosmos.Common.Data;
     using Cosmos.Common.Models;
+    using Cosmos.Editor.Controllers;
     using HtmlAgilityPack;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
@@ -805,7 +806,9 @@ namespace Cosmos.Cms.Controllers
 
         private async Task PurgeCdn()
         {
-            await articleLogic.PurgeCdn(new List<string>() { "/" });
+            var settings = await Cosmos___CdnController.GetCdnConfiguration(dbContext);
+            var cdnService = new Editor.Services.CdnService(settings);
+            await cdnService.PurgeCdn(new List<string>() { "/" });
         }
     }
 }

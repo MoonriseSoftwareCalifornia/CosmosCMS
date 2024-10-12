@@ -141,7 +141,7 @@ namespace Cosmos.Cms
                 {
                     if (conpartsDict["AccountKey"] == "AccessToken")
                     {
-                        options.UseCosmos(endpoint, (Azure.Core.TokenCredential) new DefaultAzureCredential(), cosmosIdentityDbName);
+                        options.UseCosmos(endpoint, new DefaultAzureCredential(), cosmosIdentityDbName);
                     }
                     else
                     {
@@ -211,7 +211,7 @@ namespace Cosmos.Cms
             services.Configure<PowerBiAuth>(Configuration.GetSection("PowerBiAuth"));
 
             // Add Azure CDN/Frontdoor configuration here.
-            services.Configure<AzureCdnConfig>(Configuration.GetSection("AzureCdnConfig"));
+            services.Configure<CdnService>(Configuration.GetSection("AzureCdnConfig"));
 
             services.AddSession(options =>
             {

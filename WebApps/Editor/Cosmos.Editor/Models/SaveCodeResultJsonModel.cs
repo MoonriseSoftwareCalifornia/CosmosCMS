@@ -9,6 +9,7 @@ namespace Cosmos.Cms.Models
 {
     using System.Collections.Generic;
     using Azure.ResourceManager;
+    using Cosmos.Editor.Controllers;
     using Microsoft.AspNetCore.Mvc.ModelBinding;
 
     /// <summary>
@@ -58,6 +59,6 @@ namespace Cosmos.Cms.Models
         /// <summary>
         /// Gets aRM Operation (present if CDN purged).
         /// </summary>
-        public ArmOperation ArmOperation { get; internal set; }
+        public List<CdnResult> CdnResults { get; internal set; }
     }
 }

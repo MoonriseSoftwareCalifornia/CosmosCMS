@@ -1687,7 +1687,7 @@ namespace Cosmos.Cms.Controllers
                             Expires = article.Expires,
                             FooterJavaScript = model.FooterJavaScript,
                             HeadJavaScript = model.HeadJavaScript,
-                            StatusCode = (StatusCodeEnum)article.StatusCode,
+                            StatusCode = article.StatusCode,
                             UrlPath = article.UrlPath,
                             VersionNumber = article.VersionNumber,
                             Updated = model.Updated.Value
@@ -1715,7 +1715,7 @@ namespace Cosmos.Cms.Controllers
                         ArticlePermissions = entry.ArticlePermissions
                     };
 
-                    jsonModel.ArmOperation = result.ArmOperation;
+                    jsonModel.CdnResults = result.CdnResults;
                 }
                 catch (Exception e)
                 {
