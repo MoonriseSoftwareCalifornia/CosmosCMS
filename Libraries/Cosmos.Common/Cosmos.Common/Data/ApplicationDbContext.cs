@@ -12,6 +12,7 @@ namespace Cosmos.Common.Data
     using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore.Diagnostics;
 
     /// <summary>
     ///     Database Context for Cosmos CMS.
@@ -109,7 +110,8 @@ namespace Cosmos.Common.Data
         {
             // https://github.com/dotnet/efcore/issues/33328
             // Note this is done because using the default azure credential causes problems here.
-            optionsBuilder.LogTo(Console.WriteLine);
+            // More information, see: https://github.com/dotnet/efcore/issues/16369
+            optionsBuilder.ConfigureWarnings(x => x.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning));
             base.OnConfiguring(optionsBuilder);
         }
 
