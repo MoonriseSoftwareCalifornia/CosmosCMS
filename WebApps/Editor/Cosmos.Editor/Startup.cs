@@ -36,6 +36,7 @@ namespace Cosmos.Cms
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.RateLimiting;
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore.Diagnostics;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
@@ -110,26 +111,26 @@ namespace Cosmos.Cms
 
             // If the following is set, it will create the Cosmos database and
             //  required containers.
-            if (option.Value.SiteSettings.AllowSetup)
-            {
-                var tempParts = connectionString.Split(";").Where(w => !string.IsNullOrEmpty(w)).Select(part => part.Split('=')).ToDictionary(sp => sp[0], sp => sp[1]);
-                var tempEndPoint = tempParts["AccountEndpoint"];
-                var tempBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+            //if (option.Value.SiteSettings.AllowSetup)
+            //{
+            //    //var tempParts = connectionString.Split(";").Where(w => !string.IsNullOrEmpty(w)).Select(part => part.Split('=')).ToDictionary(sp => sp[0], sp => sp[1]);
+            //    //var tempEndPoint = tempParts["AccountEndpoint"];
+            //    //var tempBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
 
-                if (tempParts["AccountKey"] == "AccessToken")
-                {
-                    tempBuilder.UseCosmos(tempEndPoint, new DefaultAzureCredential(), cosmosIdentityDbName);
-                }
-                else
-                {
-                    tempBuilder.UseCosmos(connectionString, cosmosIdentityDbName);
-                }
+            //    //if (tempParts["AccountKey"] == "AccessToken")
+            //    //{
+            //    //    tempBuilder.UseCosmos(tempEndPoint, new DefaultAzureCredential(), cosmosIdentityDbName);
+            //    //}
+            //    //else
+            //    //{
+            //    //    tempBuilder.UseCosmos(connectionString, cosmosIdentityDbName);
+            //    //}
 
-                using (var dbContext = new ApplicationDbContext(tempBuilder.Options))
-                {
-                    dbContext.Database.EnsureCreated();
-                }
-            }
+            //    //using (var dbContext = new ApplicationDbContext(tempBuilder.Options))
+            //    //{
+            //    //    dbContext.Database.EnsureCreated();
+            //    //}
+            //}
 
             // Add the Cosmos database context here
             var cosmosRegionName = Configuration.GetValue<string>("CosmosRegionName");
@@ -141,6 +142,8 @@ namespace Cosmos.Cms
                 {
                     if (conpartsDict["AccountKey"] == "AccessToken")
                     {
+                        // Added the following line as per: https://github.com/dotnet/efcore/issues/34889
+                        options.ConfigureWarnings(x => x.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning));
                         options.UseCosmos(endpoint, new DefaultAzureCredential(), cosmosIdentityDbName);
                     }
                     else
@@ -152,6 +155,8 @@ namespace Cosmos.Cms
                 {
                     if (conpartsDict["AccountKey"] == "AccessToken")
                     {
+                        // Added the following line as per: https://github.com/dotnet/efcore/issues/34889
+                        options.ConfigureWarnings(x => x.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning));
                         options.UseCosmos(endpoint, new DefaultAzureCredential(), cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
                     }
                     else

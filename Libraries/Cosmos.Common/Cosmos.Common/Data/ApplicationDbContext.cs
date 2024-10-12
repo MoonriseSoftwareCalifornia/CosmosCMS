@@ -110,8 +110,6 @@ namespace Cosmos.Common.Data
         {
             // https://github.com/dotnet/efcore/issues/33328
             // Note this is done because using the default azure credential causes problems here.
-            // More information, see: https://github.com/dotnet/efcore/issues/16369
-            optionsBuilder.ConfigureWarnings(x => x.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning));
             base.OnConfiguring(optionsBuilder);
         }
 
