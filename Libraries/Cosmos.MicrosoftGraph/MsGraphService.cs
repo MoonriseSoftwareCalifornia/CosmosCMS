@@ -36,7 +36,7 @@ namespace Cosmos.MicrosoftGraph
         /// <param name="configuration">App configuration.</param>
         public MsGraphService(IConfiguration configuration)
         {
-            string[]? scopes = configuration.GetValue<string>("User.Read.All Group.Read.All GroupMember.Read.All Directory.Read.All")?.Split(' ');
+            string[] ? scopes = configuration.GetValue<string>("User.Read.All Group.Read.All GroupMember.Read.All Directory.Read.All")?.Split(' ');
             tenantId = configuration.GetValue<string>("AzureAd:TenantId");
 
             // Values from app registration

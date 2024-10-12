@@ -86,7 +86,7 @@ namespace Cosmos.Cms.Controllers
             // Get the current list of infos
             var ids = await dbContext.AuthorInfos.Select(s => s.UserId).ToArrayAsync();
             var check = await dbContext.Users.Select(s => new AuthorInfo { UserId = s.Id, EmailAddress = s.Email }).ToListAsync();
-            var missing = check.Where(w => ids.Contains(w.UserId) == false).ToList();
+            var missing = check.Where(w => !ids.Contains(w.UserId)).ToList();
             // Get missing infos and add them
             dbContext.AuthorInfos.AddRange(missing);
             await dbContext.SaveChangesAsync();
@@ -361,7 +361,7 @@ namespace Cosmos.Cms.Controllers
         {
             try
             {
-                if (string.IsNullOrEmpty(model.Password) && model.GenerateRandomPassword == false)
+                if (string.IsNullOrEmpty(model.Password) && !model.GenerateRandomPassword)
                 {
                     ModelState.AddModelError("GenerateRandomPassword", "Must generate password if one not given.");
                 }
@@ -399,7 +399,6 @@ namespace Cosmos.Cms.Controllers
             }
         }
 
-
         /// <summary>
         /// Creates a single user account.
         /// </summary>
@@ -410,7 +409,7 @@ namespace Cosmos.Cms.Controllers
         {
             var result = new BulkUserCreatedResult();
 
-            if (string.IsNullOrEmpty(model.Password) && model.GenerateRandomPassword == false)
+            if (string.IsNullOrEmpty(model.Password) && !model.GenerateRandomPassword)
             {
                 ModelState.AddModelError("GenerateRandomPassword", "Must generate password if one not given.");
             }

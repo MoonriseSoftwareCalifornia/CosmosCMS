@@ -6,7 +6,7 @@
 // </copyright>
 
 using System.Threading.RateLimiting;
-using Azure.Storage.Blobs;
+using Azure.Identity;
 using Cosmos.BlobService;
 using Cosmos.Cms.Common.Services.Configurations;
 using Cosmos.Common.Data;
@@ -17,17 +17,14 @@ using Cosmos.MicrosoftGraph;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
-using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Azure.Cosmos.Fluent;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
-using Azure.Identity;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -214,7 +211,7 @@ builder.Services.AddRazorPages()
 
 // Add authorization handler
 builder.Services.AddSingleton<IAuthorizationHandler, HandlerUsingAzureGroups>();
-var userGroup = builder.Configuration.GetValue<string>("AzureAd:UserGroup")!;
+var userGroup = builder.Configuration.GetValue<string>("AzureAd:UserGroup");
 if (string.IsNullOrEmpty(userGroup))
 {
     throw new InvalidOperationException("User group id is missing.");
@@ -253,6 +250,7 @@ app.UseForwardedHeaders();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
+
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }

@@ -59,7 +59,7 @@ namespace Cosmos.Cms.Services
                 return html;
             }
 
-            if (absoluteUrl.IsAbsoluteUri == false)
+            if (!absoluteUrl.IsAbsoluteUri)
             {
                 throw new ArgumentException($"{absoluteUrl.ToString()} is not an absolute Uri.");
             }
@@ -86,7 +86,7 @@ namespace Cosmos.Cms.Services
             {
                 HtmlAttribute att = node.Attributes["href"];
 
-                if (att != null && IsAbsoluteUri(att.Value) == false)
+                if (att != null && !IsAbsoluteUri(att.Value))
                 {
                     att.Value = new Uri(absoluteUrl, att.Value).ToString();
                 }
@@ -96,7 +96,7 @@ namespace Cosmos.Cms.Services
             {
                 HtmlAttribute att = node.Attributes["src"];
 
-                if (att != null && IsAbsoluteUri(att.Value) == false)
+                if (att != null && !IsAbsoluteUri(att.Value))
                 {
                     att.Value = new Uri(absoluteUrl, att.Value).ToString();
                 }

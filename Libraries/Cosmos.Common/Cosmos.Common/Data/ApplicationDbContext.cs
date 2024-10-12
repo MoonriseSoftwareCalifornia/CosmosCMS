@@ -105,7 +105,7 @@ namespace Cosmos.Common.Data
         /// <summary>
         /// Modify logging to simple logging service.
         /// </summary>
-        /// <param name="optionsBuilder">DbContextOptionsBuilder</param>
+        /// <param name="optionsBuilder">DbContextOptionsBuilder.</param>
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             // https://github.com/dotnet/efcore/issues/33328

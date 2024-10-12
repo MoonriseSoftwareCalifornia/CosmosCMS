@@ -7,12 +7,12 @@
 
 namespace Cosmos.EmailServices
 {
+    using System.Net;
     using HtmlAgilityPack;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using SendGrid;
     using SendGrid.Helpers.Mail;
-    using System.Net;
 
     /// <summary>
     ///     SendGrid Email sender service.

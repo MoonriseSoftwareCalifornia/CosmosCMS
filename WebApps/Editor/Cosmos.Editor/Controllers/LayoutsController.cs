@@ -38,7 +38,6 @@ namespace Cosmos.Cms.Controllers
     {
         private readonly ArticleEditLogic articleLogic;
         private readonly ApplicationDbContext dbContext;
-        private readonly ILogger<LayoutsController> logger;
         private readonly Uri blobPublicAbsoluteUrl;
         private readonly IViewRenderService viewRenderService;
 
@@ -49,20 +48,17 @@ namespace Cosmos.Cms.Controllers
         /// <param name="userManager">User manager.</param>
         /// <param name="articleLogic"><see cref="ArticleEditLogic">Article edit logic</see>.</param>
         /// <param name="options"><see cref="CosmosConfig">Cosmos configuration</see> options.</param>
-        /// <param name="logger">ILogger.</param>
         /// <param name="viewRenderService">View rendering service.</param>
         public LayoutsController(
             ApplicationDbContext dbContext,
             UserManager<IdentityUser> userManager,
             ArticleEditLogic articleLogic,
             IOptions<CosmosConfig> options,
-            ILogger<LayoutsController> logger,
             IViewRenderService viewRenderService)
             : base(dbContext, userManager)
         {
             this.dbContext = dbContext;
             this.articleLogic = articleLogic;
-            this.logger = logger;
 
             var htmlUtilities = new HtmlUtilities();
 
@@ -72,7 +68,7 @@ namespace Cosmos.Cms.Controllers
             }
             else
             {
-                blobPublicAbsoluteUrl = new Uri(options.Value.SiteSettings.PublisherUrl.TrimEnd('/') + "/" + options.Value.SiteSettings.BlobPublicUrl.TrimStart('/'));
+                blobPublicAbsoluteUrl = new Uri($"{options.Value.SiteSettings.PublisherUrl.TrimEnd('/')}/{options.Value.SiteSettings.BlobPublicUrl.TrimStart('/')}");
             }
 
             this.viewRenderService = viewRenderService;
@@ -95,7 +91,7 @@ namespace Cosmos.Cms.Controllers
                 return Json(await dbContext.Layouts.OrderBy(o => o.LayoutName).Select(s => new { LayoutId = s.Id, s.LayoutName, s.Notes }).ToListAsync());
             }
 
-            return Json(await dbContext.Layouts.Where(w => w.IsDefault == false).OrderBy(o => o.LayoutName).Select(s => new { LayoutId = s.Id, s.LayoutName, s.Notes }).ToListAsync());
+            return Json(await dbContext.Layouts.Where(w => !w.IsDefault).OrderBy(o => o.LayoutName).Select(s => new { LayoutId = s.Id, s.LayoutName, s.Notes }).ToListAsync());
         }
 
         /// <summary>
@@ -151,7 +147,7 @@ namespace Cosmos.Cms.Controllers
                 }
             }
 
-            var model = dbContext.Layouts.Select(s => new LayoutIndexViewModel
+            var model = query.Select(s => new LayoutIndexViewModel
             {
                 Id = s.Id,
                 IsDefault = s.IsDefault,
@@ -294,10 +290,6 @@ namespace Cosmos.Cms.Controllers
             }
 
             var layout = await dbContext.Layouts.FirstOrDefaultAsync(i => i.Id == id);
-
-            // Make editable
-            // header = header.Replace(" contenteditable=\"", " crx=\"", StringComparison.CurrentCultureIgnoreCase);
-            // footer = footer.Replace(" contenteditable=\"", " crx=\"", StringComparison.CurrentCultureIgnoreCase);
             layout.HtmlHeader = header;
             layout.FooterHtmlContent = footer;
 
@@ -529,10 +521,6 @@ namespace Cosmos.Cms.Controllers
 
                     throw;
                 }
-                catch (Exception)
-                {
-                    throw;
-                }
             }
 
             ViewData["PageTitle"] = layout.EditorTitle;
@@ -681,19 +669,19 @@ namespace Cosmos.Cms.Controllers
         [HttpPost]
         public async Task<IActionResult> SetLayoutAsDefault(LayoutIndexViewModel model)
         {
-
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
             var layout = await dbContext.Layouts.FirstOrDefaultAsync(f => f.Id == model.Id);
-            layout.IsDefault = true;
 
             if (layout == null)
             {
                 return RedirectToAction("Index", "Layouts");
             }
+
+            layout.IsDefault = true;
 
             await dbContext.SaveChangesAsync();
             var items = await dbContext.Layouts.Where(w => w.Id != model.Id).ToListAsync();
@@ -723,13 +711,13 @@ namespace Cosmos.Cms.Controllers
             {
                 if (await dbContext.Layouts.Where(c => c.CommunityLayoutId == id).CosmosAnyAsync())
                 {
-                    throw new Exception("Layout already loaded.");
+                    throw new ArgumentException("Layout already loaded.");
                 }
 
                 var utilities = new LayoutUtilities();
                 var layout = await utilities.GetCommunityLayout(id, false);
                 var communityPages = await utilities.GetCommunityTemplatePages(id);
-                layout.IsDefault = (await dbContext.Layouts.Where(a => a.IsDefault).CosmosAnyAsync()) == false;
+                layout.IsDefault = !await dbContext.Layouts.Where(a => a.IsDefault).CosmosAnyAsync();
                 dbContext.Layouts.Add(layout);
                 await dbContext.SaveChangesAsync();
 
@@ -751,7 +739,6 @@ namespace Cosmos.Cms.Controllers
 
                     if (!await dbContext.Pages.CosmosAnyAsync() && !await dbContext.Articles.CosmosAnyAsync())
                     {
-                        var homePageTemplate = await dbContext.Templates.FirstOrDefaultAsync(f => f.Title == "Home");
                         var page = new PublishedPage()
                         {
                             Title = "Home",

@@ -12,14 +12,11 @@ namespace Cosmos.Cms.Data.Logic
     using System.Linq;
     using System.Threading.Tasks;
     using System.Web;
-    using Azure;
-    using Azure.Identity;
     using Azure.ResourceManager;
-    using Azure.ResourceManager.Cdn;
-    using Azure.ResourceManager.Cdn.Models;
     using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Cms.Controllers;
     using Cosmos.Cms.Models;
+    using Cosmos.Cms.Services;
     using Cosmos.Common.Data;
     using Cosmos.Common.Data.Logic;
     using Cosmos.Common.Models;
@@ -27,7 +24,6 @@ namespace Cosmos.Cms.Data.Logic
     using Cosmos.Editor.Services;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Caching.Memory;
-    using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Newtonsoft.Json;
     using SendGrid.Helpers.Errors.Model;
@@ -73,7 +69,6 @@ namespace Cosmos.Cms.Data.Logic
             return await DbContext.IsConfigured();
         }
 
-
         /// <summary>
         ///     Validate that the title is not already taken by another article.
         /// </summary>
@@ -92,9 +87,9 @@ namespace Cosmos.Cms.Data.Logic
 
             foreach (var reservedPath in reservedPaths)
             {
-                if (reservedPath.EndsWith("*"))
+                if (reservedPath.EndsWith('*'))
                 {
-                    var value = reservedPath.TrimEnd(new char[] { '*' });
+                    var value = reservedPath.TrimEnd('*');
                     if (title.ToLower().StartsWith(value))
                     {
                         return false;
@@ -153,13 +148,13 @@ namespace Cosmos.Cms.Data.Logic
         public async Task<ArticleViewModel> Create(string title, string userId, Guid? templateId = null)
         {
             // Is this the first article? If so, make it the root and publish it.
-            var isFirstArticle = (await DbContext.Articles.CosmosAnyAsync()) == false;
+            var isFirstArticle = !await DbContext.Articles.CosmosAnyAsync();
 
             var isValidTitle = await ValidateTitle(title, null);
 
             if (!isValidTitle)
             {
-                throw new Exception($"Title '{title}' conflicts with another article or reserved word.");
+                throw new ArgumentException($"Title '{title}' conflicts with another article or reserved word.");
             }
 
             var defaultTemplate = string.Empty;
@@ -193,11 +188,9 @@ namespace Cosmos.Cms.Data.Logic
                                   "</div>";
             }
 
-            DateTimeOffset? published = (await DbContext.Articles.CosmosAnyAsync()) ? null : DateTimeOffset.UtcNow.AddMinutes(-5);
-
             // Max returns the incorrect result.
             int max;
-            if ((await DbContext.ArticleNumbers.CosmosAnyAsync()) == false)
+            if (!await DbContext.ArticleNumbers.CosmosAnyAsync())
             {
                 max = 0;
             }
@@ -256,6 +249,19 @@ namespace Cosmos.Cms.Data.Logic
             // Remove the old page from home
             var oldHomeArticle = await DbContext.Articles.Where(w => w.UrlPath.ToLower() == "root").ToListAsync();
 
+            if (oldHomeArticle.Count == 0)
+            {
+                throw new ArgumentException("No existing home page found.");
+            }
+
+            // New page that will become page root
+            var newHomeArticle = await DbContext.Articles.Where(w => w.ArticleNumber == model.ArticleNumber).ToListAsync();
+
+            if (newHomeArticle.Count == 0)
+            {
+                throw new ArgumentException("New home page not found.");
+            }
+
             var oldCatalogEntry = await DbContext.ArticleCatalog.Where(w => w.UrlPath.ToLower() == "root").ToListAsync();
 
             var newUrl = NormailizeArticleUrl(oldHomeArticle.FirstOrDefault()?.Title);
@@ -276,8 +282,6 @@ namespace Cosmos.Cms.Data.Logic
 
             await HandlePublishing(oldHomeArticle.OrderBy(o => o.VersionNumber).LastOrDefault(f => f.Published.HasValue));
 
-            // Make new page root
-            var newHomeArticle = await DbContext.Articles.Where(w => w.ArticleNumber == model.ArticleNumber).ToListAsync();
             foreach (var article in newHomeArticle)
             {
                 article.UrlPath = "root";
@@ -295,8 +299,6 @@ namespace Cosmos.Cms.Data.Logic
             var published = newHomeArticle.OrderBy(o => o.VersionNumber).LastOrDefault(f => f.Published.HasValue);
 
             await HandlePublishing(published);
-
-            // await HandleLogEntry(published, $"Article {published.ArticleNumber} is now the new home page.", userId);
         }
 
         /// <summary>
@@ -318,7 +320,7 @@ namespace Cosmos.Cms.Data.Logic
                 throw new KeyNotFoundException($"Article number {articleNumber} not found.");
             }
 
-            if (doomed.Any(a => a.UrlPath.ToLower() == "root"))
+            if (doomed.Exists(a => a.UrlPath.ToLower() == "root"))
             {
                 throw new NotSupportedException(
                     "Cannot trash the home page.  Replace home page with another, then send to trash.");
@@ -382,7 +384,7 @@ namespace Cosmos.Cms.Data.Logic
         {
             var redeemed = await DbContext.Articles.Where(w => w.ArticleNumber == articleNumber).ToListAsync();
 
-            if (redeemed == null)
+            if (redeemed == null || redeemed.Count == 0)
             {
                 throw new KeyNotFoundException($"Article number {articleNumber} not found.");
             }
@@ -426,46 +428,6 @@ namespace Cosmos.Cms.Data.Logic
             });
 
             await DbContext.SaveChangesAsync();
-
-            // Update the log
-            // await HandleLogEntry(redeemed.LastOrDefault(), $"Recovered '{sample.Title}' from trash.", userId);
-        }
-
-
-        /// <summary>
-        /// Updates or inserts an article. 
-        /// </summary>
-        /// <param name="model">HTML Editor post model.</param>
-        /// <param name="userId">ID of user making the change.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task<ArticleUpdateResult> Save(HtmlEditorViewModel model, string userId)
-        {
-            ArticleViewModel entity;
-            if (model.ArticleNumber == 0)
-            {
-                entity = new ArticleViewModel()
-                {
-                    ArticleNumber = model.ArticleNumber,
-                    Content = model.Content,
-                    Id = model.Id,
-                    Published = model.Published,
-                    Title = model.Title,
-                    VersionNumber = model.VersionNumber,
-                    UrlPath = model.UrlPath,
-                    BannerImage = model.BannerImage
-                };
-            }
-            else
-            {
-                entity = await Get(model.Id, EnumControllerName.Edit, userId);
-
-                entity.Published = model.Published;
-                entity.Title = model.Title;
-                entity.VersionNumber = model.VersionNumber;
-                entity.Content = model.Content;
-            }
-
-            return await Save(entity, userId);
         }
 
         /// <summary>
@@ -513,7 +475,7 @@ namespace Cosmos.Cms.Data.Logic
             string oldTitle = article.Title;
 
             // If an article version is not published and the model is not published, then update the existing version
-            var updateOnly = article.Published.HasValue == false && model.Published.HasValue == false;
+            var updateOnly = !article.Published.HasValue && !model.Published.HasValue;
 
             // =======================================================
             // Don't track this for now
@@ -604,7 +566,7 @@ namespace Cosmos.Cms.Data.Logic
         {
             if (model.ArticleNumber.HasValue)
             {
-                await ArticleSearchAndReplace(model, userId);
+                await ArticleSearchAndReplace(model);
             }
             else
             {
@@ -639,11 +601,10 @@ namespace Cosmos.Cms.Data.Logic
                             IncludeTitle = model.IncludeTitle,
                             LimitToPublished = model.LimitToPublished,
                             ReplaceValue = model.ReplaceValue
-                        }, userId);
+                        });
                 }
             }
         }
-
 
         /// <summary>
         /// Make sure all content editble DIVs have a unique C/CMS ID (attribute 'data-ccms-ceid'), removes CK editor classes.
@@ -681,14 +642,12 @@ namespace Cosmos.Cms.Data.Logic
                 return content;
             }
 
-            // var count = 0;
             var editables = new string[] { "div", "h1", "h2", "h3", "h4", "h5" };
 
             foreach (var element in elements)
             {
                 if (editables.Contains(element.Name.ToLower()))
                 {
-
                     if (element.Attributes.Contains("data-ccms-ceid"))
                     {
                         if (string.IsNullOrEmpty(element.Attributes["data-ccms-ceid"].Value))
@@ -727,7 +686,7 @@ namespace Cosmos.Cms.Data.Logic
                 }
 
                 // This class must be present on all CKEditor blocks
-                if (element.Name.ToLower() == "div" && element.HasClass("ck-content") == false)
+                if (element.Name.ToLower() == "div" && !element.HasClass("ck-content"))
                 {
                     element.AddClass("ck-content");
                 }
@@ -779,7 +738,7 @@ namespace Cosmos.Cms.Data.Logic
             }
 
             // Detect duplicate editable 
-            if (elements != null && elements.Count > 0 && htmlDoc.DocumentNode.SelectNodes("//*[@data-ccms-ceid]").Any())
+            if (elements.Count > 0 && htmlDoc.DocumentNode.SelectNodes("//*[@data-ccms-ceid]").Any())
             {
                 var dups = elements.GroupBy(x => x.Attributes["data-ccms-ceid"].Value).Where(g => g.Count() > 1).Select(y => new { id = y.Key, Counter = y.Count() })
                   .ToList();
@@ -801,7 +760,6 @@ namespace Cosmos.Cms.Data.Logic
             return htmlDoc.DocumentNode.OuterHtml;
         }
 
-
         /// <summary>
         /// Unpublishes an article.
         /// </summary>
@@ -811,7 +769,7 @@ namespace Cosmos.Cms.Data.Logic
         {
             var versions = await DbContext.Articles.Where(w => w.ArticleNumber == articleNumber && w.Published != null).ToListAsync();
 
-            if (versions.Any(a => a.UrlPath.Equals("root", StringComparison.InvariantCultureIgnoreCase)))
+            if (versions.Exists(a => a.UrlPath.Equals("root", StringComparison.InvariantCultureIgnoreCase)))
             {
                 // Cannot unpublish a home page
                 return;
@@ -839,492 +797,9 @@ namespace Cosmos.Cms.Data.Logic
         }
 
         /// <summary>
-        ///     Provides a standard method for turning a title into a URL Encoded path.
-        /// </summary>
-        /// <param name="title">Title to be converted into a URL.</param>
-        /// <remarks>
-        ///     <para>This is accomplished using <see cref="HttpUtility.UrlEncode(string)" />.</para>
-        ///     <para>Blanks are turned into underscores (i.e. "_").</para>
-        ///     <para>All strings are normalized to lower case.</para>
-        /// </remarks>
-        private string NormailizeArticleUrl(string title)
-        {
-            return title.Trim().Replace(" ", "_").ToLower();
-        }
-
-        private async Task ArticleSearchAndReplace(SearchAndReplaceViewModel model, string userId)
-        {
-            // We are doing a search and replace only for versions for a single article
-            var articleQuery = DbContext.Articles.Where(a => a.ArticleNumber == model.ArticleNumber);
-
-            if (model.LimitToPublished)
-            {
-                articleQuery = articleQuery.Where(a => a.Published != null);
-            }
-
-            if (model.IncludeContent)
-            {
-                articleQuery = articleQuery.Where(w => w.Content.Contains(model.FindValue));
-            }
-
-            if (model.IncludeTitle)
-            {
-                articleQuery = articleQuery.Where(w => w.Title.Contains(model.FindValue));
-            }
-
-            var entities = await articleQuery.ToListAsync();
-
-            var oldTitle = entities.FirstOrDefault().Title;
-
-            var count = 0;
-            foreach (var entity in entities)
-            {
-                if (model.IncludeContent)
-                {
-                    entity.Content = entity.Content.Replace(model.FindValue, model.ReplaceValue);
-                }
-
-                if (model.IncludeTitle)
-                {
-                    entity.Title = entity.Title.Replace(model.FindValue, model.ReplaceValue);
-                }
-            }
-
-            count++;
-            if (count == 50)
-            {
-                count = 0;
-                await DbContext.SaveChangesAsync();
-            }
-
-            if (model.IncludeTitle)
-            {
-                await HandleTitleChange(entities.FirstOrDefault(), oldTitle);
-            }
-
-            if (entities.Any(a => a.Published.HasValue))
-            {
-                var last = entities.OrderByDescending(a => a.Published.Value).LastOrDefault();
-                await HandlePublishing(last);
-            }
-
-            // Finally update the catalog entry
-            await UpdateCatalogEntry(model.ArticleNumber.Value, (StatusCodeEnum)entities.FirstOrDefault().StatusCode);
-        }
-
-        /// <summary>
-        /// Logic handing logic for publishing articles and saves changes to the database.
-        /// </summary>
-        /// <param name="article">Article entity.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        /// <remarks>
-        /// If article is published, it adds the correct versions to the public pages collection. If not, 
-        /// the article is removed from the public pages collection.
-        /// </remarks>
-        private async Task<List<CdnResult>> HandlePublishing(Article article)
-        {
-            if (article.Published.HasValue)
-            {
-                try
-                {
-                    var others = await DbContext.Articles.Where(w => w.ArticleNumber == article.ArticleNumber && w.Published != null && w.Id != article.Id).ToListAsync();
-
-                    var now = DateTimeOffset.Now;
-                    // If published in the future, then keep the last published article
-                    if (article.Published.Value > now)
-                    {
-                        // Keep the article pulished just before this one
-                        var oneTokeep = others.Where(
-                            w => w.Published <= now // other published date is before the article
-                            && w.VersionNumber < article.VersionNumber).OrderByDescending(o => o.VersionNumber).FirstOrDefault();
-
-                        if (oneTokeep != null)
-                        {
-                            others.Remove(oneTokeep);
-                        }
-
-                        // Also keep the other articles that are published between now and before the current article
-                        var othersToKeep = others.Where(
-                            w => w.Published.Value > now // Save items published after now, and...
-                            && w.Published.Value < article.Published.Value // published before the current article
-                            && w.VersionNumber < article.VersionNumber) // and are a version number before this one.
-                            .ToList();
-
-                        foreach (var o in othersToKeep)
-                        {
-                            others.Remove(o);
-                        }
-                    }
-
-                    // Now remove the other ones published
-                    foreach (var item in others)
-                    {
-                        item.Published = null;
-                    }
-
-                    await DbContext.SaveChangesAsync();
-
-                    // Resets the expiration dates, based on the last published article
-                    await ResetVersionExpirations(article.ArticleNumber);
-
-                    // Update the published pages collection
-                    return await UpdatePublishedPages(article.ArticleNumber);
-                }
-                catch (Exception e)
-                {
-                    var t = e;
-                }
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        ///     Gets a template represented as an <see cref="ArticleViewModel" />.
-        /// </summary>
-        /// <param name="template">Page template model.</param>
-        /// <returns>ArticleViewModel.</returns>
-        private ArticleViewModel BuildTemplateViewModel(Template template)
-        {
-            var articleNumber = DbContext.Articles.Max(m => m.ArticleNumber) + 1;
-
-            return new()
-            {
-                Id = template.Id,
-                ArticleNumber = articleNumber,
-                UrlPath = HttpUtility.UrlEncode(template.Title.Trim().Replace(" ", "_")),
-                VersionNumber = 1,
-                Published = DateTime.Now.ToUniversalTime(),
-                Title = template.Title,
-                Content = template.Content,
-                Updated = DateTime.Now.ToUniversalTime(),
-                HeadJavaScript = string.Empty,
-                FooterJavaScript = string.Empty,
-                ReadWriteMode = true
-            };
-        }
-
-        /// <summary>
-        /// If an OEMBED element is present, ensures the necessary JavaScript is injected.
-        /// </summary>
-        /// <param name="model">Article view model.</param>
-        private void Ensure_Oembed_Handled(ArticleViewModel model)
-        {
-            var htmlDoc = new HtmlAgilityPack.HtmlDocument();
-            var footerDoc = new HtmlAgilityPack.HtmlDocument();
-
-            htmlDoc.LoadHtml(string.IsNullOrEmpty(model.Content) ? string.Empty : model.Content);
-            footerDoc.LoadHtml(string.IsNullOrEmpty(model.FooterJavaScript) ? string.Empty : model.FooterJavaScript);
-
-            var oembed = htmlDoc.DocumentNode.SelectNodes("//oembed[@url]");
-            var hasOembed = oembed != null && oembed.Any();
-
-            var embedlyElements = footerDoc.DocumentNode.SelectNodes("//script[@id='cwps_embedly']");
-            var scriptElements = footerDoc.DocumentNode.SelectNodes("//script[@id='cwps_embedly_launch']");
-
-            // Now add or remove supporting JavaScript as  needed
-            if (hasOembed)
-            {
-                // There are OEmbeds, so add supporting JavaScript injects below
-                if (embedlyElements == null || !embedlyElements.Any())
-                {
-                    var embedly = footerDoc.CreateElement("script");
-                    embedly.Id = "cwps_embedly";
-                    embedly.Attributes.Append("async");
-                    embedly.Attributes.Append("charset", "utf-8");
-                    embedly.Attributes.Append("src", "//cdn.embedly.com/widgets/platform.js");
-
-                    footerDoc.DocumentNode.AppendChild(embedly);
-                }
-
-                if (scriptElements == null || !scriptElements.Any())
-                {
-                    var addon = footerDoc.CreateElement("script");
-                    addon.Id = "cwps_embedly_launch";
-                    addon.InnerHtml = "document.querySelectorAll( 'oembed[url]' ).forEach( element => { const anchor = document.createElement( 'a' ); anchor.setAttribute( 'href', element.getAttribute( 'url' ) ); anchor.className = 'embedly-card'; element.appendChild( anchor ); });";
-
-                    footerDoc.DocumentNode.AppendChild(addon);
-                }
-
-                model.FooterJavaScript = footerDoc.DocumentNode.OuterHtml;
-            }
-            else
-            {
-                // There are NO OEmbeds, so REMOVE supporting JavaScript injects below
-                if (embedlyElements != null && embedlyElements.Any())
-                {
-                    foreach (var el in embedlyElements)
-                    {
-                        el.Remove();
-                    }
-                }
-
-                if (scriptElements != null && scriptElements.Any())
-                {
-                    foreach (var el in scriptElements)
-                    {
-                        el.Remove();
-                    }
-                }
-
-                model.FooterJavaScript = footerDoc.DocumentNode.OuterHtml;
-            }
-        }
-
-        /// <summary>
-        /// Resets the expiration dates, based on the last published article, saves changes to the database.
-        /// </summary>
-        /// <param name="articleNumber">Article number.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        private async Task ResetVersionExpirations(int articleNumber)
-        {
-            var list = await DbContext.Articles.Where(a => a.ArticleNumber == articleNumber).ToListAsync();
-
-            foreach (var item in list)
-            {
-                if (item.Expires.HasValue)
-                {
-                    item.Expires = null;
-                }
-            }
-
-            var published = list.Where(a => a.ArticleNumber == articleNumber && a.Published.HasValue)
-                .OrderBy(o => o.VersionNumber).TakeLast(2).ToList();
-
-            if (published.Count == 2)
-            {
-                published[0].Expires = published[1].Published;
-            }
-
-            await DbContext.SaveChangesAsync();
-        }
-
-
-        /// <summary>
-        /// Updates the published pages collection by article number.
-        /// </summary>
-        /// <param name="articleNumber">Article number to publish.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        private async Task<List<CdnResult>> UpdatePublishedPages(int articleNumber)
-        {
-            // Now we are going to update the Pages table
-            var itemsToPublish = await DbContext.Articles.Where(w => w.ArticleNumber == articleNumber && w.Published != null)
-                .OrderByDescending(o => o.Published).AsNoTracking().ToListAsync();
-
-            var paths = itemsToPublish.Select(s => s.UrlPath).Distinct().ToList();
-
-            // Get everything that is going to be removed or replaced
-            var itemsToRemove = await DbContext.Pages.Where(w => w.ArticleNumber == articleNumber || paths.Contains(w.UrlPath)).ToListAsync();
-
-            if (itemsToRemove.Any())
-            {
-                // Mark these for deletion - do this first to avoid any conflicts
-                DbContext.Pages.RemoveRange(itemsToRemove);
-                await DbContext.SaveChangesAsync();
-                paths.AddRange(itemsToRemove.Select(s => s.UrlPath).ToArray());
-            }
-
-            if (itemsToPublish.Any())
-            {
-                // Now refresh the published pages
-                foreach (var item in itemsToPublish)
-                {
-                    var authorInfo = await DbContext.AuthorInfos.FirstOrDefaultAsync(f => f.UserId == item.UserId && f.AuthorName != string.Empty);
-
-                    // Carry over the permissions for this page.
-                    var catalogEntry = await DbContext.ArticleCatalog.FirstOrDefaultAsync(f => f.ArticleNumber == item.ArticleNumber);
-
-                    var newPage = new PublishedPage()
-                    {
-                        ArticleNumber = item.ArticleNumber,
-                        BannerImage = item.BannerImage,
-                        Content = item.Content,
-                        Expires = item.Expires,
-                        FooterJavaScript = item.FooterJavaScript,
-                        HeaderJavaScript = item.HeaderJavaScript,
-                        Id = Guid.NewGuid(), // Use a new GUID
-                        Published = item.Published,
-                        StatusCode = item.StatusCode,
-                        Title = item.Title,
-                        Updated = item.Updated,
-                        UrlPath = item.UrlPath,
-                        ParentUrlPath = item.UrlPath.Substring(0, Math.Max(item.UrlPath.LastIndexOf('/'), 0)),
-                        VersionNumber = item.VersionNumber,
-                        AuthorInfo = JsonConvert.SerializeObject(authorInfo).Replace("\"", "'")
-                    };
-
-                    // Check for duplicate
-                    var duplicate = await DbContext.Pages.FirstOrDefaultAsync(f => f.Id == newPage.Id);
-                    if (duplicate == null)
-                    {
-                        DbContext.Pages.Add(newPage);
-                    }
-                    else
-                    {
-                        throw new Exception($"Duplicate Page Id. Existing: {duplicate.Id} New: {newPage.Id} ArticleId: {articleNumber}.");
-                    }
-                }
-
-                // Update the pages collection
-                await DbContext.SaveChangesAsync();
-            }
-
-            if (paths.Any())
-            {
-                var purgeUrls = paths.Select(s => "/" + s.Trim('/')).ToList();
-
-                var settings = await Cosmos___CdnController.GetCdnConfiguration(DbContext);
-                var cdnService = new CdnService(settings);
-                return await cdnService.PurgeCdn(purgeUrls);
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// If the title has changed, handle that here.
-        /// </summary>
-        /// <param name="article">Article.</param>
-        /// <param name="oldTitle">Old title.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        /// <remarks>
-        /// Upon title change:
-        /// <list type="bullet">
-        /// <item>Updates title for article and it's versions</item>
-        /// <item>Updates the article catalog</item>
-        /// <item>Updates title of all child articles</item>
-        /// <item>Creates an automatic redirect</item>
-        /// <item>Updates base tags for all articles changed</item>
-        /// <item>Saves changes to the database</item>
-        /// </list>
-        /// </remarks>
-        private async Task HandleTitleChange(Article article, string oldTitle)
-        {
-            if (string.Equals(article.Title, oldTitle, StringComparison.CurrentCultureIgnoreCase) && !string.IsNullOrEmpty(article.UrlPath))
-            {
-                // Nothing to do
-                return;
-            }
-
-            // Capture the new title
-            var newTitle = article.Title;
-
-            var articleNumbersToUpdate = new List<int>();
-
-            articleNumbersToUpdate.Add(article.ArticleNumber);
-
-            // Validate that title is not already taken.
-            if (!await ValidateTitle(newTitle, article.ArticleNumber))
-            {
-                throw new Exception($"Title '{newTitle}' already taken");
-            }
-
-            var oldUrl = NormailizeArticleUrl(oldTitle);
-            var newUrl = NormailizeArticleUrl(newTitle);
-
-            // If NOT the root, handle any child page updates and redirects
-            // that need to be created.
-            if (article.UrlPath != "root")
-            {
-                // Update sub articles.
-                var subArticles = await GetAllSubArticles(oldTitle);
-
-                foreach (var subArticle in subArticles)
-                {
-                    if (!subArticle.Title.Equals("redirect", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        subArticle.Title = UpdatePrefix(oldTitle, newTitle, subArticle.Title);
-                    }
-
-                    subArticle.UrlPath = UpdatePrefix(oldUrl, newUrl, subArticle.UrlPath);
-
-                    // Make sure base tag is set properly.
-                    UpdateHeadBaseTag(subArticle);
-
-                    articleNumbersToUpdate.Add(article.ArticleNumber);
-                }
-
-                DbContext.Articles.UpdateRange(subArticles);
-
-                // Remove any conflicting redirects
-                var conflictingRedirects = await DbContext.Articles.Where(a => a.Content == newUrl && a.Title.ToLower().Equals("redirect")).ToListAsync();
-
-                if (conflictingRedirects.Any())
-                {
-                    DbContext.Articles.RemoveRange(conflictingRedirects);
-                    articleNumbersToUpdate.AddRange(conflictingRedirects.Select(s => s.ArticleNumber).ToList());
-                }
-
-                // Update base href
-                UpdateHeadBaseTag(article);
-
-                // Create a redirect
-                var entity = new Article
-                {
-                    ArticleNumber = 0,
-                    StatusCode = (int)StatusCodeEnum.Redirect,
-                    UrlPath = oldUrl, // Old URL
-                    VersionNumber = 0,
-                    Published = DateTime.Now.ToUniversalTime().AddDays(-1), // Make sure this sticks!
-                    Title = "Redirect",
-                    Content = newUrl, // New URL
-                    Updated = DateTime.Now.ToUniversalTime(),
-                    HeaderJavaScript = null,
-                    FooterJavaScript = null
-                };
-
-                // Add redirect here
-                DbContext.Articles.Add(entity);
-                await DbContext.SaveChangesAsync();
-
-                // await HandleLogEntry(entity, $"Redirect {oldUrl} to {newUrl}", userId);
-            }
-
-            // We have to change the title and paths for all versions now.
-            var versions = await DbContext.Articles.Where(w => w.ArticleNumber == article.ArticleNumber)
-                .ToListAsync();
-
-            var catalog = await DbContext.ArticleCatalog.Where(a => a.ArticleNumber == article.ArticleNumber).ToListAsync();
-
-            if (string.IsNullOrEmpty(article.UrlPath))
-            {
-                article.UrlPath = NormailizeArticleUrl(article.Title);
-            }
-
-            foreach (var art in versions)
-            {
-                // Update base href (for Angular apps)
-                UpdateHeadBaseTag(article);
-
-                art.Title = newTitle;
-                art.Updated = DateTime.Now.ToUniversalTime();
-                art.UrlPath = article.UrlPath;
-            }
-
-            foreach (var item in catalog)
-            {
-                item.Title = newTitle;
-                item.Updated = DateTime.Now.ToUniversalTime();
-                item.UrlPath = article.UrlPath;
-            }
-
-            DbContext.Articles.UpdateRange(versions);
-            DbContext.ArticleCatalog.UpdateRange(catalog);
-
-            await DbContext.SaveChangesAsync();
-
-            // Now update the published pages
-            foreach (var num in articleNumbersToUpdate)
-            {
-                await UpdatePublishedPages(num);
-            }
-        }
-
-        /// <summary>
         /// Update head tag to match path. 
         /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
+        /// <param name="model">Article view model.</param>
         /// <remarks>
         /// Angular uses the BASE tag within the HEAD to set relative path to article/app.
         /// If that tag is detected, it is updated automatically to match the current <see cref="Article.UrlPath"/>.
@@ -1335,15 +810,12 @@ namespace Cosmos.Cms.Data.Logic
             {
                 model.HeadJavaScript = UpdateHeadBaseTag(model.HeadJavaScript, model.UrlPath);
             }
-
-            return;
         }
 
         /// <summary>
         /// Update head tag to match path. 
         /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
+        /// <param name="model">Article view model.</param>
         /// <remarks>
         /// Angular uses the BASE tag within the HEAD to set relative path to article/app.
         /// If that tag is detected, it is updated automatically to match the current <see cref="Article.UrlPath"/>.
@@ -1354,78 +826,21 @@ namespace Cosmos.Cms.Data.Logic
             {
                 model.HeaderJavaScript = UpdateHeadBaseTag(model.HeaderJavaScript, model.UrlPath);
             }
-
-            return;
-        }
-
-        /// <summary>
-        /// Updates the base tag in the head if Angular is being used.
-        /// </summary>
-        /// <param name="headerJavaScript"></param>
-        /// <param name="urlPath"></param>
-        /// <returns></returns>
-        private string UpdateHeadBaseTag(string headerJavaScript, string urlPath)
-        {
-            if (string.IsNullOrEmpty(headerJavaScript))
-            {
-                return string.Empty;
-            }
-
-            var htmlDoc = new HtmlAgilityPack.HtmlDocument();
-
-            htmlDoc.LoadHtml(headerJavaScript);
-
-            // <meta name="ccms:framework" value="angular">
-            var meta = htmlDoc.DocumentNode.SelectSingleNode("//meta[@name='ccms:framework']");
-
-            // This only needs to be run if the framework is "Angular"
-            if (meta != null && meta.Attributes["value"].Value.ToLower() != "angular")
-            {
-                return headerJavaScript;
-            }
-
-            var element = htmlDoc.DocumentNode.SelectSingleNode("//base");
-
-            urlPath = $"/{HttpUtility.UrlDecode(urlPath.ToLower().Trim('/'))}/";
-
-            if (element == null)
-            {
-                var metaTag = htmlDoc.CreateElement("base");
-                metaTag.SetAttributeValue("href", urlPath);
-                htmlDoc.DocumentNode.AppendChild(metaTag);
-            }
-            else
-            {
-                var href = element.Attributes["href"];
-
-                if (href == null)
-                {
-                    element.Attributes.Add("href", urlPath);
-                }
-                else
-                {
-                    href.Value = urlPath;
-                }
-            }
-
-            headerJavaScript = htmlDoc.DocumentNode.OuterHtml;
-
-            return headerJavaScript;
         }
 
         /// <summary>
         ///     Changes the status of an article by marking all versions with that status.
         /// </summary>
         /// <param name="articleNumber">Article to set status for.</param>
-        /// <param cref="StatusCodeEnum" name="code"></param>
-        /// <param name="userId"></param>
+        /// <param cref="StatusCodeEnum" name="code">Status code.</param>
+        /// <param name="userId">User ID.</param>
         /// <exception cref="Exception">User ID or article number not found.</exception>
         /// <returns>Returns the number of versions for the given article where status was set.</returns>
         public async Task<int> SetStatus(int articleNumber, StatusCodeEnum code, string userId)
         {
             if (!await DbContext.Users.Where(a => a.Id == userId).CosmosAnyAsync())
             {
-                throw new Exception($"User ID: {userId} not found!");
+                throw new ArgumentException($"User ID: {userId} not found!");
             }
 
             var versions =
@@ -1433,7 +848,7 @@ namespace Cosmos.Cms.Data.Logic
 
             if (!versions.Any())
             {
-                throw new Exception($"Article number: {articleNumber} not found!");
+                throw new ArgumentException($"Article number: {articleNumber} not found!");
             }
 
             foreach (var version in versions)
@@ -1459,8 +874,6 @@ namespace Cosmos.Cms.Data.Logic
             var count = await DbContext.SaveChangesAsync();
             return count;
         }
-
-        #region GET METHODS ONLY FOR EDITOR
 
         /// <summary>
         ///     Gets a copy of the article ready for edit.
@@ -1501,7 +914,7 @@ namespace Cosmos.Cms.Data.Logic
 
             if (article == null)
             {
-                throw new Exception($"Article number:{articleNumber}, Version:{versionNumber}, not found.");
+                throw new ArgumentException($"Article number:{articleNumber}, Version:{versionNumber}, not found.");
             }
 
             return await BuildArticleViewModel(article, "en-US");
@@ -1511,8 +924,8 @@ namespace Cosmos.Cms.Data.Logic
         ///     Gets an article by ID (row Key), or creates a new (unsaved) article if id is null.
         /// </summary>
         /// <param name="id">Row Id (or identity) number.  If null returns a new article.</param>
-        /// <param name="controllerName"></param>
-        /// <param name="userId"></param>
+        /// <param name="controllerName">Controller name enum.</param>
+        /// <param name="userId">User ID.</param>
         /// <remarks>
         ///     <para>
         ///         For new articles, uses <see cref="Create" /> and the method
@@ -1542,7 +955,7 @@ namespace Cosmos.Cms.Data.Logic
             {
                 if (id == null)
                 {
-                    throw new Exception("Template ID:null not found.");
+                    throw new ArgumentException("Template ID:null not found.");
                 }
 
                 var idNo = id.Value;
@@ -1550,7 +963,7 @@ namespace Cosmos.Cms.Data.Logic
 
                 if (template == null)
                 {
-                    throw new Exception($"Template ID:{id} not found.");
+                    throw new ArgumentException($"Template ID:{id} not found.");
                 }
 
                 return BuildTemplateViewModel(template);
@@ -1568,42 +981,12 @@ namespace Cosmos.Cms.Data.Logic
 
             if (article == null)
             {
-                throw new Exception($"Article ID:{id} not found.");
+                throw new ArgumentException($"Article ID:{id} not found.");
             }
 
             article.Content = Ensure_ContentEditable_IsMarked(article.Content);
 
             return await BuildArticleViewModel(article, "en-US");
-        }
-
-        /// <summary>
-        /// Gets the sub articles for a page.
-        /// </summary>
-        /// <param name="urlPrefix">URL Prefix.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        private async Task<List<Article>> GetAllSubArticles(string urlPrefix)
-        {
-            if (string.IsNullOrEmpty(urlPrefix) || string.IsNullOrWhiteSpace(urlPrefix) || urlPrefix.Equals("/"))
-            {
-                urlPrefix = string.Empty;
-            }
-            else
-            {
-                urlPrefix = System.Web.HttpUtility.UrlDecode(urlPrefix.ToLower().Replace("%20", "_").Replace(" ", "_"));
-            }
-
-            var query = DbContext.Articles.Where(a => a.UrlPath.StartsWith(urlPrefix));
-            // .Where(a => a.Published <= DateTime.UtcNow && a.UrlPath.Like());
-            try
-            {
-                var list = await query.ToListAsync();
-                return list;
-            }
-            catch (Exception e)
-            {
-                var t = e; // For debuging purposes
-                throw;
-            }
         }
 
         /// <summary>
@@ -1618,14 +1001,14 @@ namespace Cosmos.Cms.Data.Logic
         {
             if (publishedOnly && onlyActive)
             {
-                return await base.GetPublishedPageByUrl(urlPath, lang);
+                return await GetPublishedPageByUrl(urlPath, lang);
             }
 
             var activeStatusCodes =
                 onlyActive ? new[] { 0, 3 } : new[] { 0, 1, 3 }; // i.e. StatusCode.Active (DEFAULT) and StatusCode.Redirect
 
+            urlPath = urlPath?.ToLower().Trim(' ', '/');
 
-            urlPath = urlPath?.ToLower().Trim(new char[] { ' ', '/' });
             if (string.IsNullOrEmpty(urlPath) || urlPath.Trim() == "/")
             {
                 urlPath = "root";
@@ -1646,16 +1029,14 @@ namespace Cosmos.Cms.Data.Logic
                     .Where(a => a.UrlPath == urlPath && activeStatusCodes.Contains(a.StatusCode))
                     .OrderByDescending(o => o.VersionNumber)
                     .FirstOrDefaultAsync();
-                return await base.BuildArticleViewModel(article, lang);
+                return await BuildArticleViewModel(article, lang);
             }
         }
-
-        #region LISTS
 
         /// <summary>
         /// Get a list of article redirects.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>RedirectItemViewModel.</returns>
         public IQueryable<RedirectItemViewModel> GetArticleRedirects()
         {
             var redirectCode = (int)StatusCodeEnum.Redirect;
@@ -1673,8 +1054,6 @@ namespace Cosmos.Cms.Data.Logic
         ///     Gets the latest versions of articles that are in the trash.
         /// </summary>
         /// <returns>Gets article number, version number, last data published (if applicable).</returns>
-        /// <remarks>
-        /// </remarks>
         public async Task<List<ArticleListItem>> GetArticleTrashList()
         {
             var data = await
@@ -1706,18 +1085,12 @@ namespace Cosmos.Cms.Data.Logic
             return model;
         }
 
-        #endregion
-
-        #endregion
-
-        #region PAGE EXPORT
-
         /// <summary>
         /// Exports and article as HTML with layout elements.
         /// </summary>
-        /// <param name="article"></param>
-        /// <param name="blobPublicAbsoluteUrl"></param>
-        /// <param name="viewRenderService"></param>
+        /// <param name="article">Article view model.</param>
+        /// <param name="blobPublicAbsoluteUrl">Blob absolute URL.</param>
+        /// <param name="viewRenderService">View render service.</param>
         /// <returns>web page.</returns>
         public async Task<string> ExportArticle(ArticleViewModel article, Uri blobPublicAbsoluteUrl, Services.IViewRenderService viewRenderService)
         {
@@ -1738,10 +1111,6 @@ namespace Cosmos.Cms.Data.Logic
             return html;
         }
 
-        #endregion
-
-        #region RESERVED PATHS
-
         /// <summary>
         /// Get a list of reserved paths.
         /// </summary>
@@ -1753,7 +1122,6 @@ namespace Cosmos.Cms.Data.Logic
             List<ReservedPath> paths;
             if (setting == null)
             {
-                // { "pub", "api", "GetSupportedLanguages", "GetTOC", "AccessPending", "GetMicrosoftIdentityAssociation", "Error" };
                 // Create and save default list of reserved paths
                 paths = new List<ReservedPath>();
                 paths.Add(new ReservedPath()
@@ -1876,14 +1244,14 @@ namespace Cosmos.Cms.Data.Logic
         /// <summary>
         /// Create or update the reserved path list.
         /// </summary>
-        /// <param name="model"></param>
+        /// <param name="model">Reserved path model.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         /// <exception cref="Exception">Cannot add path because it is already reserved.</exception>
         public async Task AddOrUpdateReservedPath(ReservedPath model)
         {
             if (model.CosmosRequired)
             {
-                throw new Exception($"Reserved path {model.Path} cannot be modified.");
+                throw new ArgumentException($"Reserved path {model.Path} cannot be modified.");
             }
 
             model.Path = model.Path.ToLower().Replace("\\", "/").Trim('/').TrimStart('*');
@@ -1891,22 +1259,22 @@ namespace Cosmos.Cms.Data.Logic
             var paths = await GetReservedPaths();
 
             // check for update
-            var entity = paths.FirstOrDefault(f => f.Id == model.Id);
+            var entity = paths.Find(f => f.Id == model.Id);
 
             if (entity == null)
             {
-                if (paths.Any(a => a.Path.ToLower() == model.Path.ToLower()))
+                if (paths.Exists(a => a.Path.ToLower() == model.Path.ToLower()))
                 {
-                    throw new Exception($"Cannot add path '{model.Path}' because it is already reserved.");
+                    throw new ArgumentException($"Cannot add path '{model.Path}' because it is already reserved.");
                 }
 
                 paths.Add(model);
             }
             else
             {
-                if (paths.Any(a => a.Path.ToLower() == model.Path.ToLower() && a.Id != model.Id))
+                if (paths.Exists(a => a.Path.ToLower() == model.Path.ToLower() && a.Id != model.Id))
                 {
-                    throw new Exception($"Cannot rename to path '{model.Path}' because it is already reserved.");
+                    throw new ArgumentException($"Cannot rename to path '{model.Path}' because it is already reserved.");
                 }
 
                 entity.Notes = model.Notes;
@@ -1921,23 +1289,23 @@ namespace Cosmos.Cms.Data.Logic
         /// <summary>
         /// Removes a reserved path.
         /// </summary>
-        /// <param name="Id"></param>
+        /// <param name="id">Path ID.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         /// <exception cref="Exception">Path not found.</exception>
-        public async Task RemoveReservedPath(Guid Id)
+        public async Task RemoveReservedPath(Guid id)
         {
             var paths = await GetReservedPaths();
 
-            var doomed = paths.FirstOrDefault(a => a.Id == Id);
+            var doomed = paths.Find(a => a.Id == id);
 
             if (doomed == null)
             {
-                throw new Exception($"Path Id '{Id}' not found, could not delete.");
+                throw new ArgumentException($"Path Id '{id}' not found, could not delete.");
             }
 
             if (doomed.CosmosRequired)
             {
-                throw new Exception($"Reserved path {doomed.Path} cannot be deleted.");
+                throw new ArgumentException($"Reserved path {doomed.Path} cannot be deleted.");
             }
 
             paths.Remove(doomed);
@@ -1947,12 +1315,554 @@ namespace Cosmos.Cms.Data.Logic
             await DbContext.SaveChangesAsync();
         }
 
-        #endregion
+        /// <summary>
+        ///     Provides a standard method for turning a title into a URL Encoded path.
+        /// </summary>
+        /// <param name="title">Title to be converted into a URL.</param>
+        /// <remarks>
+        ///     <para>This is accomplished using <see cref="HttpUtility.UrlEncode(string)" />.</para>
+        ///     <para>Blanks are turned into underscores (i.e. "_").</para>
+        ///     <para>All strings are normalized to lower case.</para>
+        /// </remarks>
+        private static string NormailizeArticleUrl(string title)
+        {
+            return title.Trim().Replace(" ", "_").ToLower();
+        }
+
+        /// <summary>
+        /// If an OEMBED element is present, ensures the necessary JavaScript is injected.
+        /// </summary>
+        /// <param name="model">Article view model.</param>
+        private static void Ensure_Oembed_Handled(ArticleViewModel model)
+        {
+            var htmlDoc = new HtmlAgilityPack.HtmlDocument();
+            var footerDoc = new HtmlAgilityPack.HtmlDocument();
+
+            htmlDoc.LoadHtml(string.IsNullOrEmpty(model.Content) ? string.Empty : model.Content);
+            footerDoc.LoadHtml(string.IsNullOrEmpty(model.FooterJavaScript) ? string.Empty : model.FooterJavaScript);
+
+            var oembed = htmlDoc.DocumentNode.SelectNodes("//oembed[@url]");
+            var hasOembed = oembed != null && oembed.Any();
+
+            var embedlyElements = footerDoc.DocumentNode.SelectNodes("//script[@id='cwps_embedly']");
+            var scriptElements = footerDoc.DocumentNode.SelectNodes("//script[@id='cwps_embedly_launch']");
+
+            // Now add or remove supporting JavaScript as  needed
+            if (hasOembed)
+            {
+                // There are OEmbeds, so add supporting JavaScript injects below
+                if (embedlyElements == null || !embedlyElements.Any())
+                {
+                    var embedly = footerDoc.CreateElement("script");
+                    embedly.Id = "cwps_embedly";
+                    embedly.Attributes.Append("async");
+                    embedly.Attributes.Append("charset", "utf-8");
+                    embedly.Attributes.Append("src", "//cdn.embedly.com/widgets/platform.js");
+
+                    footerDoc.DocumentNode.AppendChild(embedly);
+                }
+
+                if (scriptElements == null || !scriptElements.Any())
+                {
+                    var addon = footerDoc.CreateElement("script");
+                    addon.Id = "cwps_embedly_launch";
+                    addon.InnerHtml = "document.querySelectorAll( 'oembed[url]' ).forEach( element => { const anchor = document.createElement( 'a' ); anchor.setAttribute( 'href', element.getAttribute( 'url' ) ); anchor.className = 'embedly-card'; element.appendChild( anchor ); });";
+
+                    footerDoc.DocumentNode.AppendChild(addon);
+                }
+
+                model.FooterJavaScript = footerDoc.DocumentNode.OuterHtml;
+            }
+            else
+            {
+                // There are NO OEmbeds, so REMOVE supporting JavaScript injects below
+                if (embedlyElements != null && embedlyElements.Any())
+                {
+                    foreach (var el in embedlyElements)
+                    {
+                        el.Remove();
+                    }
+                }
+
+                if (scriptElements != null && scriptElements.Any())
+                {
+                    foreach (var el in scriptElements)
+                    {
+                        el.Remove();
+                    }
+                }
+
+                model.FooterJavaScript = footerDoc.DocumentNode.OuterHtml;
+            }
+        }
+
+        private async Task ArticleSearchAndReplace(SearchAndReplaceViewModel model)
+        {
+            // We are doing a search and replace only for versions for a single article
+            var articleQuery = DbContext.Articles.Where(a => a.ArticleNumber == model.ArticleNumber);
+
+            if (model.LimitToPublished)
+            {
+                articleQuery = articleQuery.Where(a => a.Published != null);
+            }
+
+            if (model.IncludeContent)
+            {
+                articleQuery = articleQuery.Where(w => w.Content.Contains(model.FindValue));
+            }
+
+            if (model.IncludeTitle)
+            {
+                articleQuery = articleQuery.Where(w => w.Title.Contains(model.FindValue));
+            }
+
+            var entities = await articleQuery.ToListAsync();
+
+            if (entities.Count == 0)
+            {
+                throw new ArgumentException("Article number not found.");
+            }
+
+            var oldTitle = entities.FirstOrDefault().Title;
+
+            foreach (var entity in entities)
+            {
+                if (model.IncludeContent)
+                {
+                    entity.Content = entity.Content.Replace(model.FindValue, model.ReplaceValue);
+                }
+
+                if (model.IncludeTitle)
+                {
+                    entity.Title = entity.Title.Replace(model.FindValue, model.ReplaceValue);
+                }
+            }
+
+            if (model.IncludeTitle)
+            {
+                await HandleTitleChange(entities.FirstOrDefault(), oldTitle);
+            }
+
+            if (entities.Exists(a => a.Published.HasValue))
+            {
+                var last = entities.OrderByDescending(a => a.Published.Value).LastOrDefault();
+                await HandlePublishing(last);
+            }
+
+            // Finally update the catalog entry
+            await UpdateCatalogEntry(model.ArticleNumber.Value, (StatusCodeEnum)entities.FirstOrDefault().StatusCode);
+        }
+
+        /// <summary>
+        /// Logic handing logic for publishing articles and saves changes to the database.
+        /// </summary>
+        /// <param name="article">Article entity.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        /// <remarks>
+        /// If article is published, it adds the correct versions to the public pages collection. If not, 
+        /// the article is removed from the public pages collection.
+        /// </remarks>
+        private async Task<List<CdnResult>> HandlePublishing(Article article)
+        {
+            if (article.Published.HasValue)
+            {
+                var others = await DbContext.Articles.Where(w => w.ArticleNumber == article.ArticleNumber && w.Published != null && w.Id != article.Id).ToListAsync();
+
+                var now = DateTimeOffset.Now;
+
+                // If published in the future, then keep the last published article
+                if (article.Published.Value > now)
+                {
+                    // Keep the article pulished just before this one
+                    var oneTokeep = others.Where(
+                        w => w.Published <= now // other published date is before the article
+                        && w.VersionNumber < article.VersionNumber).OrderByDescending(o => o.VersionNumber).FirstOrDefault();
+
+                    if (oneTokeep != null)
+                    {
+                        others.Remove(oneTokeep);
+                    }
+
+                    // Also keep the other articles that are published between now and before the current article
+                    var othersToKeep = others.Where(
+                        w => w.Published.Value > now // Save items published after now, and...
+                        && w.Published.Value < article.Published.Value // published before the current article
+                        && w.VersionNumber < article.VersionNumber) // and are a version number before this one.
+                        .ToList();
+
+                    foreach (var o in othersToKeep)
+                    {
+                        others.Remove(o);
+                    }
+                }
+
+                // Now remove the other ones published
+                foreach (var item in others)
+                {
+                    item.Published = null;
+                }
+
+                await DbContext.SaveChangesAsync();
+
+                // Resets the expiration dates, based on the last published article
+                await ResetVersionExpirations(article.ArticleNumber);
+
+                // Update the published pages collection
+                return await UpdatePublishedPages(article.ArticleNumber);
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        ///     Gets a template represented as an <see cref="ArticleViewModel" />.
+        /// </summary>
+        /// <param name="template">Page template model.</param>
+        /// <returns>ArticleViewModel.</returns>
+        private ArticleViewModel BuildTemplateViewModel(Template template)
+        {
+            var articleNumber = DbContext.Articles.Max(m => m.ArticleNumber) + 1;
+
+            return new ()
+            {
+                Id = template.Id,
+                ArticleNumber = articleNumber,
+                UrlPath = HttpUtility.UrlEncode(template.Title.Trim().Replace(" ", "_")),
+                VersionNumber = 1,
+                Published = DateTime.Now.ToUniversalTime(),
+                Title = template.Title,
+                Content = template.Content,
+                Updated = DateTime.Now.ToUniversalTime(),
+                HeadJavaScript = string.Empty,
+                FooterJavaScript = string.Empty,
+                ReadWriteMode = true
+            };
+        }
+
+        /// <summary>
+        /// Resets the expiration dates, based on the last published article, saves changes to the database.
+        /// </summary>
+        /// <param name="articleNumber">Article number.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        private async Task ResetVersionExpirations(int articleNumber)
+        {
+            var list = await DbContext.Articles.Where(a => a.ArticleNumber == articleNumber).ToListAsync();
+
+            foreach (var item in list)
+            {
+                if (item.Expires.HasValue)
+                {
+                    item.Expires = null;
+                }
+            }
+
+            var published = list.Where(a => a.ArticleNumber == articleNumber && a.Published.HasValue)
+                .OrderBy(o => o.VersionNumber).TakeLast(2).ToList();
+
+            if (published.Count == 2)
+            {
+                published[0].Expires = published[1].Published;
+            }
+
+            await DbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Updates the published pages collection by article number.
+        /// </summary>
+        /// <param name="articleNumber">Article number to publish.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        private async Task<List<CdnResult>> UpdatePublishedPages(int articleNumber)
+        {
+            // Now we are going to update the Pages table
+            var itemsToPublish = await DbContext.Articles.Where(w => w.ArticleNumber == articleNumber && w.Published != null)
+                .OrderByDescending(o => o.Published).AsNoTracking().ToListAsync();
+
+            var paths = itemsToPublish.Select(s => s.UrlPath).Distinct().ToList();
+
+            // Get everything that is going to be removed or replaced
+            var itemsToRemove = await DbContext.Pages.Where(w => w.ArticleNumber == articleNumber || paths.Contains(w.UrlPath)).ToListAsync();
+
+            if (itemsToRemove.Any())
+            {
+                // Mark these for deletion - do this first to avoid any conflicts
+                DbContext.Pages.RemoveRange(itemsToRemove);
+                await DbContext.SaveChangesAsync();
+                paths.AddRange(itemsToRemove.Select(s => s.UrlPath).ToArray());
+            }
+
+            if (itemsToPublish.Any())
+            {
+                // Now refresh the published pages
+                foreach (var item in itemsToPublish)
+                {
+                    var authorInfo = await DbContext.AuthorInfos.FirstOrDefaultAsync(f => f.UserId == item.UserId && f.AuthorName != string.Empty);
+
+                    var newPage = new PublishedPage()
+                    {
+                        ArticleNumber = item.ArticleNumber,
+                        BannerImage = item.BannerImage,
+                        Content = item.Content,
+                        Expires = item.Expires,
+                        FooterJavaScript = item.FooterJavaScript,
+                        HeaderJavaScript = item.HeaderJavaScript,
+                        Id = Guid.NewGuid(), // Use a new GUID
+                        Published = item.Published,
+                        StatusCode = item.StatusCode,
+                        Title = item.Title,
+                        Updated = item.Updated,
+                        UrlPath = item.UrlPath,
+                        ParentUrlPath = item.UrlPath.Substring(0, Math.Max(item.UrlPath.LastIndexOf('/'), 0)),
+                        VersionNumber = item.VersionNumber,
+                        AuthorInfo = JsonConvert.SerializeObject(authorInfo).Replace("\"", "'")
+                    };
+
+                    // Check for duplicate
+                    var duplicate = await DbContext.Pages.FirstOrDefaultAsync(f => f.Id == newPage.Id);
+                    if (duplicate == null)
+                    {
+                        DbContext.Pages.Add(newPage);
+                    }
+                    else
+                    {
+                        throw new ArgumentException($"Duplicate Page Id. Existing: {duplicate.Id} New: {newPage.Id} ArticleId: {articleNumber}.");
+                    }
+                }
+
+                // Update the pages collection
+                await DbContext.SaveChangesAsync();
+            }
+
+            if (paths.Any())
+            {
+                var purgeUrls = paths.Select(s => "/" + s.Trim('/')).ToList();
+
+                var settings = await Cosmos___CdnController.GetCdnConfiguration(DbContext);
+                var cdnService = new CdnService(settings);
+                return await cdnService.PurgeCdn(purgeUrls);
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// If the title has changed, handle that here.
+        /// </summary>
+        /// <param name="article">Article.</param>
+        /// <param name="oldTitle">Old title.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        /// <remarks>
+        /// Upon title change:
+        /// <list type="bullet">
+        /// <item>Updates title for article and it's versions</item>
+        /// <item>Updates the article catalog</item>
+        /// <item>Updates title of all child articles</item>
+        /// <item>Creates an automatic redirect</item>
+        /// <item>Updates base tags for all articles changed</item>
+        /// <item>Saves changes to the database</item>
+        /// </list>
+        /// </remarks>
+        private async Task HandleTitleChange(Article article, string oldTitle)
+        {
+            if (string.Equals(article.Title, oldTitle, StringComparison.CurrentCultureIgnoreCase) && !string.IsNullOrEmpty(article.UrlPath))
+            {
+                // Nothing to do
+                return;
+            }
+
+            // Capture the new title
+            var newTitle = article.Title;
+
+            var articleNumbersToUpdate = new List<int>();
+
+            articleNumbersToUpdate.Add(article.ArticleNumber);
+
+            // Validate that title is not already taken.
+            if (!await ValidateTitle(newTitle, article.ArticleNumber))
+            {
+                throw new ArgumentException($"Title '{newTitle}' already taken");
+            }
+
+            var oldUrl = NormailizeArticleUrl(oldTitle);
+            var newUrl = NormailizeArticleUrl(newTitle);
+
+            // If NOT the root, handle any child page updates and redirects
+            // that need to be created.
+            if (article.UrlPath != "root")
+            {
+                // Update sub articles.
+                var subArticles = await GetAllSubArticles(oldTitle);
+
+                foreach (var subArticle in subArticles)
+                {
+                    if (!subArticle.Title.Equals("redirect", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        subArticle.Title = UpdatePrefix(oldTitle, newTitle, subArticle.Title);
+                    }
+
+                    subArticle.UrlPath = UpdatePrefix(oldUrl, newUrl, subArticle.UrlPath);
+
+                    // Make sure base tag is set properly.
+                    UpdateHeadBaseTag(subArticle);
+
+                    articleNumbersToUpdate.Add(article.ArticleNumber);
+                }
+
+                DbContext.Articles.UpdateRange(subArticles);
+
+                // Remove any conflicting redirects
+                var conflictingRedirects = await DbContext.Articles.Where(a => a.Content == newUrl && a.Title.ToLower().Equals("redirect")).ToListAsync();
+
+                if (conflictingRedirects.Any())
+                {
+                    DbContext.Articles.RemoveRange(conflictingRedirects);
+                    articleNumbersToUpdate.AddRange(conflictingRedirects.Select(s => s.ArticleNumber).ToList());
+                }
+
+                // Update base href
+                UpdateHeadBaseTag(article);
+
+                // Create a redirect
+                var entity = new Article
+                {
+                    ArticleNumber = 0,
+                    StatusCode = (int)StatusCodeEnum.Redirect,
+                    UrlPath = oldUrl, // Old URL
+                    VersionNumber = 0,
+                    Published = DateTime.Now.ToUniversalTime().AddDays(-1), // Make sure this sticks!
+                    Title = "Redirect",
+                    Content = newUrl, // New URL
+                    Updated = DateTime.Now.ToUniversalTime(),
+                    HeaderJavaScript = null,
+                    FooterJavaScript = null
+                };
+
+                // Add redirect here
+                DbContext.Articles.Add(entity);
+                await DbContext.SaveChangesAsync();
+            }
+
+            // We have to change the title and paths for all versions now.
+            var versions = await DbContext.Articles.Where(w => w.ArticleNumber == article.ArticleNumber)
+                .ToListAsync();
+
+            var catalog = await DbContext.ArticleCatalog.Where(a => a.ArticleNumber == article.ArticleNumber).ToListAsync();
+
+            if (string.IsNullOrEmpty(article.UrlPath))
+            {
+                article.UrlPath = NormailizeArticleUrl(article.Title);
+            }
+
+            foreach (var art in versions)
+            {
+                // Update base href (for Angular apps)
+                UpdateHeadBaseTag(article);
+
+                art.Title = newTitle;
+                art.Updated = DateTime.Now.ToUniversalTime();
+                art.UrlPath = article.UrlPath;
+            }
+
+            foreach (var item in catalog)
+            {
+                item.Title = newTitle;
+                item.Updated = DateTime.Now.ToUniversalTime();
+                item.UrlPath = article.UrlPath;
+            }
+
+            DbContext.Articles.UpdateRange(versions);
+            DbContext.ArticleCatalog.UpdateRange(catalog);
+
+            await DbContext.SaveChangesAsync();
+
+            // Now update the published pages
+            foreach (var num in articleNumbersToUpdate)
+            {
+                await UpdatePublishedPages(num);
+            }
+        }
+
+        /// <summary>
+        /// Gets the sub articles for a page.
+        /// </summary>
+        /// <param name="urlPrefix">URL Prefix.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        private async Task<List<Article>> GetAllSubArticles(string urlPrefix)
+        {
+            if (string.IsNullOrEmpty(urlPrefix) || string.IsNullOrWhiteSpace(urlPrefix) || urlPrefix.Equals("/"))
+            {
+                urlPrefix = string.Empty;
+            }
+            else
+            {
+                urlPrefix = System.Web.HttpUtility.UrlDecode(urlPrefix.ToLower().Replace("%20", "_").Replace(" ", "_"));
+            }
+
+            var query = DbContext.Articles.Where(a => a.UrlPath.StartsWith(urlPrefix));
+
+            var list = await query.ToListAsync();
+            return list;
+        }
+
+        /// <summary>
+        /// Updates the base tag in the head if Angular is being used.
+        /// </summary>
+        /// <param name="headerJavaScript">Javascript header.</param>
+        /// <param name="urlPath">Url path.</param>
+        /// <returns>string.</returns>
+        private string UpdateHeadBaseTag(string headerJavaScript, string urlPath)
+        {
+            if (string.IsNullOrEmpty(headerJavaScript))
+            {
+                return string.Empty;
+            }
+
+            var htmlDoc = new HtmlAgilityPack.HtmlDocument();
+
+            htmlDoc.LoadHtml(headerJavaScript);
+
+            // <meta name="ccms:framework" value="angular">
+            var meta = htmlDoc.DocumentNode.SelectSingleNode("//meta[@name='ccms:framework']");
+
+            // This only needs to be run if the framework is "Angular"
+            if (meta != null && meta.Attributes["value"].Value.ToLower() != "angular")
+            {
+                return headerJavaScript;
+            }
+
+            var element = htmlDoc.DocumentNode.SelectSingleNode("//base");
+
+            urlPath = $"/{HttpUtility.UrlDecode(urlPath.ToLower().Trim('/'))}/";
+
+            if (element == null)
+            {
+                var metaTag = htmlDoc.CreateElement("base");
+                metaTag.SetAttributeValue("href", urlPath);
+                htmlDoc.DocumentNode.AppendChild(metaTag);
+            }
+            else
+            {
+                var href = element.Attributes["href"];
+
+                if (href == null)
+                {
+                    element.Attributes.Add("href", urlPath);
+                }
+                else
+                {
+                    href.Value = urlPath;
+                }
+            }
+
+            headerJavaScript = htmlDoc.DocumentNode.OuterHtml;
+
+            return headerJavaScript;
+        }
 
         /// <summary>
         /// Deletes a catalog entry.
         /// </summary>
-        /// <param name="articleNumber">Article number</param>
+        /// <param name="articleNumber">Article number.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         private async Task DeleteCatalogEntry(int articleNumber)
         {

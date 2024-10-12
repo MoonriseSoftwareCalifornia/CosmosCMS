@@ -112,7 +112,7 @@ namespace Cosmos.Cms.Controllers
             var builder = new StringBuilder();
             foreach (var row in rows)
             {
-                if (row.Trim().Equals(string.Empty) == false)
+                if (!row.Trim().Equals(string.Empty))
                 {
                     builder.AppendLine(row);
                 }

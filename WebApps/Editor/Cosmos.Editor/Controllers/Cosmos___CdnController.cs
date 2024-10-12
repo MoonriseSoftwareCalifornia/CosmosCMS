@@ -1,4 +1,11 @@
-﻿namespace Cosmos.Editor.Controllers
+﻿// <copyright file="Cosmos___CdnController.cs" company="Moonrise Software, LLC">
+// Copyright (c) Moonrise Software, LLC. All rights reserved.
+// Licensed under the GNU Public License, Version 3.0 (https://www.gnu.org/licenses/gpl-3.0.html)
+// See https://github.com/MoonriseSoftwareCalifornia/CosmosCMS
+// for more information concerning the license and the contributors participating to this project.
+// </copyright>
+
+namespace Cosmos.Editor.Controllers
 {
     using System;
     using System.Collections.Generic;
@@ -19,6 +26,7 @@
     /// The CDN controller.
     /// </summary>
     [Authorize(Roles = "Administrators,Editors")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S101:Types should be named in PascalCase", Justification = "The URL must be unique and not have a changes of conflicting with user authored web page URLs.")]
     public class Cosmos___CdnController : Controller
     {
         /// <summary>
@@ -57,7 +65,7 @@
         /// <summary>
         /// GEts the indext page.
         /// </summary>
-        /// <returns>IActionResult</returns>
+        /// <returns>IActionResult.</returns>
         public async Task<IActionResult> Index()
         {
             ViewData["Operation"] = null;
@@ -234,16 +242,15 @@
             }
             catch (RequestFailedException ex)
             {
-                ModelState.AddModelError("", $"ERROR: {ex.ErrorCode}");
+                ModelState.AddModelError(string.Empty, $"ERROR: {ex.ErrorCode}");
                 return View(config);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", $"ERROR: {ex.Message}");
+                ModelState.AddModelError(string.Empty, $"ERROR: {ex.Message}");
                 return View(config);
             }
         }
-
 
         /// <summary>
         /// Removes the CDN configuration.

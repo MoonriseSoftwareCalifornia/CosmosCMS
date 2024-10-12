@@ -8,13 +8,11 @@
 namespace Cosmos.Cms.Models
 {
     using System.Collections.Generic;
-    using Azure.ResourceManager;
-    using Cosmos.Cms.Data.Logic;
     using Cosmos.Common.Models;
     using Cosmos.Editor.Controllers;
 
     /// <summary>
-    ///     <see cref="ArticleEditLogic.Save(HtmlEditorViewModel, string)" /> result.
+    ///   The result of a update operation.
     /// </summary>
     public class ArticleUpdateResult
     {

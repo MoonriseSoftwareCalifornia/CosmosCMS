@@ -14,11 +14,11 @@
     <meta property="og:type" content="article" />
     <meta property="og:image" content="@Model.BannerImage" />
     <meta property="article:modified_time" content="@Model.Updated.ToString("u")">
-    <meta name="cwps-meta-v-id" content="@Assembly.GetExecutingAssembly().GetName().Version.ToString()" />
+    <meta name="cwps-meta-v-id" content="@Assembly.GetExecutingAssembly().GetName().Version?.ToString()" />
     <meta name="cwps-meta-path-url" content="@Model.UrlPath" />
     <meta name="cwps-meta-path-updated" content="@Model.Updated" />
     <meta name="cwps-meta-author-info" content="@Model.AuthorInfo" />
-    <meta name="cwps-meta-user-is-authenticated" content="@User.Identity.IsAuthenticated.ToString().ToLower()" />
+    <meta name="cwps-meta-user-is-authenticated" content="@User.Identity?.IsAuthenticated.ToString().ToLower()" />
 
     @*
         Layout "head" injection location

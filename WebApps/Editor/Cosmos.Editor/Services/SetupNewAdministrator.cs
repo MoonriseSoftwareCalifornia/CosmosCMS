@@ -48,7 +48,7 @@ namespace Cosmos.Editor.Services
             // If there is only one registered user (the person who just registered for instance),
             // and that person is not in the Administrators role, then add that person now.
             // There must be at least one administrator.
-            if (userCount == 1 && (await userManager.IsInRoleAsync(user, RequiredIdentityRoles.Administrators)) == false)
+            if (userCount == 1 && !await userManager.IsInRoleAsync(user, RequiredIdentityRoles.Administrators))
             {
                 var result = await userManager.AddToRoleAsync(user, RequiredIdentityRoles.Administrators);
 

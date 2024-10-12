@@ -29,6 +29,13 @@ namespace Cosmos.Editor.Services
         /// <summary>
         /// Initializes a new instance of the <see cref="CdnService"/> class.
         /// </summary>
+        public CdnService() 
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CdnService"/> class.
+        /// </summary>
         /// <param name="settings">CDN Settings.</param>
         public CdnService(List<Setting> settings)
         {

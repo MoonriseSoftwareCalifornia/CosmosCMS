@@ -308,7 +308,7 @@ namespace Cosmos.Common.Data.Logic
         /// Searches for articles.  This is a full text search.  This is a very expensive operation and should be used sparingly.
         /// </summary>
         /// <param name="text">Search text.</param>
-        /// <returns>List of articles</returns>
+        /// <returns>List of articles.</returns>
         public async Task<List<TableOfContentsItem>> Search(string text)
         {
             if (string.IsNullOrEmpty(text))

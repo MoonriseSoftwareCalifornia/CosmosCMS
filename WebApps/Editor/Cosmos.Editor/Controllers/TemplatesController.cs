@@ -169,7 +169,7 @@ namespace Cosmos.Cms.Controllers
 
             ViewData["PublisherUrl"] = options.Value.SiteSettings.PublisherUrl;
 
-            ViewData["ShowNotFoundBtn"] = await dbContext.ArticleCatalog.Where(w => w.UrlPath == "not_found").CosmosAnyAsync() == false;
+            ViewData["ShowNotFoundBtn"] = !await dbContext.ArticleCatalog.Where(w => w.UrlPath == "not_found").CosmosAnyAsync();
 
             if (!string.IsNullOrEmpty(filter))
             {
@@ -284,13 +284,13 @@ namespace Cosmos.Cms.Controllers
 
                 if (datum.ArticlePermissions != null && datum.ArticlePermissions.Count > 0)
                 {
-                    var userIds = datum.ArticlePermissions.Where(w => w.IsRoleObject == false).Select(s => s.IdentityObjectId).ToList();
+                    var userIds = datum.ArticlePermissions.Where(w => !w.IsRoleObject).Select(s => s.IdentityObjectId).ToList();
                     if (userIds.Any())
                     {
                         item.Permissions.AddRange(users.Where(s => userIds.Contains(s.Id)).Select(s => s.Email).ToArray());
                     }
 
-                    var roleds = datum.ArticlePermissions.Where(w => w.IsRoleObject == true).Select(s => s.IdentityObjectId).ToList();
+                    var roleds = datum.ArticlePermissions.Where(w => w.IsRoleObject).Select(s => s.IdentityObjectId).ToList();
                     if (roleds.Any())
                     {
                         item.Permissions.AddRange(roles.Where(s => roleds.Contains(s.Id)).Select(s => s.Name).ToArray());

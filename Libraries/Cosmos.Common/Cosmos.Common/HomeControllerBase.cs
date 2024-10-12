@@ -230,7 +230,6 @@ namespace Cosmos.Common
             if (powerBiTokenService.IsConfigured)
             {
                 // TODO: This is to check security.
-                var articleNumber = await GetArticleNumberFromRequestHeaders();
                 var result = await powerBiTokenService.GetEmbedParams(workspaceId, reportId);
                 return Json(result);
             }
@@ -242,7 +241,7 @@ namespace Cosmos.Common
         /// Searches published articles by keyword or phrase.
         /// </summary>
         /// <param name="searchTxt">Search string.</param>
-        /// <returns>JsonResult</returns>
+        /// <returns>JsonResult.</returns>
         [HttpPost]
         public async Task<IActionResult> CCMS___SEARCH(string searchTxt)
         {

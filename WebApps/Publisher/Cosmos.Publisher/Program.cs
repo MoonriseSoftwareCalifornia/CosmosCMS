@@ -7,7 +7,7 @@
 
 using System.Threading.RateLimiting;
 using AspNetCore.Identity.CosmosDb.Extensions;
-using Azure.Storage.Blobs;
+using Azure.Identity;
 using Cosmos.BlobService;
 using Cosmos.Cms.Common.Services.Configurations;
 using Cosmos.Common.Data;
@@ -16,16 +16,13 @@ using Cosmos.Common.Services.Configurations;
 using Cosmos.Common.Services.PowerBI;
 using Cosmos.EmailServices;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
-using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Azure.Cosmos.Fluent;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json.Serialization;
-using Azure.Identity;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Newtonsoft.Json.Serialization;
 
 /// <summary>
 /// Main program.

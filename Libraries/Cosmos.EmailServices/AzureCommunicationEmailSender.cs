@@ -11,6 +11,7 @@ namespace Cosmos.EmailServices
     using System.Net;
     using Azure.Communication.Email;
     using Azure.Core;
+    using Azure.Identity;
     using Microsoft.AspNetCore.Identity.UI.Services;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
@@ -68,15 +69,27 @@ namespace Cosmos.EmailServices
         /// <summary>
         /// Sends an email and specifies the "from" email address.
         /// </summary>
-        /// <param name="toEmail">To email address.</param>
+        /// <param name="emailTo">To email address.</param>
         /// <param name="subject">Email subject.</param>
         /// <param name="textVersion">Email message in text form.</param>
         /// <param name="htmlMessage">Email message in HTML.</param>
         /// <param name="fromEmail">Who the email is from.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task SendEmailAsync(string toEmail, string subject, string textVersion, string htmlMessage, string? fromEmail = null)
+        public async Task SendEmailAsync(string emailTo, string subject, string textVersion, string htmlMessage, string? fromEmail = null)
         {
-            var emailClient = new EmailClient(options.Value.ConnectionString);
+            var tempParts = options.Value.ConnectionString.Split(";").Where(w => !string.IsNullOrEmpty(w)).Select(part => part.Split('=')).ToDictionary(sp => sp[0], sp => sp[1]);
+            var tempEndPoint = tempParts["endpoint"];
+
+            EmailClient emailClient;
+
+            if (tempParts["AccountKey"] == "AccessToken")
+            {
+                emailClient = new EmailClient(endpoint: new Uri(tempEndPoint), new DefaultAzureCredential());
+            }
+            else
+            {
+                emailClient = new EmailClient(options.Value.ConnectionString);
+            }
 
             if (string.IsNullOrEmpty(fromEmail))
             {
@@ -89,12 +102,12 @@ namespace Cosmos.EmailServices
 
             if (string.IsNullOrEmpty(textVersion))
             {
-                result = await emailClient.SendAsync(Azure.WaitUntil.Completed, fromEmail, toEmail, subject, htmlContent: aschtml);
+                result = await emailClient.SendAsync(Azure.WaitUntil.Completed, fromEmail, emailTo, subject, htmlContent: aschtml);
             }
             else
             {
                 var asctext = System.Text.Encoding.ASCII.GetString(System.Text.Encoding.ASCII.GetBytes(textVersion));
-                result = await emailClient.SendAsync(Azure.WaitUntil.Completed, fromEmail, toEmail, subject, aschtml, asctext);
+                result = await emailClient.SendAsync(Azure.WaitUntil.Completed, fromEmail, emailTo, subject, aschtml, asctext);
             }
 
             var response = result.GetRawResponse();
@@ -104,15 +117,15 @@ namespace Cosmos.EmailServices
 
             if (result.Value.Status == EmailSendStatus.Succeeded)
             {
-                SendResult.Message = $"Email successfully sent to: {toEmail}; Subject: {subject};";
+                SendResult.Message = $"Email successfully sent to: {emailTo}; Subject: {subject};";
             }
             else if (result.Value.Status == EmailSendStatus.Failed)
             {
-                SendResult.Message = $"Email FAILED attempting to send to: {toEmail}, with subject: {subject}, with error: {response.ReasonPhrase}";
+                SendResult.Message = $"Email FAILED attempting to send to: {emailTo}, with subject: {subject}, with error: {response.ReasonPhrase}";
             }
             else if (result.Value.Status == EmailSendStatus.Canceled)
             {
-                SendResult.Message = $"Email was CANCELED to: {toEmail}, with subject: {subject}, with reason: {response.ReasonPhrase}";
+                SendResult.Message = $"Email was CANCELED to: {emailTo}, with subject: {subject}, with reason: {response.ReasonPhrase}";
             }
 
             logger.LogInformation(SendResult.Message);

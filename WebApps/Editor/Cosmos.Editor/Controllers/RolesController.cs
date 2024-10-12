@@ -107,7 +107,7 @@ namespace Cosmos.IdentityManagement.Website.Controllers
                 return BadRequest(ModelState);
             }
 
-            if (options.Value.SiteSettings.CosmosRequiresAuthentication && (await roleManager.RoleExistsAsync("Anonymous")) == false)
+            if (options.Value.SiteSettings.CosmosRequiresAuthentication && !await roleManager.RoleExistsAsync("Anonymous"))
             {
                 await roleManager.CreateAsync(new IdentityRole("Anonymous"));
             }

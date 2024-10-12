@@ -169,7 +169,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
 
                 var newAdministrator = await SetupNewAdministrator.Ensure_RolesAndAdmin_Exists(roleManager, userManager, user);
 
-                if (user != null && await userManager.IsEmailConfirmedAsync(user) == false)
+                if (user != null && !await userManager.IsEmailConfirmedAsync(user))
                 {
                     ViewData["ShowResendConfirmEmail"] = true;
                 }
@@ -238,7 +238,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
 
                 if (result.Errors.Any(a => a.Code == "DuplicateUserName"))
                 {
-                    if (await userManager.IsEmailConfirmedAsync(user) == false)
+                    if (!await userManager.IsEmailConfirmedAsync(user))
                     {
                         ViewData["ShowResendConfirmEmail"] = true;
                     }

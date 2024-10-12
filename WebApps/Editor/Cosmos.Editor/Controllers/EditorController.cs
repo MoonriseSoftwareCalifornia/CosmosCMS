@@ -32,6 +32,7 @@ namespace Cosmos.Cms.Controllers
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
+    using SendGrid.Helpers.Errors.Model;
 
     /// <summary>
     /// Editor controller.
@@ -83,7 +84,7 @@ namespace Cosmos.Cms.Controllers
             }
             else
             {
-                blobPublicAbsoluteUrl = new Uri(options.Value.SiteSettings.PublisherUrl.TrimEnd('/') + "/" + options.Value.SiteSettings.BlobPublicUrl.TrimStart('/'));
+                blobPublicAbsoluteUrl = new Uri($"{options.Value.SiteSettings.PublisherUrl.TrimEnd('/')}/{options.Value.SiteSettings.BlobPublicUrl.TrimStart('/')}");
             }
 
             this.viewRenderService = viewRenderService;
@@ -107,7 +108,7 @@ namespace Cosmos.Cms.Controllers
 
             ViewData["ShowFirstPageBtn"] = false; // Default unless changed below.
 
-            if (await dbContext.Articles.CosmosAnyAsync() == false)
+            if (!await dbContext.Articles.CosmosAnyAsync())
             {
                 var template = await dbContext.Templates.Where(w => w.Title.ToLower().Contains("home page")).FirstOrDefaultAsync();
 
@@ -131,7 +132,7 @@ namespace Cosmos.Cms.Controllers
             ViewData["HomePageArticleNumber"] = await dbContext.Pages.Where(f => f.UrlPath == "root").Select(s => s.ArticleNumber).FirstOrDefaultAsync();
             ViewData["PublisherUrl"] = options.Value.SiteSettings.PublisherUrl;
 
-            ViewData["ShowNotFoundBtn"] = await dbContext.ArticleCatalog.Where(w => w.UrlPath == "not_found").CosmosAnyAsync() == false;
+            ViewData["ShowNotFoundBtn"] = !await dbContext.ArticleCatalog.Where(w => w.UrlPath == "not_found").CosmosAnyAsync();
 
             if (!string.IsNullOrEmpty(filter))
             {
@@ -246,13 +247,13 @@ namespace Cosmos.Cms.Controllers
 
                 if (datum.ArticlePermissions != null && datum.ArticlePermissions.Count > 0)
                 {
-                    var userIds = datum.ArticlePermissions.Where(w => w.IsRoleObject == false).Select(s => s.IdentityObjectId).ToList();
+                    var userIds = datum.ArticlePermissions.Where(w => !w.IsRoleObject).Select(s => s.IdentityObjectId).ToList();
                     if (userIds.Any())
                     {
                         item.Permissions.AddRange(users.Where(s => userIds.Contains(s.Id)).Select(s => s.Email).ToArray());
                     }
 
-                    var roleds = datum.ArticlePermissions.Where(w => w.IsRoleObject == true).Select(s => s.IdentityObjectId).ToList();
+                    var roleds = datum.ArticlePermissions.Where(w => w.IsRoleObject).Select(s => s.IdentityObjectId).ToList();
                     if (roleds.Any())
                     {
                         item.Permissions.AddRange(roles.Where(s => roleds.Contains(s.Id)).Select(s => s.Name).ToArray());
@@ -265,7 +266,7 @@ namespace Cosmos.Cms.Controllers
             return View(model);
         }
 
-        ///<summary>
+        /// <summary>
         ///     Gets all the versions for an article.
         /// </summary>
         /// <param name="id">Article number.</param>
@@ -305,8 +306,6 @@ namespace Cosmos.Cms.Controllers
                 UserId = s.UserId,
                 UsesHtmlEditor = s.Content != null && s.Content != string.Empty && (s.Content.ToLower().Contains(" contenteditable=") || s.Content.ToLower().Contains(" data-ccms-ceid="))
             }).AsQueryable();
-
-            var test = await query.ToListAsync();
 
             ViewData["RowCount"] = await dbContext.Articles.Where(w => w.ArticleNumber == id).CountAsync();
             ViewData["LastVersion"] = await dbContext.Articles.Where(w => w.ArticleNumber == id).MaxAsync(m => m.VersionNumber);
@@ -380,23 +379,21 @@ namespace Cosmos.Cms.Controllers
                 return View(model);
             }
 
-            var t = model;
-
             if (string.IsNullOrEmpty(model.Title))
             {
-                throw new Exception("Title cannot be null or empty.");
+                throw new ArgumentException("Title cannot be null or empty.");
             }
 
             if (model == null)
             {
-                throw new Exception("SaveEditorContent method, model was null.");
+                throw new ArgumentException("SaveEditorContent method, model was null.");
             }
 
             // Next pull the original. This is a view model, not tracked by DbContext.
             var article = await articleLogic.Get(model.ArticleNumber, null);
             if (article == null)
             {
-                throw new Exception($"SIGNALR: SaveEditorContent method, could not find artile with #: {model.ArticleNumber}.");
+                throw new NotFoundException($"SIGNALR: SaveEditorContent method, could not find artile with #: {model.ArticleNumber}.");
             }
 
             // Handle empty areas
@@ -458,7 +455,7 @@ namespace Cosmos.Cms.Controllers
             var data = await articleLogic.GetArticleTrashList();
             var query = data.AsQueryable();
 
-            ViewData["RowCount"] = query.Count();
+            ViewData["RowCount"] = await query.CountAsync();
 
             if (sortOrder == "desc")
             {
@@ -515,7 +512,7 @@ namespace Cosmos.Cms.Controllers
                 }
             }
 
-            return View(query.Skip(pageNo * pageSize).Take(pageSize).ToList());
+            return View(await query.Skip(pageNo * pageSize).Take(pageSize).ToListAsync());
         }
 
         /// <summary>
@@ -576,22 +573,22 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Gets template page information.
         /// </summary>
-        /// <param name="Id">Template ID.</param>
+        /// <param name="id">Template ID.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [Authorize(Roles = "Administrators, Editors, Authors, Team Members")]
-        public async Task<IActionResult> GetTemplateInfo(Guid? Id)
+        public async Task<IActionResult> GetTemplateInfo(Guid? id)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            if (Id == null)
+            if (id == null)
             {
                 return Json(string.Empty);
             }
 
-            var model = await dbContext.Templates.FirstOrDefaultAsync(f => f.Id == Id.Value);
+            var model = await dbContext.Templates.FirstOrDefaultAsync(f => f.Id == id.Value);
 
             return Json(model);
         }
@@ -613,7 +610,7 @@ namespace Cosmos.Cms.Controllers
                 return BadRequest(ModelState);
             }
 
-            if (await dbContext.Articles.CosmosAnyAsync() == false)
+            if (!await dbContext.Articles.CosmosAnyAsync())
             {
                 var template = await dbContext.Templates.Where(w => w.Title.ToLower().Contains("home page")).FirstOrDefaultAsync();
 
@@ -831,7 +828,7 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Create a duplicate page from a specified page.
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="id">Page ID.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> Clone(int id)
         {
@@ -866,7 +863,7 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Creates a duplicate page from a specified page and version.
         /// </summary>
-        /// <param name="model"></param>
+        /// <param name="model">Dublice page view model.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -1000,7 +997,7 @@ namespace Cosmos.Cms.Controllers
         /// <param name="model">Model used to create a the first home page.</param>
         /// <returns>Returns <see cref="IActionResult"/>.</returns>
         [HttpPost]
-        [ValidateAntiForgeryToken()]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateInitialHomePage(CreatePageViewModel model)
         {
             if (!ModelState.IsValid)
@@ -1125,7 +1122,7 @@ namespace Cosmos.Cms.Controllers
             var catalogEntry = await dbContext.ArticleCatalog.FirstOrDefaultAsync(f => f.ArticleNumber == id);
 
             // Ensure the anonymous role exists if the publisher requires authentication.
-            if (options.Value.SiteSettings.CosmosRequiresAuthentication && (await roleManager.RoleExistsAsync("Anonymous")) == false)
+            if (options.Value.SiteSettings.CosmosRequiresAuthentication && !await roleManager.RoleExistsAsync("Anonymous"))
             {
                 await roleManager.CreateAsync(new IdentityRole("Anonymous"));
             }
@@ -1138,7 +1135,6 @@ namespace Cosmos.Cms.Controllers
             ViewData["Title"] = catalogEntry.Title;
             ViewData["AllowedUsers"] = await userManager.Users.Where(w => objectIds.Contains(w.Id)).ToListAsync();
 
-
             ViewData["AllowedRoles"] = await roleManager.Roles.Where(w => objectIds.Contains(w.Id)).ToListAsync();
 
             IQueryable<ArticlePermisionItem> query;
@@ -1150,8 +1146,7 @@ namespace Cosmos.Cms.Controllers
                     {
                         IdentityObjectId = s.Id,
                         Name = s.Name,
-                    }
-                    ).AsQueryable();
+                    }).AsQueryable();
             }
             else
             {
@@ -1160,8 +1155,7 @@ namespace Cosmos.Cms.Controllers
                     {
                         IdentityObjectId = s.Id,
                         Name = s.Email,
-                    }
-                    ).AsQueryable();
+                    }).AsQueryable();
             }
 
             // Get count
@@ -1303,7 +1297,7 @@ namespace Cosmos.Cms.Controllers
 
             var paths = await articleLogic.GetReservedPaths();
 
-            ViewData["RowCount"] = paths.Count();
+            ViewData["RowCount"] = paths.Count;
 
             var query = paths.AsQueryable();
 
@@ -1363,13 +1357,13 @@ namespace Cosmos.Cms.Controllers
 
             query = query.Skip(pageNo * pageSize).Take(pageSize);
 
-            return View(query.ToList());
+            return View(await query.ToListAsync());
         }
 
         /// <summary>
         /// Creates a new reserved path.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>ViewResult.</returns>
         [HttpGet]
         public IActionResult CreateReservedPath()
         {
@@ -1386,7 +1380,7 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Creates a new reserved path.
         /// </summary>
-        /// <param name="model"></param>
+        /// <param name="model">Reserved path model.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [HttpPost]
         public async Task<IActionResult> CreateReservedPath(ReservedPath model)
@@ -1412,9 +1406,9 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Edit a reserved path.
         /// </summary>
-        /// <param name="Id"></param>
+        /// <param name="id">Path ID.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task<IActionResult> EditReservedPath(Guid Id)
+        public async Task<IActionResult> EditReservedPath(Guid id)
         {
             if (!ModelState.IsValid)
             {
@@ -1425,7 +1419,7 @@ namespace Cosmos.Cms.Controllers
 
             var paths = await articleLogic.GetReservedPaths();
 
-            var path = paths.FirstOrDefault(f => f.Id == Id);
+            var path = paths.Find(f => f.Id == id);
 
             if (path == null)
             {
@@ -1438,7 +1432,7 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Edit an existing reserved path.
         /// </summary>
-        /// <param name="model"></param>
+        /// <param name="model">Reserved path model.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [HttpPost]
         public async Task<IActionResult> EditReservedPath(ReservedPath model)
@@ -1464,9 +1458,9 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Removes a reerved path.
         /// </summary>
-        /// <param name="Id"></param>
+        /// <param name="id">Path ID.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task<IActionResult> RemoveReservedPath(Guid Id)
+        public async Task<IActionResult> RemoveReservedPath(Guid id)
         {
             if (!ModelState.IsValid)
             {
@@ -1475,7 +1469,7 @@ namespace Cosmos.Cms.Controllers
 
             try
             {
-                await articleLogic.RemoveReservedPath(Id);
+                await articleLogic.RemoveReservedPath(id);
                 return RedirectToAction("ReservedPaths");
             }
             catch (Exception e)
@@ -1489,16 +1483,16 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Editor page.
         /// </summary>
-        /// <param name="Id">Article number (int).</param>
+        /// <param name="id">Article number (int).</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task<IActionResult> CcmsContent(int Id)
+        public async Task<IActionResult> CcmsContent(int id)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var article = await articleLogic.Get(Id, null);
+            var article = await articleLogic.Get(id, null);
 
             return View(article);
         }
@@ -1516,35 +1510,27 @@ namespace Cosmos.Cms.Controllers
                 return BadRequest(ModelState);
             }
 
-            try
+            // Web browser may ask for favicon.ico, so if the ID is not a number, just skip the response.
+            ViewData["BlobEndpointUrl"] = options.Value.SiteSettings.BlobPublicUrl;
+
+            // Get an article, or a template based on the controller name.
+            var model = await articleLogic.Get(id, null);
+            ViewData["LastPubDateTime"] = null;
+
+            ViewData["PageTitle"] = model.Title;
+            ViewData["Published"] = null;
+
+            // Override defaults
+            model.EditModeOn = true;
+            model.Published = null;
+
+            // Authors cannot edit published articles
+            if (model.Published.HasValue && User.IsInRole("Authors"))
             {
-                // Web browser may ask for favicon.ico, so if the ID is not a number, just skip the response.
-                ViewData["BlobEndpointUrl"] = options.Value.SiteSettings.BlobPublicUrl;
-
-                // Get an article, or a template based on the controller name.
-                var model = await articleLogic.Get(id, null);
-                ViewData["LastPubDateTime"] = null;
-
-                ViewData["PageTitle"] = model.Title;
-                ViewData["Published"] = null;
-
-                // Override defaults
-                model.EditModeOn = true;
-                model.Published = null;
-
-                // Authors cannot edit published articles
-                if (model.Published.HasValue && User.IsInRole("Authors"))
-                {
-                    return Unauthorized();
-                }
-
-                return View(new HtmlEditorViewModel(model, await dbContext.ArticleCatalog.FirstOrDefaultAsync(f => f.ArticleNumber == id)));
+                return Unauthorized();
             }
-            catch (Exception e)
-            {
-                logger.LogError(e.Message, e);
-                throw;
-            }
+
+            return View(new HtmlEditorViewModel(model, await dbContext.ArticleCatalog.FirstOrDefaultAsync(f => f.ArticleNumber == id)));
         }
 
         /// <summary>
@@ -1646,7 +1632,7 @@ namespace Cosmos.Cms.Controllers
 
             if (string.IsNullOrEmpty(model.Title))
             {
-                throw new Exception("Title cannot be null or empty.");
+                throw new ArgumentException("Title cannot be null or empty.");
             }
 
             if (model == null)
@@ -1722,7 +1708,7 @@ namespace Cosmos.Cms.Controllers
                     ViewData["Version"] = article.VersionNumber;
                     var provider = new EmptyModelMetadataProvider();
                     ModelState.AddModelError("Save", e, provider.GetMetadataForType(typeof(string)));
-                    logger.LogError(e.Message, e);
+                    logger.LogError(e, e.Message);
                 }
 
                 jsonModel.ErrorCount = ModelState.ErrorCount;
@@ -1788,6 +1774,7 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Exports a page as a file.
         /// </summary>
+        /// <param name="id">Article version ID.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [Authorize(Roles = "Administrators, Editors, Authors, Team Members")]
         public async Task<IActionResult> ExportPage(Guid? id)
@@ -1900,7 +1887,7 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Gets a list of articles (pages) on this website.
         /// </summary>
-        /// <param name="text"></param>
+        /// <param name="text">Search text.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         /// <remarks>Returns published and non-published links.</remarks>
         public async Task<IActionResult> List_Articles(string text)
@@ -1931,16 +1918,17 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Sends an article (or page) to trash bin.
         /// </summary>
+        /// <param name="id">Article number.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [HttpGet]
-        public async Task<IActionResult> TrashArticle(int Id)
+        public async Task<IActionResult> TrashArticle(int id)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            await articleLogic.TrashArticle(Id);
+            await articleLogic.TrashArticle(id);
             return RedirectToAction("Index", "Editor");
         }
 
@@ -2042,16 +2030,17 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Sends an article (or page) to trash bin.
         /// </summary>
+        /// <param name="id">Article ID.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [HttpGet]
-        public async Task<IActionResult> RedirectDelete(Guid Id)
+        public async Task<IActionResult> RedirectDelete(Guid id)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var article = await dbContext.Articles.FirstOrDefaultAsync(f => f.Id == Id);
+            var article = await dbContext.Articles.FirstOrDefaultAsync(f => f.Id == id);
 
             await articleLogic.TrashArticle(article.ArticleNumber);
 

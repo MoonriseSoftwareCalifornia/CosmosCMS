@@ -267,7 +267,7 @@ namespace Cosmos.Cms.Controllers
 
             if (directoryOnly)
             {
-                var ddata = query.Where(w => w.IsDirectory == true).ToList();
+                var ddata = query.Where(w => w.IsDirectory).ToList();
                 return View(ddata);
             }
 
@@ -595,7 +595,7 @@ namespace Cosmos.Cms.Controllers
                 return BadRequest(ModelState);
             }
 
-            if (files == null || files.Any() == false || Guid.TryParse(id, out Guid Id) == false)
+            if (files == null || !files.Any() || !Guid.TryParse(id, out Guid Id))
             {
                 return null;
             }
@@ -680,8 +680,8 @@ namespace Cosmos.Cms.Controllers
                     // Now capture nodes above and below footer within body
                     var exclude = new[] { HtmlAgilityPack.HtmlNodeType.Comment, HtmlAgilityPack.HtmlNodeType.Text };
 
-                    var footerStartIndex = GetChildNodeIndex(newBodyNode, layoutBodyFooterNodes.FirstOrDefault(f => exclude.Contains(f.NodeType) == false));
-                    var footerEndIndex = GetChildNodeIndex(newBodyNode, layoutBodyFooterNodes.LastOrDefault(f => exclude.Contains(f.NodeType) == false));
+                    var footerStartIndex = GetChildNodeIndex(newBodyNode, layoutBodyFooterNodes.FirstOrDefault(f => !exclude.Contains(f.NodeType)));
+                    var footerEndIndex = GetChildNodeIndex(newBodyNode, layoutBodyFooterNodes.LastOrDefault(f => !exclude.Contains(f.NodeType)));
 
                     // Clean up the head inject
                     var headHtml = new StringBuilder();
@@ -906,7 +906,7 @@ namespace Cosmos.Cms.Controllers
             // Check for duplicate entries
             var existingEntries = await _storageContext.GetFolderContents(model.ParentFolder);
 
-            if (existingEntries.Any(f => f.Name.Equals(model.FolderName)) == false)
+            if (!existingEntries.Any(f => f.Name.Equals(model.FolderName)))
             {
                 var fileManagerEntry = _storageContext.CreateFolder(relativePath);
             }
@@ -1491,7 +1491,7 @@ namespace Cosmos.Cms.Controllers
 
             try
             {
-                if (files == null || files.Any() == false)
+                if (files == null || !files.Any())
                 {
                     return Json(string.Empty);
                 }
