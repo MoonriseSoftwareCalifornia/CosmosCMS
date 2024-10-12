@@ -27,6 +27,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
 using Azure.Identity;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -81,6 +82,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     {
         if (conpartsDict["AccountKey"] == "AccessToken")
         {
+            // Added the following line as per: https://github.com/dotnet/efcore/issues/34889
+            options.ConfigureWarnings(x => x.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning));
             options.UseCosmos(endpoint, new DefaultAzureCredential(), cosmosIdentityDbName);
         }
         else
@@ -92,6 +95,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     {
         if (conpartsDict["AccountKey"] == "AccessToken")
         {
+            // Added the following line as per: https://github.com/dotnet/efcore/issues/34889
+            options.ConfigureWarnings(x => x.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning));
             options.UseCosmos(endpoint, new DefaultAzureCredential(), cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
         }
         else

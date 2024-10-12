@@ -25,6 +25,7 @@ using Microsoft.Azure.Cosmos.Fluent;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Serialization;
 using Azure.Identity;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 /// <summary>
 /// Main program.
@@ -82,6 +83,8 @@ internal class Program
             {
                 if (conpartsDict["AccountKey"] == "AccessToken")
                 {
+                    // Added the following line as per: https://github.com/dotnet/efcore/issues/34889
+                    options.ConfigureWarnings(x => x.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning));
                     options.UseCosmos(endpoint, new DefaultAzureCredential(), cosmosIdentityDbName);
                 }
                 else
@@ -93,6 +96,8 @@ internal class Program
             {
                 if (conpartsDict["AccountKey"] == "AccessToken")
                 {
+                    // Added the following line as per: https://github.com/dotnet/efcore/issues/34889
+                    options.ConfigureWarnings(x => x.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning));
                     options.UseCosmos(endpoint, new DefaultAzureCredential(), cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
                 }
                 else
