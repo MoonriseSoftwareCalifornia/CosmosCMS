@@ -59,11 +59,11 @@ namespace Cosmos.EmailServices
         /// <param name="toEmail">To email address.</param>
         /// <param name="subject">Email subject.</param>
         /// <param name="htmlMessage">Email message in HTML.</param>
-        /// <param name="fromEmail">From email address.</param>
+        /// <param name="emailFrom">From email address.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task SendEmailAsync(string toEmail, string subject, string htmlMessage, string? fromEmail = null)
+        public async Task SendEmailAsync(string toEmail, string subject, string htmlMessage, string emailFrom)
         {
-            await SendEmailAsync(toEmail, subject, string.Empty, htmlMessage, fromEmail);
+            await SendEmailAsync(toEmail, subject, string.Empty, htmlMessage, emailFrom);
         }
 
         /// <summary>
@@ -72,10 +72,10 @@ namespace Cosmos.EmailServices
         /// <param name="emailTo">To email address.</param>
         /// <param name="subject">Email subject.</param>
         /// <param name="textVersion">Email message in text form.</param>
-        /// <param name="htmlMessage">Email message in HTML.</param>
-        /// <param name="fromEmail">Who the email is from.</param>
+        /// <param name="htmlVersion">Email message in HTML.</param>
+        /// <param name="emailFrom">Who the email is from.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task SendEmailAsync(string emailTo, string subject, string textVersion, string htmlMessage, string? fromEmail = null)
+        public async Task SendEmailAsync(string emailTo, string subject, string textVersion, string htmlVersion, string? emailFrom = null)
         {
             var tempParts = options.Value.ConnectionString.Split(";").Where(w => !string.IsNullOrEmpty(w)).Select(part => part.Split('=')).ToDictionary(sp => sp[0], sp => sp[1]);
             var tempEndPoint = tempParts["endpoint"];
@@ -91,23 +91,23 @@ namespace Cosmos.EmailServices
                 emailClient = new EmailClient(options.Value.ConnectionString);
             }
 
-            if (string.IsNullOrEmpty(fromEmail))
+            if (string.IsNullOrEmpty(emailFrom))
             {
-                fromEmail = options.Value.DefaultFromEmailAddress;
+                emailFrom = options.Value.DefaultFromEmailAddress;
             }
 
             EmailSendOperation result;
 
-            var aschtml = System.Text.Encoding.ASCII.GetString(System.Text.Encoding.ASCII.GetBytes(htmlMessage));
+            var aschtml = System.Text.Encoding.ASCII.GetString(System.Text.Encoding.ASCII.GetBytes(htmlVersion));
 
             if (string.IsNullOrEmpty(textVersion))
             {
-                result = await emailClient.SendAsync(Azure.WaitUntil.Completed, fromEmail, emailTo, subject, htmlContent: aschtml);
+                result = await emailClient.SendAsync(Azure.WaitUntil.Completed, emailFrom, emailTo, subject, htmlContent: aschtml);
             }
             else
             {
                 var asctext = System.Text.Encoding.ASCII.GetString(System.Text.Encoding.ASCII.GetBytes(textVersion));
-                result = await emailClient.SendAsync(Azure.WaitUntil.Completed, fromEmail, emailTo, subject, aschtml, asctext);
+                result = await emailClient.SendAsync(Azure.WaitUntil.Completed, emailFrom, emailTo, subject, aschtml, asctext);
             }
 
             var response = result.GetRawResponse();
