@@ -28,16 +28,15 @@
       },
       "Azure.Identity": {
         "type": "Direct",
-        "requested": "[1.12.1, )",
-        "resolved": "1.12.1",
-        "contentHash": "7j7ksn+1X2swW2DDDEEywK5wxuYImzMIXnunZTB83E3mwzBbyHOob1hO1wOG5fMZYTGe/+9gyc/qurcozaSm1A==",
+        "requested": "[1.13.0, )",
+        "resolved": "1.13.0",
+        "contentHash": "UMYCdapkVRojCtXqUmrWMAEV/i1N5haRcQ481oBmXn+kpq1zLJXiL6ESghbxbE0QV5zvewUJIy/IZcvijcpLfg==",
         "dependencies": {
-          "Azure.Core": "1.40.0",
+          "Azure.Core": "1.44.1",
           "Microsoft.Identity.Client": "4.65.0",
           "Microsoft.Identity.Client.Extensions.Msal": "4.65.0",
-          "System.Memory": "4.5.4",
-          "System.Security.Cryptography.ProtectedData": "4.7.0",
-          "System.Text.Json": "4.7.2",
+          "System.Memory": "4.5.5",
+          "System.Text.Json": "6.0.10",
           "System.Threading.Tasks.Extensions": "4.5.4"
         }
       },
@@ -96,9 +95,9 @@
       },
       "Microsoft.PowerBI.Api": {
         "type": "Direct",
-        "requested": "[4.21.1, )",
-        "resolved": "4.21.1",
-        "contentHash": "FmrIOi+wqvlHKROnq67Uk5WZgUeqFWJyhwvLRqDnKiBozjetmjb9Qngjm1fg8AV4T8Z8j7yXxsImxYPLvsz5Jw==",
+        "requested": "[4.22.0, )",
+        "resolved": "4.22.0",
+        "contentHash": "gyH4kcjtKxs8X3lH0qDywmJd6ZOiJxfY5JvDBfUY5TQNmOkT1spHMsUglohkYlQiaxzrwCw6il5UmWYkIFjxDg==",
         "dependencies": {
           "Microsoft.Rest.ClientRuntime": "2.3.24",
           "Newtonsoft.Json": "13.0.1",
@@ -634,8 +633,8 @@
       },
       "System.Memory": {
         "type": "Transitive",
-        "resolved": "4.5.4",
-        "contentHash": "1MbJTHS1lZ4bS4FmsJjnuGJOu88ZzTT2rLvrhW7Ygic+pC0NWA+3hgAen0HRdsocuQXCkUTdFn9yHJJhsijDXw=="
+        "resolved": "4.5.5",
+        "contentHash": "XIWiDvKPXaTveaB7HVganDlOCRoj03l+jrwNvcge/t8vhGYKvqV+dMv6G4SAX2NoNmN0wZfVPTAlFwZcZvVOUw=="
       },
       "System.Memory.Data": {
         "type": "Transitive",
@@ -773,7 +772,7 @@
       "cosmos.blobservice": {
         "type": "Project",
         "dependencies": {
-          "Azure.Identity": "[1.12.1, )",
+          "Azure.Identity": "[1.13.0, )",
           "Azure.Storage.Blobs": "[12.22.2, )",
           "Azure.Storage.Files.Shares": "[12.20.1, )",
           "Microsoft.Extensions.Caching.Abstractions": "[8.0.0, )",

@@ -7,9 +7,9 @@
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<Company>Moonrise Software LLC</Company>
-		<Version>8.0.10.1</Version>
-		<AssemblyVersion>8.0.10.1</AssemblyVersion>
-		<FileVersion>8.0.10.1</FileVersion>
+		<Version>8.0.10.2</Version>
+		<AssemblyVersion>8.0.10.2</AssemblyVersion>
+		<FileVersion>8.0.10.2</FileVersion>
 		<PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
 		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
 		<RepositoryUrl></RepositoryUrl>
@@ -36,7 +36,7 @@
 
 	<ItemGroup>
 
-		<PackageReference Include="Azure.Identity" Version="1.12.1" />
+		<PackageReference Include="Azure.Identity" Version="1.13.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Authorization" Version="8.0.10" />
 		<PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.0" />

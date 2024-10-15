@@ -34,7 +34,8 @@ namespace Cosmos.BlobService.Drivers
         /// </summary>
         /// <param name="config">Storage configuration as a <see cref="AzureStorageConfig"/>.</param>
         /// <param name="containerName">Name of container (default is $web).</param>
-        public AzureStorage(AzureStorageConfig config, string containerName = "$web")
+        /// <param name="defaultAzureCredential">Default azure credential.</param>
+        public AzureStorage(AzureStorageConfig config, DefaultAzureCredential defaultAzureCredential, string containerName = "$web")
         {
             this.containerName = containerName;
             var conparts = config.AzureBlobStorageConnectionString.Split(';');
@@ -43,7 +44,7 @@ namespace Cosmos.BlobService.Drivers
             if (conpartsDict["AccountKey"] == "AccessToken")
             {
                 var accountName = conpartsDict["AccountName"];
-                blobServiceClient = new BlobServiceClient(new Uri($"https://{accountName}.blob.core.windows.net/"), new DefaultAzureCredential());
+                blobServiceClient = new BlobServiceClient(new Uri($"https://{accountName}.blob.core.windows.net/"), defaultAzureCredential);
             }
             else
             {

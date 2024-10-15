@@ -12,6 +12,7 @@ namespace Cosmos.BlobService
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
+    using Azure.Identity;
     using Azure.Storage.Blobs.Specialized;
     using Cosmos.BlobService.Config;
     using Cosmos.BlobService.Drivers;
@@ -24,7 +25,15 @@ namespace Cosmos.BlobService
     /// </summary>
     public sealed class StorageContext
     {
+        /// <summary>
+        /// Cosmos storage configuration.
+        /// </summary>
         private readonly IOptions<CosmosStorageConfig> config;
+
+        /// <summary>
+        /// Default Azure token credential.
+        /// </summary>
+        private readonly DefaultAzureCredential credential;
 
         /// <summary>
         /// Used to brefly store chuk data while uploading.
@@ -41,11 +50,13 @@ namespace Cosmos.BlobService
         /// </summary>
         /// <param name="cosmosConfig">Storage context configuration as a <see cref="CosmosStorageConfig"/>.</param>
         /// <param name="cache"><see cref="IMemoryCache"/> used by context.</param>
-        public StorageContext(IOptions<CosmosStorageConfig> cosmosConfig, IMemoryCache cache)
+        /// <param name="defaultAzureCredential">Default Azure Credential.</param>
+        public StorageContext(IOptions<CosmosStorageConfig> cosmosConfig, IMemoryCache cache, DefaultAzureCredential defaultAzureCredential)
         {
             containerName = cosmosConfig.Value.StorageConfig.AzureConfigs.FirstOrDefault().AzureBlobStorageContainerName;
             config = cosmosConfig;
             memoryCache = cache;
+            credential = defaultAzureCredential;
         }
 
         /// <summary>
@@ -525,7 +536,7 @@ namespace Cosmos.BlobService
 
         private ICosmosStorage GetPrimaryDriver()
         {
-            return new AzureStorage(config.Value.StorageConfig.AzureConfigs.FirstOrDefault(), containerName);
+            return new AzureStorage(config.Value.StorageConfig.AzureConfigs.FirstOrDefault(), credential, containerName);
         }
 
         private string[] ParseFirstFolder(string path)
@@ -546,7 +557,7 @@ namespace Cosmos.BlobService
 
             foreach (var storageConfigAzureConfig in config.Value.StorageConfig.AzureConfigs)
             {
-                drivers.Add(new AzureStorage(storageConfigAzureConfig, containerName));
+                drivers.Add(new AzureStorage(storageConfigAzureConfig, credential, containerName));
             }
 
             return drivers;

@@ -73,6 +73,13 @@ namespace Cosmos.Cms
             // based on the values given.
             var cosmosStartup = new CosmosStartup(Configuration);
 
+            // Add the memory cache for the website.
+            services.AddMemoryCache();
+
+            // Create one instance of the DefaultAzureCredential to be used throughout the application.
+            var defaultAzureCredential = new DefaultAzureCredential();
+            services.AddSingleton(defaultAzureCredential);
+
             // Add Cosmos Options
             var option = cosmosStartup.Build();
             services.AddSingleton(option);
@@ -94,7 +101,7 @@ namespace Cosmos.Cms
                     keys.Add(item.Key);
                 }
 
-                throw new Exception($"STARTUP: ApplicationDbContextConnection is null or empty. Did find: {string.Join(';', keys)}");
+                throw new ArgumentException($"STARTUP: ApplicationDbContextConnection is null or empty. Did find: {string.Join(';', keys)}");
             }
 
             // Name of the Cosmos database to use
@@ -119,9 +126,7 @@ namespace Cosmos.Cms
 
                 if (tempParts["AccountKey"] == "AccessToken")
                 {
-                    // Added the following line as per: https://github.com/dotnet/efcore/issues/34889
-                    tempBuilder.ConfigureWarnings(x => x.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning));
-                    tempBuilder.UseCosmos(tempEndPoint, new DefaultAzureCredential(), cosmosIdentityDbName);
+                    tempBuilder.UseCosmos(tempEndPoint, defaultAzureCredential, cosmosIdentityDbName);
                 }
                 else
                 {
@@ -142,9 +147,7 @@ namespace Cosmos.Cms
                 {
                     if (conpartsDict["AccountKey"] == "AccessToken")
                     {
-                        // Added the following line as per: https://github.com/dotnet/efcore/issues/34889
-                        options.ConfigureWarnings(x => x.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning));
-                        options.UseCosmos(endpoint, new DefaultAzureCredential(), cosmosIdentityDbName);
+                        options.UseCosmos(endpoint, defaultAzureCredential, cosmosIdentityDbName);
                     }
                     else
                     {
@@ -155,9 +158,7 @@ namespace Cosmos.Cms
                 {
                     if (conpartsDict["AccountKey"] == "AccessToken")
                     {
-                        // Added the following line as per: https://github.com/dotnet/efcore/issues/34889
-                        options.ConfigureWarnings(x => x.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning));
-                        options.UseCosmos(endpoint, new DefaultAzureCredential(), cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
+                        options.UseCosmos(endpoint, defaultAzureCredential, cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
                     }
                     else
                     {
@@ -173,7 +174,7 @@ namespace Cosmos.Cms
                 .AddDefaultTokenProviders();
 
             // Add shared data protection here
-            var container = BlobService.ServiceCollectionExtensions.GetBlobContainerClient(Configuration, "ekyes");
+            var container = BlobService.ServiceCollectionExtensions.GetBlobContainerClient(Configuration, defaultAzureCredential, "ekyes");
             container.CreateIfNotExists();
             services.AddDataProtection().UseCryptographicAlgorithms(
                 new AuthenticatedEncryptorConfiguration

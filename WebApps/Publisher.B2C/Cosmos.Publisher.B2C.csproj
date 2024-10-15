@@ -9,7 +9,7 @@
 		<EnableSdkContainerDebugging>True</EnableSdkContainerDebugging>
 		<ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:8.0</ContainerBaseImage>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-		<Version>8.0.10.1</Version>
+		<Version>8.0.10.2</Version>
 		<DockerfileContext>..\..</DockerfileContext>
 	</PropertyGroup>
 
@@ -30,7 +30,7 @@
 		<PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.10" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.10" />
-		<PackageReference Include="Microsoft.Extensions.Caching.Cosmos" Version="1.6.2" />
+		<PackageReference Include="Microsoft.Extensions.Caching.Cosmos" Version="1.7.0" />
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
 		<PackageReference Include="System.Formats.Asn1" Version="8.0.1" />
 

@@ -23,16 +23,19 @@ namespace Cosmos.EmailServices
     {
         private readonly IOptions<AzureCommunicationEmailProviderOptions> options;
         private readonly ILogger<AzureCommunicationEmailSender> logger;
+        private readonly DefaultAzureCredential credential;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AzureCommunicationEmailSender"/> class.
         /// </summary>
         /// <param name="options">Provder options.</param>
         /// <param name="logger">ILogger.</param>
-        public AzureCommunicationEmailSender(IOptions<AzureCommunicationEmailProviderOptions> options, ILogger<AzureCommunicationEmailSender> logger)
+        /// <param name="defaultAzureCredential">Default Azure token credential.</param>
+        public AzureCommunicationEmailSender(IOptions<AzureCommunicationEmailProviderOptions> options, ILogger<AzureCommunicationEmailSender> logger, DefaultAzureCredential defaultAzureCredential)
         {
             this.options = options;
             this.logger = logger;
+            credential = defaultAzureCredential;
             SendResult = new SendResult();
         }
 
@@ -84,7 +87,7 @@ namespace Cosmos.EmailServices
 
             if (tempParts["AccountKey"] == "AccessToken")
             {
-                emailClient = new EmailClient(endpoint: new Uri(tempEndPoint), new DefaultAzureCredential());
+                emailClient = new EmailClient(endpoint: new Uri(tempEndPoint), credential);
             }
             else
             {

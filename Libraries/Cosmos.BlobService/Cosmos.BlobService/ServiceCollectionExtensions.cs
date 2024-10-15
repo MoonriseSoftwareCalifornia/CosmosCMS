@@ -72,9 +72,10 @@ namespace Cosmos.BlobService
         /// Adds the storage context to the services collection.
         /// </summary>
         /// <param name="config">Startup configuration.</param>
+        /// <param name="defaultAzureCredential">Default Azure token credential.</param>
         /// <param name="container">The container to use.</param>
         /// <returns>Blob service client.</returns>
-        public static BlobContainerClient GetBlobContainerClient(IConfiguration config, string container = "$web")
+        public static BlobContainerClient GetBlobContainerClient(IConfiguration config, DefaultAzureCredential defaultAzureCredential, string container = "$web")
         {
             var connectionString = config.GetConnectionString("AzureBlobStorageConnectionString");
             var conparts = connectionString.Split(';');
@@ -85,7 +86,7 @@ namespace Cosmos.BlobService
             if (conpartsDict["AccountKey"] == "AccessToken")
             {
                 var accountName = conpartsDict["AccountName"];
-                blobServiceClient = new BlobServiceClient(new Uri($"https://{accountName}.blob.core.windows.net/"), new DefaultAzureCredential());
+                blobServiceClient = new BlobServiceClient(new Uri($"https://{accountName}.blob.core.windows.net/"), defaultAzureCredential);
             }
             else
             {

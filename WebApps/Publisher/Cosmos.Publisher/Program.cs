@@ -33,6 +33,13 @@ internal class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
+        // Add memory cache for Cosmos data logic and other services.
+        builder.Services.AddMemoryCache();
+
+        // Create one instance of the DefaultAzureCredential to be used throughout the application.
+        var defaultAzureCredential = new DefaultAzureCredential();
+        builder.Services.AddSingleton(defaultAzureCredential);
+
         builder.Services.AddApplicationInsightsTelemetry();
 
         // Add CORS
@@ -108,7 +115,7 @@ internal class Program
         builder.Services.AddCosmosStorageContext(builder.Configuration);
 
         // Add shared data protection here
-        var container = Cosmos.BlobService.ServiceCollectionExtensions.GetBlobContainerClient(builder.Configuration, "pkyes");
+        var container = Cosmos.BlobService.ServiceCollectionExtensions.GetBlobContainerClient(builder.Configuration, defaultAzureCredential, "pkyes");
         container.CreateIfNotExists();
         builder.Services.AddDataProtection().PersistKeysToAzureBlobStorage(container.GetBlobClient("keys.xml"));
 
