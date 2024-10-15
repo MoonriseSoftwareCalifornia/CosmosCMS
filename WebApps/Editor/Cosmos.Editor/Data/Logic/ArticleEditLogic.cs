@@ -16,7 +16,6 @@ namespace Cosmos.Cms.Data.Logic
     using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Cms.Controllers;
     using Cosmos.Cms.Models;
-    using Cosmos.Cms.Services;
     using Cosmos.Common.Data;
     using Cosmos.Common.Data.Logic;
     using Cosmos.Common.Models;
@@ -1627,15 +1626,21 @@ namespace Cosmos.Cms.Data.Logic
                     {
                         throw new ArgumentException($"Duplicate Page Id. Existing: {duplicate.Id} New: {newPage.Id} ArticleId: {articleNumber}.");
                     }
+
+                    if (item.UrlPath != "root")
+                    {
+                        paths.Add($"/pub/articles/{item.ArticleNumber}/");
+                    }
                 }
 
                 // Update the pages collection
                 await DbContext.SaveChangesAsync();
+
             }
 
             if (paths.Any())
             {
-                var purgeUrls = paths.Select(s => "/" + s.Trim('/')).ToList();
+                var purgeUrls = paths.Select(s => "/" + s.Trim('/')).Distinct().ToList();
 
                 var settings = await Cosmos___CdnController.GetCdnConfiguration(DbContext);
                 var cdnService = new CdnService(settings);

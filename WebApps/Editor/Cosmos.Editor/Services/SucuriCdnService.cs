@@ -64,30 +64,16 @@ namespace Cosmos.Editor.Services
         private async Task<CdnResult> PurgeContentAsync(string path)
         {
             using var client = new HttpClient();
-            var requestUri = $"https://waf.sucuri.net/api?v2";
+            var requestUri = $"https://waf.sucuri.net/api?k={sucuriApiKey}&s={sucuriApiSecret}&a=clearcache";
             string json = string.Empty;
-            if (string.IsNullOrEmpty(path))
+            if (!string.IsNullOrEmpty(path))
             {
-                json = Newtonsoft.Json.JsonConvert.SerializeObject(new
-                {
-                    k = sucuriApiKey,
-                    a = "clear_cache",
-                    s = sucuriApiSecret
-                });
-            }
-            else
-            {
-                json = Newtonsoft.Json.JsonConvert.SerializeObject(new
-                {
-                    k = sucuriApiKey,
-                    a = "clear_cache",
-                    s = sucuriApiSecret,
-                    file = path
-                });
+                requestUri += $"&file={path}";
             }
 
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var result = await client.PostAsync(requestUri, content);
+            var result = await client.GetAsync(requestUri);
+
+            var response = await result.Content.ReadAsStringAsync();
 
             return new CdnResult
             {
@@ -95,7 +81,8 @@ namespace Cosmos.Editor.Services
                 Id = Guid.NewGuid().ToString(),
                 IsSuccessStatusCode = result.IsSuccessStatusCode,
                 Status = result.StatusCode,
-                ReasonPhrase = result.ReasonPhrase
+                ReasonPhrase = result.ReasonPhrase,
+                EstimatedFlushDateTime = DateTimeOffset.UtcNow.AddMinutes(2)
             };
         }
     }

@@ -7,6 +7,7 @@
 
 namespace Cosmos.Editor.Controllers
 {
+    using System;
     using System.Net;
 
     /// <summary>
@@ -38,6 +39,11 @@ namespace Cosmos.Editor.Controllers
         /// Gets or sets a value indicating whether the operation has completed.
         /// </summary>
         public bool IsSuccessStatusCode { get; set; }
+
+        /// <summary>
+        /// Estimated flush date time.
+        /// </summary>
+        public DateTimeOffset EstimatedFlushDateTime { get; internal set; }
 
         /// <summary>
         /// Returns the string representation of this Azure.Response.
