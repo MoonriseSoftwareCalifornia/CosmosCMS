@@ -428,7 +428,7 @@ namespace Cosmos.Cms.Controllers
             // Save changes back to the database
             var result = await articleLogic.Save(article, model.UserId);
 
-            return Json(result.Model.VersionNumber);
+            return Json(result);
         }
 
         /// <summary>

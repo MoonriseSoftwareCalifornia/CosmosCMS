@@ -182,6 +182,12 @@
                             <div title="@title" class="form-control d-inline-block text-truncate" id="divTitle" style="min-width: 200px;">@title</div>
                         </div>
                     </li>
+                    <li class="nav-item" id="cdnFlush" style="display:none">
+                        <div title="Estimated time when page changes will appear on the CDN." class="input-group input-group-sm mt-1 text-truncate">
+                            <span class="input-group-text text-bg-primary" id="lblTitle" style="height:31px;">CDN countdown: </span>
+                            <div class="form-control d-inline-block text-truncate" id="spanCdnRefresh" style="min-width: 60px;"></div>
+                        </div>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -933,6 +939,35 @@
 
         function setWorkingVersion(versionNumber) {
             $("#spanWorkingVersionNo").html("Working Version: " + versionNumber);
+        }
+
+        let cdnTimer = null;
+
+        function setCdnResults(cdnResults) {
+            const dateTime = new Date(cdnResults[0].EstimatedFlushDateTime);
+            const now = new Date();
+
+            let countdown = (dateTime.getTime() - now.getTime()) / 1000;
+
+            if (cdnTimer !== null) {
+                clearInterval(cdnTimer);
+            }
+
+            $("#cdnFlush").show();
+
+            cdnTimer = setInterval(() => {
+                // Update the countdown display
+                $("#spanCdnRefresh").html(Math.round(countdown) + " (seconds)");
+
+                // If countdown reaches zero, stop the timer
+                if (countdown <= 1) {
+                    $("#cdnFlush").hide();
+                    clearInterval(cdnTimer);
+                } else {
+                    countdown--; // Decrement the countdown
+                }
+            }, 1000); // 1000 milliseconds = 1 second
+
         }
     </script>
 

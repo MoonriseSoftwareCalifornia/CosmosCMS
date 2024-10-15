@@ -757,7 +757,10 @@
         }).fail(function(data){
             alert("Problem!");
         }).done(function (data) {
-            setWorkingVersion(data);
+            setWorkingVersion(data.Model.VersionNumber);
+            if (data.CdnResults !== null) {
+                setCdnResults(data.CdnResults);
+            }
             try {
                 signalRConnection.invoke("Notification", JSON.stringify(model));
             } catch (err) {

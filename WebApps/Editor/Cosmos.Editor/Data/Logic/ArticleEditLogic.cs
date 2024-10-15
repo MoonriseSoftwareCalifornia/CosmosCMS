@@ -1635,7 +1635,6 @@ namespace Cosmos.Cms.Data.Logic
 
                 // Update the pages collection
                 await DbContext.SaveChangesAsync();
-
             }
 
             if (paths.Any())

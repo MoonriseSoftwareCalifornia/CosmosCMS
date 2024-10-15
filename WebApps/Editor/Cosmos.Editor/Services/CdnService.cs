@@ -194,6 +194,7 @@ namespace Cosmos.Editor.Services
                     IsSuccessStatusCode = !response.IsError,
                     ClientRequestId = response.ClientRequestId,
                     Id = Guid.NewGuid().ToString(),
+                    EstimatedFlushDateTime = DateTimeOffset.UtcNow.AddMinutes(10)
                 });
             }
             else if (IsConfigured(CdnType.AzureCdn))
@@ -229,6 +230,7 @@ namespace Cosmos.Editor.Services
                     IsSuccessStatusCode = !response.IsError,
                     ClientRequestId = response.ClientRequestId,
                     Id = Guid.NewGuid().ToString(),
+                    EstimatedFlushDateTime = ProfileName == "Standard_Microsoft" ? DateTimeOffset.UtcNow.AddMinutes(10) : DateTimeOffset.UtcNow.AddMinutes(2)
                 });
             }
 

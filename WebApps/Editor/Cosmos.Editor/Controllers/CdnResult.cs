@@ -41,9 +41,9 @@ namespace Cosmos.Editor.Controllers
         public bool IsSuccessStatusCode { get; set; }
 
         /// <summary>
-        /// Estimated flush date time.
+        /// Gets or sets estimated content refresh date time.
         /// </summary>
-        public DateTimeOffset EstimatedFlushDateTime { get; internal set; }
+        public DateTimeOffset EstimatedFlushDateTime { get; set; } = DateTimeOffset.UtcNow;
 
         /// <summary>
         /// Returns the string representation of this Azure.Response.
