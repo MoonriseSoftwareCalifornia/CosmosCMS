@@ -134,8 +134,8 @@
                             <li class="breadcrumb-item active" aria-current="folder">
                                 <form id="frmNewFolder" class="d-flex" asp-action="NewFolder" method="post">
                                     <input type="hidden" name="ParentFolder" id="ParentFolder" value="@pathPrefix" />
-                                    <input type="hidden" name="DirectoryOnly" id="DirectoryOnly" value="@directoryOnly" />
-                                    <input class="form-control form-control-sm me-2" name="FolderName" style="backgound-color:white !important;color: black !important" id="FolderName" type="text" placeholder="New folder name" aria-label="New folder name" minlength="2" required />
+                                    <input type="hidden" name="DirectoryOnly" id="DirectoryOnly" value="@directoryOnly.ToString().ToLower()" />
+                                    <input class="form-control form-control-sm me-2" name="FolderName" style="background-color:white !important;color: black !important" id="FolderName" type="text" placeholder="New folder name" aria-label="New folder name" minlength="2" required />
                                     <button class="btn btn-sm btn-primary" type="submit">Create</button>
                                 </form>
                             </li>
@@ -802,10 +802,32 @@
             clearSelection();
         });
 
+        $("#frmNewFolder").submit(function (e) {
+            // Stop form from submitting normally
+            e.preventDefault();
+            const $form = $(this);
+            const url = $form.attr("action");
+
+            $.post(url, $form.serialize())
+                .done(function () {
+                    clearPaths();
+                    clearSelection();
+                    hideModals();
+                    // Reload
+                    window.location.href = '@Html.Raw(baseUrl)target=@target';
+                })
+                .fail(function (data) {
+                    console.log(data);
+                    alert("We appologize, and error occured while creating folder.");
+                });
+
+            return true;
+        });
+
         $("#frmChangeName").submit(function (e) {
 
             // Stop form from submitting normally
-            event.preventDefault();
+            e.preventDefault();
             const $form = $(this);
             const url = $form.attr("action");
 

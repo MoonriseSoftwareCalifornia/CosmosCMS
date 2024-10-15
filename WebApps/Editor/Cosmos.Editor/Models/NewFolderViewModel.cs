@@ -7,6 +7,8 @@
 
 namespace Cosmos.Cms.Models
 {
+    using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+
     /// <summary>
     /// New folder view model.
     /// </summary>

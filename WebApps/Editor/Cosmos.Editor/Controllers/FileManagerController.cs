@@ -885,8 +885,6 @@ namespace Cosmos.Cms.Controllers
 
         #endregion
 
-        #region FILE MANAGER FUNCTIONS
-
         /// <summary>
         /// New folder action.
         /// </summary>
@@ -897,7 +895,7 @@ namespace Cosmos.Cms.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return View(model);
+                return BadRequest(ModelState);
             }
 
             var relativePath = string.Join('/', ParsePath(model.ParentFolder, model.FolderName));
@@ -906,12 +904,12 @@ namespace Cosmos.Cms.Controllers
             // Check for duplicate entries
             var existingEntries = await _storageContext.GetFolderContents(model.ParentFolder);
 
-            if (!existingEntries.Any(f => f.Name.Equals(model.FolderName)))
+            if (!existingEntries.Exists(f => f.Name.Equals(model.FolderName)))
             {
-                var fileManagerEntry = _storageContext.CreateFolder(relativePath);
+                _ = _storageContext.CreateFolder(relativePath);
             }
 
-            return RedirectToAction("Index", new { target = model.ParentFolder, directoryOnly = model.DirectoryOnly });
+            return Ok();
         }
 
         /// <summary>
@@ -1067,8 +1065,6 @@ namespace Cosmos.Cms.Controllers
 
             return Ok();
         }
-
-        #endregion
 
         #region UTILITY FUNCTIONS
 
