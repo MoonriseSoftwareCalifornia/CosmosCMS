@@ -27,3 +27,5 @@ jobs:
       run: dotnet nuget push /home/runner/work/CosmosCMS/CosmosCMS/Libraries/Cosmos.Common/Cosmos.Common/bin/Release/*.nupkg --api-key ${{ secrets.NUGET_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
     - name: Publish Email services NuGet Cosmos
       run: dotnet nuget push /home/runner/work/CosmosCMS/CosmosCMS/Libraries/Cosmos.EmailServices/bin/Release/*.nupkg --api-key ${{ secrets.NUGET_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+    - name: Publish Graph utility services NuGet Cosmos
+      run: dotnet nuget push /home/runner/work/CosmosCMS/CosmosCMS/Libraries/Cosmos.MicrosoftGraph/bin/Release/*.nupkg --api-key ${{ secrets.NUGET_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
