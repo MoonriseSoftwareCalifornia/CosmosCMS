@@ -141,31 +141,32 @@ namespace Cosmos.Cms
             var cosmosRegionName = Configuration.GetValue<string>("CosmosRegionName");
             var conpartsDict = connectionString.Split(";").Where(w => !string.IsNullOrEmpty(w)).Select(part => part.Split('=')).ToDictionary(sp => sp[0], sp => sp[1]);
             var endpoint = conpartsDict["AccountEndpoint"];
-            services.AddDbContext<ApplicationDbContext>(options =>
-            {
-                if (string.IsNullOrEmpty(cosmosRegionName))
+            services.AddDbContext<ApplicationDbContext>(
+                options =>
                 {
-                    if (conpartsDict["AccountKey"] == "AccessToken")
+                    if (string.IsNullOrEmpty(cosmosRegionName))
                     {
-                        options.UseCosmos(endpoint, defaultAzureCredential, cosmosIdentityDbName);
+                        if (conpartsDict["AccountKey"] == "AccessToken")
+                        {
+                            options.UseCosmos(endpoint, defaultAzureCredential, cosmosIdentityDbName);
+                        }
+                        else
+                        {
+                            options.UseCosmos(connectionString, cosmosIdentityDbName);
+                        }
                     }
                     else
                     {
-                        options.UseCosmos(connectionString, cosmosIdentityDbName);
+                        if (conpartsDict["AccountKey"] == "AccessToken")
+                        {
+                            options.UseCosmos(endpoint, defaultAzureCredential, cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
+                        }
+                        else
+                        {
+                            options.UseCosmos(connectionString, cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
+                        }
                     }
-                }
-                else
-                {
-                    if (conpartsDict["AccountKey"] == "AccessToken")
-                    {
-                        options.UseCosmos(endpoint, defaultAzureCredential, cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
-                    }
-                    else
-                    {
-                        options.UseCosmos(connectionString, cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
-                    }
-                }
-            });
+                }, optionsLifetime: ServiceLifetime.Singleton); // https://github.com/dotnet/efcore/issues/34918
 
             // Add Cosmos Identity here
             services.AddCosmosIdentity<ApplicationDbContext, IdentityUser, IdentityRole, string>(

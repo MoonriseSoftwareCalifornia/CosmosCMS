@@ -81,35 +81,32 @@ internal class Program
         var cosmosRegionName = builder.Configuration.GetValue<string>("CosmosRegionName");
         var conpartsDict = connectionString.Split(";").Where(w => !string.IsNullOrEmpty(w)).Select(part => part.Split('=')).ToDictionary(sp => sp[0], sp => sp[1]);
         var endpoint = conpartsDict["AccountEndpoint"];
-        builder.Services.AddDbContext<ApplicationDbContext>(options =>
-        {
-            if (string.IsNullOrEmpty(cosmosRegionName))
+        builder.Services.AddDbContext<ApplicationDbContext>(
+            options =>
             {
-                if (conpartsDict["AccountKey"] == "AccessToken")
+                if (string.IsNullOrEmpty(cosmosRegionName))
                 {
-                    // Added the following line as per: https://github.com/dotnet/efcore/issues/34889
-                    options.ConfigureWarnings(x => x.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning));
-                    options.UseCosmos(endpoint, new DefaultAzureCredential(), cosmosIdentityDbName);
+                    if (conpartsDict["AccountKey"] == "AccessToken")
+                    {
+                        options.UseCosmos(endpoint, defaultAzureCredential, cosmosIdentityDbName);
+                    }
+                    else
+                    {
+                        options.UseCosmos(connectionString, cosmosIdentityDbName);
+                    }
                 }
                 else
                 {
-                    options.UseCosmos(connectionString, cosmosIdentityDbName);
+                    if (conpartsDict["AccountKey"] == "AccessToken")
+                    {
+                        options.UseCosmos(endpoint, defaultAzureCredential, cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
+                    }
+                    else
+                    {
+                        options.UseCosmos(connectionString, cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
+                    }
                 }
-            }
-            else
-            {
-                if (conpartsDict["AccountKey"] == "AccessToken")
-                {
-                    // Added the following line as per: https://github.com/dotnet/efcore/issues/34889
-                    options.ConfigureWarnings(x => x.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning));
-                    options.UseCosmos(endpoint, new DefaultAzureCredential(), cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
-                }
-                else
-                {
-                    options.UseCosmos(connectionString, cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
-                }
-            }
-        });
+            }, optionsLifetime: ServiceLifetime.Singleton);
 
         // Add the BLOB and File Storage contexts for Cosmos
         builder.Services.AddCosmosStorageContext(builder.Configuration);

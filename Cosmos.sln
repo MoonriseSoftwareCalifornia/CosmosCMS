@@ -20,8 +20,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		stylecop.json = stylecop.json
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cosmos.Publisher.B2C", "WebApps\Publisher.B2C\Cosmos.Publisher.B2C.csproj", "{01AC2D14-FA49-4CFF-87E0-FF4F747DEA86}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cosmos.MicrosoftGraph", "Libraries\Cosmos.MicrosoftGraph\Cosmos.MicrosoftGraph.csproj", "{0DBA97E7-0728-4B89-962C-CB084C968CE4}"
 EndProject
 Global
@@ -50,10 +48,6 @@ Global
 		{AD6EB319-F0FD-4C6C-9544-DE1B965424F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AD6EB319-F0FD-4C6C-9544-DE1B965424F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AD6EB319-F0FD-4C6C-9544-DE1B965424F3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{01AC2D14-FA49-4CFF-87E0-FF4F747DEA86}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{01AC2D14-FA49-4CFF-87E0-FF4F747DEA86}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{01AC2D14-FA49-4CFF-87E0-FF4F747DEA86}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{01AC2D14-FA49-4CFF-87E0-FF4F747DEA86}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0DBA97E7-0728-4B89-962C-CB084C968CE4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0DBA97E7-0728-4B89-962C-CB084C968CE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0DBA97E7-0728-4B89-962C-CB084C968CE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
