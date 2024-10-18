@@ -159,6 +159,17 @@
                 editor.getModel().dispose();
             }
             $("#msgBox").html("Loading...");
+            $.blockUI({
+                css: {
+                    border: 'none',
+                    padding: '15px',
+                    backgroundColor: '#000',
+                    '-webkit-border-radius': '10px',
+                    '-moz-border-radius': '10px',
+                    opacity: .5,
+                    color: '#fff'
+                }
+            });
             editor.dispose();
             editor = null;
 
@@ -213,6 +224,7 @@
 
             // Close loading spiner and display saved status
             $("#spinLoading").hide();
+            $.unblockUI();
             $("#btnSavingStatus").show();
         });
     }

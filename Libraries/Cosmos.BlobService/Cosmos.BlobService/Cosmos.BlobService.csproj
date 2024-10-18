@@ -2,9 +2,9 @@
 
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
-		<AssemblyVersion>8.0.10.5</AssemblyVersion>
-		<FileVersion>8.0.10.5</FileVersion>
-		<Version>8.0.10.5</Version>
+		<AssemblyVersion>8.0.10.6</AssemblyVersion>
+		<FileVersion>8.0.10.6</FileVersion>
+		<Version>8.0.10.6</Version>
 		<Title>Cosmos CMS Azure Storage Provider</Title>
 		<Authors>toiyabe62</Authors>
 		<Company>Moonrise Software LLC</Company>
