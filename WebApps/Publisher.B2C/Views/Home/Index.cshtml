@@ -1,0 +1,46 @@
+﻿@using System.Reflection
+@model Cosmos.Common.Models.ArticleViewModel
+@{
+    Layout = null;
+    ViewData["Title"] = Model.Title;
+}
+<!DOCTYPE HTML>
+<html lang="@Model.LanguageCode">
+<head>
+    <title>@Model.Title</title>
+
+    <meta name="og:title" content="@Model.Title" />
+    <meta name="og:url" content="@Model.UrlPath" />
+    <meta property="og:type" content="article" />
+    <meta property="og:image" content="@Model.BannerImage" />
+    <meta property="article:modified_time" content="@Model.Updated.ToString("u")">
+    <meta name="cwps-meta-v-id" content="@Assembly.GetExecutingAssembly().GetName().Version?.ToString()" />
+    <meta name="cwps-meta-path-url" content="@Model.UrlPath" />
+    <meta name="cwps-meta-path-updated" content="@Model.Updated" />
+    <meta name="cwps-meta-author-info" content="@Model.AuthorInfo" />
+    <meta name="cwps-meta-user-is-authenticated" content="@User.Identity?.IsAuthenticated.ToString().ToLower()" />
+
+    @*
+        Layout "head" injection location
+    *@
+    @Html.Raw(Model.Layout.Head)
+    @*
+        Page specific "head" inject location
+    *@
+    @Html.Raw(Model.HeadJavaScript)
+    @Html.Raw(JavaScriptSnippet.FullScript)
+    <script async src="//cdn.embedly.com/widgets/platform.js" charset="UTF-8"></script>
+</head>
+<body>
+    @*
+        Layout page "Header Content" inject at top of page
+    *@
+    @Html.Raw(Model.Layout.HtmlHeader)
+    @Html.Raw(Model.Content)
+    @*
+        Layout page "Footer Content" inject
+    *@
+    @Html.Raw(Model.Layout.FooterHtmlContent)
+    @Html.Raw(Model.FooterJavaScript)
+</body>
+</html>
