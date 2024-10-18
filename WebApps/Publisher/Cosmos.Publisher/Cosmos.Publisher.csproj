@@ -2,15 +2,15 @@
 
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
-		<AssemblyVersion>8.0.10.5</AssemblyVersion>
-		<FileVersion>8.0.10.5</FileVersion>
+		<AssemblyVersion>8.0.10.6</AssemblyVersion>
+		<FileVersion>8.0.10.6</FileVersion>
 		<Nullable>disable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<UserSecretsId>aspnet-Cosmos.Cms.Publisher-F1D91233-1093-41F8-B23F-43E81E1454FF</UserSecretsId>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 		<EnableSdkContainerSupport>true</EnableSdkContainerSupport>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
-		<Version>8.0.10.5</Version>
+		<Version>8.0.10.6</Version>
 		<DockerfileContext>..\..\..</DockerfileContext>
 	</PropertyGroup>
 
@@ -27,8 +27,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Content Include="..\..\Editor\Cosmos.Editor\wwwroot\css\ckeditor-content.css" Link="wwwroot\css\ckeditor-content.css" />
-		<Content Include="..\..\Editor\Cosmos.Editor\wwwroot\css\imagestyle.css" Link="wwwroot\css\imagestyle.css" />
 		<Content Include="Views\Home\Index.cshtml.BAK" />
 	</ItemGroup>
 
