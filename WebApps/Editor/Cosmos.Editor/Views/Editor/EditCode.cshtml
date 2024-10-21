@@ -159,17 +159,7 @@
                 editor.getModel().dispose();
             }
             $("#msgBox").html("Loading...");
-            $.blockUI({
-                css: {
-                    border: 'none',
-                    padding: '15px',
-                    backgroundColor: '#000',
-                    '-webkit-border-radius': '10px',
-                    '-moz-border-radius': '10px',
-                    opacity: .5,
-                    color: '#fff'
-                }
-            });
+            
             editor.dispose();
             editor = null;
 
@@ -222,9 +212,12 @@
 
             $("#msgBox").html("");
 
+            // Allow user interaction
+            $.unblockUI();
+
             // Close loading spiner and display saved status
             $("#spinLoading").hide();
-            $.unblockUI();
+            
             $("#btnSavingStatus").show();
         });
     }
@@ -357,6 +350,9 @@
 
     $(document).ready(function () {
 
+        // Block user action until loaded.
+        $.blockUI();
+
         $("body").addClass("cwps-editor-container");
 
         $("#btnOtherPages").show();
@@ -432,6 +428,8 @@
         }
 
         checkDisplayLiveEditorButton();
+
+
     });
 
     $(document).on("unload", function () {

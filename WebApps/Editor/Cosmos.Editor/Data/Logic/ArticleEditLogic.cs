@@ -1582,12 +1582,15 @@ namespace Cosmos.Cms.Data.Logic
             // Get everything that is going to be removed or replaced
             var itemsToRemove = await DbContext.Pages.Where(w => w.ArticleNumber == articleNumber || paths.Contains(w.UrlPath)).ToListAsync();
 
+            // Get the paths to purge, these are items that are going to be removed or replaced.
+            var purgePaths = itemsToRemove.Select(s => s.UrlPath).Distinct().ToList();
+
             if (itemsToRemove.Any())
             {
                 // Mark these for deletion - do this first to avoid any conflicts
                 DbContext.Pages.RemoveRange(itemsToRemove);
                 await DbContext.SaveChangesAsync();
-                paths.AddRange(itemsToRemove.Select(s => s.UrlPath).ToArray());
+                purgePaths.AddRange(itemsToRemove.Select(s => s.UrlPath).Distinct().ToArray());
             }
 
             if (itemsToPublish.Any())
@@ -1621,6 +1624,7 @@ namespace Cosmos.Cms.Data.Logic
                     if (duplicate == null)
                     {
                         DbContext.Pages.Add(newPage);
+                        purgePaths.Add(newPage.UrlPath);
                     }
                     else
                     {
@@ -1629,7 +1633,7 @@ namespace Cosmos.Cms.Data.Logic
 
                     if (item.UrlPath != "root")
                     {
-                        paths.Add($"/pub/articles/{item.ArticleNumber}/");
+                        purgePaths.Add($"/pub/articles/{item.ArticleNumber}/");
                     }
                 }
 
@@ -1637,13 +1641,11 @@ namespace Cosmos.Cms.Data.Logic
                 await DbContext.SaveChangesAsync();
             }
 
-            if (paths.Any())
+            if (purgePaths.Any())
             {
-                var purgeUrls = paths.Select(s => "/" + s.Trim('/')).Distinct().ToList();
-
                 var settings = await Cosmos___CdnController.GetCdnConfiguration(DbContext);
                 var cdnService = new CdnService(settings);
-                return await cdnService.PurgeCdn(purgeUrls);
+                return await cdnService.PurgeCdn(purgePaths.Select(s => "/" + s.Trim('/')).Distinct().ToList());
             }
 
             return null;
