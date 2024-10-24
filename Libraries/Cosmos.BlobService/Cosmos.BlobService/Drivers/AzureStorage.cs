@@ -28,6 +28,7 @@ namespace Cosmos.BlobService.Drivers
     {
         private readonly string containerName;
         private readonly BlobServiceClient blobServiceClient;
+        private readonly bool usesAzureDefaultCredential;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AzureStorage"/> class.
@@ -43,11 +44,13 @@ namespace Cosmos.BlobService.Drivers
 
             if (conpartsDict["AccountKey"] == "AccessToken")
             {
+                usesAzureDefaultCredential = true;
                 var accountName = conpartsDict["AccountName"];
                 blobServiceClient = new BlobServiceClient(new Uri($"https://{accountName}.blob.core.windows.net/"), defaultAzureCredential);
             }
             else
             {
+                usesAzureDefaultCredential = false;
                 blobServiceClient = new BlobServiceClient(config.AzureBlobStorageConnectionString);
             }
         }
@@ -86,7 +89,7 @@ namespace Cosmos.BlobService.Drivers
 
             if (fileMetaData.ChunkIndex == 0)
             {
-                await appendClient.DeleteIfExistsAsync();
+                await appendClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots);
 
                 var headers = new BlobHttpHeaders
                 {
@@ -113,7 +116,7 @@ namespace Cosmos.BlobService.Drivers
             loadMemoryStream.Position = 0;
             int bytesRead;
             var buffer = new byte[2621440]; // 2.5 MB.
-            while ((bytesRead = loadMemoryStream.Read(buffer, 0, buffer.Length)) > 0)
+            while ((bytesRead = await loadMemoryStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
             {
                 var newArray = new Span<byte>(buffer, 0, bytesRead).ToArray();
                 Stream stream = new MemoryStream(newArray)
@@ -244,7 +247,7 @@ namespace Cosmos.BlobService.Drivers
 
             foreach (var blob in blobs)
             {
-                responses.Add(await containerClient.DeleteBlobIfExistsAsync(blob.Name));
+                responses.Add(await containerClient.DeleteBlobIfExistsAsync(blob.Name, DeleteSnapshotsOption.IncludeSnapshots));
             }
 
             return responses.Count(r => r.Value);
@@ -267,12 +270,17 @@ namespace Cosmos.BlobService.Drivers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task EnableStaticWebsite()
         {
+            if (usesAzureDefaultCredential)
+            {
+                return; // Not able to enable static website when using Azure Default Credential.
+            }
+
             BlobServiceProperties properties = await blobServiceClient.GetPropertiesAsync();
 
             if (!properties.StaticWebsite.Enabled)
             {
                 properties.StaticWebsite.Enabled = true;
-                blobServiceClient.SetProperties(properties);
+                await blobServiceClient.SetPropertiesAsync(properties);
             }
 
             if (properties.Cors == null || properties.Cors.Count == 0)
@@ -429,12 +437,11 @@ namespace Cosmos.BlobService.Drivers
         public async Task<bool> UploadStreamAsync(Stream readStream, FileUploadMetaData fileMetaData, DateTimeOffset uploadDateTime)
         {
             var appendClient = GetAppendBlobClient(fileMetaData.RelativePath);
-            await appendClient.DeleteIfExistsAsync();
 
             var headers = new BlobHttpHeaders
             {
                 // Set the MIME ContentType every time the properties
-                // are updated or the field will be cleared.
+                // are updated or the field will be cleared.,
                 ContentType = Utilities.GetContentType(fileMetaData)
             };
             await appendClient.CreateIfNotExistsAsync(headers);
@@ -447,7 +454,7 @@ namespace Cosmos.BlobService.Drivers
             };
 
             _ = await appendClient.SetMetadataAsync(dictionaryObject);
-            var writeStream = await appendClient.OpenWriteAsync(false);
+            var writeStream = await appendClient.OpenWriteAsync(true);
             await readStream.CopyToAsync(writeStream);
             return true;
         }

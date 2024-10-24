@@ -21,6 +21,8 @@ namespace Cosmos.Cms.Controllers
     using Cosmos.Cms.Models;
     using Cosmos.Cms.Services;
     using Cosmos.Common.Data;
+    using Cosmos.Editor.Controllers;
+    using Cosmos.Editor.Services;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
@@ -403,84 +405,79 @@ namespace Cosmos.Cms.Controllers
                 return BadRequest(ModelState);
             }
 
-            try
+            var patchArray = patch.Split('|');
+
+            // 0 based index
+            var uploadOffset = long.Parse(Request.Headers["Upload-Offset"]);
+
+            // File name being uploaded
+            var uploadName = (string)Request.Headers["Upload-Name"];
+
+            // Total size of the file in bytes
+            var uploadLenth = long.Parse(Request.Headers["Upload-Length"]);
+
+            // Size of the chunk
+            var contentSize = long.Parse(Request.Headers["Content-Length"]);
+
+            long chunk = 0;
+
+            if (uploadOffset > 0)
             {
-                var patchArray = patch.Split('|');
-
-                // 0 based index
-                var uploadOffset = long.Parse(Request.Headers["Upload-Offset"]);
-
-                // File name being uploaded
-                var uploadName = (string)Request.Headers["Upload-Name"];
-
-                // Total size of the file in bytes
-                var uploadLenth = long.Parse(Request.Headers["Upload-Length"]);
-
-                // Size of the chunk
-                var contentSize = long.Parse(Request.Headers["Content-Length"]);
-
-                long chunk = 0;
-
-                if (uploadOffset > 0)
-                {
-                    chunk = DivideByAndRoundUp(uploadLenth, uploadOffset);
-                }
-
-                var totalChunks = DivideByAndRoundUp(uploadLenth, contentSize);
-
-                var blobName = UrlEncode(uploadName);
-
-                var relativePath = UrlEncode(patchArray[0].TrimEnd('/'));
-
-                if (!string.IsNullOrEmpty(patchArray[1]))
-                {
-                    var dpath = Path.GetDirectoryName(patchArray[1]).Replace('\\', '/'); // Convert windows paths to unix style.
-                    var epath = UrlEncode(dpath);
-                    relativePath += "/" + UrlEncode(epath);
-                }
-
-                // Mime type
-                var contentType = MimeTypeMap.GetMimeType(Path.GetExtension(blobName));
-
-                var metaData = new FileUploadMetaData()
-                {
-                    ChunkIndex = chunk,
-                    ContentType = contentType,
-                    FileName = blobName,
-                    RelativePath = relativePath + "/" + blobName,
-                    TotalChunks = totalChunks,
-                    TotalFileSize = uploadLenth,
-                    UploadUid = patchArray[1]
-                };
-
-                // Make sure full folder path exists
-                var pathParts = patchArray[0].Trim('/').Split('/');
-                var part = string.Empty;
-                for (int i = 0; i < pathParts.Length - 1; i++)
-                {
-                    if (i == 0 && pathParts[i] != "pub")
-                    {
-                        throw new Exception("Must upload folders and files under /pub directory.");
-                    }
-
-                    part = $"{part}/{pathParts[i]}";
-                    if (part != "/pub")
-                    {
-                        var folder = part.Trim('/');
-                        _storageContext.CreateFolder(folder);
-                    }
-                }
-
-                using var memoryStream = new MemoryStream();
-                await Request.Body.CopyToAsync(memoryStream);
-                _storageContext.AppendBlob(memoryStream, metaData);
-
+                chunk = DivideByAndRoundUp(uploadLenth, uploadOffset);
             }
-            catch (Exception e)
+
+            var totalChunks = DivideByAndRoundUp(uploadLenth, contentSize);
+
+            var blobName = UrlEncode(uploadName);
+
+            var relativePath = UrlEncode(patchArray[0].TrimEnd('/'));
+
+            if (!string.IsNullOrEmpty(patchArray[1]))
             {
-                // var t = e; // For debugging
-                logger.LogError(e.Message, e);
-                throw;
+                var dpath = Path.GetDirectoryName(patchArray[1]).Replace('\\', '/'); // Convert windows paths to unix style.
+                var epath = UrlEncode(dpath);
+                relativePath += "/" + UrlEncode(epath);
+            }
+
+            // Mime type
+            var contentType = MimeTypeMap.GetMimeType(Path.GetExtension(blobName));
+
+            var metaData = new FileUploadMetaData()
+            {
+                ChunkIndex = chunk,
+                ContentType = contentType,
+                FileName = blobName,
+                RelativePath = relativePath + "/" + blobName,
+                TotalChunks = totalChunks,
+                TotalFileSize = uploadLenth,
+                UploadUid = patchArray[1]
+            };
+
+            // Make sure full folder path exists
+            var pathParts = patchArray[0].Trim('/').Split('/');
+            var part = string.Empty;
+            for (int i = 0; i < pathParts.Length - 1; i++)
+            {
+                if (i == 0 && pathParts[i] != "pub")
+                {
+                    throw new ArgumentException("Must upload folders and files under /pub directory.");
+                }
+
+                part = $"{part}/{pathParts[i]}";
+                if (part != "/pub")
+                {
+                    var folder = part.Trim('/');
+                    _storageContext.CreateFolder(folder);
+                }
+            }
+
+            using var memoryStream = new MemoryStream();
+            await Request.Body.CopyToAsync(memoryStream);
+            _storageContext.AppendBlob(memoryStream, metaData);
+
+            if (metaData.TotalChunks - 1 == metaData.ChunkIndex)
+            {
+                await PurgeCdnPath(metaData);
             }
 
             return Ok();
@@ -489,9 +486,9 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Simple file upload for live editor.
         /// </summary>
-        /// <param name="Id">Article Number.</param>
+        /// <param name="id">Article Number.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task<IActionResult> SimpleUpload(string Id)
+        public async Task<IActionResult> SimpleUpload(string id)
         {
             if (!ModelState.IsValid)
             {
@@ -505,10 +502,8 @@ namespace Cosmos.Cms.Controllers
                 return Json(ReturnSimpleErrorMessage("The image upload failed because the image was too big (max 25MB)."));
             }
 
-            var directory = $"/pub/articles/{Id}/";
-            // var extension = Path.GetExtension(file.FileName);c
+            var directory = $"/pub/articles/{id}/";
             var blobEndPoint = options.Value.SiteSettings.BlobPublicUrl.TrimEnd('/');
-
             var fileName = $"{Guid.NewGuid().ToString().ToLower()}.png";
 
             string relativePath = UrlEncode(directory + fileName);
@@ -533,12 +528,30 @@ namespace Cosmos.Cms.Controllers
 
                 _storageContext.AppendBlob(memoryStream, metaData);
 
+                await PurgeCdnPath(metaData);
+
                 return Json(JsonConvert.DeserializeObject<dynamic>("{\"url\": \"" + blobEndPoint + "/" + relativePath + "\"}"));
             }
             catch (Exception e)
             {
                 logger.LogError(e.Message, e);
                 return Json(ReturnSimpleErrorMessage(e.Message));
+            }
+        }
+
+        private async Task PurgeCdnPath(FileUploadMetaData metaData)
+        {
+            if (metaData.TotalChunks - 1 == metaData.ChunkIndex)
+            {
+                // This is the last chunk, wrap things up here.  Flush the CDN if one is configured.
+                var purgeUrls = new List<string>
+                {
+                    metaData.RelativePath
+                };
+
+                var settings = await Cosmos___CdnController.GetCdnConfiguration(dbContext);
+                var cdnService = new CdnService(settings);
+                _ = await cdnService.PurgeCdn(purgeUrls);
             }
         }
 
@@ -1485,86 +1498,84 @@ namespace Cosmos.Cms.Controllers
                 return BadRequest(ModelState);
             }
 
-            try
+            if (files == null || !files.Any())
             {
-                if (files == null || !files.Any())
-                {
-                    return Json(string.Empty);
-                }
-
-                if (string.IsNullOrEmpty(path) || path.Trim('/') == string.Empty)
-                {
-                    return Unauthorized("Cannot upload here. Please select the 'pub' folder first, or sub-folder below that, then try again.");
-                }
-
-                // Get information about the chunk we are on.
-                var ms = new MemoryStream(Encoding.UTF8.GetBytes(metaData));
-
-                var serializer = new JsonSerializer();
-                FileUploadMetaData fileMetaData;
-                using (var streamReader = new StreamReader(ms))
-                {
-                    fileMetaData =
-                        (FileUploadMetaData)serializer.Deserialize(streamReader, typeof(FileUploadMetaData));
-                }
-
-                if (fileMetaData == null)
-                {
-                    throw new Exception("Could not read the file's metadata");
-                }
-
-                var file = files.FirstOrDefault();
-
-                if (file == null)
-                {
-                    throw new Exception("No file found to upload.");
-                }
-
-                var blobName = UrlEncode(fileMetaData.FileName);
-                fileMetaData.ContentType = MimeTypeMap.GetMimeType(Path.GetExtension(fileMetaData.FileName));
-
-                fileMetaData.FileName = blobName;
-                fileMetaData.RelativePath = (path.TrimEnd('/') + "/" + fileMetaData.RelativePath);
-
-                // Make sure full folder path exists
-                var parts = fileMetaData.RelativePath.Trim('/').Split('/');
-                var part = string.Empty;
-                for (int i = 0; i < parts.Length - 1; i++)
-                {
-                    if (i == 0 && parts[i] != "pub")
-                    {
-                        throw new Exception("Must upload folders and files under /pub directory.");
-                    }
-
-                    part = $"{part}/{parts[i]}";
-                    if (part != "/pub")
-                    {
-                        var folder = part.Trim('/');
-                        _storageContext.CreateFolder(folder);
-                    }
-                }
-
-                await using (var stream = file.OpenReadStream())
-                {
-                    await using (var memoryStream = new MemoryStream())
-                    {
-                        await stream.CopyToAsync(memoryStream);
-                        _storageContext.AppendBlob(memoryStream, fileMetaData);
-                    }
-                }
-
-                var fileBlob = new FileUploadResult
-                {
-                    uploaded = fileMetaData.TotalChunks - 1 <= fileMetaData.ChunkIndex,
-                    fileUid = fileMetaData.UploadUid
-                };
-                return Json(fileBlob);
+                return Json(string.Empty);
             }
-            catch (Exception ex)
+
+            if (string.IsNullOrEmpty(path) || path.Trim('/') == string.Empty)
             {
-                logger.LogError(ex.Message, ex);
-                throw ex;
+                return Unauthorized("Cannot upload here. Please select the 'pub' folder first, or sub-folder below that, then try again.");
             }
+
+            // Get information about the chunk we are on.
+            var ms = new MemoryStream(Encoding.UTF8.GetBytes(metaData));
+
+            var serializer = new JsonSerializer();
+            FileUploadMetaData fileMetaData;
+            using (var streamReader = new StreamReader(ms))
+            {
+                fileMetaData =
+                    (FileUploadMetaData)serializer.Deserialize(streamReader, typeof(FileUploadMetaData));
+            }
+
+            if (fileMetaData == null)
+            {
+                throw new ArgumentException("Could not read the file's metadata");
+            }
+
+            var file = files.FirstOrDefault();
+
+            if (file == null)
+            {
+                throw new ArgumentException("No file found to upload.");
+            }
+
+            var blobName = UrlEncode(fileMetaData.FileName);
+            fileMetaData.ContentType = MimeTypeMap.GetMimeType(Path.GetExtension(fileMetaData.FileName));
+
+            fileMetaData.FileName = blobName;
+            fileMetaData.RelativePath = path.TrimEnd('/') + "/" + fileMetaData.RelativePath;
+
+            // Make sure full folder path exists
+            var parts = fileMetaData.RelativePath.Trim('/').Split('/');
+            var part = string.Empty;
+            for (int i = 0; i < parts.Length - 1; i++)
+            {
+                if (i == 0 && parts[i] != "pub")
+                {
+                    throw new ArgumentException("Must upload folders and files under /pub directory.");
+                }
+
+                part = $"{part}/{parts[i]}";
+                if (part != "/pub")
+                {
+                    var folder = part.Trim('/');
+                    _storageContext.CreateFolder(folder);
+                }
+            }
+
+            await using (var stream = file.OpenReadStream())
+            {
+                await using (var memoryStream = new MemoryStream())
+                {
+                    await stream.CopyToAsync(memoryStream);
+                    _storageContext.AppendBlob(memoryStream, fileMetaData);
+                }
+            }
+
+            if (fileMetaData.TotalChunks - 1 == fileMetaData.ChunkIndex)
+            {
+                await PurgeCdnPath(fileMetaData);
+            }
+
+            var fileBlob = new FileUploadResult
+            {
+                uploaded = fileMetaData.TotalChunks - 1 <= fileMetaData.ChunkIndex,
+                fileUid = fileMetaData.UploadUid
+            };
+            return Json(fileBlob);
+
         }
     }
 }
