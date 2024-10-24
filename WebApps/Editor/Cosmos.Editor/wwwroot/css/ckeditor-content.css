@@ -1,13 +1,12 @@
 .ck-content .image.image_resized img {
-    width: 100%;
+    max-width: 100%;
 }
 
-.ck-content .image img {
+.ck-content img {
     display: block;
     height: auto;
     margin: 0 auto;
     max-width: 100%;
-    min-width: 100%;
 }
 
 img,

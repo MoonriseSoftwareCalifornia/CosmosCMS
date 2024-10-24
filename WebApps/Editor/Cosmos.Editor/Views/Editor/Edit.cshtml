@@ -18,9 +18,12 @@
     <input type="hidden" asp-for="Updated" />
     <input type="hidden" asp-for="BannerImage" />
 </form>
+@* <link href="/lib/cropperjs/cropper.css" rel="stylesheet">
+<script src="/lib/cropperjs/cropper.js"></script> *@
 
 <script src="/lib/monaco-editor/min/vs/loader.js"></script>
 <script src="/lib/emmet-monaco-es/dist/emmet-monaco.min.js"></script>
+
 
 <iframe id="ccmsContFrame" src="/Editor/CcmsContent/@Model.ArticleNumber" style="position: absolute; top: 52px; width: 100%; margin:0px; padding:0px;z-index:1;" onload="setupFrame()" frameBorder="0" scrolling="yes"></iframe>
 
@@ -86,6 +89,27 @@
                 </div>
                 <div class="modal-body">
                     <iframe id="iframePreview" class="d-block w-100" onload="setupPreviewFrame()" style="height:100%"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="modalImageCropper" tabindex="-1" aria-labelledby="modalLabel" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalLabel">Crop the image</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="img-container">
+                        <img id="image" src="blob:https://fengyuanchen.github.io/5f4070e3-dd22-4296-a8c6-63ad7c1d493e" class="">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="crop">Crop</button>
                 </div>
             </div>
         </div>
