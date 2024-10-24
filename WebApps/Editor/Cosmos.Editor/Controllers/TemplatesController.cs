@@ -569,19 +569,23 @@ namespace Cosmos.Cms.Controllers
                 return BadRequest(ModelState);
             }
 
-            var pages = await dbContext.ArticleCatalog.Where(w => w.TemplateId == id).ToListAsync();
-            var template = await dbContext.Templates.AsNoTracking().FirstOrDefaultAsync(f => f.Id == id);
-            if (template == null)
-            {
-                return NotFound();
-            }
-
-            foreach (var page in pages)
-            {
-                await ApplyTemplateChanges(page.ArticleNumber, template.Content);
-            }
+            // Run this in the background.
+            _ = Task.Run(() => UpdateAllPages(id));
 
             return RedirectToAction("Pages", routeValues: new { id });
+        }
+
+        private async Task UpdateAllPages(Guid id)
+        {
+            var pages = await dbContext.ArticleCatalog.Where(w => w.TemplateId == id).ToListAsync();
+            var template = await dbContext.Templates.AsNoTracking().FirstOrDefaultAsync(f => f.Id == id);
+            if (template != null)
+            {
+                foreach (var page in pages)
+                {
+                    await ApplyTemplateChanges(page.ArticleNumber, template.Content);
+                }
+            }
         }
 
         /// <summary>

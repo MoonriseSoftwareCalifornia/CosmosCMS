@@ -3,7 +3,7 @@
 
 Cosmos CMS is a modern content management system that is "out of the box" fast, open, and easy to use.  Its cloud-first design comes with built-in integration with Content Distribution Networks (CDN) and supports regional replication redundancy.
 
-[Get Started/Free Install](https://www.moonrise.net/Cosmos) | [Documentation](https://cosmos.moonrise.net)
+[Get Started/Free Install](https://www.moonrise.net/Cosmos) | [Cosmos Documentation Website](https://cosmos.moonrise.net) | [Free Help Options](https://cosmos.moonrise.net/Support)
 
 [![CodeQL](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml)
 [![Publish Docker Images CI](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml)
@@ -11,9 +11,22 @@ Cosmos CMS is a modern content management system that is "out of the box" fast, 
 
 [![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-white.svg)](https://sonarcloud.io/summary/new_code?id=MoonriseSoftwareCalifornia_CosmosCMS)
 
+## Free Install Options
+Install Cosmos without email provider integration (can be added later):
+
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fcosmosassets.z22.web.core.windows.net%2FArmTemplates%2FInstallation%2Fazuredeploy-no-email.json)
+
+### These install options require an Email service to already be installed:
+
+| Email Service | Install Button |
+| ------------- | -------------- |
+| [Azure Communication Services (with Email)](https://learn.microsoft.com/en-us/azure/communication-services/quickstarts/email/send-email?tabs=windows%2Cconnection-string%2Csend-email-and-get-status-async%2Csync-client&pivots=platform-azportal)| [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fcosmosassets.z22.web.core.windows.net%2FArmTemplates%2FInstallation%2Fazuredeploy-azurecomm.json) |
+| [Twillio SendGrid](https://sendgrid.com/en-us/partners/azure) | [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fcosmosassets.z22.web.core.windows.net%2FArmTemplates%2FInstallation%2Fazuredeploy-sendgrid.json) |
+| Any SMTP Email service | [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fcosmosassets.z22.web.core.windows.net%2FArmTemplates%2FInstallation%2Fazuredeploy-smtp.json) |
+
 ## About
 
-Cosmos is a "headless" content management system of the ["Decoupled" variety](https://en.wikipedia.org/wiki/Headless_content_management_system#Decoupled_CMS), meaning content distribution is separated from content management. This provides significant performance and security benefits.
+Cosmos is a "decoupled"](https://en.wikipedia.org/wiki/Headless_content_management_system#Decoupled_CMS) web content management system, meaning content distribution is separated from content management. This provides significant performance and security benefits over monolithic systems of the past.
 
 Content distribution is handled by:
 

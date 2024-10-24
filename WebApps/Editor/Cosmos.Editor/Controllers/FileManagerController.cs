@@ -367,8 +367,6 @@ namespace Cosmos.Cms.Controllers
             return Ok();
         }
 
-        #region FILEPOND ENDPOINTS
-
         /// <summary>
         /// Gets a unique GUID for FilePond.
         /// </summary>
@@ -564,8 +562,6 @@ namespace Cosmos.Cms.Controllers
         {
             return (long)Math.Ceiling((float)number / (float)divideBy);
         }
-
-        #endregion
 
         /// <summary>
         /// Imports a page.
