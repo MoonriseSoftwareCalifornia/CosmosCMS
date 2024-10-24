@@ -176,14 +176,10 @@ namespace Cosmos.Cms.Data.Logic
 
             if (string.IsNullOrEmpty(defaultTemplate))
             {
-                defaultTemplate = "<div class=\"container m-y-lg\">" +
-                                  "<main class=\"main-primary\">" +
-                                      "<div class=\"row\">" +
-                                          "<div contenteditable='true' class=\"col-md-12\"><h1>Why Lorem Ipsum</h1><p>" +
-                                          LoremIpsum.WhyLoremIpsum + "</p></div>" +
-                                          "</div>" +
-                                      "</div>" +
-                                  "</main>" +
+                defaultTemplate = "<div style='width: 100%;padding-left: 20px;padding-right: 20px;margin-left: auto;margin-right: auto;'>" +
+                                  "<div contenteditable='true'><h1>Why Lorem Ipsum?</h1><p>" +
+                                   LoremIpsum.WhyLoremIpsum + "</p></div>" +
+                                  "</div>" +
                                   "</div>";
             }
 

@@ -27,9 +27,9 @@
       },
       "HtmlAgilityPack": {
         "type": "Direct",
-        "requested": "[1.11.67, )",
-        "resolved": "1.11.67",
-        "contentHash": "xnt6f8E56oK9nLqgkF42bsVSAkUuIuJnSfvzimK7GwvbhdXWRmGsx4A8AKmLOlCUq1rVSUADKalxnSMizHt4Mg=="
+        "requested": "[1.11.68, )",
+        "resolved": "1.11.68",
+        "contentHash": "MpqTWV2LH3hZeOrvzZaP6/dexy6AUu+I8mXtZ6CZD2MdVMBxmIXNK0oR3QuYjPHoO29Y2uJgUY0S2PmxPPm1cg=="
       },
       "Microsoft.AspNetCore.Identity.UI": {
         "type": "Direct",
