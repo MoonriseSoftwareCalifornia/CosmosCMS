@@ -207,8 +207,8 @@ builder.Services.AddRateLimiter(_ => _
         options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
         options.QueueLimit = 2;
     }));
-
 // END
+
 builder.Services.AddResponseCaching();
 
 // Get the boot variables loaded, and
@@ -296,4 +296,4 @@ app.MapFallbackToController("Index", "Home");
 
 app.MapRazorPages();
 
-app.Run();
+await app.RunAsync();
