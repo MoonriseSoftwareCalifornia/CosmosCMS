@@ -569,8 +569,7 @@ namespace Cosmos.Cms.Controllers
                 return BadRequest(ModelState);
             }
 
-            // Run this in the background.
-            _ = Task.Run(() => UpdateAllPages(id));
+            await UpdateAllPages(id);
 
             return RedirectToAction("Pages", routeValues: new { id });
         }
@@ -622,6 +621,7 @@ namespace Cosmos.Cms.Controllers
             article.Content = templateHtmlDoc.DocumentNode.OuterHtml;
 
             await articleLogic.Save(article, await GetUserEmail());
+            Console.WriteLine($"Template applied to article {articleNumber}");
         }
     }
 }

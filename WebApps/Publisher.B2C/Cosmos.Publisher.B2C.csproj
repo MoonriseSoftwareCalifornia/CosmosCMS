@@ -9,7 +9,7 @@
 		<EnableSdkContainerDebugging>True</EnableSdkContainerDebugging>
 		<ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:8.0</ContainerBaseImage>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-		<Version>8.0.10.10</Version>
+		<Version>8.0.10.12</Version>
 		<DockerfileContext>..\..</DockerfileContext>
 	</PropertyGroup>
 
@@ -49,6 +49,11 @@
 
 	<ItemGroup>
 		<ContainerPort Include="8081" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Include="..\Editor\Cosmos.Editor\wwwroot\css\ckeditor-content.css" Link="wwwroot\css\ckeditor-content.css" />
+	  <Content Include="..\Editor\Cosmos.Editor\wwwroot\css\imagestyle.css" Link="wwwroot\css\imagestyle.css" />
 	</ItemGroup>
 
 	<ItemGroup>
