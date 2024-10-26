@@ -635,30 +635,6 @@
 
         $(document).ready(function () {
 
-            // **********************
-            // Setup inactivy timeout
-            let timeout;
-
-            // Function to redirect to the logout URL
-            function logout() {
-                window.location.href = '/Account/Logout'; // Adjust the URL as needed
-            }
-
-            // Reset the timeout
-            function resetTimeout() {
-                clearTimeout(timeout);
-                timeout = setTimeout(logout, 1800000); // 30 minutes in milliseconds
-            }
-
-            // Detect user activity and reset the timeout
-            $(document).on('mousemove keydown click', resetTimeout);
-
-            // Initialize the timeout when the page loads
-            resetTimeout();
-
-            // End inactivity timeout
-            // **********************
-
             // Sets the color of the permissions button to
             // success for permissions exist, or danger for not.
             checkForSetPermissions();

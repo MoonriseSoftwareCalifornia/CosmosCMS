@@ -14,6 +14,29 @@
         function navLogout() {
             document.frmNavLogout.submit();
         }
+
+        $(document).ready(function () {
+
+            // **********************
+            // Setup inactivy timeout
+            let timeout;
+
+            // Reset the timeout
+            function resetTimeout() {
+                clearTimeout(timeout);
+                timeout = setTimeout(navLogout, 1800000); // 30 minutes in milliseconds
+            }
+
+            // Detect user activity and reset the timeout
+            $(document).on('mousemove keydown click', resetTimeout);
+
+            // Initialize the timeout when the page loads
+            resetTimeout();
+
+            // End inactivity timeout
+            // **********************
+
+        });
     </script>
 }
 else
