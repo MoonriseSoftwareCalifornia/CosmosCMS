@@ -24,7 +24,7 @@
             function resetTimeout() {
                 ccms___idle = new Date();
                 clearTimeout(ccms___timeout);
-                ccms___timeout = setTimeout(ccms___navLogout, 30000); // 30 minutes in milliseconds 1800000
+                ccms___timeout = setTimeout(ccms___navLogout, 1800000); // 30 minutes in milliseconds
             }
 
             // Detect user activity and reset the timeout
@@ -37,7 +37,7 @@
             // **********************
         });
         $(document).on('focus', function () {
-            if (ccms___idle !== null && ccms___idle < new Date(new Date() - 30000)) {
+            if (ccms___idle !== null && ccms___idle < new Date(new Date() - 1800000)) {
                 ccms___navLogout();
             }
             resetTimeout();
