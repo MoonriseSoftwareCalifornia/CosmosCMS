@@ -247,9 +247,27 @@
             $("#" + fieldId).val(editor.getValue());
         }
 
-        const data = form.serialize();
+        let model = {
+            Id: $("#Id").val(),
+            SaveAsNewVersion: $("#SaveAsNewVersion").val(),
+            ArticleNumber: $("#ArticleNumber").val(),
+            VersionNumber: $("#VersionNumber").val(),
+            Title: $("#Title").val(),
+            RoleList: $("#RoleList").val(),
+            Published: $("#Published").val(),
+            Updated: $("#Updated").val(),
+            Content: $("#Content").val(),
+            HeadJavaScript: $("#HeadJavaScript").val(),
+            FooterJavaScript: $("#FooterJavaScript").val(),
+            EditingField: $("#EditingField").val(),
+            UrlPath: $("#UrlPath").val(),
+            EditorType: $("#EditorType").val(),
+            UpdateExisting: $("#UpdateExisting").val(),
+            BannerImage: $("#BannerImage").val()
+        };
+
         $.post("@Url.Action("EditCode")",
-            data,
+            model,
             function (response) {
                 saveInProgress = false;
 
