@@ -1,0 +1,31 @@
+name: Publish Docker Images with Version Numbers
+
+on:
+  workflow_dispatch
+  # push:
+  #   branches: [ "master" ]
+  # pull_request:
+  #   branches: [ "master" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Docker Login
+      run: docker login -u="${{ secrets.DOCKERLOGIN}}" -p="${{ secrets.DOCKERPASSWORD }}"
+    - name: Build Editor Docker Image
+      run: docker build . --file WebApps/Editor/Cosmos.Editor/Dockerfile --tag ${{ secrets.DOCKERLOGIN}}/cosmos-editor:8.0.10
+    - name: Push Editor container to Docker Hub
+      run: docker push ${{ secrets.DOCKERLOGIN}}/cosmos-editor:8.0.10
+    - name: Build Publisher Docker Image
+      run: docker build . --file WebApps/Publisher/Cosmos.Publisher/Dockerfile --tag ${{ secrets.DOCKERLOGIN}}/cosmos-publisher:8.0.10
+    - name: Push Publisher container to Docker Hub
+      run: docker push ${{ secrets.DOCKERLOGIN}}/cosmos-publisher:8.0.10
+    - name: Build B2C Publisher Docker Image
+      run: docker build . --file WebApps/Publisher.B2C/Dockerfile --tag ${{ secrets.DOCKERLOGIN}}/cosmos-publisher-b2c:8.0.10
+    - name: Push B2C Publisher container to Docker Hub
+      run: docker push ${{ secrets.DOCKERLOGIN}}/cosmos-publisher-b2c:8.0.10

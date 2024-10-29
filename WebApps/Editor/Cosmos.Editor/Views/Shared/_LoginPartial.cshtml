@@ -7,24 +7,24 @@
     <a class="btn btn-sm bg-dark text-light me-2" href="mailto:support@moonrise.net?subject=Help Desk Message" title="Email Help Desk"><i class="fa-solid fa-bell-concierge"></i></a>
     <a title="Open Cosmos documentation" target="_blank" class="btn btn-sm bg-dark text-light me-2" aria-current="page" href="https://cosmos.moonrise.net"><i class="fa-solid fa-circle-info"></i></a>
     <a class="btn btn-sm bg-dark text-light me-2" title="User account settings." asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage"><i class="fa-solid fa-user"></i></a>
-    <button id="btnNavLogoutButton" type="button" title="Log out" onclick="navLogout()" class="btn btn-sm bg-dark text-light" style="margin-top:-2px;"><i class="fa-solid fa-right-from-bracket"></i></button>
+    <button id="btnNavLogoutButton" type="button" title="Log out" onclick="ccms___navLogout()" class="btn btn-sm bg-dark text-light" style="margin-top:-2px;"><i class="fa-solid fa-right-from-bracket"></i></button>
     <form name="frmNavLogout" class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new {area = ""})">
     </form>
     <script>
-        function navLogout() {
+        let ccms___idle = null;
+        let ccms___timeout;
+        function ccms___navLogout() {
             document.frmNavLogout.submit();
         }
-
         $(document).ready(function () {
-
             // **********************
             // Setup inactivy timeout
-            let timeout;
 
             // Reset the timeout
             function resetTimeout() {
-                clearTimeout(timeout);
-                timeout = setTimeout(navLogout, 1800000); // 30 minutes in milliseconds
+                ccms___idle = new Date();
+                clearTimeout(ccms___timeout);
+                ccms___timeout = setTimeout(ccms___navLogout, 1800000); // 30 minutes in milliseconds
             }
 
             // Detect user activity and reset the timeout
@@ -35,7 +35,15 @@
 
             // End inactivity timeout
             // **********************
-
+        });
+        $(document).on('focus', function () {
+            if (ccms___idle !== null && ccms___idle < new Date(new Date() - 1800000)) {
+                ccms___navLogout();
+            }
+            resetTimeout();
+        });
+        $("#modalLogOut").on("hidden.bs.modal", function () {
+            ccms___navLogout();
         });
     </script>
 }
