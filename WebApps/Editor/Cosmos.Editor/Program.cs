@@ -370,9 +370,6 @@ app.UseRateLimiter();
 // Point to the route that will return the SignalR Hub.
 app.MapHub<LiveEditorHub>("/___cwps_hubs_live_editor");
 
-// Point to the route that will return the SignalR Hub.
-app.MapHub<LiveEditorHub>("/___cwps_hubs_live_editor");
-
 app.MapControllerRoute(
     "MsValidation",
     ".well-known/microsoft-identity-association.json",
