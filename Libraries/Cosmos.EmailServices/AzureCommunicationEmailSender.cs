@@ -80,12 +80,21 @@ namespace Cosmos.EmailServices
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task SendEmailAsync(string emailTo, string subject, string textVersion, string htmlVersion, string? emailFrom = null)
         {
-            var tempParts = options.Value.ConnectionString.Split(";").Where(w => !string.IsNullOrEmpty(w)).Select(part => part.Split('=')).ToDictionary(sp => sp[0], sp => sp[1]);
+            var tempParts = options.Value.ConnectionString.Split(";").Where(w => !string.IsNullOrEmpty(w)).Select(part => part.Split('=')).ToDictionary(sp => sp[0], sp => sp[1], StringComparer.OrdinalIgnoreCase);
             var tempEndPoint = tempParts["endpoint"];
 
             EmailClient emailClient;
+            SendResult = new SendResult();
 
-            if (tempParts["AccountKey"] == "AccessToken")
+            if (!tempParts.ContainsKey("AccessKey"))
+            {
+                SendResult.StatusCode = HttpStatusCode.InternalServerError;
+                SendResult.Message = "AccessKey not found in connection string.";
+                logger.LogInformation(SendResult.Message);
+                return;
+            }
+
+            if (tempParts["AccessKey"] == "AccessToken")
             {
                 emailClient = new EmailClient(endpoint: new Uri(tempEndPoint), credential);
             }
@@ -115,7 +124,6 @@ namespace Cosmos.EmailServices
 
             var response = result.GetRawResponse();
 
-            SendResult = new SendResult();
             SendResult.StatusCode = (HttpStatusCode)response.Status;
 
             if (result.Value.Status == EmailSendStatus.Succeeded)
@@ -132,6 +140,7 @@ namespace Cosmos.EmailServices
             }
 
             logger.LogInformation(SendResult.Message);
+
         }
     }
 }

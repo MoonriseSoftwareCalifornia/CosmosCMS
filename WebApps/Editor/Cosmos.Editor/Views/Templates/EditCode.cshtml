@@ -140,14 +140,18 @@
         // Saving publish date with time zone information
         savePublishDateTime();
 
-        var form = $('#frmSave');
-
         if (editor) {
             $("#" + fieldId).val(editor.getValue());
         }
 
+        let model = {
+            Id: $("#Id").val(),
+            Title: $("#Title").val(),
+            Content: $("#Content").val()
+        };
+
         $.post("@Url.Action("EditCode")",
-            form.serialize(),
+            model,
             function (response) {
 
                 doneSaving();

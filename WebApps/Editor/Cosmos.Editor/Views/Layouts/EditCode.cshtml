@@ -139,14 +139,21 @@
         // Save title
         $("#Title").val($("#tbTitle").val());
 
-        var form = $('#frmSave');
-
         if (editor) {
             $("#" + fieldId).val(editor.getValue());
         }
 
+        let model = {
+            Id: $("#Id").val(),
+            EditingField: $("#EditingField").val(),
+            Head: $("#Head").val(),
+            HtmlHeader: $("#HtmlHeader").val(),
+            FooterHtmlContent: $("#FooterHtmlContent").val(),
+            EditorType: $("#EditorType").val()
+        }
+
         $.post("@Url.Action("EditCode")",
-            form.serialize(),
+            model,
             function (response) {
 
                 doneSaving();

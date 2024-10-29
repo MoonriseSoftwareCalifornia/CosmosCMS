@@ -88,9 +88,14 @@ if (string.IsNullOrEmpty(cosmosIdentityDbName))
 //  required containers.
 if (option.Value.SiteSettings.AllowSetup)
 {
-    var tempParts = connectionString.Split(";").Where(w => !string.IsNullOrEmpty(w)).Select(part => part.Split('=')).ToDictionary(sp => sp[0], sp => sp[1]);
+    var tempParts = connectionString.Split(";").Where(w => !string.IsNullOrEmpty(w)).Select(part => part.Split('=')).ToDictionary(sp => sp[0], sp => sp[1], StringComparer.OrdinalIgnoreCase);
     var tempEndPoint = tempParts["AccountEndpoint"];
     var tempBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+
+    if (!tempParts.ContainsKey("AccountKey"))
+    {
+        throw new ArgumentException("AccountKey not found in database connection string.");
+    }
 
     if (tempParts["AccountKey"] == "AccessToken")
     {

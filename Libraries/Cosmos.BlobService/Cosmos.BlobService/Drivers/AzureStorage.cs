@@ -40,7 +40,12 @@ namespace Cosmos.BlobService.Drivers
         {
             this.containerName = containerName;
             var conparts = config.AzureBlobStorageConnectionString.Split(';');
-            var conpartsDict = conparts.Where(w => !string.IsNullOrEmpty(w)).Select(part => part.Split('=')).ToDictionary(sp => sp[0], sp => sp[1]);
+            var conpartsDict = conparts.Where(w => !string.IsNullOrEmpty(w)).Select(part => part.Split('=')).ToDictionary(sp => sp[0], sp => sp[1], StringComparer.OrdinalIgnoreCase);
+
+            if (!conpartsDict.ContainsKey("AccountKey"))
+            {
+                throw new ArgumentException("Azure Blob Storage connection string is missing AccountKey.");
+            }
 
             if (conpartsDict["AccountKey"] == "AccessToken")
             {

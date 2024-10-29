@@ -7,12 +7,10 @@
 
 namespace Cosmos.Common.Data
 {
-    using System;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.EntityFrameworkCore;
-    using Microsoft.EntityFrameworkCore.Diagnostics;
 
     /// <summary>
     ///     Database Context for Cosmos CMS.
