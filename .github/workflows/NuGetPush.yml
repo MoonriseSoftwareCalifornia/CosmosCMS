@@ -1,9 +1,8 @@
 name: NuGet Push
-
 on:
-  # workflow_dispatch
-  push:
-    branches: [ "master" ]
+  workflow_dispatch
+  # push:
+  #  branches: [ "master" ]
   # pull_request:
   #   branches: [ "master" ]
 jobs:
