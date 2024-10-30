@@ -150,7 +150,7 @@
             Content: $("#Content").val()
         };
 
-        $.post("@Url.Action("EditCode")",
+        $.post("/Templates/EditCode",
             model,
             function (response) {
 

@@ -337,7 +337,7 @@ namespace Cosmos.Cms.Controllers
         /// <param name="model">Layout post <see cref="LayoutIndexViewModel">model</see>.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [HttpPost]
-        public async Task<IActionResult> EditNotes([Bind(include: "Id,IsDefault,LayoutName,Notes")] LayoutIndexViewModel model)
+        public async Task<IActionResult> EditNotes(LayoutIndexViewModel model)
         {
             if (!ModelState.IsValid)
             {
@@ -469,14 +469,8 @@ namespace Cosmos.Cms.Controllers
         /// <exception cref="NotFoundResult">Not found.</exception>
         /// <exception cref="UnauthorizedResult">Unauthorized access attempted.</exception>
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditCode(Guid id, LayoutCodeViewModel layout)
+        public async Task<IActionResult> EditCode(LayoutCodeViewModel layout)
         {
-            if (id != layout.Id)
-            {
-                return NotFound();
-            }
-
             if (ModelState.IsValid)
             {
                 try

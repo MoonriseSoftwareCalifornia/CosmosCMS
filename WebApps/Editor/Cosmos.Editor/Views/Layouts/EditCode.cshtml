@@ -152,7 +152,7 @@
             EditorType: $("#EditorType").val()
         }
 
-        $.post("@Url.Action("EditCode")",
+        $.post("/Layouts/EditCode",
             model,
             function (response) {
 

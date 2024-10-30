@@ -535,7 +535,7 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Deletes users.
         /// </summary>
-        /// <param name="userIds"></param>
+        /// <param name="userIds">User Ids to delete.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -549,6 +549,7 @@ namespace Cosmos.Cms.Controllers
             if (userManager.Users.Count() < 2)
             {
                 ModelState.AddModelError(string.Empty, "Cannot delete the last user account.");
+                return BadRequest(ModelState);
             }
 
             var ids = userIds.Split(',');
@@ -569,7 +570,12 @@ namespace Cosmos.Cms.Controllers
                 }
             }
 
-            return RedirectToAction("Index");
+            if (ModelState.IsValid)
+            {
+                return RedirectToAction("Index");
+            }
+
+            return BadRequest(ModelState);
         }
 
         /// <summary>
