@@ -886,7 +886,7 @@ namespace Cosmos.Cms.Controllers
                 title = $"{model.ParentPageTitle.Trim('/')}/{model.Title.Trim('/')} ";
             }
 
-            if (await dbContext.Articles.Where(a => a.Title.ToLower() == title.ToLower()).CosmosAnyAsync())
+            if (await dbContext.Articles.Where(a => a.Title.ToLower() == title.ToLower() && a.StatusCode != (int)StatusCodeEnum.Deleted).CosmosAnyAsync())
             {
                 if (string.IsNullOrEmpty(model.ParentPageTitle))
                 {
@@ -919,17 +919,17 @@ namespace Cosmos.Cms.Controllers
                     clone.HeadJavaScript = articleViewModel.HeadJavaScript;
                     clone.LanguageCode = articleViewModel.LanguageCode;
 
-                    var result = await articleLogic.Save(clone, await GetUserEmail());
+                    var result = await articleLogic.Save(clone, userId);
 
                     // Open the live editor if there are editable regions on the page.
                     if (result.Model.Content.Contains("editable", StringComparison.InvariantCultureIgnoreCase) ||
                         result.Model.Content.Contains("data-ccms-ceid", StringComparison.InvariantCultureIgnoreCase))
                     {
-                        return RedirectToAction("Edit", new { result.Model.Id });
+                        return RedirectToAction("Edit", new { result.Model.ArticleNumber });
                     }
 
                     // Otherwise, open in the Monaco code editor
-                    return RedirectToAction("EditCode", new { result.Model.Id });
+                    return RedirectToAction("EditCode", new { result.Model.ArticleNumber });
                 }
                 catch (Exception e)
                 {

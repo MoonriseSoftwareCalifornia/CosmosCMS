@@ -1518,7 +1518,7 @@ namespace Cosmos.Cms.Data.Logic
         {
             var articleNumber = DbContext.Articles.Max(m => m.ArticleNumber) + 1;
 
-            return new ()
+            return new()
             {
                 Id = template.Id,
                 ArticleNumber = articleNumber,
@@ -1631,6 +1631,8 @@ namespace Cosmos.Cms.Data.Logic
                     {
                         purgePaths.Add($"/pub/articles/{item.ArticleNumber}/");
                     }
+
+                    await UpdateCatalogEntry(item.ArticleNumber, (StatusCodeEnum)item.StatusCode);
                 }
 
                 // Update the pages collection
@@ -1725,7 +1727,7 @@ namespace Cosmos.Cms.Data.Logic
                 UpdateHeadBaseTag(article);
 
                 // Create a redirect
-                var entity = new Article
+                var entity = new PublishedPage
                 {
                     ArticleNumber = 0,
                     StatusCode = (int)StatusCodeEnum.Redirect,
@@ -1740,15 +1742,24 @@ namespace Cosmos.Cms.Data.Logic
                 };
 
                 // Add redirect here
-                DbContext.Articles.Add(entity);
+                DbContext.Pages.Add(entity);
                 await DbContext.SaveChangesAsync();
             }
 
-            // We have to change the title and paths for all versions now.
-            var versions = await DbContext.Articles.Where(w => w.ArticleNumber == article.ArticleNumber)
-                .ToListAsync();
+            // We have to change the title and paths for all versions now, since the last publish.
+            var lastPublished = await DbContext.Articles.OrderBy(o => o.Published)
+                    .LastOrDefaultAsync(a => a.ArticleNumber == article.ArticleNumber);
 
-            var catalog = await DbContext.ArticleCatalog.Where(a => a.ArticleNumber == article.ArticleNumber).ToListAsync();
+            var versions = await DbContext.Articles.Where(w => w.ArticleNumber == article.ArticleNumber &&
+                                article.Published > lastPublished.Published)
+                                    .ToListAsync();
+
+            if (versions.Count == 0)
+            {
+                // If there are no versions since the last publish, then we need to get all versions.
+                versions = await DbContext.Articles.Where(w => w.ArticleNumber == article.ArticleNumber)
+                                    .ToListAsync();
+            }
 
             if (string.IsNullOrEmpty(article.UrlPath))
             {
@@ -1765,15 +1776,7 @@ namespace Cosmos.Cms.Data.Logic
                 art.UrlPath = article.UrlPath;
             }
 
-            foreach (var item in catalog)
-            {
-                item.Title = newTitle;
-                item.Updated = DateTime.Now.ToUniversalTime();
-                item.UrlPath = article.UrlPath;
-            }
-
             DbContext.Articles.UpdateRange(versions);
-            DbContext.ArticleCatalog.UpdateRange(catalog);
 
             await DbContext.SaveChangesAsync();
 
@@ -1887,14 +1890,12 @@ namespace Cosmos.Cms.Data.Logic
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         private async Task UpdateCatalogEntry(int articleNumber, StatusCodeEnum code)
         {
-            var versions = await DbContext.Articles.Where(w => w.ArticleNumber == articleNumber).ToListAsync();
+            var data = await DbContext.Articles.Where(w => w.ArticleNumber == articleNumber).OrderBy(o => o.VersionNumber).LastOrDefaultAsync();
 
             var catalogEntry = await DbContext.ArticleCatalog.FirstOrDefaultAsync(f => f.ArticleNumber == articleNumber);
 
             if (catalogEntry == null)
             {
-                var data = versions.FirstOrDefault();
-
                 catalogEntry = new CatalogEntry()
                 {
                     ArticleNumber = articleNumber,
@@ -1910,17 +1911,6 @@ namespace Cosmos.Cms.Data.Logic
             }
             else
             {
-                var data = (from v in versions
-                            group v by v.Title into summary
-                            select new CatalogEntry
-                            {
-                                Title = summary.Key,
-                                ArticleNumber = articleNumber,
-                                Published = summary.Max(m => m.Published),
-                                Updated = summary.Max(m => m.Updated),
-                                UrlPath = catalogEntry.UrlPath
-                            }).FirstOrDefault();
-
                 catalogEntry.Updated = data.Updated;
                 catalogEntry.Status = code == StatusCodeEnum.Active ? "Active" : "Inactive";
                 catalogEntry.Published = data.Published;

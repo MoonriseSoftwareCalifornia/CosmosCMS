@@ -546,10 +546,12 @@ namespace Cosmos.Cms.Controllers
                 return BadRequest(ModelState);
             }
 
-            if (userManager.Users.Count() < 2)
+            var userCount = await userManager.Users.CountAsync();
+
+            if (userCount == 1)
             {
                 ModelState.AddModelError(string.Empty, "Cannot delete the last user account.");
-                return BadRequest(ModelState);
+                return RedirectToAction("Index");
             }
 
             var ids = userIds.Split(',');
@@ -560,22 +562,13 @@ namespace Cosmos.Cms.Controllers
 
                 var roles = await userManager.GetRolesAsync(identityUser);
 
-                if (roles.Any(a => a.Equals("Administrators", StringComparison.InvariantCultureIgnoreCase)))
-                {
-                    ModelState.AddModelError(string.Empty, "Cannot remove a member of the User Administrators role.");
-                }
-                else
+                if (!roles.Any(a => a.Equals("Administrators", StringComparison.InvariantCultureIgnoreCase)))
                 {
                     await userManager.DeleteAsync(identityUser);
                 }
             }
 
-            if (ModelState.IsValid)
-            {
-                return RedirectToAction("Index");
-            }
-
-            return BadRequest(ModelState);
+            return RedirectToAction("Index");
         }
 
         /// <summary>

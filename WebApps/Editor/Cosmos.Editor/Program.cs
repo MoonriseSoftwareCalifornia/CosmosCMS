@@ -56,6 +56,7 @@ builder.Services.AddApplicationInsightsTelemetry();
 var cosmosStartup = new CosmosStartup(builder.Configuration);
 var option = cosmosStartup.Build();
 builder.Services.AddSingleton(option);
+
 // The Cosmos connection string
 var connectionString = builder.Configuration.GetConnectionString("ApplicationDbContextConnection");
 if (string.IsNullOrEmpty(connectionString))

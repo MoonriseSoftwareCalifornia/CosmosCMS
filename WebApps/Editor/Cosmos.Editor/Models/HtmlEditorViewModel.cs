@@ -36,10 +36,10 @@ namespace Cosmos.Cms.Models
         {
             Id = model.Id;
             ArticleNumber = model.ArticleNumber;
-            ArticlePermissions = catalogEntry.ArticlePermissions;
+            ArticlePermissions = catalogEntry == null ? new List<ArticlePermission>() : catalogEntry.ArticlePermissions;
             UrlPath = model.UrlPath;
             VersionNumber = model.VersionNumber;
-            this.Published = model.Published;
+            Published = model.Published;
             Title = model.Title;
             Content = model.Content;
             Updated = model.Updated;

@@ -90,9 +90,20 @@ namespace Cosmos.Cms.Common.Services.Configurations
 
             // SETUP VALUES
             var allowSetup = GetValue<bool?>("CosmosAllowSetup");
+
+            // Disable AllowSetup if the database is using token authentication.
+            var dbUsingTokenAuth = configuration.GetConnectionString("ApplicationDbContextConnection").Contains("accesstoken", StringComparison.CurrentCultureIgnoreCase);
+
             if (allowSetup.HasValue)
             {
-                cosmosConfig.SiteSettings.AllowSetup = allowSetup.Value;
+                if (dbUsingTokenAuth)
+                {
+                    cosmosConfig.SiteSettings.AllowSetup = false;
+                }
+                else
+                {
+                    cosmosConfig.SiteSettings.AllowSetup = allowSetup.Value;
+                }
             }
 
             cosmosConfig.SiteSettings.AllowConfigEdit = GetValue<bool>("CosmosAllowConfigEdit");
