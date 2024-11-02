@@ -167,10 +167,10 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
 
                 var user = await userManager.FindByEmailAsync(Input.Email);
 
-                var newAdministrator = await SetupNewAdministrator.Ensure_RolesAndAdmin_Exists(roleManager, userManager, user);
 
                 if (user != null && !await userManager.IsEmailConfirmedAsync(user))
                 {
+                    var newAdministrator = await SetupNewAdministrator.Ensure_RolesAndAdmin_Exists(roleManager, userManager, user);
                     ViewData["ShowResendConfirmEmail"] = true;
                 }
             }
