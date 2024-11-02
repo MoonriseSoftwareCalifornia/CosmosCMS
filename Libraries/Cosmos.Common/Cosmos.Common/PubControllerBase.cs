@@ -44,7 +44,7 @@ namespace Cosmos.Publisher.Controllers
         /// Gets a file and validates user authentication.
         /// </summary>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task<IActionResult> Index()
+        public virtual async Task<IActionResult> Index()
         {
             if (options.Value.SiteSettings.CosmosRequiresAuthentication)
             {

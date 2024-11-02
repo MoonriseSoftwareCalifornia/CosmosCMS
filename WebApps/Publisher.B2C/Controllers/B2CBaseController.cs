@@ -7,7 +7,6 @@
 
 namespace Cosmos.Publisher.B2C.Controllers
 {
-    using System.Configuration;
     using System.Security.Claims;
     using Cosmos.BlobService;
     using Cosmos.Common;
@@ -51,7 +50,7 @@ namespace Cosmos.Publisher.B2C.Controllers
                     return new Guid[] { customerId.Value };
                 }
 
-                throw new ConfigurationErrorsException("CustomerId is not set in the configuration file.");
+                return new Guid[] { };
             }
         }
 
