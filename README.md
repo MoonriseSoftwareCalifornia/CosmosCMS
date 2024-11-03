@@ -1,4 +1,4 @@
-![Cosmos CMS Banner Image](couple-8168096_1920.png)
+![Cosmos CMS Banner Image](CosmosTools.jpg)
 # Cosmos
 
 Cosmos CMS is a modern content management system that is "out of the box" fast, open, and easy to use.  Its cloud-first design comes with built-in integration with Content Distribution Networks (CDN) and supports regional replication redundancy.
