@@ -3,7 +3,7 @@
 
 Cosmos CMS is a modern content management system that is "out of the box" fast, open, and easy to use.  Its cloud-first design comes with built-in integration with Content Distribution Networks (CDN) and supports regional replication redundancy.
 
-[Get Started/Free Install](https://cosmos.moonrise.net) | [Cosmos Documentation Website](https://cosmos.moonrise.net) | [Free Help Options](https://cosmos.moonrise.net/Support)
+[Project Website](https://cosmos.moonrise.net) | [Documentation](https://cosmos.moonrise.net) | [Get Help](https://cosmos.moonrise.net/Support)
 
 [![CodeQL](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml)
 [![Publish Docker Images CI](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml)
