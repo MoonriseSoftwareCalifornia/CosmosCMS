@@ -58,13 +58,6 @@
                     </section>
                     @if (options.Value.SiteSettings.AllowLocalAccounts)
                     {
-                        <div>
-                            @if (Model.ExternalLogins?.Count > 0)
-                            {
-                                <hr />
-                                <h5 class="card-title text-center">Or continue below:</h5>
-                            }
-                        </div>
                         <section>
                             <div asp-validation-summary="All" class="badge badge-primary"></div>
                             <form id="frmReg" asp-route-returnUrl="@Model.ReturnUrl" method="post">
@@ -110,6 +103,13 @@
                                 <h5 id="msgPleaseCheck" class="mt-4" style="display:none">Please check the box before continuing.</h5>
                                 <button type="submit" class="btn btn-dark" >Create account</button>
                             </form>
+                            <div>
+                                @if (Model.ExternalLogins?.Count > 0)
+                                {
+                                    <hr />
+                                    <h5 class="card-title text-center">Or continue below:</h5>
+                                }
+                            </div>
                         </section>
                     }
                 </div>

@@ -55,6 +55,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\Cosmos.Common\Cosmos.Common\Cosmos.Common.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<Compile Update="Templates\EmailTemplates.Designer.cs">
 			<DesignTime>True</DesignTime>
 			<AutoGen>True</AutoGen>
