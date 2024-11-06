@@ -130,12 +130,12 @@
       },
       "Microsoft.Extensions.Azure": {
         "type": "Direct",
-        "requested": "[1.7.6, )",
-        "resolved": "1.7.6",
-        "contentHash": "o2dLnQ8cMw5p7KAtxAPukkk4Mhs4tu96nUyFee4lvfLZEkuyTLhLGT2D5o5bagCwHVxqzt+w4Eb4YOl/pLq6Cw==",
+        "requested": "[1.8.0, )",
+        "resolved": "1.8.0",
+        "contentHash": "D0f5Oo7oKT743bLBrlvKab7F4nApQloZkq2+EQz5sHx2RW1xWOI+cD3fa30ZKB20GNNtvzgTALBZsQvJCHuAoQ==",
         "dependencies": {
-          "Azure.Core": "1.44.0",
-          "Azure.Identity": "1.12.0",
+          "Azure.Core": "1.44.1",
+          "Azure.Identity": "1.13.1",
           "Microsoft.Extensions.Configuration.Abstractions": "2.1.0",
           "Microsoft.Extensions.Configuration.Binder": "2.1.0",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "2.1.0",
@@ -178,9 +178,9 @@
       },
       "NUglify": {
         "type": "Direct",
-        "requested": "[1.21.9, )",
-        "resolved": "1.21.9",
-        "contentHash": "ULyI/scrIRAo2In6cnaCc/QkWUt+wB6pBVt5lrVddOKyamsCAm1XgArkk4px9tVn6SipjhbTt4M38QPlpoET+g=="
+        "requested": "[1.21.10, )",
+        "resolved": "1.21.10",
+        "contentHash": "fur+85BiGCr5ruTNwoEKJTBm6kArcPx2vLPrsT2Q/L6xV/BBiOTmAE824c6cAKMlVLBepr4qLb+E7oV1O5pulQ=="
       },
       "PasswordGenerator": {
         "type": "Direct",
