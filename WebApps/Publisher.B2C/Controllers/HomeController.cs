@@ -57,7 +57,7 @@ public class HomeController : B2CBaseController
         this.articleLogic = articleLogic;
         this.options = options;
         this.dbContext = dbContext;
-        this.userGroupName = configuration.GetValue<string>("AzureAd:UserGroup") !;
+        this.userGroupName = configuration.GetValue<string>("UserGroups:User") !;
     }
 
     /// <summary>
@@ -79,7 +79,7 @@ public class HomeController : B2CBaseController
 
             if (options.Value.SiteSettings.CosmosRequiresAuthentication)
             {
-                if (User == null || User.Identity == null || !User.Identity.IsAuthenticated || !IsMemberOfGroup(this.userGroupName))
+                if (User == null || User.Identity == null || !User.Identity.IsAuthenticated)
                 {
                     return Unauthorized();
                 }
@@ -158,9 +158,8 @@ public class HomeController : B2CBaseController
 
                 // Check if user is a member of the group, if not alert that the person needs permission.
                 var isMember = IsMemberOfGroup(userGroupName);
-                var isMemberOfAdminGroup = IsMemberOfGroup("Admin");
 
-                if (!isMember && !isMemberOfAdminGroup)
+                if (!isMember)
                 {
                     return View("__NeedPermission");
                 }
