@@ -162,7 +162,12 @@ public class HomeController : B2CBaseController
 
                 if (!isMember && !isMemberOfAdminGroup)
                 {
-                    return View("__NeedPermission");
+                    var deniedPage = await articleLogic.GetPublishedPageByUrl("/Permission_Denied", lang, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(20));
+                    if (deniedPage == null)
+                    {
+                        return View("__NeedPermission");
+                    }
+                    return View(deniedPage);
                 }
 
                 Response.Headers.Expires = DateTimeOffset.UtcNow.AddMinutes(-30).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");

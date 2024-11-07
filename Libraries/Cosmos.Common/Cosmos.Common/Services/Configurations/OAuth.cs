@@ -23,6 +23,12 @@ namespace Cosmos.Common.Services.Configurations
         public string ClientSecret { get; set; } = string.Empty;
 
         /// <summary>
+        /// Gets or sets the Microsoft Tenant Id.
+        /// </summary>
+        /// <remarks>For single-tenant apps, this is the tenant id of the app registration.</remarks>
+        public string TenantId { get; set; } = string.Empty;
+
+        /// <summary>
         /// Indicates if this is configured or not.
         /// </summary>
         /// <returns>True means configuration is present.</returns>
