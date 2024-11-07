@@ -146,6 +146,13 @@ if (entraIdOAuth != null && entraIdOAuth.IsConfigured())
 {
     builder.Services.AddAuthentication().AddMicrosoftAccount(options =>
     {
+        if (!string.IsNullOrEmpty(entraIdOAuth.TenantId))
+        {
+            // This is for registered apps in the Azure portal that are single tenant.
+            options.AuthorizationEndpoint = $"https://login.microsoftonline.com/{entraIdOAuth.TenantId}/oauth2/authorize";
+            options.TokenEndpoint = $"https://login.microsoftonline.com/{entraIdOAuth.TenantId}/oauth2/token";
+        }
+
         options.ClientId = entraIdOAuth.ClientId;
         options.ClientSecret = entraIdOAuth.ClientSecret;
     });
