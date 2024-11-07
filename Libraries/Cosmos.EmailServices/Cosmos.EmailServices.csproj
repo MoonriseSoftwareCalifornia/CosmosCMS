@@ -7,9 +7,9 @@
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<Company>Moonrise Software LLC</Company>
-		<Version>8.0.10.22</Version>
-		<AssemblyVersion>8.0.10.22</AssemblyVersion>
-		<FileVersion>8.0.10.22</FileVersion>
+		<Version>8.0.10.24</Version>
+		<AssemblyVersion>8.0.10.24</AssemblyVersion>
+		<FileVersion>8.0.10.24</FileVersion>
 		<PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
 		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
 		<RepositoryUrl></RepositoryUrl>
@@ -52,6 +52,10 @@
 		</PackageReference>
 
 		<PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Cosmos.Common\Cosmos.Common\Cosmos.Common.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

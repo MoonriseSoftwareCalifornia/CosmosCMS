@@ -43,7 +43,7 @@ namespace Cosmos.Publisher.B2C.Controllers
             this.dbContext = dbContext;
             this.storageContext = storageContext;
             this.configuration = configuration;
-            this.userGroupName = configuration.GetValue<string>("AzureAd:UserGroup")!;
+            this.userGroupName = configuration.GetValue<string>("UserGroups:User")!;
         }
 
         /// <summary>
@@ -111,9 +111,8 @@ namespace Cosmos.Publisher.B2C.Controllers
 
                 // Check if user is a member of the group, if not alert that the person needs permission.
                 var isMember = IsMemberOfGroup(userGroupName);
-                var isMemberOfAdminGroup = IsMemberOfGroup("Admin");
 
-                if (!isMember && !isMemberOfAdminGroup)
+                if (!isMember)
                 {
                     return Unauthorized();
                 }

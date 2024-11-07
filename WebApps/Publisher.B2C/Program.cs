@@ -214,13 +214,13 @@ builder.Services.AddRazorPages()
 
 // Add authorization handler
 builder.Services.AddSingleton<IAuthorizationHandler, HandlerUsingAzureGroups>();
-var userGroup = builder.Configuration.GetValue<string>("AzureAd:UserGroup");
+var userGroup = builder.Configuration.GetValue<string>("UserGroups:User");
+var adminGroup = builder.Configuration.GetValue<string>("UserGroups:Admin");
+
 if (string.IsNullOrEmpty(userGroup))
 {
     throw new InvalidOperationException("User group id is missing.");
 }
-
-var adminGroup = builder.Configuration.GetValue<string>("AzureAd:AdminGroup");
 
 builder.Services.AddAuthorization(options =>
 {

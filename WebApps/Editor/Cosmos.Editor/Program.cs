@@ -108,7 +108,7 @@ if (option.Value.SiteSettings.AllowSetup)
     }
 
     using var dbContext = new ApplicationDbContext(tempBuilder.Options);
-    dbContext.Database.EnsureCreated();
+    _ = dbContext.Database.EnsureCreatedAsync().Result;
 }
 
 // Add the Cosmos database context here

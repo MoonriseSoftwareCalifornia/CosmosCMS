@@ -15,9 +15,9 @@
       },
       "Cosmos.BlobService": {
         "type": "Direct",
-        "requested": "[8.0.10.18, )",
-        "resolved": "8.0.10.18",
-        "contentHash": "sE+p20NbqFbtlD47HDDTF8at7QflmHSflxke49BXK1TFrfU7t93Pb+1cH4CEQZcZyguCMJTRjGSDu9Qj79bQHw==",
+        "requested": "[8.0.10.20, )",
+        "resolved": "8.0.10.20",
+        "contentHash": "4xrB8kjtdQxciSZD2ozrapslItWQUbarEngYob6H6Pks+Of5+2MiY85yeQ/OPJpIzaHo/X8elnSRYnd82dMgfQ==",
         "dependencies": {
           "Azure.Identity": "1.13.1",
           "Azure.Storage.Blobs": "12.22.2",
@@ -29,14 +29,14 @@
       },
       "Cosmos.Common": {
         "type": "Direct",
-        "requested": "[8.0.10.18, )",
-        "resolved": "8.0.10.18",
-        "contentHash": "Xnw4BIG+zMQ8u8bO8vOKpoPFxfl+IoJO/4mV/93XTiitrDHdNefE5mOd4QWD0F3Pm/sDTmd2b7Iz5NW9HQKIJA==",
+        "requested": "[8.0.10.20, )",
+        "resolved": "8.0.10.20",
+        "contentHash": "M+E3d5I2OxbPmQA4Ypb9fJ0owuj7Jnhb+tKAWqtiFVDpA3omLTwKyQTYzWqord0qvy+3hDAzcx6TdN25Ahh3aA==",
         "dependencies": {
           "AspNetCore.Identity.CosmosDb": "8.0.7",
           "Azure.Extensions.AspNetCore.Configuration.Secrets": "1.3.2",
           "Azure.Identity": "1.13.1",
-          "Cosmos.BlobService": "8.0.10.18",
+          "Cosmos.BlobService": "8.0.10.20",
           "MailChimp.Net.V3": "5.5.0",
           "Microsoft.AspNetCore.DataProtection.EntityFrameworkCore": "8.0.10",
           "Microsoft.AspNetCore.Identity.EntityFrameworkCore": "8.0.10",
@@ -48,9 +48,9 @@
       },
       "Cosmos.EmailServices": {
         "type": "Direct",
-        "requested": "[8.0.10.18, )",
-        "resolved": "8.0.10.18",
-        "contentHash": "cm2m45eDRxyBwbQMh7GH3NJ/KCktASaZvV+LzOwrog0SAxo+RK5T2QPIw4rejnunaDYYLKfudRFYl9d/ROJptQ==",
+        "requested": "[8.0.10.20, )",
+        "resolved": "8.0.10.20",
+        "contentHash": "st7tRV5z+P6uEUA+1QsX8g8HqLcu+gh2IKERIY5MtFJIO1BeUX3i+CVTkRr6HxlH5ga0L4M/KBg9gphSid0rQQ==",
         "dependencies": {
           "Azure.Communication.Email": "1.0.1",
           "Azure.Identity": "1.13.1",
@@ -62,9 +62,9 @@
       },
       "Cosmos.MicrosoftGraph": {
         "type": "Direct",
-        "requested": "[8.0.10.18, )",
-        "resolved": "8.0.10.18",
-        "contentHash": "vElSw+zVEWa38ao/2S0Ah88ADgPxmH/7gSmUlZ+Msu7Aa2tgVeYn1NsibAviICvLVmprVwbt0BHZCPapd1wrbQ==",
+        "requested": "[8.0.10.20, )",
+        "resolved": "8.0.10.20",
+        "contentHash": "Igc1QzXMaqQL1Qxt97TeE2x4XF28l+8fO5UrhbgrzOf010GYPi/oBsmP+lVofapau9ERNH/dgAevsq88d0h69Q==",
         "dependencies": {
           "Azure.Identity": "1.13.1",
           "Microsoft.AspNetCore.Authorization": "8.0.10",
