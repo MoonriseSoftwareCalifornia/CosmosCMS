@@ -186,12 +186,15 @@ if (entraIdOAuth != null && entraIdOAuth.IsConfigured())
         if (!string.IsNullOrEmpty(entraIdOAuth.TenantId))
         {
             // This is for registered apps in the Azure portal that are single tenant.
-            options.AuthorizationEndpoint = $"https://login.microsoftonline.com/{entraIdOAuth.TenantId}/oauth2/authorize";
-            options.TokenEndpoint = $"https://login.microsoftonline.com/{entraIdOAuth.TenantId}/oauth2/token";
+            options.AuthorizationEndpoint = $"https://login.microsoftonline.com/{entraIdOAuth.TenantId}/oauth2/v2.0/authorize";
+            options.TokenEndpoint = $"https://login.microsoftonline.com/{entraIdOAuth.TenantId}/oauth2/v2.0/token";
         }
 
         options.ClientId = entraIdOAuth.ClientId;
-        options.ClientSecret = entraIdOAuth.ClientSecret;
+        if (!string.IsNullOrEmpty(entraIdOAuth.ClientSecret))
+        {
+            options.ClientSecret = entraIdOAuth.ClientSecret;
+        }
     });
 }
 
