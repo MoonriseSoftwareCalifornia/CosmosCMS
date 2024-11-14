@@ -43,9 +43,8 @@ namespace Cosmos.Common
                     return false; // No one can access this page.
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                var message = ex.Message; // Debugging
                 return false;
             }
 
@@ -57,15 +56,14 @@ namespace Cosmos.Common
                 return true; // Anonymous users can view, so that means everyone.
             }
 
-            // At this point, only authenticated users have access.
-            if (!user.Identity.IsAuthenticated)
+            if (user.Identity.IsAuthenticated && await dbContext.Roles.Where(w => roleIds.Contains(w.Id) && w.NormalizedName == "AUTHENTICATED").CosmosAnyAsync())
             {
-                return false;
+                return true;
             }
 
             // Get the current user ID and see if this person has user-specific access.
             var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (permissions.Any(a => a.IdentityObjectId.Equals(userId, StringComparison.OrdinalIgnoreCase)))
+            if (permissions.Exists(a => a.IdentityObjectId.Equals(userId, StringComparison.OrdinalIgnoreCase)))
             {
                 return true; // Current user has access.
             }

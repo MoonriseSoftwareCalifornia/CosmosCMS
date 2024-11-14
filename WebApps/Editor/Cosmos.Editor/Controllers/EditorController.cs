@@ -1127,6 +1127,12 @@ namespace Cosmos.Cms.Controllers
                 await roleManager.CreateAsync(new IdentityRole("Anonymous"));
             }
 
+            // Ensure the Authenticated role exists if the publisher requires authentication.
+            if (options.Value.SiteSettings.CosmosRequiresAuthentication && !await roleManager.RoleExistsAsync("Authenticated"))
+            {
+                await roleManager.CreateAsync(new IdentityRole("Authenticated"));
+            }
+
             ViewData["ArticleNumber"] = catalogEntry.ArticleNumber;
             ViewData["ArticlePermissions"] = catalogEntry.ArticlePermissions;
             var objectIds = catalogEntry.ArticlePermissions.Select(s => s.IdentityObjectId).ToArray();
