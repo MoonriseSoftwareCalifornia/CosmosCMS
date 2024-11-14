@@ -13,6 +13,7 @@ namespace Cosmos.IdentityManagement.Website.Controllers
     using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Cms.Models;
     using Cosmos.Common.Data;
+    using Cosmos.Editor.Services;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
@@ -34,10 +35,10 @@ namespace Cosmos.IdentityManagement.Website.Controllers
         /// <summary>
         /// Initializes a new instance of the <see cref="RolesController"/> class.
         /// </summary>
-        /// <param name="options"></param>
-        /// <param name="userManager"></param>
-        /// <param name="roleManager"></param>
-        /// <param name="dbContext"></param>
+        /// <param name="options">Cosmos options.</param>
+        /// <param name="userManager">User manager service.</param>
+        /// <param name="roleManager">Role manager service.</param>
+        /// <param name="dbContext">Database context.</param>
         public RolesController(
             UserManager<IdentityUser> userManager,
             RoleManager<IdentityRole> roleManager,
@@ -49,30 +50,32 @@ namespace Cosmos.IdentityManagement.Website.Controllers
             this.userManager = userManager;
             this.roleManager = roleManager;
             this.dbContext = dbContext;
+
+            SetupNewAdministrator.Ensure_Roles_Exists(roleManager).Wait();
         }
 
         /// <summary>
         /// Adds a new role.
         /// </summary>
-        /// <param name="RoleName">Role name.</param>
+        /// <param name="roleName">Role name.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(string RoleName)
+        public async Task<IActionResult> Create(string roleName)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            if (string.IsNullOrEmpty(RoleName))
+            if (string.IsNullOrEmpty(roleName))
             {
                 return BadRequest("Rule name is required.");
             }
 
-            if (await roleManager.RoleExistsAsync(RoleName))
+            if (await roleManager.RoleExistsAsync(roleName))
             {
-                return BadRequest($"Role '{RoleName}' already exists");
+                return BadRequest($"Role '{roleName}' already exists");
             }
 
             try
@@ -80,7 +83,7 @@ namespace Cosmos.IdentityManagement.Website.Controllers
                 await roleManager.CreateAsync(new IdentityRole()
                 {
                     Id = Guid.NewGuid().ToString(),
-                    Name = RoleName
+                    Name = roleName
                 });
             }
             catch (Exception e)
@@ -105,11 +108,6 @@ namespace Cosmos.IdentityManagement.Website.Controllers
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
-            }
-
-            if (options.Value.SiteSettings.CosmosRequiresAuthentication && !await roleManager.RoleExistsAsync("Anonymous"))
-            {
-                await roleManager.CreateAsync(new IdentityRole("Anonymous"));
             }
 
             if (string.IsNullOrEmpty(ids))
@@ -173,7 +171,7 @@ namespace Cosmos.IdentityManagement.Website.Controllers
                 return BadRequest(ModelState);
             }
 
-            var safeRoles = new string[] { "authors", "administrators", "authors", "editors", "reviewers", "anonymous" };
+            var safeRoles = new string[] { "authors", "administrators", "authors", "editors", "reviewers", "anonymous", "authenticated" };
 
             var roles = await roleManager.Roles
                 .Where(w => ids.Contains(w.Id)).ToListAsync();

@@ -442,7 +442,6 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         ///     Saves the code and html of the page.
         /// </summary>
-        /// <param name="id">ID of the layout.</param>
         /// <param name="layout">Post <see cref="LayoutCodeViewModel">model</see>.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         /// <remarks>

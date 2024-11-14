@@ -16,6 +16,7 @@ namespace Cosmos.Cms.Controllers
     using System.Threading.Tasks;
     using Cosmos.Cms.Models;
     using Cosmos.Common.Data;
+    using Cosmos.Editor.Services;
     using Cosmos.EmailServices;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
@@ -61,6 +62,8 @@ namespace Cosmos.Cms.Controllers
             this.roleManager = roleManager;
             this.emailSender = (ICosmosEmailSender)emailSender;
             this.dbContext = dbContext;
+
+            SetupNewAdministrator.Ensure_Roles_Exists(roleManager).Wait();
         }
 
         /// <summary>

@@ -22,25 +22,15 @@ namespace Cosmos.Editor.Services
         /// <summary>
         /// Ensures the required roles exist, and, add the first user as an administrator.
         /// </summary>
-        /// <param name="roleManager"></param>
-        /// <param name="userManager"></param>
-        /// <param name="user"></param>
+        /// <param name="roleManager">Role manager.</param>
+        /// <param name="userManager">User manager.</param>
+        /// <param name="user">Logged in identity user.</param>
         /// <returns>True if a new administrator was created.</returns>
         public static async Task<bool> Ensure_RolesAndAdmin_Exists(RoleManager<IdentityRole> roleManager, UserManager<IdentityUser> userManager, IdentityUser user)
         {
-            foreach (var role in RequiredIdentityRoles.Roles)
+            if (!await Ensure_Roles_Exists(roleManager))
             {
-                if (!await roleManager.RoleExistsAsync(role))
-                {
-                    var identityRole = new IdentityRole(role);
-                    var result = await roleManager.CreateAsync(identityRole);
-                    if (!result.Succeeded)
-                    {
-                        var error = result.Errors.FirstOrDefault();
-                        var exception = new Exception($"Code: {error.Code} - {error.Description}");
-                        throw exception;
-                    }
-                }
+                throw new InvalidOperationException("Required roles do not exist or could not be created.");
             }
 
             var userCount = await userManager.Users.CountAsync();
@@ -61,14 +51,14 @@ namespace Cosmos.Editor.Services
                     if (!confirmResult.Succeeded)
                     {
                         var error = result.Errors.FirstOrDefault();
-                        var exception = new Exception($"Code: {error.Code} - {error.Description}");
+                        var exception = new InvalidOperationException($"Code: {error?.Code} - {error?.Description}");
                         throw exception;
                     }
                 }
                 else
                 {
                     var error = result.Errors.FirstOrDefault();
-                    var exception = new Exception($"Code: {error.Code} - {error.Description}");
+                    var exception = new InvalidOperationException($"Code: {error?.Code} - {error?.Description}");
                     throw exception;
                 }
 
@@ -77,5 +67,33 @@ namespace Cosmos.Editor.Services
 
             return false;
         }
+
+        /// <summary>
+        /// Ensures the required roles exist.
+        /// </summary>
+        /// <param name="roleManager">Role manager service.</param>
+        /// <returns>True if roles are now present.</returns>
+        public static async Task<bool> Ensure_Roles_Exists(RoleManager<IdentityRole> roleManager)
+        {
+            foreach (var role in RequiredIdentityRoles.Roles)
+            {
+                if (!await roleManager.RoleExistsAsync(role))
+                {
+                    var identityRole = new IdentityRole(role);
+                    var result = await roleManager.CreateAsync(identityRole);
+                    if (!result.Succeeded)
+                    {
+                        var error = result.Errors.FirstOrDefault();
+                        var exception = new InvalidOperationException($"Code: {error?.Code} - {error?.Description}");
+                        throw exception;
+                    }
+                }
+            }
+
+            var roleCount = (int)await roleManager.Roles.CountAsync();
+
+            return roleCount == RequiredIdentityRoles.Roles.Count;
+        }
+
     }
 }

@@ -15,24 +15,6 @@ namespace Cosmos.Cms.Data
     public static class RequiredIdentityRoles
     {
         /// <summary>
-        /// Gets list of roles required for Cosmos to work.
-        /// </summary>
-        public static List<string> Roles
-        {
-            // Reviewers,Authors,Editors,Administrators
-            get
-            {
-                var roles = new List<string>();
-                roles.Add(Administrators);
-                roles.Add(Authors);
-                roles.Add(Editors);
-                roles.Add(Reviewers);
-
-                return roles;
-            }
-        }
-
-        /// <summary>
         /// Administrators role.
         /// </summary>
         public const string Administrators = "Administrators";
@@ -51,5 +33,36 @@ namespace Cosmos.Cms.Data
         /// Reviewers.
         /// </summary>
         public const string Reviewers = "Reviewers";
+
+        // Roles NOT used by the editor.
+
+        /// <summary>
+        /// Reviewers.
+        /// </summary>
+        public const string Authenticated = "Authenticated";
+
+        /// <summary>
+        /// Reviewers.
+        /// </summary>
+        public const string Anonymous = "Anonymous";
+
+        /// <summary>
+        /// Gets list of roles required for Cosmos to work.
+        /// </summary>
+        public static List<string> Roles
+        {
+            get
+            {
+                return
+                [
+                    Administrators,
+                    Authors,
+                    Editors,
+                    Reviewers,
+                    Authenticated,
+                    Anonymous
+                ];
+            }
+        }
     }
 }
