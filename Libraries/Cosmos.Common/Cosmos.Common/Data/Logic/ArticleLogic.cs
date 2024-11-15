@@ -309,7 +309,7 @@ namespace Cosmos.Common.Data.Logic
         /// </summary>
         /// <param name="text">Search text.</param>
         /// <returns>List of articles.</returns>
-        public async Task<List<TableOfContentsItem>> Search(string text)
+        public async Task<List<TableOfContentsItem>> Search(string text, bool? includeText)
         {
             if (string.IsNullOrEmpty(text))
             {
