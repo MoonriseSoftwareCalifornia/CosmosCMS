@@ -43,5 +43,8 @@ namespace Cosmos.Common.Models
         /// Gets or sets author name.
         /// </summary>
         public string AuthorInfo { get; set; }
+
+        //
+        public string Content { get; set; }
     }
 }

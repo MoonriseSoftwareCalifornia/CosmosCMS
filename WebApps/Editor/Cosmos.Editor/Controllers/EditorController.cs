@@ -22,6 +22,7 @@ namespace Cosmos.Cms.Controllers
     using Cosmos.Common.Models;
     using Cosmos.Editor.Data;
     using Cosmos.Editor.Models;
+    using Cosmos.Editor.Services;
     using HtmlAgilityPack;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
@@ -88,6 +89,9 @@ namespace Cosmos.Cms.Controllers
             }
 
             this.viewRenderService = viewRenderService;
+
+            // Ensure the required roles exist.
+            SetupNewAdministrator.Ensure_Roles_Exists(roleManager).Wait();
         }
 
         /// <summary>
@@ -1120,12 +1124,6 @@ namespace Cosmos.Cms.Controllers
             ViewData["showingRoles"] = forRoles;
 
             var catalogEntry = await dbContext.ArticleCatalog.FirstOrDefaultAsync(f => f.ArticleNumber == id);
-
-            // Ensure the anonymous role exists if the publisher requires authentication.
-            if (options.Value.SiteSettings.CosmosRequiresAuthentication && !await roleManager.RoleExistsAsync("Anonymous"))
-            {
-                await roleManager.CreateAsync(new IdentityRole("Anonymous"));
-            }
 
             ViewData["ArticleNumber"] = catalogEntry.ArticleNumber;
             ViewData["ArticlePermissions"] = catalogEntry.ArticlePermissions;

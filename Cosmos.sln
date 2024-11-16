@@ -22,7 +22,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cosmos.MicrosoftGraph", "Libraries\Cosmos.MicrosoftGraph\Cosmos.MicrosoftGraph.csproj", "{0DBA97E7-0728-4B89-962C-CB084C968CE4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cosmos.Publisher.B2C", "WebApps\Publisher.B2C\Cosmos.Publisher.B2C.csproj", "{4BDDA408-86B5-41F8-AD3F-3B140582F799}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cosmos.Publisher.B2C", "WebApps\Publisher.B2C\Cosmos.Publisher.B2C.csproj", "{89456517-D671-40D4-965F-A87A76C8E773}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -54,10 +54,10 @@ Global
 		{0DBA97E7-0728-4B89-962C-CB084C968CE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0DBA97E7-0728-4B89-962C-CB084C968CE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0DBA97E7-0728-4B89-962C-CB084C968CE4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4BDDA408-86B5-41F8-AD3F-3B140582F799}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4BDDA408-86B5-41F8-AD3F-3B140582F799}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4BDDA408-86B5-41F8-AD3F-3B140582F799}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4BDDA408-86B5-41F8-AD3F-3B140582F799}.Release|Any CPU.Build.0 = Release|Any CPU
+		{89456517-D671-40D4-965F-A87A76C8E773}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89456517-D671-40D4-965F-A87A76C8E773}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89456517-D671-40D4-965F-A87A76C8E773}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89456517-D671-40D4-965F-A87A76C8E773}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

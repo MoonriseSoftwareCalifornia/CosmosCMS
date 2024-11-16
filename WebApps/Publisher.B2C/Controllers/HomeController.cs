@@ -166,6 +166,7 @@ public class HomeController : B2CBaseController
                     {
                         return View("__NeedPermission");
                     }
+
                     return View(deniedPage);
                 }
 

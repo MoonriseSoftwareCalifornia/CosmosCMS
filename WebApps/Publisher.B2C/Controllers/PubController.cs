@@ -120,21 +120,6 @@ namespace Cosmos.Publisher.B2C.Controllers
                 // Gets a path to file.
                 var path = HttpContext.Request.Path.ToString().ToLower();
 
-                // See if the article is in protected storage.
-                if (path.StartsWith("/pub/articles/"))
-                {
-                    var id = path.TrimStart('/').Split('/')[2];
-
-                    if (int.TryParse(id, out var articleNumber))
-                    {
-                        // Check for user authorization.
-                        if (!await CosmosUtilities.AuthUser(dbContext, User, articleNumber))
-                        {
-                            return Unauthorized();
-                        }
-                    }
-                }
-
                 Response.Headers.Expires = DateTimeOffset.UtcNow.ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
             }
 
