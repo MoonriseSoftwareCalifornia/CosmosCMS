@@ -44,7 +44,10 @@ namespace Cosmos.Common.Models
         /// </summary>
         public string AuthorInfo { get; set; }
 
-        //
+        /// <summary>
+        /// Page content.
+        /// </summary>
+        /// <remarks>Not stored in the database.</remarks>
         public string Content { get; set; }
     }
 }

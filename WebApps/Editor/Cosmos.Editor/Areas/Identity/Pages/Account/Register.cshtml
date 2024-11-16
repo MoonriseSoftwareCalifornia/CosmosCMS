@@ -5,7 +5,7 @@
 @model RegisterModel
 @{
     ViewData["Title"] = "Create Account";
-    Html.ViewContext.ViewBag.BrowserTitle = "Create Your Account";
+    Html.ViewContext.ViewBag.BrowserTitle = "Register Account";
     var showLogin = (bool)ViewData["ShowLogin"];
 }
 
@@ -14,42 +14,51 @@
         <div class="col-md-6 col-sm-10">
             <div class="card bg-secondary text-light">
                 <div class="card-header">
-                    <h4 class=" text-center">Create Your Account</h4>
+                    <h2 class=" text-center">Register Account</h2>
                 </div>
                 <div class="card-body">
                     <section>
-                        @if (showLogin)
-                        {
-
-                            <p class="card-text text-center mb-3">Already have an account? <a class="btn btn-sm btn-dark" asp-area="Identity" asp-page="/Account/Login">Login</a></p>
-                        }
-                        else
-                        {
-
-                            <p class="card-text text-center mb-3">Create the Administrator Account</p>
-                        }
+                        <h5>Terms and Conditions</h5> 
+                        <div style="font-size:8pt;">
+                            <p>
+                                Cosmos CMS is free software: you can use it, redistribute it, and/or modify
+                                it under the terms of the  <a target="_blank" href="https://github.com/MoonriseSoftwareCalifornia/CosmosCMS?tab=GPL-3.0-1-ov-file#readme">
+                                    GNU General Public License Version 3
+                                </a> as published by the
+                                Free Software Foundation.
+                            </p>
+                            <p>Cosmos CMS &copy; @DateTime.UtcNow.Year <a target="_blank" href="https://www.moonrise.net">Moonrise Software LLC.</a></p>
+                        </div>
+                        <div id="ckBoxDiv" class="form-check mb-4" style="position:relative">
+                            <input class="form-check-input" type="checkbox" value="true" id="chkTerms">
+                            <label class="form-check-label" for="flexCheckDefault">
+                                By checking this box, you agree to the terms and conditions of the GNU General
+                                Public License Version 3.
+                            </label>
+                        </div>                        
                     </section>
+                    <hr />
                     <section>
-                        <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
-                            <div class="d-grid gap-3 mb-3">
+                        <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal frmReg">
+                            <div class="d-grid gap-3">
                                 @foreach (var provider in Model.ExternalLogins)
                                 {
                                     @if (provider.Name == "Facebook")
                                     {
                                         <button type="submit" class="btn btn-dark" name="provider" value="@provider.Name" title="Create account using  @provider.DisplayName account">
-                                            <img height="35" alt="Facebook Login Icon" src="~/lib/images/facebook.png" /> Create account using @provider.DisplayName
+                                            <img height="35" alt="Facebook Login Icon" src="~/lib/images/facebook.png" /> Register using @provider.DisplayName
                                         </button>
                                     }
                                     else if (provider.Name == "Google")
                                     {
                                         <button type="submit" class="btn btn btn-dark" name="provider" value="@provider.Name" title="Create account using  @provider.DisplayName account">
-                                            <img height="35" alt="Google Login Icon" src="~/lib/images/img_login_google2.2x.png" /> Create account using @provider.DisplayName
+                                            <img height="35" alt="Google Login Icon" src="~/lib/images/img_login_google2.2x.png" /> Register using @provider.DisplayName
                                         </button>
                                     }
                                     else if (provider.Name == "Microsoft" || provider.Name == "OpenIdConnect")
                                     {
                                         <button type="submit" class="btn btn btn-dark" name="provider" value="@provider.Name" title="Create account using  @provider.DisplayName account">
-                                            <img height="35" alt="Microsoft Login Icon" src="~/lib/images/img_login_microsoft2.2x.png" /> Create account using @provider.DisplayName
+                                            <img height="35" alt="Microsoft Login Icon" src="~/lib/images/img_login_microsoft2.2x.png" /> Register using @provider.DisplayName
                                         </button>
                                     }
                                 }
@@ -58,9 +67,10 @@
                     </section>
                     @if (options.Value.SiteSettings.AllowLocalAccounts)
                     {
-                        <section>
+                        <div>
                             <div asp-validation-summary="All" class="badge badge-primary"></div>
-                            <form id="frmReg" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                            <form class="frmReg" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                                <h5>Register using Cosmos:</h5>
                                 <div class="form-group">
                                     <label asp-for="Input.Email"></label>
                                     <input asp-for="Input.Email" class="form-control" />
@@ -76,42 +86,18 @@
                                     <input asp-for="Input.ConfirmPassword" class="form-control" />
                                     <span asp-validation-for="Input.ConfirmPassword" class="badge badge-primary"></span>
                                 </div>
-                                <hr />
-                                <div class="form-check mb-4">
-                                    @Html.HiddenFor(m => m.Input.AgreeToTerms)
-                                    <h5>Terms and Conditions</h5>
-                                    <div style="font-size:8pt;">
-                                        <p>
-                                            Cosmos CMS is free software: you can use it, redistribute it, and/or modify
-                                            it under the terms of the  <a target="_blank" href="https://github.com/MoonriseSoftwareCalifornia/CosmosCMS?tab=GPL-3.0-1-ov-file#readme">
-                                                GNU General Public License Version 3</a> as published by the
-                                            Free Software Foundation. 
-                                        </p>
-                                        <p>
-                                            Cosmos CMS is distributed in the hope that it will be useful, but WITHOUT ANY
-                                            WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-                                            PARTICULAR PURPOSE.  See the GNU General Public License for more details.</p>
-                                        <p>Cosmos CMS &copy; @DateTime.UtcNow.Year <a target="_blank" href="https://www.moonrise.net">Moonrise Software LLC.</a></p>
-                                    </div>
-                                    
-                                    <input class="form-check-input" type="checkbox" value="true" id="chkTerms">
-                                    <label class="form-check-label" for="flexCheckDefault">
-                                        By checking this box, you agree to the terms and conditions of the GNU General
-                                        Public License Version 3.
-                                    </label>
-                                </div>
-                                <h5 id="msgPleaseCheck" class="mt-4" style="display:none">Please check the box before continuing.</h5>
-                                <button type="submit" class="btn btn-dark" >Create account</button>
+                                @Html.HiddenFor(m => m.Input.AgreeToTerms)
+                                <button type="submit" class="btn btn-dark">Go <i class="fa-solid fa-circle-right"></i></button>
                             </form>
-                            <div>
-                                @if (Model.ExternalLogins?.Count > 0)
-                                {
-                                    <hr />
-                                    <h5 class="card-title text-center">Or continue below:</h5>
-                                }
-                            </div>
-                        </section>
+                        </div>
                     }
+                    <hr />
+                    <section>
+                        @if (showLogin)
+                        {
+                            <p class="card-text text-center mb-3">Think you may already have an account? <a class="btn btn-sm btn-dark" asp-area="Identity" asp-page="/Account/Login">Click here to log in</a></p>
+                        }
+                    </section>
                 </div>
 
             </div>
@@ -125,12 +111,17 @@
 
 <script>
     $(document).ready(function () {
-        $("#frmReg").submit(function (e) {
+        $(".frmReg").submit(function (e) {
             if ($('#chkTerms').is(':checked')) {
                 $("#frmReg").submit();
             } else {
                 e.preventDefault();
-                $("#msgPleaseCheck").show();
+                alert("Please accept terms before continuing.");
+                $("#ckBoxDiv").css({
+                    "border-color": "#C1E0FF",
+                    "border-weight": "1px",
+                    "border-style": "solid"
+                });
             }
         });
 
