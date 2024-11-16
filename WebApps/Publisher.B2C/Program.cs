@@ -24,6 +24,7 @@ using Microsoft.Azure.Cosmos.Fluent;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
+using Newtonsoft.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -211,6 +212,11 @@ builder.Services.AddControllersWithViews(options =>
 });
 builder.Services.AddRazorPages()
     .AddMicrosoftIdentityUI();
+
+builder.Services.AddMvc()
+                .AddNewtonsoftJson(options =>
+                    options.SerializerSettings.ContractResolver =
+                        new DefaultContractResolver());
 
 // Add authorization handler
 builder.Services.AddSingleton<IAuthorizationHandler, HandlerUsingAzureGroups>();
