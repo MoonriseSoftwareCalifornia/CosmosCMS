@@ -111,7 +111,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(
 builder.Services.AddCosmosStorageContext(builder.Configuration);
 
 var container = Cosmos.BlobService.ServiceCollectionExtensions.GetBlobContainerClient(builder.Configuration, defaultAzureCredential, "pkyes");
-_ = container.CreateIfNotExistsAsync().Result;
 
 builder.Services.AddDataProtection().PersistKeysToAzureBlobStorage(container.GetBlobClient("keys.xml"));
 

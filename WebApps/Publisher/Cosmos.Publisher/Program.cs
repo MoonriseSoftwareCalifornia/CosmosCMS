@@ -110,7 +110,6 @@ builder.Services.AddCosmosStorageContext(builder.Configuration);
 
 // Add shared data protection here
 var container = Cosmos.BlobService.ServiceCollectionExtensions.GetBlobContainerClient(builder.Configuration, defaultAzureCredential, "pkyes");
-container.CreateIfNotExists();
 builder.Services.AddDataProtection().PersistKeysToAzureBlobStorage(container.GetBlobClient("keys.xml"));
 
 builder.Services.AddMvc()

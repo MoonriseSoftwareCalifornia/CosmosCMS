@@ -105,10 +105,9 @@ if (option.Value.SiteSettings.AllowSetup)
     else
     {
         tempBuilder.UseCosmos(connectionString, cosmosIdentityDbName);
+        using var dbContext = new ApplicationDbContext(tempBuilder.Options);
+        _ = dbContext.Database.EnsureCreatedAsync().Result;
     }
-
-    using var dbContext = new ApplicationDbContext(tempBuilder.Options);
-    _ = dbContext.Database.EnsureCreatedAsync().Result;
 }
 
 // Add the Cosmos database context here
@@ -150,7 +149,6 @@ builder.Services.AddCosmosIdentity<ApplicationDbContext, IdentityUser, IdentityR
 
 // Add shared data protection here
 var container = Cosmos.BlobService.ServiceCollectionExtensions.GetBlobContainerClient(builder.Configuration, defaultAzureCredential, "ekyes");
-_ = container.CreateIfNotExistsAsync().Result;
 
 builder.Services.AddDataProtection().UseCryptographicAlgorithms(
     new AuthenticatedEncryptorConfiguration
