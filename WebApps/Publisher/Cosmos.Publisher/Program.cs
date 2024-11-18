@@ -17,6 +17,8 @@ using Cosmos.Common.Services.PowerBI;
 using Cosmos.EmailServices;
 using Cosmos.MicrosoftGraph;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
+using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
@@ -109,8 +111,13 @@ builder.Services.AddDbContext<ApplicationDbContext>(
 builder.Services.AddCosmosStorageContext(builder.Configuration);
 
 // Add shared data protection here
-var container = Cosmos.BlobService.ServiceCollectionExtensions.GetBlobContainerClient(builder.Configuration, defaultAzureCredential, "pkyes");
-builder.Services.AddDataProtection().PersistKeysToAzureBlobStorage(container.GetBlobClient("keys.xml"));
+builder.Services.AddDataProtection()
+    .SetApplicationName("publisher").UseCryptographicAlgorithms(
+    new AuthenticatedEncryptorConfiguration
+    {
+        EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
+        ValidationAlgorithm = ValidationAlgorithm.HMACSHA256
+    }).PersistKeysToDbContext<ApplicationDbContext>();
 
 builder.Services.AddMvc()
                 .AddNewtonsoftJson(options =>

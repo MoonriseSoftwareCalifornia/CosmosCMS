@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
@@ -9,7 +9,7 @@
 		<EnableSdkContainerDebugging>True</EnableSdkContainerDebugging>
 		<ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:8.0</ContainerBaseImage>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-		<Version>8.0.10.30</Version>
+		<Version>8.0.10.31</Version>
 		<DockerfileContext>..\..</DockerfileContext>
 	</PropertyGroup>
 
