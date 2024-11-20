@@ -7,7 +7,7 @@
     var publisherUrl = ViewData["PublisherUrl"];
     var blobStaticWebsiteUrl = options.Value.SiteSettings.BlobPublicUrl;
     var directoryOnly = (bool)ViewData["DirectoryOnly"];
-    var editorExtensions = new string[] { ".js", ".css", ".html", ".htm", ".json", ".xml" };
+    var editorExtensions = new string[] { ".js", ".css", ".html", ".htm", ".json", ".xml", ".txt" };
     var imageEditorExtensions = new string[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
     var topDirectory = (string)ViewData["TopDirectory"];
     var rowCount = (int)ViewData["RowCount"];
@@ -178,6 +178,7 @@
                     <button type="button" class="btn btn-sm btn-success" title="Move selected items to this folder." onclick="btnClick('moveItems')">Move to here</button>
                     <button type="button" class="btnShowSelected btn btn-sm btn-secondary" title="Show list of selected items" style="display:none">Show Selected</button>
                     <button type="button" class="btn btn-sm btn-primary" title="Cancel copy or move operation." onclick="btnClick('cancel')">Cancel</button>
+                    
                 </div>
             </div>
         </div>
@@ -186,6 +187,7 @@
     <div class="row cpws-table-pager-row-top">
         <div class="col-md-4">
             <div class="btn-group" role="group" aria-label="File and folder actions">
+                <button type="button" class="btn btn-sm btn-primary" title="Create a new text file." onclick="btnClick('createFile')">New file</button>
                 @if (directoryOnly)
                 {
                     <button id="btnCancel" type="button" class="btn btn-sm btn-secondary" onclick="btnClick('cancel')">Cancel</button>
@@ -495,6 +497,36 @@
     </div>
 </div>
 
+<div class="modal mt-5" id="newFileModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-light">
+            <form id="frmNewFile" asp-action="NewFile" method="post">
+                <div class="modal-header">
+                   <h5 id="checkFirstTitle" class="modal-title">Create a new file</h5>
+                </div>
+                <div class="modal-body">
+                          <input type="hidden" name="ParentFolder" id="ParentFolder" value="@pathPrefix" />
+                              
+                    <div class="input-group mb-3 bg-dark text-light">
+                        <span id="itemPrefix1" class="input-group-text">File name: </span>
+                        <input class="form-control text-dark" id="newFileName" aria-describedby="emailHelp">
+                    </div>
+                    <p>Valid file extensions: 
+                        @foreach (var ext in editorExtensions)
+                        {
+                            <span class="badge bg-secondary">@ext</span>
+                        }
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button id="btnCreateFile" type="submit" class="btn btn-primary">Create</button>
+                </div>      
+            </form>
+        </div>
+    </div>
+</div>
+
 <script src="~/js/clipboard.min.js"></script>
 
 <script>
@@ -506,6 +538,7 @@
     let renameModal = new bootstrap.Modal(document.getElementById('renameModal'));
     let modalCheckSaveFirst = new bootstrap.Modal(document.getElementById('modalCheckSaveFirst'));
     let showSelectedModal = new bootstrap.Modal(document.getElementById('showSelectedModal'));
+    let newFileModal  = new bootstrap.Modal(document.getElementById('newFileModal'));
     let btnSelectFileAndClose = parent.document.getElementById("btnSelectFileAndClose");
 
     const isNewSession = @isNewSession.ToString().ToLower();
@@ -824,6 +857,40 @@
             return true;
         });
 
+        $("#frmNewFile").submit(function (e) {
+            // Stop form from submitting normally
+            e.preventDefault();
+            const $form = $(this);
+            const url = $form.attr("action");
+
+            const extensions = ["@Html.Raw(editorExtensions.Aggregate((a, b) => a + "\", \"" + b))"];
+
+            if ($("#newFileName").val().trim() === "") {
+                alert("Please enter a file name.");
+                return false;
+            }
+
+            if (extensions.indexOf($("#newFileName").val().split('.').pop()) === -1) {
+                alert("Invalid file extension. Please use one of the following: " + extensions.join(", "));
+                return false;
+            }
+
+            $.post(url, $form.serialize())
+                .done(function () {
+                    clearPaths();
+                    clearSelection();
+                    hideModals();
+                    // Reload
+                    window.location.href = '@Html.Raw(baseUrl)target=@target';
+                })
+                .fail(function (data) {
+                    console.log(data);
+                    alert("We appologize, and error occured while creating file.");
+                });
+
+            return true;
+        });
+
         $("#frmChangeName").submit(function (e) {
 
             // Stop form from submitting normally
@@ -1100,6 +1167,11 @@
                             hideModals();
                         });
                 }
+                break;
+            case "createFile":
+
+                newFileModal.show();
+
                 break;
             case "selectFile":
                 {
