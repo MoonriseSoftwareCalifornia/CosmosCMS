@@ -22,6 +22,7 @@ namespace Cosmos.Cms.Controllers
     using Cosmos.Cms.Services;
     using Cosmos.Common.Data;
     using Cosmos.Editor.Controllers;
+    using Cosmos.Editor.Models;
     using Cosmos.Editor.Services;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Hosting;
@@ -96,6 +97,17 @@ namespace Cosmos.Cms.Controllers
             }
 
             this.viewRenderService = viewRenderService;
+        }
+
+        /// <summary>
+        /// Gets a list of valid editor extensions.
+        /// </summary>
+        public static string[] ValidEditorExtensions
+        {
+            get
+            {
+                return new string[] { ".js", ".css", ".html", ".htm", ".json", ".xml", ".txt" };
+            }
         }
 
         /// <summary>
@@ -815,10 +827,10 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Selects nodes between HTML comments.
         /// </summary>
-        /// <param name="originalNode"></param>
-        /// <param name="startComment"></param>
-        /// <param name="endComment"></param>
-        /// <returns></returns>
+        /// <param name="originalNode">Original node.</param>
+        /// <param name="startComment">Start comment.</param>
+        /// <param name="endComment">End comment.</param>
+        /// <returns>HTML Node.</returns>
         private IEnumerable<HtmlAgilityPack.HtmlNode> SelectNodesBetweenComments(HtmlAgilityPack.HtmlNode originalNode, string startComment, string endComment)
         {
             var nodes = new List<HtmlAgilityPack.HtmlNode>();
@@ -893,6 +905,48 @@ namespace Cosmos.Cms.Controllers
         }
 
         #endregion
+
+        /// <summary>
+        /// Creates a new file in a given folder.
+        /// </summary>
+        /// <param name="model">New file post model.</param>
+        /// <returns>IActionResult</returns>
+        public async Task<IActionResult> NewFile(NewFileViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            if (!ValidEditorExtensions.Contains(Path.GetExtension(model.FileName).ToLower()))
+            {
+                return BadRequest("Invalid file extension.");
+            }
+
+            var relativePath = string.Join('/', ParsePath(model.ParentFolder, model.FileName));
+            relativePath = UrlEncode(relativePath);
+
+            // Check for duplicate entries
+            var existingEntries = await _storageContext.GetFolderContents(model.ParentFolder);
+
+            if (!existingEntries.Exists(f => f.Name.Equals(model.FileName)))
+            {
+                using var memoryStream = new MemoryStream();
+                await memoryStream.WriteAsync(Encoding.UTF8.GetBytes(string.Empty));
+                _storageContext.AppendBlob(memoryStream, new FileUploadMetaData()
+                {
+                    ChunkIndex = 0,
+                    ContentType = MimeTypeMap.GetMimeType(Path.GetExtension(model.FileName)),
+                    FileName = model.FileName,
+                    RelativePath = relativePath,
+                    TotalChunks = 1,
+                    TotalFileSize = memoryStream.Length,
+                    UploadUid = Guid.NewGuid().ToString()
+                });
+            }
+
+            return Ok();
+        }
 
         /// <summary>
         /// New folder action.

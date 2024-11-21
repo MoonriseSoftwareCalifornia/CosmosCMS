@@ -7,7 +7,7 @@
     var publisherUrl = ViewData["PublisherUrl"];
     var blobStaticWebsiteUrl = options.Value.SiteSettings.BlobPublicUrl;
     var directoryOnly = (bool)ViewData["DirectoryOnly"];
-    var editorExtensions = new string[] { ".js", ".css", ".html", ".htm", ".json", ".xml", ".txt" };
+    var editorExtensions = Cosmos.Cms.Controllers.FileManagerController.ValidEditorExtensions;
     var imageEditorExtensions = new string[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
     var topDirectory = (string)ViewData["TopDirectory"];
     var rowCount = (int)ViewData["RowCount"];
@@ -501,15 +501,14 @@
     <div class="modal-dialog">
         <div class="modal-content bg-dark text-light">
             <form id="frmNewFile" asp-action="NewFile" method="post">
+                <input type="hidden" name="ParentFolder" id="ParentFolder" value="@pathPrefix" />
                 <div class="modal-header">
                    <h5 id="checkFirstTitle" class="modal-title">Create a new file</h5>
                 </div>
                 <div class="modal-body">
-                          <input type="hidden" name="ParentFolder" id="ParentFolder" value="@pathPrefix" />
-                              
                     <div class="input-group mb-3 bg-dark text-light">
                         <span id="itemPrefix1" class="input-group-text">File name: </span>
-                        <input class="form-control text-dark" id="newFileName" aria-describedby="emailHelp">
+                        <input class="form-control text-dark" id="FileName" name="FileName" aria-describedby="emailHelp">
                     </div>
                     <p>Valid file extensions: 
                         @foreach (var ext in editorExtensions)
@@ -865,12 +864,12 @@
 
             const extensions = ["@Html.Raw(editorExtensions.Aggregate((a, b) => a + "\", \"" + b))"];
 
-            if ($("#newFileName").val().trim() === "") {
+            if ($("#FileName").val().trim() === "") {
                 alert("Please enter a file name.");
                 return false;
             }
 
-            if (extensions.indexOf($("#newFileName").val().split('.').pop()) === -1) {
+            if (extensions.indexOf("." + $("#FileName").val().split('.').pop()) === -1) {
                 alert("Invalid file extension. Please use one of the following: " + extensions.join(", "));
                 return false;
             }
