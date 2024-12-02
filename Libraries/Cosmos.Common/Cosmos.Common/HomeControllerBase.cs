@@ -256,7 +256,7 @@ namespace Cosmos.Common
                 return BadRequest("Search term is required.");
             }
 
-            var result = await articleLogic.Search(searchTxt, includeText);
+            var result = await articleLogic.Search(searchTxt);
             return Json(result);
         }
 

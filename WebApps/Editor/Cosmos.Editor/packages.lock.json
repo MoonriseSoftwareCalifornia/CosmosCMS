@@ -4,13 +4,14 @@
     "net8.0": {
       "Azure.Extensions.AspNetCore.DataProtection.Blobs": {
         "type": "Direct",
-        "requested": "[1.3.4, )",
-        "resolved": "1.3.4",
-        "contentHash": "zS+x0MpUMSbvZD598lwAoax+ohIeSAvGlXpT71iP7FFmMZ+Tjz/8hx+jZH/RbV2cJYTYbux8XFDll7LMPuz46g==",
+        "requested": "[1.4.0, )",
+        "resolved": "1.4.0",
+        "contentHash": "3lUVu/N4YWAvRmkxdZIjeOEylWjXwErTV3fpeyqnfK6UuCTOs04chK1al7PmtaVyn7Jt51Eod+LdtvwyIfCJSw==",
         "dependencies": {
-          "Azure.Core": "1.38.0",
-          "Azure.Storage.Blobs": "12.16.0",
-          "Microsoft.AspNetCore.DataProtection": "3.1.32"
+          "Azure.Core": "1.44.1",
+          "Azure.Storage.Blobs": "12.21.1",
+          "Microsoft.AspNetCore.DataProtection": "8.0.11",
+          "Microsoft.Bcl.AsyncInterfaces": "8.0.0"
         }
       },
       "Azure.Identity": {
@@ -118,27 +119,28 @@
       },
       "Microsoft.Azure.SignalR": {
         "type": "Direct",
-        "requested": "[1.28.0, )",
-        "resolved": "1.28.0",
-        "contentHash": "1zrrkT0QYEfnStgRW35OEFS9PC6cd0p5nQaPExenmeBTZALHnzqQkDsCh0qieaztcZBcScZ9AiRAd2LjrCNGjA==",
+        "requested": "[1.29.0, )",
+        "resolved": "1.29.0",
+        "contentHash": "Nv2Z6e5pU4vRGjoZc/HAFvR+b5QxfToVIrpfH7ccUX237a1dGJ3Z9z1xrjkvD4KDeaF4A6us+cgAhb9e8KVa1Q==",
         "dependencies": {
           "Azure.Identity": "1.11.4",
-          "Microsoft.Azure.SignalR.Protocols": "1.28.0",
+          "Microsoft.Azure.SignalR.Protocols": "1.29.0",
           "Microsoft.Extensions.Http": "2.1.0",
           "Newtonsoft.Json": "13.0.3"
         }
       },
       "Microsoft.Extensions.Azure": {
         "type": "Direct",
-        "requested": "[1.8.0, )",
-        "resolved": "1.8.0",
-        "contentHash": "D0f5Oo7oKT743bLBrlvKab7F4nApQloZkq2+EQz5sHx2RW1xWOI+cD3fa30ZKB20GNNtvzgTALBZsQvJCHuAoQ==",
+        "requested": "[1.9.0, )",
+        "resolved": "1.9.0",
+        "contentHash": "gD2GLNlEaWv8pCGJtRJjDAu63gRXOt53VZy/m8bJK5JoujlbCNswdiEm2bycCSrxV0qHqj/racOrF5HXUeaMgw==",
         "dependencies": {
           "Azure.Core": "1.44.1",
           "Azure.Identity": "1.13.1",
+          "Microsoft.Bcl.AsyncInterfaces": "8.0.0",
           "Microsoft.Extensions.Configuration.Abstractions": "2.1.0",
           "Microsoft.Extensions.Configuration.Binder": "2.1.0",
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "2.1.0",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.2",
           "Microsoft.Extensions.Logging.Abstractions": "2.1.0",
           "Microsoft.Extensions.Options": "2.1.0"
         }
@@ -190,9 +192,9 @@
       },
       "SixLabors.ImageSharp": {
         "type": "Direct",
-        "requested": "[3.1.5, )",
-        "resolved": "3.1.5",
-        "contentHash": "lNtlq7dSI/QEbYey+A0xn48z5w4XHSffF8222cC4F4YwTXfEImuiBavQcWjr49LThT/pRmtWJRcqA/PlL+eJ6g=="
+        "requested": "[3.1.6, )",
+        "resolved": "3.1.6",
+        "contentHash": "dHQ5jugF9v+5/LCVHCWVzaaIL6WOehqJy6eju/0VFYFPEj2WtqkGPoEV9EVQP83dHsdoqYaTuWpZdwAd37UwfA=="
       },
       "StyleCop.Analyzers": {
         "type": "Direct",
@@ -840,8 +842,8 @@
       },
       "Microsoft.AspNetCore.Cryptography.Internal": {
         "type": "Transitive",
-        "resolved": "8.0.10",
-        "contentHash": "MT/jvNoiXUB82drzqtqZqyAfxQH2b0kpEyjjMYrSLmqgAvBkMEKJelbqHazEo5Lxtq43uquPgeBtTuSrVog5lQ=="
+        "resolved": "8.0.11",
+        "contentHash": "8OW1VlxT6m9pitB7fR/YfNbuQ0BxBJhnXde+qlr4NXEoODhE2hRxHm8rgUgxLNywftXJK/OfOJw5w5nLCXXC1w=="
       },
       "Microsoft.AspNetCore.Cryptography.KeyDerivation": {
         "type": "Transitive",
@@ -853,11 +855,11 @@
       },
       "Microsoft.AspNetCore.DataProtection": {
         "type": "Transitive",
-        "resolved": "8.0.10",
-        "contentHash": "6UtyAG/78Re6TUb5PXZAqoy+2ZSwEToN3jAP3KcX6pB9NbDXSJX9SnGsAOkqDLLsu3I/AoXqaiVQtBEDtq8Iww==",
+        "resolved": "8.0.11",
+        "contentHash": "J4v0esMKc29rVzO9kQPyFBGfWoBxrREe+opmbNiEPOMdG0J9ifEdNV33+06ebEjJk4/yh6c89j4AuFKPrDQ6jA==",
         "dependencies": {
-          "Microsoft.AspNetCore.Cryptography.Internal": "8.0.10",
-          "Microsoft.AspNetCore.DataProtection.Abstractions": "8.0.10",
+          "Microsoft.AspNetCore.Cryptography.Internal": "8.0.11",
+          "Microsoft.AspNetCore.DataProtection.Abstractions": "8.0.11",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.2",
           "Microsoft.Extensions.Hosting.Abstractions": "8.0.1",
           "Microsoft.Extensions.Logging.Abstractions": "8.0.2",
@@ -867,8 +869,8 @@
       },
       "Microsoft.AspNetCore.DataProtection.Abstractions": {
         "type": "Transitive",
-        "resolved": "8.0.10",
-        "contentHash": "tDA68PYc0M/gyijcERsC3E1anqRpOmmmWJqpHmbbmrv6h/IjelnwzKaQwXdeJ36sEyB7dRuteC+j3fKyl/J/7A=="
+        "resolved": "8.0.11",
+        "contentHash": "VKfvb4jYPj/RhBljnl3dxBbzTWtrDDM93sweewUSNLicU8BJXfTiczWTMv5feOxsTDO50BKUzBtlSUylC5Lilg=="
       },
       "Microsoft.AspNetCore.DataProtection.EntityFrameworkCore": {
         "type": "Transitive",
@@ -1021,8 +1023,8 @@
       },
       "Microsoft.Azure.SignalR.Protocols": {
         "type": "Transitive",
-        "resolved": "1.28.0",
-        "contentHash": "akQ684OJfobi/FR4uHfPtpzIaqYUukqIPyhPI8Y4PQ0N0oLHfAzZfo7SQZAPs2YO7AeYzjHbOkPkOoHepGr0Jw==",
+        "resolved": "1.29.0",
+        "contentHash": "54j531KO1GffnsbHSZCebtd96QoXnc67r0oUXoO7lsxfhvRAVsiMw77wSehQFOo1JF1yF98dvRoVc+kMDilbPw==",
         "dependencies": {
           "Microsoft.Extensions.Primitives": "2.1.1",
           "System.Buffers": "4.5.1",
@@ -1032,8 +1034,8 @@
       },
       "Microsoft.Bcl.AsyncInterfaces": {
         "type": "Transitive",
-        "resolved": "7.0.0",
-        "contentHash": "3aeMZ1N0lJoSyzqiP03hqemtb1BijhsJADdobn/4nsMJ8V1H+CrpuduUe4hlRdx+ikBQju1VGjMD1GJ3Sk05Eg=="
+        "resolved": "8.0.0",
+        "contentHash": "3WA9q9yVqJp222P3x1wYIGDAkpjAku0TMUaaQV22g6L67AI0LdOIrVS7Ht2vJfLHGSPVuqN94vIr15qn+HEkHw=="
       },
       "Microsoft.Bcl.HashCode": {
         "type": "Transitive",
@@ -2039,7 +2041,7 @@
           "AspNetCore.Identity.CosmosDb": "[8.0.7, )",
           "Azure.Extensions.AspNetCore.Configuration.Secrets": "[1.3.2, )",
           "Azure.Identity": "[1.13.1, )",
-          "Cosmos.BlobService": "[8.0.10.31, )",
+          "Cosmos.BlobService": "[8.0.11.31, )",
           "MailChimp.Net.V3": "[5.5.0, )",
           "Microsoft.AspNetCore.DataProtection.EntityFrameworkCore": "[8.0.10, )",
           "Microsoft.AspNetCore.Identity.EntityFrameworkCore": "[8.0.10, )",
@@ -2054,7 +2056,7 @@
         "dependencies": {
           "Azure.Communication.Email": "[1.0.1, )",
           "Azure.Identity": "[1.13.1, )",
-          "Cosmos.Common": "[8.0.10.31, )",
+          "Cosmos.Common": "[8.0.11.31, )",
           "HtmlAgilityPack": "[1.11.71, )",
           "Microsoft.AspNetCore.Identity.UI": "[8.0.10, )",
           "SendGrid": "[9.29.3, )",

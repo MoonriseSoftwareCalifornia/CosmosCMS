@@ -309,7 +309,7 @@ namespace Cosmos.Common.Data.Logic
         /// </summary>
         /// <param name="text">Search text.</param>
         /// <returns>List of articles.</returns>
-        public async Task<List<TableOfContentsItem>> Search(string text, bool? includeText)
+        public async Task<List<TableOfContentsItem>> Search(string text)
         {
             if (string.IsNullOrEmpty(text))
             {
@@ -319,11 +319,11 @@ namespace Cosmos.Common.Data.Logic
             text = text.ToLower();
 
             var query = DbContext.Pages
-                .Where(a => a.Published <= DateTimeOffset.UtcNow && (a.Content.ToLower().Contains(text) || a.Title.ToLower().Contains(text))).AsQueryable();
+                .Where(a => a.StatusCode == 0 && a.Published <= DateTimeOffset.UtcNow && (a.Content.ToLower().Contains(text) || a.Title.ToLower().Contains(text))).AsQueryable();
 
             var terms = text.Split(' ');
 
-            if (terms != null && terms.Length > 1)
+            if (terms.Length > 1)
             {
                 foreach (var term in terms)
                 {
