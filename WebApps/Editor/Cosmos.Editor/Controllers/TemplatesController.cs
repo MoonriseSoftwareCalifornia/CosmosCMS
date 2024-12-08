@@ -472,6 +472,21 @@ namespace Cosmos.Cms.Controllers
         }
 
         /// <summary>
+        /// Visual designer based on GrapeJS.
+        /// </summary>
+        /// <param name="id">Template ID.</param>
+        /// <returns>IActionResult.</returns>
+        public IActionResult Designer(Guid id)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            return View();
+        }
+
+        /// <summary>
         /// Preview a template.
         /// </summary>
         /// <param name="id">Template ID.</param>
