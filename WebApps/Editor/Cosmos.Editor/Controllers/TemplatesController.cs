@@ -14,10 +14,12 @@ namespace Cosmos.Cms.Controllers
     using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Cms.Data.Logic;
     using Cosmos.Cms.Models;
+    using Cosmos.Cms.Services;
     using Cosmos.Common.Data;
     using Cosmos.Common.Data.Logic;
     using Cosmos.Common.Models;
     using Cosmos.Editor.Data;
+    using Cosmos.Editor.Data.Logic;
     using HtmlAgilityPack;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
@@ -34,16 +36,19 @@ namespace Cosmos.Cms.Controllers
         private readonly ArticleEditLogic articleLogic;
         private readonly ApplicationDbContext dbContext;
         private readonly IOptions<CosmosConfig> options;
+        private readonly IViewRenderService viewRenderService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TemplatesController"/> class.
         /// Constructor.
         /// </summary>
+        /// <param name="viewRenderService">View rendering service.</param>
         /// <param name="dbContext">Database context.</param>
         /// <param name="userManager">User manager.</param>
         /// <param name="articleLogic">Article edit logic.</param>
-        /// <param name="options">Cosmos Options</param>
+        /// <param name="options">Cosmos Options.</param>
         public TemplatesController(
+            IViewRenderService viewRenderService,
             ApplicationDbContext dbContext,
             UserManager<IdentityUser> userManager,
             ArticleEditLogic articleLogic,
@@ -53,6 +58,7 @@ namespace Cosmos.Cms.Controllers
             this.dbContext = dbContext;
             this.articleLogic = articleLogic;
             this.options = options;
+            this.viewRenderService = viewRenderService;
         }
 
         /// <summary>
@@ -476,14 +482,48 @@ namespace Cosmos.Cms.Controllers
         /// </summary>
         /// <param name="id">Template ID.</param>
         /// <returns>IActionResult.</returns>
-        public IActionResult Designer(Guid id)
+        public async Task<IActionResult> Designer(Guid id)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
-            return View();
+            var entity = await dbContext.Templates.FirstOrDefaultAsync(f => f.Id == id);
+
+            var guid = Guid.NewGuid();
+
+            // Template preview
+            ArticleViewModel model = new()
+            {
+                ArticleNumber = 1,
+                LanguageCode = string.Empty,
+                LanguageName = string.Empty,
+                CacheDuration = 10,
+                Content = articleLogic.Ensure_ContentEditable_IsMarked(entity.Content),
+                StatusCode = StatusCodeEnum.Active,
+                Id = entity.Id,
+                Published = DateTimeOffset.UtcNow,
+                Title = entity.Title,
+                UrlPath = guid.ToString(),
+                Updated = DateTimeOffset.UtcNow,
+                VersionNumber = 1,
+                HeadJavaScript = string.Empty,
+                FooterJavaScript = string.Empty,
+                Layout = await articleLogic.GetDefaultLayout()
+            };
+
+            var designerUtils = new DesignerUtilities();
+
+            model.Layout.HtmlHeader = designerUtils.MarkToBlockEditingAndMoving(model.Layout.HtmlHeader) + "<!--- CCCMS-CONTENT-START -->";
+            model.Layout.FooterHtmlContent = "<!--- CCCMS-CONTENT-END -->" + designerUtils.MarkToBlockEditingAndMoving(model.Layout.FooterHtmlContent);
+
+
+            return await EditCode(id);
         }
 
         /// <summary>

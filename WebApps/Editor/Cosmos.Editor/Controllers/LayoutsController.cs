@@ -574,7 +574,7 @@ namespace Cosmos.Cms.Controllers
         /// <param name="id">ID of the layout.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [Authorize(Roles = "Administrators, Editors, Authors, Team Members")]
-        public async Task<IActionResult> ExportLayout(int? id)
+        public async Task<IActionResult> ExportLayout(Guid? id)
         {
             if (!ModelState.IsValid)
             {
@@ -586,20 +586,8 @@ namespace Cosmos.Cms.Controllers
             var view = "~/Views/Layouts/ExportLayout.cshtml";
             var exportName = $"layout-{article.Layout.Id}.html";
 
-            if (id.HasValue)
-            {
-                if (id.Value < 0)
-                {
-                    // Blank layout
-                    view = "~/Views/Layouts/ExportBlank.cshtml";
-                    exportName = "blank-layout.html";
-                }
-                else
-                {
-                    var layout = await dbContext.Layouts.FindAsync(id.Value);
-                    article.Layout = new LayoutViewModel(layout);
-                }
-            }
+            var layout = await dbContext.Layouts.FirstOrDefaultAsync(f => f.Id == id);
+            article.Layout = new LayoutViewModel(layout);
 
             var htmlUtilities = new HtmlUtilities();
 
