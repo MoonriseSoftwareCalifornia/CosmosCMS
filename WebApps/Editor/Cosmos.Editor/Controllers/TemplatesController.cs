@@ -10,6 +10,7 @@ namespace Cosmos.Cms.Controllers
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text;
     using System.Threading.Tasks;
     using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Cms.Data.Logic;
@@ -20,6 +21,8 @@ namespace Cosmos.Cms.Controllers
     using Cosmos.Common.Models;
     using Cosmos.Editor.Data;
     using Cosmos.Editor.Data.Logic;
+    using Cosmos.Editor.Models;
+    using Cosmos.Editor.Models.GrapesJs;
     using HtmlAgilityPack;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
@@ -64,6 +67,10 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Index view model.
         /// </summary>
+        /// <param name="sortOrder">Sort order.</param>
+        /// <param name="currentSort">Current sort field.</param>
+        /// <param name="pageNo">Page number.</param>
+        /// <param name="pageSize">Page size.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> Index(string sortOrder = "asc", string currentSort = "Title", int pageNo = 0, int pageSize = 10)
         {
@@ -478,16 +485,35 @@ namespace Cosmos.Cms.Controllers
         }
 
         /// <summary>
-        /// Visual designer based on GrapeJS.
+        /// Loads the designer GUI.
         /// </summary>
         /// <param name="id">Template ID.</param>
-        /// <returns>IActionResult.</returns>
+        /// <returns>View.</returns>
         public async Task<IActionResult> Designer(Guid id)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
+
+            var template = await dbContext.Templates.FirstOrDefaultAsync(f => f.Id == id);
+            if (template == null)
+            {
+                return NotFound();
+            }
+
+            var config = new DesignerConfig(await dbContext.Layouts.FirstOrDefaultAsync(f => f.IsDefault), id);
+
+            return View(config);
+        }
+
+        /// <summary>
+        /// Visual designer based on GrapeJS.
+        /// </summary>
+        /// <param name="id">Template ID.</param>
+        /// <returns>IActionResult.</returns>
+        public async Task<IActionResult> LoadDesignerData(Guid id)
+        {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -495,35 +521,38 @@ namespace Cosmos.Cms.Controllers
 
             var entity = await dbContext.Templates.FirstOrDefaultAsync(f => f.Id == id);
 
-            var guid = Guid.NewGuid();
+            var htmlContent = articleLogic.Ensure_ContentEditable_IsMarked(entity.Content);
 
-            // Template preview
-            ArticleViewModel model = new()
+            return Json(new project(htmlContent));
+        }
+
+        /// <summary>
+        /// Save designer data.
+        /// </summary>
+        /// <param name="model">Designer data.</param>
+        /// <returns>IActionResult.</returns>
+        [HttpPost]
+        public async Task<IActionResult> SaveDesignerData(DesignerDataViewModel model)
+        {
+            if (!ModelState.IsValid)
             {
-                ArticleNumber = 1,
-                LanguageCode = string.Empty,
-                LanguageName = string.Empty,
-                CacheDuration = 10,
-                Content = articleLogic.Ensure_ContentEditable_IsMarked(entity.Content),
-                StatusCode = StatusCodeEnum.Active,
-                Id = entity.Id,
-                Published = DateTimeOffset.UtcNow,
-                Title = entity.Title,
-                UrlPath = guid.ToString(),
-                Updated = DateTimeOffset.UtcNow,
-                VersionNumber = 1,
-                HeadJavaScript = string.Empty,
-                FooterJavaScript = string.Empty,
-                Layout = await articleLogic.GetDefaultLayout()
-            };
+                return BadRequest(ModelState);
+            }
+
+            var entity = await dbContext.Templates.FirstOrDefaultAsync(f => f.Id == Guid.Parse(model.Id));
+
+            if (entity == null)
+            {
+                return NotFound();
+            }
 
             var designerUtils = new DesignerUtilities();
 
-            model.Layout.HtmlHeader = designerUtils.MarkToBlockEditingAndMoving(model.Layout.HtmlHeader) + "<!--- CCCMS-CONTENT-START -->";
-            model.Layout.FooterHtmlContent = "<!--- CCCMS-CONTENT-END -->" + designerUtils.MarkToBlockEditingAndMoving(model.Layout.FooterHtmlContent);
+            entity.Content = designerUtils.AssembleDesignerOutput(model);
 
+            await dbContext.SaveChangesAsync();
 
-            return await EditCode(id);
+            return Json(new { success = true });
         }
 
         /// <summary>

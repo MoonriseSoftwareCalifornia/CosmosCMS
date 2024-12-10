@@ -583,9 +583,6 @@ namespace Cosmos.Cms.Controllers
 
             var article = await articleLogic.GetByUrl(string.Empty);
 
-            var view = "~/Views/Layouts/ExportLayout.cshtml";
-            var exportName = $"layout-{article.Layout.Id}.html";
-
             var layout = await dbContext.Layouts.FirstOrDefaultAsync(f => f.Id == id);
             article.Layout = new LayoutViewModel(layout);
 
@@ -601,11 +598,11 @@ namespace Cosmos.Cms.Controllers
             article.Content = htmlUtilities.RelativeToAbsoluteUrls(article.Content, blobPublicAbsoluteUrl, false);
             article.FooterJavaScript = htmlUtilities.RelativeToAbsoluteUrls(article.HeadJavaScript, blobPublicAbsoluteUrl, false);
 
-            var html = await viewRenderService.RenderToStringAsync(view, article);
+            var html = await viewRenderService.RenderToStringAsync("~/Views/Layouts/ExportLayout.cshtml", article);
 
             var bytes = Encoding.UTF8.GetBytes(html);
 
-            return File(bytes, "application/octet-stream", exportName);
+            return File(bytes, "application/octet-stream", $"layout-{article.Layout.Id}.html");
         }
 
         /// <summary>

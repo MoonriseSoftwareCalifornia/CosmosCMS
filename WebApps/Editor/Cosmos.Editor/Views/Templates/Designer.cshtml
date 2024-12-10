@@ -1,394 +1,540 @@
 ﻿@using Newtonsoft.Json
-@model TemplateCodeEditorViewModel
+@model Cosmos.Editor.Models.GrapesJs.DesignerConfig
 @{
     Layout = "_LayoutEditor";
-    ViewData["Title"] = Model.EditorTitle;
-    var fields = Model.EditorFields.ToArray();
-    var aclass = "active";
+    ViewData["Title"] = "Page Designer";
 }
 
 <link href="~/lib/grapesjs/css/grapes.min.css" rel="stylesheet">
 <script src="~/lib/grapesjs/grapes.min.js"></script>
+
 <style>
-  body {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-  }
+    body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
 
-  .cwps-body {
-    background-color: white !important;
-    height: 100% !important;
-  }
+    .cwps-body {
+        background-color: white !important;
+        height: 100% !important;
+    }
 
-  .perm {
-    display: none;
-  }
+    .perm {
+        display: none;
+    }
 
-  /* GrapesJS */
-  /* Let's highlight canvas boundaries */
-  #gjs {
-    border: 1px solid #e63900;
-  }
+    /* GrapesJS */
+    /* Let's highlight canvas boundaries */
+    #gjs {
+        border: 1px solid #e63900;
+    }
 
-  gjs-editor-cont {
-    display: flex;
-    flex-direction: column;
-  }
+    gjs-editor-cont {
+        display: flex;
+        flex-direction: column;
+    }
 
-  /* Reset some default styling */
-  .gjs-cv-canvas {
-    top: 0;
-    width: 100%;
-    height: 100%;
-  }
+    /* Reset some default styling */
+    .gjs-cv-canvas {
+        top: 0;
+        width: 100%;
+        height: 100%;
+    }
 
-  .gjs-block {
-    width: auto;
-    height: auto;
-    min-height: auto;
-  }
+    .gjs-block {
+        width: auto;
+        height: auto;
+        min-height: auto;
+    }
 
-  .panel__top {
-    padding: 0;
-    width: 100%;
-    display: flex;
-    position: initial;
-    justify-content: center;
-    justify-content: space-between;
-  }
+    .panel__top {
+        padding: 0;
+        width: 100%;
+        display: flex;
+        position: initial;
+        justify-content: center;
+        justify-content: space-between;
+    }
 
-  .panel__basic-actions {
-    position: initial;
-  }
+    .panel__basic-actions {
+        position: initial;
+    }
 
-  .editor-row {
-    display: flex;
-    justify-content: flex-start;
-    align-items: stretch;
-    flex-wrap: nowrap;
-  }
+    .editor-row {
+        display: flex;
+        justify-content: flex-start;
+        align-items: stretch;
+        flex-wrap: nowrap;
+    }
 
-  .editor-canvas {
-    flex-grow: 1;
-  }
+    .editor-canvas {
+        flex-grow: 1;
+    }
 
-  .panel__right {
-    flex-basis: 230px;
-    position: relative;
-    overflow-y: auto;
-  }
+    .panel__right {
+        flex-basis: 230px;
+        position: relative;
+        overflow-y: auto;
+    }
 
-  .panel__switcher {
-    position: initial;
-  }
+    .panel__switcher {
+        position: initial;
+    }
 
-  .panel__devices {
-    position: initial;
-  }
+    .panel__devices {
+        position: initial;
+    }
 </style>
-<form id="frmEntity">
-  <input type="hidden" id="Id" />
-</form>
+
+
 <div class="panel__top">
-  <div class="panel__basic-actions"></div>
-  <div class="panel__devices"></div>
-  <div class="panel__switcher"></div>
+    <div class="panel__basic-actions"></div>
+    <div class="panel__devices"></div>
+    <div class="panel__switcher"></div>
 </div>
 <div class="editor-row">
-  <div class="editor-canvas">
-    <div id="gjs">
-      <h1>Hello World Component!</h1>
+    <div class="editor-canvas">
+        <div id="gjs"></div>
     </div>
-  </div>
-  <div class="panel__right">
-    <div class="layers-container"></div>
-    <div class="styles-container"></div>
-    <div class="traits-container"></div>
-  </div>
+    <div class="panel__right">
+        <div class="layers-container"></div>
+        <div class="styles-container"></div>
+        <div class="traits-container"></div>
+    </div>
 </div>
 <div id="blocks"></div>
+<form id="frmDesignerData">
+    <input type="hidden" id="Id" name="Id" />
+    <input type="hidden" id="HtmlContent" name="HtmlContent" />
+    <input type="hidden" id="CssContent" name="CssContent" />
+</form>
 <script>
-  const editor = grapesjs.init({
-    // Indicate where to init the editor. You can also pass an HTMLElement
-    container: '#gjs',
-    // Get the content for the canvas directly from the element
-    // As an alternative we could use: `components: '<h1>Hello World Component!</h1>'`,
-    fromElement: true,
-    // Size of the editor
-    height: window.innerHeight - 149,
-    width: 'auto',
-    // Disable the storage manager for the moment
-    storageManager: false,
-    layerManager: {
-      appendTo: '.layers-container',
-    },
-    deviceManager: {
-      devices: [
+    /*
+
+      COSMOS CMS
+
+    */
+
+    var ccmsEditorIsLocked = false;
+    // Current user
+    const ccms_editor_userid = "@this.Context.User.Identity.Name";
+    const isAuthor = @User.IsInRole("Authors").ToString().ToLower();
+    const isReviewer = @User.IsInRole("Reviewers").ToString().ToLower();
+    const hasModel = @((Model != null).ToString().ToLower());
+    // This needs global scope, so using var
+    var hasPermissionsSet = false;
+
+    $("#frmSave").submit(function (e) {
+      e.preventDefault();
+      saveChanges(null, null);
+    });
+
+    // Save the changes for this editor
+    function saveChanges(myModal, next) {
+
+      saving();
+
+      if (typeof (myModel) !== "undefined" && myModel !== null) {
+        myModal.hide();
+      }
+      // Saving publish date with time zone information
+      savePublishDateTime();
+
+      if (editor) {
+        $("#" + fieldId).val(editor.getValue());
+      }
+
+      let model = {
+        Id: $("#Id").val(),
+        Title: $("#Title").val(),
+        Content: $("#Content").val()
+      };
+
+      $.post("/Templates/EditCode",
+        model,
+        function (response) {
+
+          doneSaving();
+
+          if (response.IsValid) {
+            if (typeof (next) !== "undefined" && next !== null) {
+              next();
+            }
+            toastMsg("Successfully saved.");
+          } else {
+            var errorMsg = "<h5>Error(s) detected while saving:</h5>";
+
+            // Invalid response.
+            $.each(response.Errors,
+              function (index, error) {
+                errorMsg = "<p>" + error.Key + "</p><ul>";
+                $.each(error.Errors,
+                  function (index, innerError) {
+                    errorMsg = errorMsg + "<li>" + innerError.ErrorMessage + "</li>";
+                  });
+                errorMsg = errorMsg + "</ul>";
+              });
+            $("#divErrorLog").html(errorMsg);
+            var errorModal = new bootstrap.Modal(document.getElementById('modalSavingError'));
+            errorModal.show();
+          }
+        }
+      );
+    }
+
+    /*
+
+        GRAPESJS
+
+    */
+    async function postData(data) {
+        const url = "/Templates/SaveDesignerData";
+
+        const formData = new FormData(document.getElementById("frmDesignerData"));
+
+        // Default options are marked with *
+        const response = await fetch(url, {
+          method: 'POST', // *GET, POST, PUT, DELETE, etc.
+          body: formData
+        });
+
+        return response.json(); // parses JSON response into native JavaScript objects
+     }
+
+    const editor = grapesjs.init({
+      // Indicate where to init the editor. You can also pass an HTMLElement
+      container: '#gjs',
+      // Get the content for the canvas directly from the element
+      // As an alternative we could use: `components: '<h1>Hello World Component!</h1>'`,
+      fromElement: true,
+      // Size of the editor
+      height: window.innerHeight - 149,
+      width: 'auto',
+      // Disable the storage manager for the moment
+      storageManager: {
+        type: 'remote', // Storage type. Available: local | remote
+        autosave: true, // Store data automatically
+        autoload: true, // Autoload stored data on init
+        stepsBeforeSave: 1, // If autosave is enabled, indicates how many changes are necessary before the store method is triggered
+        // ...
+        // Default storage options
+        options: {
+          remote:
+          {
+            urlLoad: '/Templates/LoadDesignerData/@Model.Id.ToString()',
+            // Enrich the store call
+            onStore: (data, editor) => {
+                const pagesHtml = editor.Pages.getAll().map((page) => {
+                  const component = page.getMainComponent();
+                  $("#Id").val('@Model.Id.ToString()');
+                  $("#HtmlContent").val(editor.getHtml({ component }));
+                  $("#CssContent").val(editor.getCss({ component }));
+                  postData()
+                    .then(data => {
+                      console.log(data); // JSON data parsed by `response.json()` call
+                    });
+
+                return {
+                  html: model.HtmlContent,
+                  css: model.CssContent,
+                };
+              });
+            },
+          },
+        }
+      },
+      canvas: {
+        styles: [
+    @foreach (var style in Model.Styles)
+    {
+        <text>'@style',</text>
+    }
+        ],
+        scripts: [
+    @foreach (var scr in Model.Scripts)
+    {
+        <text>'@scr',</text>
+    }
+        ]
+      },
+      layerManager: {
+        appendTo: '.layers-container',
+      },
+      deviceManager: {
+        devices: [
+          {
+            name: 'Desktop',
+            width: '', // default size
+          },
+          {
+            name: 'Mobile',
+            width: '320px', // this value will be used on canvas width
+            widthMedia: '480px', // this value will be used in CSS media
+          },
+        ],
+      },
+      // We define a default panel as a sidebar to contain layers
+      panels: {
+        defaults: [
+          {
+            id: 'layers',
+            el: '.panel__right',
+            // Make the panel resizable
+            resizable: {
+              maxDim: 350,
+              minDim: 200,
+              tc: false, // Top handler
+              cl: true, // Left handler
+              cr: false, // Right handler
+              bc: false, // Bottom handler
+              // Being a flex child we need to change `flex-basis` property
+              // instead of the `width` (default)
+              keyWidth: 'flex-basis',
+            },
+          },
+          {
+            id: 'panel-switcher',
+            el: '.panel__switcher',
+            buttons: [
+              {
+                id: 'show-layers',
+                active: true,
+                label: 'Layers',
+                command: 'show-layers',
+                // Once activated disable the possibility to turn it off
+                togglable: false,
+              },
+              {
+                id: 'show-style',
+                active: true,
+                label: 'Styles',
+                command: 'show-styles',
+                togglable: false,
+              },
+              {
+                id: 'show-traits',
+                active: true,
+                label: 'Traits',
+                command: 'show-traits',
+                togglable: false,
+              },
+            ],
+          },
+          {
+            id: 'panel-devices',
+            el: '.panel__devices',
+            buttons: [
+              {
+                id: 'device-desktop',
+                label: 'Desktop',
+                command: 'set-device-desktop',
+                active: true,
+                togglable: false,
+              },
+              {
+                id: 'device-mobile',
+                label: 'Mobile',
+                command: 'set-device-mobile',
+                togglable: false,
+              },
+            ],
+          },
+        ],
+      },
+      traitManager: {
+        appendTo: '.traits-container',
+      },
+      // The Selector Manager allows to assign classes and
+      // different states (eg. :hover) on components.
+      // Generally, it's used in conjunction with Style Manager
+      // but it's not mandatory
+      selectorManager: {
+        appendTo: '.styles-container',
+      },
+      styleManager: {
+        appendTo: '.styles-container',
+        sectors: [
+          {
+            name: 'Dimension',
+            open: false,
+            // Use built-in properties
+            buildProps: ['width', 'min-height', 'padding'],
+            // Use `properties` to define/override single property
+            properties: [
+              {
+                // Type of the input,
+                // options: integer | radio | select | color | slider | file | composite | stack
+                type: 'integer',
+                name: 'The width', // Label for the property
+                property: 'width', // CSS property (if buildProps contains it will be extended)
+                units: ['px', '%'], // Units, available only for 'integer' types
+                defaults: 'auto', // Default value
+                min: 0, // Min value, available only for 'integer' types
+              },
+            ],
+          },
+          {
+            name: 'Extra',
+            open: false,
+            buildProps: ['background-color', 'box-shadow', 'custom-prop'],
+            properties: [
+              {
+                id: 'custom-prop',
+                name: 'Custom Label',
+                property: 'font-size',
+                type: 'select',
+                defaults: '32px',
+                // List of options, available only for 'select' and 'radio'  types
+                options: [
+                  { value: '12px', name: 'Tiny' },
+                  { value: '18px', name: 'Medium' },
+                  { value: '32px', name: 'Big' },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      blockManager: {
+        appendTo: '#blocks',
+
+        blocks: [
+          {
+            id: 'section', // id is mandatory
+            label: '<b>Section</b>', // You can use HTML/SVG inside labels
+            attributes: { class: 'gjs-block-section' },
+            content: `<section>
+                <h1>This is a simple title</h1>
+                <div>This is just a Lorem text: Lorem ipsum dolor sit amet</div>
+              </section>`,
+          },
+          {
+            id: 'text',
+            label: 'Text',
+            content: '<div data-gjs-type="text">Insert your text here</div>',
+          },
+          {
+            id: 'image',
+            label: 'Image',
+            // Select the component once it's dropped
+            select: true,
+            // You can pass components as a JSON instead of a simple HTML string,
+            // in this case we also use a defined component type `image`
+            content: { type: 'image' },
+            // This triggers `active` event on dropped components and the `image`
+            // reacts by opening the AssetManager
+            activate: true,
+          },
+        ],
+      },
+    });
+
+    editor.Panels.addPanel({
+      id: 'panel-top',
+      el: '.panel__top',
+    });
+
+    editor.Panels.addPanel({
+      id: 'basic-actions',
+      el: '.panel__basic-actions',
+      buttons: [
         {
-          name: 'Desktop',
-          width: '', // default size
+          id: 'visibility',
+          active: true, // active by default
+          className: 'btn-toggle-borders',
+          label: '<u>B</u>',
+          command: 'sw-visibility', // Built-in command
         },
         {
-          name: 'Mobile',
-          width: '320px', // this value will be used on canvas width
-          widthMedia: '480px', // this value will be used in CSS media
+          id: 'export',
+          className: 'btn-open-export',
+          label: 'Exp',
+          command: 'export-template',
+          context: 'export-template', // For grouping context of buttons from the same panel
         },
-      ],
-    },
-    // We define a default panel as a sidebar to contain layers
-    panels: {
-      defaults: [
         {
-          id: 'layers',
-          el: '.panel__right',
-          // Make the panel resizable
-          resizable: {
-            maxDim: 350,
-            minDim: 200,
-            tc: false, // Top handler
-            cl: true, // Left handler
-            cr: false, // Right handler
-            bc: false, // Bottom handler
-            // Being a flex child we need to change `flex-basis` property
-            // instead of the `width` (default)
-            keyWidth: 'flex-basis',
+          id: 'show-json',
+          className: 'btn-show-json',
+          label: 'JSON',
+          context: 'show-json',
+          command(editor) {
+            editor.Modal.setTitle('Components JSON')
+              .setContent(
+                `<textarea style="width:100%; height: 250px;">
+                    ${JSON.stringify(editor.getComponents())}
+                  </textarea>`,
+              )
+              .open();
           },
         },
-        {
-          id: 'panel-switcher',
-          el: '.panel__switcher',
-          buttons: [
-            {
-              id: 'show-layers',
-              active: true,
-              label: 'Layers',
-              command: 'show-layers',
-              // Once activated disable the possibility to turn it off
-              togglable: false,
-            },
-            {
-              id: 'show-style',
-              active: true,
-              label: 'Styles',
-              command: 'show-styles',
-              togglable: false,
-            },
-            {
-              id: 'show-traits',
-              active: true,
-              label: 'Traits',
-              command: 'show-traits',
-              togglable: false,
-            },
-          ],
-        },
-        {
-          id: 'panel-devices',
-          el: '.panel__devices',
-          buttons: [
-            {
-              id: 'device-desktop',
-              label: 'Desktop',
-              command: 'set-device-desktop',
-              active: true,
-              togglable: false,
-            },
-            {
-              id: 'device-mobile',
-              label: 'Mobile',
-              command: 'set-device-mobile',
-              togglable: false,
-            },
-          ],
-        },
       ],
-    },
-    traitManager: {
-      appendTo: '.traits-container',
-    },
-    // The Selector Manager allows to assign classes and
-    // different states (eg. :hover) on components.
-    // Generally, it's used in conjunction with Style Manager
-    // but it's not mandatory
-    selectorManager: {
-      appendTo: '.styles-container',
-    },
-    styleManager: {
-      appendTo: '.styles-container',
-      sectors: [
-        {
-          name: 'Dimension',
-          open: false,
-          // Use built-in properties
-          buildProps: ['width', 'min-height', 'padding'],
-          // Use `properties` to define/override single property
-          properties: [
-            {
-              // Type of the input,
-              // options: integer | radio | select | color | slider | file | composite | stack
-              type: 'integer',
-              name: 'The width', // Label for the property
-              property: 'width', // CSS property (if buildProps contains it will be extended)
-              units: ['px', '%'], // Units, available only for 'integer' types
-              defaults: 'auto', // Default value
-              min: 0, // Min value, available only for 'integer' types
-            },
-          ],
-        },
-        {
-          name: 'Extra',
-          open: false,
-          buildProps: ['background-color', 'box-shadow', 'custom-prop'],
-          properties: [
-            {
-              id: 'custom-prop',
-              name: 'Custom Label',
-              property: 'font-size',
-              type: 'select',
-              defaults: '32px',
-              // List of options, available only for 'select' and 'radio'  types
-              options: [
-                { value: '12px', name: 'Tiny' },
-                { value: '18px', name: 'Medium' },
-                { value: '32px', name: 'Big' },
-              ],
-            },
-          ],
-        },
-      ],
-    },
-    blockManager: {
-      appendTo: '#blocks',
+    });
 
-      blocks: [
-        {
-          id: 'section', // id is mandatory
-          label: '<b>Section</b>', // You can use HTML/SVG inside labels
-          attributes: { class: 'gjs-block-section' },
-          content: `<section>
-            <h1>This is a simple title</h1>
-            <div>This is just a Lorem text: Lorem ipsum dolor sit amet</div>
-          </section>`,
-        },
-        {
-          id: 'text',
-          label: 'Text',
-          content: '<div data-gjs-type="text">Insert your text here</div>',
-        },
-        {
-          id: 'image',
-          label: 'Image',
-          // Select the component once it's dropped
-          select: true,
-          // You can pass components as a JSON instead of a simple HTML string,
-          // in this case we also use a defined component type `image`
-          content: { type: 'image' },
-          // This triggers `active` event on dropped components and the `image`
-          // reacts by opening the AssetManager
-          activate: true,
-        },
-      ],
-    },
-  });
+    editor.on('storage:start:load', () => {
+      $("#spinLoading").show();
+    });
 
-  editor.Panels.addPanel({
-    id: 'panel-top',
-    el: '.panel__top',
-  });
+    editor.on('storage:load', (data, res) => {
+      $("#spinLoading").hide();
+    });
 
-  editor.Panels.addPanel({
-    id: 'basic-actions',
-    el: '.panel__basic-actions',
-    buttons: [
-      {
-        id: 'visibility',
-        active: true, // active by default
-        className: 'btn-toggle-borders',
-        label: '<u>B</u>',
-        command: 'sw-visibility', // Built-in command
+    // Define commands
+    editor.Commands.add('show-layers', {
+      getRowEl(editor) {
+        return editor.getContainer().closest('.editor-row');
       },
-      {
-        id: 'export',
-        className: 'btn-open-export',
-        label: 'Exp',
-        command: 'export-template',
-        context: 'export-template', // For grouping context of buttons from the same panel
+      getLayersEl(row) {
+        return row.querySelector('.layers-container');
       },
-      {
-        id: 'show-json',
-        className: 'btn-show-json',
-        label: 'JSON',
-        context: 'show-json',
-        command(editor) {
-          editor.Modal.setTitle('Components JSON')
-            .setContent(
-              `<textarea style="width:100%; height: 250px;">
-                ${JSON.stringify(editor.getComponents())}
-              </textarea>`,
-            )
-            .open();
-        },
+
+      run(editor, sender) {
+        const lmEl = this.getLayersEl(this.getRowEl(editor));
+        lmEl.style.display = '';
       },
-    ],
-  });
+      stop(editor, sender) {
+        const lmEl = this.getLayersEl(this.getRowEl(editor));
+        lmEl.style.display = 'none';
+      },
+    });
 
-  // Define commands
-  editor.Commands.add('show-layers', {
-    getRowEl(editor) {
-      return editor.getContainer().closest('.editor-row');
-    },
-    getLayersEl(row) {
-      return row.querySelector('.layers-container');
-    },
+    editor.Commands.add('show-styles', {
+      getRowEl(editor) {
+        return editor.getContainer().closest('.editor-row');
+      },
+      getStyleEl(row) {
+        return row.querySelector('.styles-container');
+      },
 
-    run(editor, sender) {
-      const lmEl = this.getLayersEl(this.getRowEl(editor));
-      lmEl.style.display = '';
-    },
-    stop(editor, sender) {
-      const lmEl = this.getLayersEl(this.getRowEl(editor));
-      lmEl.style.display = 'none';
-    },
-  });
+      run(editor, sender) {
+        const smEl = this.getStyleEl(this.getRowEl(editor));
+        smEl.style.display = '';
+      },
+      stop(editor, sender) {
+        const smEl = this.getStyleEl(this.getRowEl(editor));
+        smEl.style.display = 'none';
+      },
+    });
 
-  editor.Commands.add('show-styles', {
-    getRowEl(editor) {
-      return editor.getContainer().closest('.editor-row');
-    },
-    getStyleEl(row) {
-      return row.querySelector('.styles-container');
-    },
+    editor.Commands.add('show-traits', {
+      getTraitsEl(editor) {
+        const row = editor.getContainer().closest('.editor-row');
+        return row.querySelector('.traits-container');
+      },
+      run(editor, sender) {
+        this.getTraitsEl(editor).style.display = '';
+      },
+      stop(editor, sender) {
+        this.getTraitsEl(editor).style.display = 'none';
+      },
+    });
 
-    run(editor, sender) {
-      const smEl = this.getStyleEl(this.getRowEl(editor));
-      smEl.style.display = '';
-    },
-    stop(editor, sender) {
-      const smEl = this.getStyleEl(this.getRowEl(editor));
-      smEl.style.display = 'none';
-    },
-  });
+    editor.Commands.add('set-device-desktop', {
+      run: (editor) => editor.setDevice('Desktop'),
+    });
 
-  editor.Commands.add('show-traits', {
-    getTraitsEl(editor) {
-      const row = editor.getContainer().closest('.editor-row');
-      return row.querySelector('.traits-container');
-    },
-    run(editor, sender) {
-      this.getTraitsEl(editor).style.display = '';
-    },
-    stop(editor, sender) {
-      this.getTraitsEl(editor).style.display = 'none';
-    },
-  });
-
-  editor.Commands.add('set-device-desktop', {
-    run: (editor) => editor.setDevice('Desktop'),
-  });
-
-  editor.Commands.add('set-device-mobile', {
-    run: (editor) => editor.setDevice('Mobile'),
-  });
+    editor.Commands.add('set-device-mobile', {
+      run: (editor) => editor.setDevice('Mobile'),
+    });
 
 </script>
