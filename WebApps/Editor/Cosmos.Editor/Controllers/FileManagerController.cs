@@ -111,6 +111,17 @@ namespace Cosmos.Cms.Controllers
         }
 
         /// <summary>
+        /// Gets a list of valid image extensions.
+        /// </summary>
+        public static string ValidImageExtensions
+        {
+            get
+            {
+                return ".apng, .avif, .gif, .jpg, .jpeg, .png, .svg, .webp";
+            }
+        }
+
+        /// <summary>
         /// File manager index page.
         /// </summary>
         /// <param name="target">Path to folder.</param>
@@ -205,9 +216,7 @@ namespace Cosmos.Cms.Controllers
 
             if (imagesOnly)
             {
-                var imageExtensions = new string[] { ".apng", ".avif", ".gif", ".jpg", ".jpeg", ".png", ".svg", ".webp" };
-
-                query = query.Where(w => w.IsDirectory || imageExtensions.Contains(w.Extension.ToLower()));
+                query = query.Where(w => w.IsDirectory || ValidImageExtensions.Contains(w.Extension.ToLower()));
             }
 
             ViewData["RowCount"] = query.Count();

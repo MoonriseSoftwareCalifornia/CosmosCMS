@@ -244,18 +244,26 @@
           },
         }
       },
+      assetManager: {
+        assets: [
+        @foreach (var scr in Model.Assets)
+        {
+        <text>'@scr',</text>
+        }
+        ]
+      },
       canvas: {
         styles: [
-    @foreach (var style in Model.Styles)
-    {
+        @foreach (var style in Model.Styles)
+        {
         <text>'@style',</text>
-    }
+        }
         ],
         scripts: [
-    @foreach (var scr in Model.Scripts)
-    {
+        @foreach (var scr in Model.Scripts)
+        {
         <text>'@scr',</text>
-    }
+        }
         ]
       },
       layerManager: {

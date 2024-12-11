@@ -10,8 +10,8 @@ namespace Cosmos.Cms.Controllers
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Text;
     using System.Threading.Tasks;
+    using Cosmos.BlobService;
     using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Cms.Data.Logic;
     using Cosmos.Cms.Models;
@@ -39,7 +39,7 @@ namespace Cosmos.Cms.Controllers
         private readonly ArticleEditLogic articleLogic;
         private readonly ApplicationDbContext dbContext;
         private readonly IOptions<CosmosConfig> options;
-        private readonly IViewRenderService viewRenderService;
+        private readonly StorageContext storageContext;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TemplatesController"/> class.
@@ -48,12 +48,13 @@ namespace Cosmos.Cms.Controllers
         /// <param name="viewRenderService">View rendering service.</param>
         /// <param name="dbContext">Database context.</param>
         /// <param name="userManager">User manager.</param>
+        /// <param name="storageContext">Storage context service.</param>
         /// <param name="articleLogic">Article edit logic.</param>
         /// <param name="options">Cosmos Options.</param>
         public TemplatesController(
-            IViewRenderService viewRenderService,
             ApplicationDbContext dbContext,
             UserManager<IdentityUser> userManager,
+            StorageContext storageContext,
             ArticleEditLogic articleLogic,
             IOptions<CosmosConfig> options)
             : base(dbContext, userManager)
@@ -61,7 +62,7 @@ namespace Cosmos.Cms.Controllers
             this.dbContext = dbContext;
             this.articleLogic = articleLogic;
             this.options = options;
-            this.viewRenderService = viewRenderService;
+            this.storageContext = storageContext;
         }
 
         /// <summary>
@@ -503,6 +504,17 @@ namespace Cosmos.Cms.Controllers
             }
 
             var config = new DesignerConfig(await dbContext.Layouts.FirstOrDefaultAsync(f => f.IsDefault), id);
+
+            var blobs = await storageContext.GetObjectsAsync($"/templates/");
+
+            foreach (var blob in blobs)
+            {
+                if (!blob.IsDirectory && !blob.Name.StartsWith("/pub/articles", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    config.Assets.Add(blob.Name);
+                }
+            }
+
 
             return View(config);
         }

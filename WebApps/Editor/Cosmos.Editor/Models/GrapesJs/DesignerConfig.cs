@@ -11,13 +11,13 @@ namespace Cosmos.Editor.Models.GrapesJs
     using System.Collections.Generic;
     using Cosmos.Common.Data;
     using Cosmos.Editor.Data.Logic;
+    using NuGet.ContentModel;
 
     /// <summary>
     /// Designer configuration.
     /// </summary>
     public class DesignerConfig
     {
-
         /// <summary>
         /// Initializes a new instance of the <see cref="DesignerConfig"/> class.
         /// </summary>
@@ -25,6 +25,7 @@ namespace Cosmos.Editor.Models.GrapesJs
         {
             Styles = new List<string>();
             Scripts = new List<string>();
+            Assets = new List<string>();
         }
 
         /// <summary>
@@ -37,6 +38,7 @@ namespace Cosmos.Editor.Models.GrapesJs
             var designerUtils = new DesignerUtilities();
             Styles = new List<string>();
             Scripts = new List<string>();
+            Assets = new List<string>();
 
             Styles.AddRange(designerUtils.ExtractStyleReferences(layout.Head));
             Scripts.AddRange(designerUtils.ExtractScriptReferences(layout.Head));
@@ -60,6 +62,11 @@ namespace Cosmos.Editor.Models.GrapesJs
         /// </summary>
 
         public string CssContent { get; set; }
+
+        /// <summary>
+        /// Gets or sets the image asset content.
+        /// </summary>
+        public List<string> Assets { get; set; }
 
         /// <summary>
         /// Gets or sets the project style URLs.

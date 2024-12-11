@@ -27,7 +27,7 @@ namespace Cosmos.Editor.Data.Logic
                 {
                     "div", "header", "footer", "section", "nav",
                 };
-
+                
         /// <summary>
         /// Marks the StandardTagsList as not editable and movable in the editor.
         /// </summary>
