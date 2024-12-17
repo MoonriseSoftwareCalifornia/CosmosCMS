@@ -13,6 +13,7 @@ namespace Cosmos.Cms.Controllers
     using System.Text;
     using System.Threading.Tasks;
     using System.Web;
+    using Cosmos.BlobService;
     using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Cms.Data.Logic;
     using Cosmos.Cms.Models;
@@ -21,7 +22,9 @@ namespace Cosmos.Cms.Controllers
     using Cosmos.Common.Data.Logic;
     using Cosmos.Common.Models;
     using Cosmos.Editor.Data;
+    using Cosmos.Editor.Data.Logic;
     using Cosmos.Editor.Models;
+    using Cosmos.Editor.Models.GrapesJs;
     using Cosmos.Editor.Services;
     using HtmlAgilityPack;
     using Microsoft.AspNetCore.Authorization;
@@ -50,6 +53,7 @@ namespace Cosmos.Cms.Controllers
         private readonly UserManager<IdentityUser> userManager;
         private readonly Uri blobPublicAbsoluteUrl;
         private readonly IViewRenderService viewRenderService;
+        private readonly StorageContext storageContext;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EditorController"/> class.
@@ -61,6 +65,7 @@ namespace Cosmos.Cms.Controllers
         /// <param name="articleLogic">Article logic.</param>
         /// <param name="options">Cosmos options.</param>
         /// <param name="viewRenderService">View rendering service.</param>
+        /// <param name="storageContext">Storage context.</param>
         public EditorController(
             ILogger<EditorController> logger,
             ApplicationDbContext dbContext,
@@ -68,7 +73,8 @@ namespace Cosmos.Cms.Controllers
             RoleManager<IdentityRole> roleManager,
             ArticleEditLogic articleLogic,
             IOptions<CosmosConfig> options,
-            IViewRenderService viewRenderService)
+            IViewRenderService viewRenderService,
+            StorageContext storageContext)
             : base(dbContext, userManager)
         {
             this.logger = logger;
@@ -77,6 +83,8 @@ namespace Cosmos.Cms.Controllers
             this.roleManager = roleManager;
             this.userManager = userManager;
             this.articleLogic = articleLogic;
+            this.storageContext = storageContext;
+
             var htmlUtilities = new HtmlUtilities();
 
             if (htmlUtilities.IsAbsoluteUri(options.Value.SiteSettings.BlobPublicUrl))
@@ -268,6 +276,118 @@ namespace Cosmos.Cms.Controllers
             }
 
             return View(model);
+        }
+
+        /// <summary>
+        /// Loads the designer GUI.
+        /// </summary>
+        /// <param name="id">Template ID.</param>
+        /// <returns>View.</returns>
+        public async Task<IActionResult> Designer(int id)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // Loads GrapeJS.
+            ViewData["IsDesigner"] = true;
+
+            var article = await articleLogic.Get(id, null);
+            if (article == null)
+            {
+                return NotFound();
+            }
+
+            var config = new DesignerConfig(await dbContext.Layouts.FirstOrDefaultAsync(f => f.IsDefault), article.Id, article.Title);
+            var assets = await FileManagerController.GetImageAssetArray(storageContext, $"/pub/articles/{id}", string.Empty);
+            if (assets != null)
+            {
+                config.ImageAssets.AddRange(assets);
+            }
+
+            return View(config);
+        }
+
+        /// <summary>
+        /// Visual designer based on GrapeJS.
+        /// </summary>
+        /// <param name="id">Template ID.</param>
+        /// <returns>IActionResult.</returns>
+        [HttpGet]
+        public async Task<IActionResult> DesignerData(int id)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var article = await articleLogic.Get(id, null);
+            if (article == null)
+            {
+                return NotFound();
+            }
+
+            return Json(new project(article.Content));
+        }
+
+        /// <summary>
+        /// Save designer data.
+        /// </summary>
+        /// <param name="id">Item ID.</param>
+        /// <param name="htmlContent">Html content.</param>
+        /// <param name="cssContent">Css content.</param>
+        /// <param name="title">Title.</param>
+        /// <returns>IActionResult.</returns>
+        [HttpPost]
+        public async Task<IActionResult> DesignerData([FromForm] int id, string htmlContent, string cssContent, string title)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // Check for nested editable regions.
+            if (!NestedEditableRegionValidation.Validate(htmlContent))
+            {
+                return BadRequest("Cannot have nested editable regions.");
+            }
+
+            // Next pull the original. This is a view model, not tracked by DbContext.
+            var article = await articleLogic.Get(id, null);
+
+            if (article == null)
+            {
+                return NotFound();
+            }
+
+            var designerUtils = new DesignerUtilities();
+            var html = designerUtils.AssembleDesignerOutput(new DesignerDataViewModel() { CssContent = cssContent, HtmlContent = htmlContent, Title = title, Id = id.ToString() });
+
+
+            var result = await articleLogic.Save(
+                new ArticleViewModel()
+                {
+                    Id = article.Id,
+                    ArticleNumber = article.ArticleNumber,
+                    BannerImage = article.BannerImage,
+                    Content = html,
+                    Title = title,
+                    Published = article.Published,
+                    Expires = article.Expires,
+                    FooterJavaScript = article.FooterJavaScript,
+                    HeadJavaScript = article.HeadJavaScript,
+                    StatusCode = article.StatusCode,
+                    UrlPath = article.UrlPath,
+                    VersionNumber = article.VersionNumber,
+                    Updated = DateTimeOffset.UtcNow
+                }, await GetUserEmail());
+
+            return Json(new { success = true });
         }
 
         /// <summary>

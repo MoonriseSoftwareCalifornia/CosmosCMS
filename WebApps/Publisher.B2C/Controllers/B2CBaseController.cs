@@ -24,7 +24,7 @@ namespace Cosmos.Publisher.B2C.Controllers
         /// <summary>
         /// Initializes a new instance of the <see cref="B2CBaseController"/> class.
         /// </summary>
-        /// <param name="articleLogic">Article Logic</param>
+        /// <param name="articleLogic">Article Logic.</param>
         /// <param name="dbContext">Database Context.</param>
         /// <param name="storageContext">Storage Context.</param>
         /// <param name="logger">Log service.</param>

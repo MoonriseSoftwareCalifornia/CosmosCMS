@@ -1,0 +1,78 @@
+.logo{
+  width: 90px;
+  height: 90px;
+}
+
+.logo-block {
+  margin: 0 auto;
+  width: 255px;
+}
+
+.logo-c, .logo-label {
+  float: left;
+}
+
+.logo-label{
+  cursor: default;
+}
+
+.logo-c {
+  margin-right: 2px;
+}
+
+.logo-name {
+  font-size: 2.5em;
+  height: 50px;
+  letter-spacing: 0.05em;
+}
+
+.logo-plg {
+  letter-spacing: 0.5em;
+  text-align: left;
+}
+
+.logo-bann {
+  padding: 30px;
+}
+
+.gjs-playground{
+  text-align: left;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.gjs-plg {
+  display: flex;
+  background-color: #444;
+  border-radius: 3px;
+}
+.gjs-plg-editor, .gjs-plg-output {
+  width: 50%;
+}
+
+/***TABS**/
+.tabs-menu{
+  margin: 0;
+  list-style: none;
+  padding: 0;
+}
+.tabs-menu:after{
+  content: '';
+  display: block;
+  clear: both;
+}
+.tabs-menu li {
+    height: 30px;
+    line-height: 30px;
+    float: left;
+    margin-right: 10px;
+}
+
+.tab-content {
+    display: none;
+    height: 700px;
+}
+
+#gjs-result {
+ display: block;
+}

@@ -46,5 +46,15 @@ namespace Cosmos.BlobService.Models
         /// Gets or sets the total file size in bytes.
         /// </summary>
         public long TotalFileSize { get; set; }
+
+        /// <summary>
+        /// Gets or sets the image width.
+        /// </summary>
+        public string ImageWidth { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the image height.
+        /// </summary>
+        public string ImageHeight { get; set; } = string.Empty;
     }
 }

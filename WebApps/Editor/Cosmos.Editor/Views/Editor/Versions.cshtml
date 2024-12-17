@@ -88,12 +88,13 @@
                                     </td>
                                     <td scope="row" style="width:260px">
                                         <div class="btn-group" role="group" aria-label="Version actions">
-                                            <a class='btn btn-sm btn-secondary' title='Preview' onclick='openPreview(@articleNumber, @row.VersionNumber)'><i class='fas fa-search'></i> Preview</a>
+                                            <a class='btn btn-sm btn-secondary' title='Preview' onclick='openPreview(@articleNumber, @row.VersionNumber)'>Preview</a>
                                             @if (lastVersion == row.VersionNumber && isReviewer == false)
                                             {
                                                 @if (isAuthor == false)
                                                 {
-                                                    <a class='btn btn-sm btn-secondary' title='Edit with the code editor' href='/Editor/EditCode/@articleNumber'><img src="/images/monaco-vscode-logo.png" height="14" /> Code</a>
+                                                    <a class='btn btn-sm btn-secondary' title='Edit with the design editor' href='/Editor/Designer/@articleNumber'>Design</a>
+                                                    <a class='btn btn-sm btn-secondary' title='Edit with the code editor' href='/Editor/EditCode/@articleNumber'>Code</a>
                                                 }
                                                 else
                                                 {
@@ -101,7 +102,7 @@
                                                 }
                                                 @if (row.UsesHtmlEditor)
                                                 {
-                                                    <a class='btn btn-sm btn-secondary' title="Edit with live editor" href='/Editor/Edit/@articleNumber'><img src="/images/ckeditor-5-proj-logo.svg" height="18" /> Page</a>
+                                                    <a class='btn btn-sm btn-secondary' title="Edit with live editor" href='/Editor/Edit/@articleNumber'>HTML</a>
                                                 }
                                                 else
                                                 {

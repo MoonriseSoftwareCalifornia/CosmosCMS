@@ -63,4 +63,19 @@ public class FileManagerEntry
     /// Gets or sets size in bytes.
     /// </summary>
     public long Size { get; set; }
+
+    /// <summary>
+    /// Gets or sets the image width.
+    /// </summary>
+    public int? ImageX { get; set; }
+
+    /// <summary>
+    /// Gets or sets the image height.
+    /// </summary>
+    public int? ImageY { get; set; }
+
+    /// <summary>
+    /// Gets or sets the image DPI.
+    /// </summary>
+    public int? ImageDpi { get; set; }
 }

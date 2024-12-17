@@ -25,26 +25,27 @@ namespace Cosmos.Editor.Models.GrapesJs
         {
             Styles = new List<string>();
             Scripts = new List<string>();
-            Assets = new List<string>();
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DesignerConfig"/> class.
         /// </summary>
         /// <param name="layout">Layout object.</param>
-        /// <param name="id">Item ID.</param>
-        public DesignerConfig(Layout layout, Guid id)
+        /// <param name="id">Layout, template, or article ID.</param>
+        /// <param name="title">Layout, template, or article title.</param>
+        public DesignerConfig(Layout layout, Guid id, string title)
         {
             var designerUtils = new DesignerUtilities();
             Styles = new List<string>();
             Scripts = new List<string>();
-            Assets = new List<string>();
+            ImageAssets = new List<string>();
 
             Styles.AddRange(designerUtils.ExtractStyleReferences(layout.Head));
             Scripts.AddRange(designerUtils.ExtractScriptReferences(layout.Head));
             Scripts.AddRange(designerUtils.ExtractScriptReferences(layout.FooterHtmlContent));
 
             Id = id;
+            Title = title;
         }
 
         /// <summary>
@@ -64,9 +65,14 @@ namespace Cosmos.Editor.Models.GrapesJs
         public string CssContent { get; set; }
 
         /// <summary>
-        /// Gets or sets the image asset content.
+        /// Gets or sets the item title.
         /// </summary>
-        public List<string> Assets { get; set; }
+        public string Title { get; set; }
+
+        /// <summary>
+        /// Gets or sets the project image assets.
+        /// </summary>
+        public List<string> ImageAssets { get; set; }
 
         /// <summary>
         /// Gets or sets the project style URLs.

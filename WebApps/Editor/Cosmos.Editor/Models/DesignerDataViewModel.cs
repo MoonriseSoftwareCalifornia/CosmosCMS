@@ -21,6 +21,11 @@ namespace Cosmos.Editor.Models
         public string Id { get; set; }
 
         /// <summary>
+        /// Gets or sets the article title.
+        /// </summary>
+        public string Title { get; set; }
+
+        /// <summary>
         /// Gets or sets the HTML content.
         /// </summary>
         public string HtmlContent { get; set; }

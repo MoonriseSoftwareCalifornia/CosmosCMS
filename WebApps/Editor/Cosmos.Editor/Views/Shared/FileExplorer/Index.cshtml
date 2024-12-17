@@ -178,7 +178,7 @@
                     <button type="button" class="btn btn-sm btn-success" title="Move selected items to this folder." onclick="btnClick('moveItems')">Move to here</button>
                     <button type="button" class="btnShowSelected btn btn-sm btn-secondary" title="Show list of selected items" style="display:none">Show Selected</button>
                     <button type="button" class="btn btn-sm btn-primary" title="Cancel copy or move operation." onclick="btnClick('cancel')">Cancel</button>
-                    
+
                 </div>
             </div>
         </div>
@@ -503,14 +503,15 @@
             <form id="frmNewFile" asp-action="NewFile" method="post">
                 <input type="hidden" name="ParentFolder" id="ParentFolder" value="@pathPrefix" />
                 <div class="modal-header">
-                   <h5 id="checkFirstTitle" class="modal-title">Create a new file</h5>
+                    <h5 id="checkFirstTitle" class="modal-title">Create a new file</h5>
                 </div>
                 <div class="modal-body">
                     <div class="input-group mb-3 bg-dark text-light">
                         <span id="itemPrefix1" class="input-group-text">File name: </span>
                         <input class="form-control text-dark" id="FileName" name="FileName" aria-describedby="emailHelp">
                     </div>
-                    <p>Valid file extensions: 
+                    <p>
+                        Valid file extensions:
                         @foreach (var ext in editorExtensions)
                         {
                             <span class="badge bg-secondary">@ext</span>
@@ -520,7 +521,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button id="btnCreateFile" type="submit" class="btn btn-primary">Create</button>
-                </div>      
+                </div>
             </form>
         </div>
     </div>
@@ -543,11 +544,13 @@
     const isNewSession = @isNewSession.ToString().ToLower();
     const selectOneFile = @selectOne.ToString().ToLower();
 
+    const imageExtensions = [ ".jpg", ".jpeg", ".png", ".gif", ".webp" ];
+
     // Image editor
     let imageEditorWindow = null;
 
     // Select one mode?
-    // 
+    //
     // Set mode
     const directoryOnly = @(directoryOnly.ToString().ToLower());
     // Image browser on?
@@ -605,7 +608,7 @@
     // Get a reference to the file input element
     const inputElement = document.querySelector('input[type="file"]');
 
-    // Register meta data Plug In
+    // Register meta data Plug-ins
     FilePond.registerPlugin(FilePondPluginFileMetadata);
 
     // Create a FilePond instance
@@ -630,16 +633,38 @@
 
         file.setMetadata("relativePath", file.relativePath);
         file.setMetadata("fileName", file.filename);
-        // Add up the total count of files to be uploaded
+
+        const ext = "." + file.filename.split('.').pop();
         totalFileCount++;
         if (totalFileCount > 1) {
             filePondMessage("Preparing to upload " + totalFileCount + " files...");
         } else {
-            filePondMessage("Preparing to file...");
+            filePondMessage("Uploading file...");
         }
 
-        console.log('File added', file);
+        if (ext !== null && imageExtensions.includes(ext.toLowerCase())) {
+            getImageDimensions(file.file, function(dimensions) {
+                file.setMetadata('imageWidth', dimensions.width);
+                file.setMetadata('imageHeight', dimensions.height);
+            });
+        }
     });
+
+    function getImageDimensions(blob, callback) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const dimensions = {
+                    width: img.naturalWidth,
+                    height: img.naturalHeight
+                };
+                callback(dimensions);
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(blob);
+    }
 
     pond.on('processfilestart', (e) => {
         const metadata = e.getMetadata();
@@ -911,7 +936,7 @@
                 });
 
             return true;
-            
+
         });
 
         resetButtons();

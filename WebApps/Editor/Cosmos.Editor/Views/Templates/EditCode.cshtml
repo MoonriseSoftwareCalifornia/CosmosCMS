@@ -203,6 +203,13 @@
                 $("#divSaveFirstDialog").html("Save page before opening preview?");
                 modalCheckSaveFirst.show();
                 break;
+            case "Design":
+                next = function () {
+                    window.open("@Url.Action("Designer", "Templates", new { Model?.Id })");
+                }
+                $("#divSaveFirstDialog").html("Save page before opening the designer?");
+                modalCheckSaveFirst.show();
+                break;
         }
     }
 
@@ -229,6 +236,7 @@
         }
 
         $('#tbPublished').prop("disabled", "true");
+        $('#btnCcmsGrapesJsEditor').show();
 
         $("#btnSaveAsDraft").hide();
         $("#btnOpenInsertImage").hide();

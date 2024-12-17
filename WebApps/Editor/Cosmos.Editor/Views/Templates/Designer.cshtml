@@ -2,11 +2,15 @@
 @model Cosmos.Editor.Models.GrapesJs.DesignerConfig
 @{
     Layout = "_LayoutEditor";
-    ViewData["Title"] = "Page Designer";
+    ViewData["Title"] = Model.Title;
 }
 
-<link href="~/lib/grapesjs/css/grapes.min.css" rel="stylesheet">
-<script src="~/lib/grapesjs/grapes.min.js"></script>
+<form id="frmSave">
+    <input type="hidden" id="Id" name="Id" value="@Model.Id" />
+    <input type="hidden" id="Title" name="Title" value="@Model.Title" />
+    <input type="hidden" id="HtmlContent" name="HtmlContent" />
+    <input type="hidden" id="CssContent" name="CssContent" />
+</form>
 
 <style>
     body {
@@ -87,35 +91,45 @@
     }
 </style>
 
+<div style="display: none">
+    <div class="gjs-logo-cont">
+        <a href="https://grapesjs.com"><img class="gjs-logo" src="~/lib/grapesjsbuild/img/grapesjs-logo-cl.png"></a>
+        <div class="gjs-logo-version"></div>
+    </div>
+</div>
 
-<div class="panel__top">
-    <div class="panel__basic-actions"></div>
-    <div class="panel__devices"></div>
-    <div class="panel__switcher"></div>
+<div id="gjs" style="height:0px; overflow:hidden">
+    <!-- CONTENT GOES HERE -->
 </div>
-<div class="editor-row">
-    <div class="editor-canvas">
-        <div id="gjs"></div>
-    </div>
-    <div class="panel__right">
-        <div class="layers-container"></div>
-        <div class="styles-container"></div>
-        <div class="traits-container"></div>
+
+<div id="info-panel" style="display:none">
+    <br />
+    <svg class="info-panel-logo" xmlns="https://www.w3.org/2000/svg" version="1">
+        <g id="gjs-logo">
+            <path d="M40 5l-12.9 7.4 -12.9 7.4c-1.4 0.8-2.7 2.3-3.7 3.9 -0.9 1.6-1.5 3.5-1.5 5.1v14.9 14.9c0 1.7 0.6 3.5 1.5 5.1 0.9 1.6 2.2 3.1 3.7 3.9l12.9 7.4 12.9 7.4c1.4 0.8 3.3 1.2 5.2 1.2 1.9 0 3.8-0.4 5.2-1.2l12.9-7.4 12.9-7.4c1.4-0.8 2.7-2.2 3.7-3.9 0.9-1.6 1.5-3.5 1.5-5.1v-14.9 -12.7c0-4.6-3.8-6-6.8-4.2l-28 16.2" style="fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-width:10;stroke:#fff" />
+        </g>
+    </svg>
+    <br />
+    <div class="info-panel-label">
+        <b>GrapesJS Webpage Builder</b> is a simple showcase of what is possible to achieve with the
+        <a class="info-panel-link gjs-four-color" target="_blank" href="https://github.com/artf/grapesjs">GrapesJS</a>
+        core library
+        <br /><br />
+        For any hint about the demo check the
+        <a class="info-panel-link gjs-four-color" target="_blank" href="https://github.com/artf/grapesjs-preset-webpage">Webpage Preset repository</a>
+        and open an issue. For problems with the builder itself, open an issue on the main
+        <a class="info-panel-link gjs-four-color" target="_blank" href="https://github.com/artf/grapesjs">GrapesJS repository</a>
+        <br /><br />
+        Being a free and open source project contributors and supporters are extremely welcome.
+        If you like the project support it with a donation of your choice or become a backer/sponsor via
+        <a class="info-panel-link gjs-four-color" target="_blank" href="https://opencollective.com/grapesjs">Open Collective</a>
     </div>
 </div>
-<div id="blocks"></div>
-<form id="frmDesignerData">
-    <input type="hidden" id="Id" name="Id" />
-    <input type="hidden" id="HtmlContent" name="HtmlContent" />
-    <input type="hidden" id="CssContent" name="CssContent" />
-</form>
+
 <script>
     /*
-
-      COSMOS CMS
-
+      Cosmos Configuration.
     */
-
     var ccmsEditorIsLocked = false;
     // Current user
     const ccms_editor_userid = "@this.Context.User.Identity.Name";
@@ -125,424 +139,112 @@
     // This needs global scope, so using var
     var hasPermissionsSet = false;
 
-    $("#frmSave").submit(function (e) {
-      e.preventDefault();
-      saveChanges(null, null);
+    function bgEditClickCustom(command) {
+        switch (command) {
+            case "Close":
+                next = function () {
+                    window.location.href = "@Url.Action("Index", "Templates")";
+                }
+                $("#divSaveFirstDialog").html("Save page before closing editor?");
+                modalCheckSaveFirst.show();
+                break;
+            case "Preview":
+                next = function () {
+                    window.open("@Url.Action("Preview", "Templates", new { Model?.Id })");
+                }
+                $("#divSaveFirstDialog").html("Save page before opening preview?");
+                modalCheckSaveFirst.show();
+                break;
+            case "Code":
+                // Open in new window.
+                next = function () {
+                       window.location.href = "@Url.Action("EditCode", "Templates", new { Model.Id })";
+                }
+                $("#divSaveFirstDialog").html("Save page before closing editor?");
+                modalCheckSaveFirst.show();
+            break;
+        }
+    }
+
+    function getLocalTimeZone() {
+        var datetime = new Date();
+        var dateTimeString = datetime.toString();
+        var timezone = dateTimeString.substring(dateTimeString.indexOf("(") - 1);
+        return timezone;
+    }
+
+    function closeEditor() {
+        window.location.href = "@Url.Action("Index", "Templates", new { Model.Id })";
+    }
+
+    async function saveChanges() {
+        // Activated from _LayoutEditor.cshtml in multiple locations;
+        const storedProjectData = await editor.store();
+    }
+
+    $("#frmSave").submit(function(event) {
+        event.preventDefault(); // Prevents the default form submission
+        saveChanges();
     });
 
-    // Save the changes for this editor
-    function saveChanges(myModal, next) {
-
-      saving();
-
-      if (typeof (myModel) !== "undefined" && myModel !== null) {
-        myModal.hide();
-      }
-      // Saving publish date with time zone information
-      savePublishDateTime();
-
-      if (editor) {
-        $("#" + fieldId).val(editor.getValue());
-      }
-
-      let model = {
-        Id: $("#Id").val(),
-        Title: $("#Title").val(),
-        Content: $("#Content").val()
-      };
-
-      $.post("/Templates/EditCode",
-        model,
-        function (response) {
-
-          doneSaving();
-
-          if (response.IsValid) {
-            if (typeof (next) !== "undefined" && next !== null) {
-              next();
-            }
-            toastMsg("Successfully saved.");
-          } else {
-            var errorMsg = "<h5>Error(s) detected while saving:</h5>";
-
-            // Invalid response.
-            $.each(response.Errors,
-              function (index, error) {
-                errorMsg = "<p>" + error.Key + "</p><ul>";
-                $.each(error.Errors,
-                  function (index, innerError) {
-                    errorMsg = errorMsg + "<li>" + innerError.ErrorMessage + "</li>";
-                  });
-                errorMsg = errorMsg + "</ul>";
-              });
-            $("#divErrorLog").html(errorMsg);
-            var errorModal = new bootstrap.Modal(document.getElementById('modalSavingError'));
-            errorModal.show();
-          }
-        }
-      );
+    function preloadImages() {
+        const imageUrls = @Html.Raw(JsonConvert.SerializeObject(Model.ImageAssets));
+        imageUrls.forEach(url => {
+            const img = new Image();
+            img.src = url;
+        });
+        return imageUrls;
     }
+
+    $(document).ready(function () {
+
+        $('#modalChgTitleHeader').html("Change Template Name");
+        $('#lblCurrentTitle').html("Current name:");
+        $('#lblNewTitle').html("New name:");
+
+        $('#tbPublished').prop("disabled", "true");
+
+        $("#btnSaveAsDraft").hide();
+        $("#btnOpenInsertImage").hide();
+        $("#btnCcmsCodeEditor").show();
+
+        $("#liInsert").show();
+        $("#divTitleGroup").show();
+        $("#divTitle").html("@Model.Title");
+        $("#Title").val("@Model.Title");
+
+        // Alter the default action of the save changes button
+        // located on _LayoutEditor.cshtml.
+        $("#modalBtnSaveFirst").on("click", function () {
+            saveChanges();
+        });
+
+        if (hasModel && isReviewer === false && isAuthor === false && requiresAuthentication) {
+            $(".perm").show();
+        }
+
+        cosmos__designerLoadAssets("/pub", "/pub/articles");
+    });
+
+    $(document).on("unload", function () {
+        // Close filemanager window if opened
+        if (typeof fileMgrPopup !== "undefined" && fileMgrPopup !== null && fileMgrPopup.location) {
+            fileMgrPopup.close();
+        }
+    });
 
     /*
 
-        GRAPESJS
+        GrapesJS Editor (Designer) Configuration
 
     */
-    async function postData(data) {
-        const url = "/Templates/SaveDesignerData";
-
-        const formData = new FormData(document.getElementById("frmDesignerData"));
-
-        // Default options are marked with *
-        const response = await fetch(url, {
-          method: 'POST', // *GET, POST, PUT, DELETE, etc.
-          body: formData
-        });
-
-        return response.json(); // parses JSON response into native JavaScript objects
-     }
-
-    const editor = grapesjs.init({
-      // Indicate where to init the editor. You can also pass an HTMLElement
-      container: '#gjs',
-      // Get the content for the canvas directly from the element
-      // As an alternative we could use: `components: '<h1>Hello World Component!</h1>'`,
-      fromElement: true,
-      // Size of the editor
-      height: window.innerHeight - 149,
-      width: 'auto',
-      // Disable the storage manager for the moment
-      storageManager: {
-        type: 'remote', // Storage type. Available: local | remote
-        autosave: true, // Store data automatically
-        autoload: true, // Autoload stored data on init
-        stepsBeforeSave: 1, // If autosave is enabled, indicates how many changes are necessary before the store method is triggered
-        // ...
-        // Default storage options
-        options: {
-          remote:
-          {
-            urlLoad: '/Templates/LoadDesignerData/@Model.Id.ToString()',
-            // Enrich the store call
-            onStore: (data, editor) => {
-                const pagesHtml = editor.Pages.getAll().map((page) => {
-                  const component = page.getMainComponent();
-                  $("#Id").val('@Model.Id.ToString()');
-                  $("#HtmlContent").val(editor.getHtml({ component }));
-                  $("#CssContent").val(editor.getCss({ component }));
-                  postData()
-                    .then(data => {
-                      console.log(data); // JSON data parsed by `response.json()` call
-                    });
-
-                return {
-                  html: model.HtmlContent,
-                  css: model.CssContent,
-                };
-              });
-            },
-          },
-        }
-      },
-      assetManager: {
-        assets: [
-        @foreach (var scr in Model.Assets)
-        {
-        <text>'@scr',</text>
-        }
-        ]
-      },
-      canvas: {
-        styles: [
-        @foreach (var style in Model.Styles)
-        {
-        <text>'@style',</text>
-        }
-        ],
-        scripts: [
-        @foreach (var scr in Model.Scripts)
-        {
-        <text>'@scr',</text>
-        }
-        ]
-      },
-      layerManager: {
-        appendTo: '.layers-container',
-      },
-      deviceManager: {
-        devices: [
-          {
-            name: 'Desktop',
-            width: '', // default size
-          },
-          {
-            name: 'Mobile',
-            width: '320px', // this value will be used on canvas width
-            widthMedia: '480px', // this value will be used in CSS media
-          },
-        ],
-      },
-      // We define a default panel as a sidebar to contain layers
-      panels: {
-        defaults: [
-          {
-            id: 'layers',
-            el: '.panel__right',
-            // Make the panel resizable
-            resizable: {
-              maxDim: 350,
-              minDim: 200,
-              tc: false, // Top handler
-              cl: true, // Left handler
-              cr: false, // Right handler
-              bc: false, // Bottom handler
-              // Being a flex child we need to change `flex-basis` property
-              // instead of the `width` (default)
-              keyWidth: 'flex-basis',
-            },
-          },
-          {
-            id: 'panel-switcher',
-            el: '.panel__switcher',
-            buttons: [
-              {
-                id: 'show-layers',
-                active: true,
-                label: 'Layers',
-                command: 'show-layers',
-                // Once activated disable the possibility to turn it off
-                togglable: false,
-              },
-              {
-                id: 'show-style',
-                active: true,
-                label: 'Styles',
-                command: 'show-styles',
-                togglable: false,
-              },
-              {
-                id: 'show-traits',
-                active: true,
-                label: 'Traits',
-                command: 'show-traits',
-                togglable: false,
-              },
-            ],
-          },
-          {
-            id: 'panel-devices',
-            el: '.panel__devices',
-            buttons: [
-              {
-                id: 'device-desktop',
-                label: 'Desktop',
-                command: 'set-device-desktop',
-                active: true,
-                togglable: false,
-              },
-              {
-                id: 'device-mobile',
-                label: 'Mobile',
-                command: 'set-device-mobile',
-                togglable: false,
-              },
-            ],
-          },
-        ],
-      },
-      traitManager: {
-        appendTo: '.traits-container',
-      },
-      // The Selector Manager allows to assign classes and
-      // different states (eg. :hover) on components.
-      // Generally, it's used in conjunction with Style Manager
-      // but it's not mandatory
-      selectorManager: {
-        appendTo: '.styles-container',
-      },
-      styleManager: {
-        appendTo: '.styles-container',
-        sectors: [
-          {
-            name: 'Dimension',
-            open: false,
-            // Use built-in properties
-            buildProps: ['width', 'min-height', 'padding'],
-            // Use `properties` to define/override single property
-            properties: [
-              {
-                // Type of the input,
-                // options: integer | radio | select | color | slider | file | composite | stack
-                type: 'integer',
-                name: 'The width', // Label for the property
-                property: 'width', // CSS property (if buildProps contains it will be extended)
-                units: ['px', '%'], // Units, available only for 'integer' types
-                defaults: 'auto', // Default value
-                min: 0, // Min value, available only for 'integer' types
-              },
-            ],
-          },
-          {
-            name: 'Extra',
-            open: false,
-            buildProps: ['background-color', 'box-shadow', 'custom-prop'],
-            properties: [
-              {
-                id: 'custom-prop',
-                name: 'Custom Label',
-                property: 'font-size',
-                type: 'select',
-                defaults: '32px',
-                // List of options, available only for 'select' and 'radio'  types
-                options: [
-                  { value: '12px', name: 'Tiny' },
-                  { value: '18px', name: 'Medium' },
-                  { value: '32px', name: 'Big' },
-                ],
-              },
-            ],
-          },
-        ],
-      },
-      blockManager: {
-        appendTo: '#blocks',
-
-        blocks: [
-          {
-            id: 'section', // id is mandatory
-            label: '<b>Section</b>', // You can use HTML/SVG inside labels
-            attributes: { class: 'gjs-block-section' },
-            content: `<section>
-                <h1>This is a simple title</h1>
-                <div>This is just a Lorem text: Lorem ipsum dolor sit amet</div>
-              </section>`,
-          },
-          {
-            id: 'text',
-            label: 'Text',
-            content: '<div data-gjs-type="text">Insert your text here</div>',
-          },
-          {
-            id: 'image',
-            label: 'Image',
-            // Select the component once it's dropped
-            select: true,
-            // You can pass components as a JSON instead of a simple HTML string,
-            // in this case we also use a defined component type `image`
-            content: { type: 'image' },
-            // This triggers `active` event on dropped components and the `image`
-            // reacts by opening the AssetManager
-            activate: true,
-          },
-        ],
-      },
-    });
-
-    editor.Panels.addPanel({
-      id: 'panel-top',
-      el: '.panel__top',
-    });
-
-    editor.Panels.addPanel({
-      id: 'basic-actions',
-      el: '.panel__basic-actions',
-      buttons: [
-        {
-          id: 'visibility',
-          active: true, // active by default
-          className: 'btn-toggle-borders',
-          label: '<u>B</u>',
-          command: 'sw-visibility', // Built-in command
-        },
-        {
-          id: 'export',
-          className: 'btn-open-export',
-          label: 'Exp',
-          command: 'export-template',
-          context: 'export-template', // For grouping context of buttons from the same panel
-        },
-        {
-          id: 'show-json',
-          className: 'btn-show-json',
-          label: 'JSON',
-          context: 'show-json',
-          command(editor) {
-            editor.Modal.setTitle('Components JSON')
-              .setContent(
-                `<textarea style="width:100%; height: 250px;">
-                    ${JSON.stringify(editor.getComponents())}
-                  </textarea>`,
-              )
-              .open();
-          },
-        },
-      ],
-    });
-
-    editor.on('storage:start:load', () => {
-      $("#spinLoading").show();
-    });
-
-    editor.on('storage:load', (data, res) => {
-      $("#spinLoading").hide();
-    });
-
-    // Define commands
-    editor.Commands.add('show-layers', {
-      getRowEl(editor) {
-        return editor.getContainer().closest('.editor-row');
-      },
-      getLayersEl(row) {
-        return row.querySelector('.layers-container');
-      },
-
-      run(editor, sender) {
-        const lmEl = this.getLayersEl(this.getRowEl(editor));
-        lmEl.style.display = '';
-      },
-      stop(editor, sender) {
-        const lmEl = this.getLayersEl(this.getRowEl(editor));
-        lmEl.style.display = 'none';
-      },
-    });
-
-    editor.Commands.add('show-styles', {
-      getRowEl(editor) {
-        return editor.getContainer().closest('.editor-row');
-      },
-      getStyleEl(row) {
-        return row.querySelector('.styles-container');
-      },
-
-      run(editor, sender) {
-        const smEl = this.getStyleEl(this.getRowEl(editor));
-        smEl.style.display = '';
-      },
-      stop(editor, sender) {
-        const smEl = this.getStyleEl(this.getRowEl(editor));
-        smEl.style.display = 'none';
-      },
-    });
-
-    editor.Commands.add('show-traits', {
-      getTraitsEl(editor) {
-        const row = editor.getContainer().closest('.editor-row');
-        return row.querySelector('.traits-container');
-      },
-      run(editor, sender) {
-        this.getTraitsEl(editor).style.display = '';
-      },
-      stop(editor, sender) {
-        this.getTraitsEl(editor).style.display = 'none';
-      },
-    });
-
-    editor.Commands.add('set-device-desktop', {
-      run: (editor) => editor.setDevice('Desktop'),
-    });
-
-    editor.Commands.add('set-device-mobile', {
-      run: (editor) => editor.setDevice('Mobile'),
-    });
+    const cosmos__id = '@Model.Id';
+    const cosmos__designerDataEndpoint = "/Templates/DesignerData";
+    const cosmos__designerUploadEndpoint = "/FileManager/SimpleUpload?id=" + cosmos__id + "&entityType=templates&editorType=grapesjs";
+    const cosmos__designerFormId = "frmSave";
+    let grapesjs__canvas__styles = @Html.Raw(JsonConvert.SerializeObject(Model.Styles));
+    let grapesjs__canvas__scripts = @Html.Raw(JsonConvert.SerializeObject(Model.Scripts));
+    let grapesjs__assets = preloadImages();
 
 </script>
+<script src="~/lib/grapesjs/build_20241212/designer.js"></script>

@@ -34,9 +34,10 @@ namespace Cosmos.Cms.Controllers
     using Microsoft.Extensions.Options;
     using MimeTypes;
     using Newtonsoft.Json;
+    using NuGet.Packaging.Signing;
     using SixLabors.ImageSharp;
     using SixLabors.ImageSharp.Processing;
-
+        
     /// <summary>
     /// File manager controller.
     /// </summary>
@@ -61,7 +62,7 @@ namespace Cosmos.Cms.Controllers
         /// <param name="userManager">User manager context.</param>
         /// <param name="articleLogic">Article logic.</param>
         /// <param name="hostEnvironment">Host environment.</param>
-        /// <param name="viewRenderService">View rendering service</param>
+        /// <param name="viewRenderService">View rendering service.</param>
         public FileManagerController(
             IOptions<CosmosConfig> options,
             ILogger<FileManagerController> logger,
@@ -77,8 +78,8 @@ namespace Cosmos.Cms.Controllers
         {
             this.options = options;
             this.logger = logger;
-            _storageContext = storageContext;
-            _storageContext.SetContainerName("$web");
+            this.storageContext = storageContext;
+            this.storageContext.SetContainerName("$web");
 
             this.hostEnvironment = hostEnvironment;
             this.userManager = userManager;
@@ -113,12 +114,17 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Gets a list of valid image extensions.
         /// </summary>
-        public static string ValidImageExtensions
+        public static string[] ValidImageExtensions
         {
             get
             {
-                return ".apng, .avif, .gif, .jpg, .jpeg, .png, .svg, .webp";
+                return new string[] { ".apng", ".avif", ".gif", ".jpg", "jpeg", ".png", ".svg", ".webp" };
             }
+        }
+
+        private static long DivideByAndRoundUp(long number, long divideBy)
+        {
+            return (long)Math.Ceiling((float)number / (float)divideBy);
         }
 
         /// <summary>
@@ -147,7 +153,7 @@ namespace Cosmos.Cms.Controllers
                 selectOne = false;
             }
 
-            _storageContext.CreateFolder("/pub");
+            storageContext.CreateFolder("/pub");
 
             if (string.IsNullOrEmpty(target) || target == "/")
             {
@@ -167,6 +173,16 @@ namespace Cosmos.Cms.Controllers
                 {
                     var article = await dbContext.ArticleCatalog.Select(s => new { s.ArticleNumber, s.Title }).FirstOrDefaultAsync(f => f.ArticleNumber == articleNumber);
                     articleTitle = article.Title;
+                }
+            }
+
+            if (target.Trim('/').StartsWith("pub/templates"))
+            {
+                var split = target.Trim('/').Split('/');
+                if (split.Length > 2 && Guid.TryParse(split[2], out var templateId))
+                {
+                    var template = await dbContext.Templates.Select(s => new { s.Id, s.Title }).FirstOrDefaultAsync(f => f.Id == templateId);
+                    articleTitle = template.Title;
                 }
             }
 
@@ -208,9 +224,26 @@ namespace Cosmos.Cms.Controllers
                 });
                 query = model.AsQueryable();
             }
+            else if (target.Trim('/') == "pub/templates")
+            {
+                var model = dbContext.Templates.Select(s => new FileManagerEntry()
+                {
+                    Created = DateTimeOffset.UtcNow.DateTime,
+                    CreatedUtc = DateTimeOffset.UtcNow.DateTime,
+                    Extension = string.Empty,
+                    HasDirectories = true,
+                    IsDirectory = true,
+                    Modified = DateTimeOffset.UtcNow.DateTime,
+                    ModifiedUtc = DateTimeOffset.UtcNow.DateTime,
+                    Name = s.Title,
+                    Path = $"/pub/templates/{s.Id}",
+                    Size = 0
+                });
+                query = model.AsQueryable();
+            }
             else
             {
-                var model = await _storageContext.GetFolderContents(target);
+                var model = await storageContext.GetFolderContents(target);
                 query = model.AsQueryable();
             }
 
@@ -312,7 +345,7 @@ namespace Cosmos.Cms.Controllers
                 return View(model);
             }
 
-            _storageContext.CreateFolder("/pub");
+            storageContext.CreateFolder("/pub");
 
             try
             {
@@ -332,7 +365,7 @@ namespace Cosmos.Cms.Controllers
                         dest = model.Destination + "/" + fileName;
                     }
 
-                    await _storageContext.CopyAsync(item, dest);
+                    await storageContext.CopyAsync(item, dest);
                 }
             }
             catch (Exception e)
@@ -341,6 +374,55 @@ namespace Cosmos.Cms.Controllers
             }
 
             return Ok();
+        }
+
+        /// <summary>
+        /// Gets images for the design editor.
+        /// </summary>
+        /// <param name="path">Path to folder to search.</param>
+        /// <param name="exclude">Excluded paths.</param>
+        /// <returns>JSON data.</returns>
+        [HttpGet]
+        public async Task<IActionResult> GetImageAssets(string path, string exclude = "")
+        {
+            return Json(await GetImageAssetArray(storageContext, path, exclude));
+        }
+
+        public static string FixPath(string path)
+        {
+            if (path.StartsWith("http://") || path.StartsWith("https://"))
+            {
+                return path;
+            }
+
+            return "/" + path.TrimStart('/'); // just in case
+        }
+
+        /// <summary>
+        /// Gets images for the design editor.
+        /// </summary>
+        /// <param name="storageContext">Storage context.</param>
+        /// <param name="path">Path to retrieve images.</param>
+        /// <param name="exclude">Path to exclude images.</param>
+        /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
+        public static async Task<string[]> GetImageAssetArray(StorageContext storageContext, string path, string exclude)
+        {
+
+            var blobs = await storageContext.GetBlobItemsAsync(path, FileManagerController.ValidImageExtensions);
+
+            if (!string.IsNullOrEmpty(exclude))
+            {
+                return blobs.Where(w => !w.Path.ToLower().StartsWith(exclude.TrimStart('/').ToLower())).Select(s => new
+                {
+                    src = FixPath(s.Path),
+                }).ToList().Select(s => s.src).ToArray();
+
+            }
+
+            return blobs.Select(s => new
+            {
+                src = FixPath(s.Path),
+            }).ToList().Select(s => s.src).ToArray();
         }
 
         /// <summary>
@@ -356,7 +438,7 @@ namespace Cosmos.Cms.Controllers
                 return View(model);
             }
 
-            _storageContext.CreateFolder("/pub");
+            storageContext.CreateFolder("/pub");
 
             try
             {
@@ -377,7 +459,7 @@ namespace Cosmos.Cms.Controllers
                     }
 
                     // Same as move
-                    await _storageContext.RenameAsync(item, dest);
+                    await storageContext.RenameAsync(item, dest);
                 }
             }
             catch (Exception e)
@@ -404,8 +486,8 @@ namespace Cosmos.Cms.Controllers
             var parsed = JsonConvert.DeserializeObject<FilePondMetadata>(files);
 
             var mime = MimeTypeMap.GetMimeType(Path.GetExtension(parsed.FileName));
-
-            var uid = $"{parsed.Path.TrimEnd('/')}|{parsed.RelativePath.TrimStart('/')}|{Guid.NewGuid().ToString()}|{mime}";
+            
+            var uid = $"{parsed.Path.TrimEnd('/')}|{parsed.RelativePath.TrimStart('/')}|{Guid.NewGuid().ToString()}|{mime}|{parsed.ImageWidth}|{parsed.ImageHeight}";
 
             return Ok(uid);
         }
@@ -413,7 +495,7 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Process a chunched upload.
         /// </summary>
-        /// <param name="patch">Patch number</param>
+        /// <param name="patch">Patch number.</param>
         /// <param name="options">Upload options.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [HttpPatch]
@@ -458,8 +540,11 @@ namespace Cosmos.Cms.Controllers
                 relativePath += "/" + UrlEncode(epath);
             }
 
+            var extension = Path.GetExtension(blobName).ToLower();
+
             // Mime type
-            var contentType = MimeTypeMap.GetMimeType(Path.GetExtension(blobName));
+            var contentType = MimeTypeMap.GetMimeType(extension);
+
 
             var metaData = new FileUploadMetaData()
             {
@@ -469,12 +554,15 @@ namespace Cosmos.Cms.Controllers
                 RelativePath = relativePath + "/" + blobName,
                 TotalChunks = totalChunks,
                 TotalFileSize = uploadLenth,
-                UploadUid = patchArray[1]
+                UploadUid = patchArray[2],
+                ImageWidth = patchArray[4],
+                ImageHeight = patchArray[5],
             };
 
             // Make sure full folder path exists
             var pathParts = patchArray[0].Trim('/').Split('/');
             var part = string.Empty;
+
             for (int i = 0; i < pathParts.Length - 1; i++)
             {
                 if (i == 0 && pathParts[i] != "pub")
@@ -486,13 +574,13 @@ namespace Cosmos.Cms.Controllers
                 if (part != "/pub")
                 {
                     var folder = part.Trim('/');
-                    _storageContext.CreateFolder(folder);
+                    storageContext.CreateFolder(folder);
                 }
             }
 
             using var memoryStream = new MemoryStream();
             await Request.Body.CopyToAsync(memoryStream);
-            _storageContext.AppendBlob(memoryStream, metaData);
+            storageContext.AppendBlob(memoryStream, metaData);
 
             if (metaData.TotalChunks - 1 == metaData.ChunkIndex)
             {
@@ -505,9 +593,11 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Simple file upload for live editor.
         /// </summary>
-        /// <param name="id">Article Number.</param>
+        /// <param name="id">Article or template id.</param>
+        /// <param name="entityType">Where to upload the item (eg articles or templates).</param>
+        /// <param name="editorType">Either ckeditor or grapesjs.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task<IActionResult> SimpleUpload(string id)
+        public async Task<IActionResult> SimpleUpload(string id, string entityType = "articles", string editorType = "ckeditor")
         {
             if (!ModelState.IsValid)
             {
@@ -521,9 +611,12 @@ namespace Cosmos.Cms.Controllers
                 return Json(ReturnSimpleErrorMessage("The image upload failed because the image was too big (max 25MB)."));
             }
 
-            var directory = $"/pub/articles/{id}/";
+            var extension = Path.GetExtension(file.FileName).ToLower();
+            var directory = $"/pub/{entityType}/{id}/";
             var blobEndPoint = options.Value.SiteSettings.BlobPublicUrl.TrimEnd('/');
-            var fileName = $"{Guid.NewGuid().ToString().ToLower()}.png";
+            var fileName = $"{Guid.NewGuid().ToString().ToLower()}{extension}";
+
+            var image = await Image.LoadAsync(file.OpenReadStream());
 
             string relativePath = UrlEncode(directory + fileName);
 
@@ -539,15 +632,22 @@ namespace Cosmos.Cms.Controllers
                     RelativePath = relativePath,
                     TotalChunks = 1,
                     TotalFileSize = file.Length,
-                    UploadUid = Guid.NewGuid().ToString()
+                    UploadUid = Guid.NewGuid().ToString(),
+                    ImageHeight = image.Height.ToString(),
+                    ImageWidth = image.Width.ToString(),
                 };
 
                 using var memoryStream = new MemoryStream();
                 await file.CopyToAsync(memoryStream);
 
-                _storageContext.AppendBlob(memoryStream, metaData);
+                storageContext.AppendBlob(memoryStream, metaData);
 
                 await PurgeCdnPath(metaData);
+
+                if (editorType == "grapesjs")
+                {
+                    return Json(JsonConvert.DeserializeObject<dynamic>("{ data: [ \"" + blobEndPoint + "/" + relativePath + "\"] }"));
+                }
 
                 return Json(JsonConvert.DeserializeObject<dynamic>("{\"url\": \"" + blobEndPoint + "/" + relativePath + "\"}"));
             }
@@ -556,32 +656,6 @@ namespace Cosmos.Cms.Controllers
                 logger.LogError(e.Message, e);
                 return Json(ReturnSimpleErrorMessage(e.Message));
             }
-        }
-
-        private async Task PurgeCdnPath(FileUploadMetaData metaData)
-        {
-            if (metaData.TotalChunks - 1 == metaData.ChunkIndex)
-            {
-                // This is the last chunk, wrap things up here.  Flush the CDN if one is configured.
-                var purgeUrls = new List<string>
-                {
-                    metaData.RelativePath
-                };
-
-                var settings = await Cosmos___CdnController.GetCdnConfiguration(dbContext);
-                var cdnService = new CdnService(settings);
-                _ = await cdnService.PurgeCdn(purgeUrls);
-            }
-        }
-
-        private dynamic ReturnSimpleErrorMessage(string message)
-        {
-            return Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>("{ \"error\": { \"message\": \"" + message + "\"}}");
-        }
-
-        private static long DivideByAndRoundUp(long number, long divideBy)
-        {
-            return (long)Math.Ceiling((float)number / (float)divideBy);
         }
 
         /// <summary>
@@ -772,6 +846,27 @@ namespace Cosmos.Cms.Controllers
             return Json(uploadResult);
         }
 
+        private async Task PurgeCdnPath(FileUploadMetaData metaData)
+        {
+            if (metaData.TotalChunks - 1 == metaData.ChunkIndex)
+            {
+                // This is the last chunk, wrap things up here.  Flush the CDN if one is configured.
+                var purgeUrls = new List<string>
+                {
+                    metaData.RelativePath
+                };
+
+                var settings = await Cosmos___CdnController.GetCdnConfiguration(dbContext);
+                var cdnService = new CdnService(settings);
+                _ = await cdnService.PurgeCdn(purgeUrls);
+            }
+        }
+
+        private dynamic ReturnSimpleErrorMessage(string message)
+        {
+            return Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>("{ \"error\": { \"message\": \"" + message + "\"}}");
+        }
+
         private int GetChildNodeIndex(HtmlAgilityPack.HtmlNode parent, HtmlAgilityPack.HtmlNode child)
         {
             var target = parent.ChildNodes.FirstOrDefault(f => NodesAreEqual(f, child));
@@ -806,7 +901,7 @@ namespace Cosmos.Cms.Controllers
         /// </summary>
         /// <param name="node1">HtmlNode.</param>
         /// <param name="node2">Compare to HtmlNode.</param>
-        /// <returns>boolean</returns>
+        /// <returns>boolean.</returns>
         /// <remarks>Compares node name, node type, and attributes.</remarks>
         private bool NodesAreEqual(HtmlAgilityPack.HtmlNode node1, HtmlAgilityPack.HtmlNode node2)
         {
@@ -875,7 +970,7 @@ namespace Cosmos.Cms.Controllers
         #region PRIVATE FIELDS AND METHODS
 
         private readonly ILogger<FileManagerController> logger;
-        private readonly StorageContext _storageContext;
+        private readonly StorageContext storageContext;
         private readonly IWebHostEnvironment hostEnvironment;
         private readonly IOptions<CosmosConfig> options;
 
@@ -919,7 +1014,7 @@ namespace Cosmos.Cms.Controllers
         /// Creates a new file in a given folder.
         /// </summary>
         /// <param name="model">New file post model.</param>
-        /// <returns>IActionResult</returns>
+        /// <returns>IActionResult.</returns>
         public async Task<IActionResult> NewFile(NewFileViewModel model)
         {
             if (!ModelState.IsValid)
@@ -936,13 +1031,13 @@ namespace Cosmos.Cms.Controllers
             relativePath = UrlEncode(relativePath);
 
             // Check for duplicate entries
-            var existingEntries = await _storageContext.GetFolderContents(model.ParentFolder);
+            var existingEntries = await storageContext.GetFolderContents(model.ParentFolder);
 
             if (!existingEntries.Exists(f => f.Name.Equals(model.FileName)))
             {
                 using var memoryStream = new MemoryStream();
                 await memoryStream.WriteAsync(Encoding.UTF8.GetBytes(string.Empty));
-                _storageContext.AppendBlob(memoryStream, new FileUploadMetaData()
+                storageContext.AppendBlob(memoryStream, new FileUploadMetaData()
                 {
                     ChunkIndex = 0,
                     ContentType = MimeTypeMap.GetMimeType(Path.GetExtension(model.FileName)),
@@ -974,11 +1069,11 @@ namespace Cosmos.Cms.Controllers
             relativePath = UrlEncode(relativePath);
 
             // Check for duplicate entries
-            var existingEntries = await _storageContext.GetFolderContents(model.ParentFolder);
+            var existingEntries = await storageContext.GetFolderContents(model.ParentFolder);
 
             if (!existingEntries.Exists(f => f.Name.Equals(model.FolderName)))
             {
-                _ = _storageContext.CreateFolder(relativePath);
+                _ = storageContext.CreateFolder(relativePath);
             }
 
             return Ok();
@@ -1001,11 +1096,11 @@ namespace Cosmos.Cms.Controllers
                 return BadRequest(ModelState);
             }
 
-            var blob = await _storageContext.GetFileAsync(path);
+            var blob = await storageContext.GetFileAsync(path);
 
             if (!blob.IsDirectory)
             {
-                using var stream = await _storageContext.OpenBlobReadStreamAsync(path);
+                using var stream = await storageContext.OpenBlobReadStreamAsync(path);
                 using var memStream = new MemoryStream();
                 stream.CopyTo(memStream);
                 return File(memStream.ToArray(), "application/octet-stream", fileDownloadName: blob.Name);
@@ -1038,7 +1133,7 @@ namespace Cosmos.Cms.Controllers
             }
 
             // Check for duplicate entries
-            var existingEntries = await _storageContext.GetFolderContents(target);
+            var existingEntries = await storageContext.GetFolderContents(target);
 
             if (existingEntries != null && existingEntries.Any())
             {
@@ -1064,7 +1159,7 @@ namespace Cosmos.Cms.Controllers
             var relativePath = string.Join('/', ParsePath(entry.Path, entry.Name));
             relativePath = UrlEncode(relativePath);
 
-            var fileManagerEntry = _storageContext.CreateFolder(relativePath);
+            var fileManagerEntry = storageContext.CreateFolder(relativePath);
 
             return Json(fileManagerEntry);
         }
@@ -1086,11 +1181,11 @@ namespace Cosmos.Cms.Controllers
             {
                 if (item.EndsWith('/'))
                 {
-                    await _storageContext.DeleteFolderAsync(item.TrimEnd('/'));
+                    await storageContext.DeleteFolderAsync(item.TrimEnd('/'));
                 }
                 else
                 {
-                    _storageContext.DeleteFile(item);
+                    storageContext.DeleteFile(item);
                 }
             }
 
@@ -1132,7 +1227,7 @@ namespace Cosmos.Cms.Controllers
 
                 var dest = $"{model.BlobRootPath}/{UrlEncode(model.ToBlobName)}";
 
-                await _storageContext.RenameAsync(target, dest);
+                await storageContext.RenameAsync(target, dest);
             }
 
             return Ok();
@@ -1263,13 +1358,13 @@ namespace Cosmos.Cms.Controllers
                 // Open a stream
                 await using var memoryStream = new MemoryStream();
 
-                await using (var stream = await _storageContext.OpenBlobReadStreamAsync(path))
+                await using (var stream = await storageContext.OpenBlobReadStreamAsync(path))
                 {
                     // Load into memory and release the blob stream right away
                     await stream.CopyToAsync(memoryStream);
                 }
 
-                var metaData = await _storageContext.GetFileAsync(path);
+                var metaData = await storageContext.GetFileAsync(path);
 
                 ViewData["PageTitle"] = metaData.Name;
                 ViewData[" Published"] = DateTimeOffset.FromFileTime(metaData.ModifiedUtc.Ticks);
@@ -1491,10 +1586,12 @@ namespace Cosmos.Cms.Controllers
                     RelativePath = model.folder + "/" + model.fullName,
                     TotalChunks = 1,
                     TotalFileSize = output.Length,
-                    UploadUid = Guid.NewGuid().ToString()
+                    UploadUid = Guid.NewGuid().ToString(),
+                    ImageHeight = model.height,
+                    ImageWidth = model.width
                 };
 
-                _storageContext.AppendBlob(output, metaData);
+                storageContext.AppendBlob(output, metaData);
             }
             catch (Exception e)
             {
@@ -1528,7 +1625,7 @@ namespace Cosmos.Cms.Controllers
                 throw new NotSupportedException($"Image type {extension} not supported.");
             }
 
-            using var stream = await _storageContext.OpenBlobReadStreamAsync(target);
+            using var stream = await storageContext.OpenBlobReadStreamAsync(target);
             var image = await Image.LoadAsync(stream);
             var newImage = image.Clone(i => i.Resize(new ResizeOptions() { Mode = ResizeMode.Crop, Position = AnchorPositionMode.Center, Size = new Size(width, height) }));
 
@@ -1610,7 +1707,7 @@ namespace Cosmos.Cms.Controllers
                 if (part != "/pub")
                 {
                     var folder = part.Trim('/');
-                    _storageContext.CreateFolder(folder);
+                    storageContext.CreateFolder(folder);
                 }
             }
 
@@ -1619,7 +1716,7 @@ namespace Cosmos.Cms.Controllers
                 await using (var memoryStream = new MemoryStream())
                 {
                     await stream.CopyToAsync(memoryStream);
-                    _storageContext.AppendBlob(memoryStream, fileMetaData);
+                    storageContext.AppendBlob(memoryStream, fileMetaData);
                 }
             }
 
@@ -1634,7 +1731,6 @@ namespace Cosmos.Cms.Controllers
                 fileUid = fileMetaData.UploadUid
             };
             return Json(fileBlob);
-
         }
     }
 }

@@ -22,7 +22,7 @@ namespace Cosmos.Editor.Data.Logic
         /// <summary>
         /// Gets the list of standard tags.
         /// </summary>
-        /// <remarks>Currently includes: "div", "header", "footer", "section", "nav"</remarks>
+        /// <remarks>Currently includes: "div", "header", "footer", "section", "nav".</remarks>
         public static string[] StandardTagsList => new string[]
                 {
                     "div", "header", "footer", "section", "nav",

@@ -52,7 +52,7 @@ namespace Cosmos.Editor.Controllers
         /// Handles the postback from the email form.
         /// </summary>
         /// <param name="emailMessage">Test email message.</param>
-        /// <returns>IActionResult</returns>
+        /// <returns>IActionResult.</returns>
         [HttpPost]
         public async Task<IActionResult> Index(TestEmailMessageViewModel emailMessage)
         {

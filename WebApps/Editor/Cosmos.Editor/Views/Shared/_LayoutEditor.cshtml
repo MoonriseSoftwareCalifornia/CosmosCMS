@@ -8,6 +8,7 @@
     var isAuthor = User.IsInRole("Authors");
     var title = ViewData["PageTitle"];
     var requiresAuth = options.Value.SiteSettings.CosmosRequiresAuthentication;
+    var isDesigner = (bool?)ViewData["IsDesigner"];
 }
 <!DOCTYPE HTML>
 <html>
@@ -24,6 +25,17 @@
     <link rel="stylesheet" type="text/css" href="~/css/2024-01-20-01-site.css" />
     <link rel="stylesheet" type="text/css" href="~/css/CodeEditor.css" />
 
+    @if (isDesigner == true)
+    {
+        <link rel="stylesheet" href="~/lib/grapesjsbuild/stylesheets/toastr.min.css">
+        @* <link rel="stylesheet" href="stylesheets/grapes.min.css?v0.21.10"> *@
+        <link rel="stylesheet" href="~/lib/grapesjs/css/grapes.min.css">
+        <link rel="stylesheet" href="~/lib/grapesjsbuild/stylesheets/grapesjs-preset-webpage.min.css">
+        <link rel="stylesheet" href="~/lib/grapesjsbuild/stylesheets/tooltip.css">
+        <link rel="stylesheet" href="~/lib/grapesjsbuild/stylesheets/demos.css?v3.1">
+        <link href="https://unpkg.com/grapick/dist/grapick.min.css" rel="stylesheet">
+    }
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
     <script src="~/lib/jquery/jquery.min.js"></script>
     <script src="~/lib/jqueryui/jquery-ui.min.js"></script>
@@ -32,11 +44,123 @@
     <script src="~/ccms/js/TimeUtils.js"></script>
 
     <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
-
     <!-- http://www.daterangepicker.com/ -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
-    
 
+    @if (isDesigner == true)
+    {
+        <script src="~/lib/grapesjsbuild/js/toastr.min.js"></script>
+        <script src="~/lib/grapesjs/grapes.min.js"></script>
+        <script src="https://unpkg.com/grapesjs-preset-webpage@1.0.2"></script>
+        <script src="https://unpkg.com/grapesjs-blocks-basic@1.0.1"></script>
+        <script src="https://unpkg.com/grapesjs-plugin-forms@2.0.5"></script>
+        <script src="https://unpkg.com/grapesjs-component-countdown@1.0.1"></script>
+        <script src="https://unpkg.com/grapesjs-plugin-export@1.0.11"></script>
+        <script src="https://unpkg.com/grapesjs-tabs@1.0.6"></script>
+        <script src="https://unpkg.com/grapesjs-custom-code@1.0.1"></script>
+        <script src="https://unpkg.com/grapesjs-touch@0.1.1"></script>
+        <script src="https://unpkg.com/grapesjs-parser-postcss@1.0.1"></script>
+        <script src="https://unpkg.com/grapesjs-tooltip@0.1.7"></script>
+        <script src="https://unpkg.com/grapesjs-tui-image-editor@0.1.3"></script>
+        <script src="https://unpkg.com/grapesjs-typed@1.0.5"></script>
+        <script src="https://unpkg.com/grapesjs-style-bg@2.0.1"></script>
+
+        <style type="text/css">
+            .icons-flex {
+                background-size: 70% 65% !important;
+                height: 15px;
+                width: 17px;
+                opacity: 0.9;
+            }
+
+            .icon-dir-row {
+                background: url("./lib/grapesjsbuild/img/flex-dir-row.png") no-repeat center;
+            }
+
+            .icon-dir-row-rev {
+                background: url("./lib/grapesjsbuild/img/flex-dir-row-rev.png") no-repeat center;
+            }
+
+            .icon-dir-col {
+                background: url("./lib/grapesjsbuild/img/flex-dir-col.png") no-repeat center;
+            }
+
+            .icon-dir-col-rev {
+                background: url("./lib/grapesjsbuild/img/flex-dir-col-rev.png") no-repeat center;
+            }
+
+            .icon-just-start {
+                background: url("./lib/grapesjsbuild/img/flex-just-start.png") no-repeat center;
+            }
+
+            .icon-just-end {
+                background: url("./lib/grapesjsbuild/img/flex-just-end.png") no-repeat center;
+            }
+
+            .icon-just-sp-bet {
+                background: url("./lib/grapesjsbuild/img/flex-just-sp-bet.png") no-repeat center;
+            }
+
+            .icon-just-sp-ar {
+                background: url("./lib/grapesjsbuild/img/flex-just-sp-ar.png") no-repeat center;
+            }
+
+            .icon-just-sp-cent {
+                background: url("./lib/grapesjsbuild/img/flex-just-sp-cent.png") no-repeat center;
+            }
+
+            .icon-al-start {
+                background: url("./lib/grapesjsbuild/img/flex-al-start.png") no-repeat center;
+            }
+
+            .icon-al-end {
+                background: url("./lib/grapesjsbuild/img/flex-al-end.png") no-repeat center;
+            }
+
+            .icon-al-str {
+                background: url("./lib/grapesjsbuild/img/flex-al-str.png") no-repeat center;
+            }
+
+            .icon-al-center {
+                background: url("./lib/grapesjsbuild/img/flex-al-center.png") no-repeat center;
+            }
+
+            [data-tooltip]::after {
+                background: rgba(51, 51, 51, 0.9);
+            }
+
+            .gjs-pn-commands {
+                min-height: 40px;
+            }
+
+            #gjs-sm-float {
+                display: none;
+            }
+
+            .gjs-logo-version {
+                background-color: #756467;
+            }
+
+            .gjs-pn-btn.gjs-pn-active {
+                box-shadow: none;
+            }
+
+            .CodeMirror {
+                min-height: 450px;
+                margin-bottom: 8px;
+            }
+
+            .grp-handler-close {
+                background-color: transparent;
+                color: #ddd;
+            }
+
+            .grp-handler-cp-wrap {
+                border-color: transparent;
+            }
+        </style>
+    }
+    
     <script src="~/lib/microsoft-signalr/signalr.min.js"></script>
     @Html.Raw(JavaScriptSnippet.FullScript)
 </head>
@@ -91,14 +215,14 @@
                             @if (isAuthor == false)
                             {
                                 <li id="btnCcmsCodeEditor" style="display:none">
-                                    <a class="dropdown-item" onclick="bgEditClick('Code')">Code editor <img src="/images/monaco-vscode-logo.png" height="20" /></a>
+                                    <a class="dropdown-item" onclick="bgEditClick('Code')">Code editor</a>
                                 </li>
                             }
                             <li id="btnCcmsHtmlEditor" style="display:none">
-                                <a class="dropdown-item" onclick="bgEditClick('Html')">Page Editor <img src="/images/ckeditor-5-proj-logo.svg" height="20" /></a>
+                                <a class="dropdown-item" onclick="bgEditClick('Html')">HTML editor</a>
                             </li>
-                            <li id="btnCcmsGrapesJsEditor">
-                                <a class="dropdown-item" onclick="bgEditClick('Design')">Design Editor <img src="/images/ckeditor-5-proj-logo.svg" height="20" /></a>
+                            <li id="btnCcmsGrapesJsEditor" style="display:none">
+                                <a class="dropdown-item" onclick="bgEditClick('Design')">Design editor</a>
                             </li>
                             <li id="liBtnVersions" style="display:none">
                                 <a id="btnVersions" class="dropdown-item" href="#" target="_blank">Page versions</a>
@@ -196,7 +320,7 @@
                     <div id="divSaveFirstDialog"></div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" onclick="saveFirst()" data-bs-dismiss="modal">Yes</button>
+                    <button id="modalBtnSaveFirst" type="button" class="btn btn-secondary" onclick="saveFirst()" data-bs-dismiss="modal">Yes</button>
                     <button type="button" class="btn btn-secondary" onclick="doNotSave()" data-bs-dismiss="modal">No</button>
                 </div>
             </div>
@@ -412,13 +536,24 @@
 
     <script>
 
+        const isDesigner = @((isDesigner.HasValue ? isDesigner : false).ToString().ToLower());
+
         const modalChangeTitle = new bootstrap.Modal(document.getElementById('modalChangeTitle'));
         const modalCheckSaveFirst = new bootstrap.Modal(document.getElementById('modalCheckSaveFirst'));
         const pickPageModal = new bootstrap.Modal(document.getElementById('pickPageModal'));
         const modalSelectFile = new bootstrap.Modal(document.getElementById('modalSelectFile'));
+
         const modalFileMgr = new bootstrap.Modal(document.getElementById('modalFileMgr'));
+
+        document.getElementById('modalFileMgr').addEventListener('hidden.bs.modal', event => {
+            if (isDesigner) {
+                cosmos__designerLoadAssets("/pub", "pub/articles");
+            }
+        });
+
         const modalPermMgr = new bootstrap.Modal(document.getElementById('modalPermMgr'));
         const modalCheckPermissions = new bootstrap.Modal(document.getElementById('modalCheckPermissions'));
+
 
         const fileBaseUrl = "@(options.Value.SiteSettings.BlobPublicUrl.TrimEnd('/'))";
         const errorModal = new bootstrap.Modal(document.getElementById('modalSavingError'));
@@ -525,10 +660,19 @@
                     }
                     break
                 case "Files":
-                    var id = $("#ArticleNumber").val();
+                    var id;
+                    if (isDesigner) {
+                        id = $("#Id").val();
+                    } else {
+                        id = $("#ArticleNumber").val();
+                    }
                     var url = "@Url.Action("Index", "FileManager")";
                     if (typeof (id) !== "undefined" && id !== null & id !== "") {
-                        url += "?target=pub/articles/" + id;
+                        if (isDesigner) {
+                            url += "?target=pub/templates/" + id;
+                        } else {
+                            url += "?target=pub/articles/" + id;
+                        }
                     }
                     $("#iframeFileMgr").prop("src", url);
                     modalFileMgr.show();
@@ -939,7 +1083,6 @@
         function setCdnResults(cdnResults) {
             const dateTime = new Date(cdnResults[0].EstimatedFlushDateTime);
             const now = new Date();
-
         }
     </script>
 

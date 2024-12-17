@@ -226,7 +226,7 @@ namespace Cosmos.IdentityManagement.Website.Controllers
         /// <summary>
         /// Page designed to add/remove users from a single role.
         /// </summary>
-        /// <param name="id">Role id</param>
+        /// <param name="id">Role id.</param>
         /// <param name="sortOrder">Sort direction.</param>
         /// <param name="currentSort">Sort field.</param>
         /// <param name="pageNo">Page number.</param>

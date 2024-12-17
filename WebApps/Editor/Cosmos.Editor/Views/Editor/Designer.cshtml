@@ -1,0 +1,253 @@
+﻿@using Newtonsoft.Json
+@model Cosmos.Editor.Models.GrapesJs.DesignerConfig
+@{
+    Layout = "_LayoutEditor";
+    ViewData["Title"] = Model.Title;
+}
+
+<form id="frmSave">
+    <input type="hidden" id="Id" name="Id" value="@Model.Id" />
+    <input type="hidden" id="Title" name="Title" value="@Model.Title" />
+    <input type="hidden" id="HtmlContent" name="HtmlContent" />
+    <input type="hidden" id="CssContent" name="CssContent" />
+</form>
+
+<style>
+    body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+
+    .cwps-body {
+        background-color: white !important;
+        height: 100% !important;
+    }
+
+    .perm {
+        display: none;
+    }
+
+    /* GrapesJS */
+    /* Let's highlight canvas boundaries */
+    #gjs {
+        border: 1px solid #e63900;
+    }
+
+    gjs-editor-cont {
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Reset some default styling */
+    .gjs-cv-canvas {
+        top: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    .gjs-block {
+        width: auto;
+        height: auto;
+        min-height: auto;
+    }
+
+    .panel__top {
+        padding: 0;
+        width: 100%;
+        display: flex;
+        position: initial;
+        justify-content: center;
+        justify-content: space-between;
+    }
+
+    .panel__basic-actions {
+        position: initial;
+    }
+
+    .editor-row {
+        display: flex;
+        justify-content: flex-start;
+        align-items: stretch;
+        flex-wrap: nowrap;
+    }
+
+    .editor-canvas {
+        flex-grow: 1;
+    }
+
+    .panel__right {
+        flex-basis: 230px;
+        position: relative;
+        overflow-y: auto;
+    }
+
+    .panel__switcher {
+        position: initial;
+    }
+
+    .panel__devices {
+        position: initial;
+    }
+</style>
+
+<div style="display: none">
+    <div class="gjs-logo-cont">
+        <a href="https://grapesjs.com"><img class="gjs-logo" src="~/lib/grapesjsbuild/img/grapesjs-logo-cl.png"></a>
+        <div class="gjs-logo-version"></div>
+    </div>
+</div>
+
+<div id="gjs" style="height:0px; overflow:hidden">
+    <!-- CONTENT GOES HERE -->
+</div>
+
+<div id="info-panel" style="display:none">
+    <br />
+    <svg class="info-panel-logo" xmlns="https://www.w3.org/2000/svg" version="1">
+        <g id="gjs-logo">
+            <path d="M40 5l-12.9 7.4 -12.9 7.4c-1.4 0.8-2.7 2.3-3.7 3.9 -0.9 1.6-1.5 3.5-1.5 5.1v14.9 14.9c0 1.7 0.6 3.5 1.5 5.1 0.9 1.6 2.2 3.1 3.7 3.9l12.9 7.4 12.9 7.4c1.4 0.8 3.3 1.2 5.2 1.2 1.9 0 3.8-0.4 5.2-1.2l12.9-7.4 12.9-7.4c1.4-0.8 2.7-2.2 3.7-3.9 0.9-1.6 1.5-3.5 1.5-5.1v-14.9 -12.7c0-4.6-3.8-6-6.8-4.2l-28 16.2" style="fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-width:10;stroke:#fff" />
+        </g>
+    </svg>
+    <br />
+    <div class="info-panel-label">
+        <b>GrapesJS Webpage Builder</b> is a simple showcase of what is possible to achieve with the
+        <a class="info-panel-link gjs-four-color" target="_blank" href="https://github.com/artf/grapesjs">GrapesJS</a>
+        core library
+        <br /><br />
+        For any hint about the demo check the
+        <a class="info-panel-link gjs-four-color" target="_blank" href="https://github.com/artf/grapesjs-preset-webpage">Webpage Preset repository</a>
+        and open an issue. For problems with the builder itself, open an issue on the main
+        <a class="info-panel-link gjs-four-color" target="_blank" href="https://github.com/artf/grapesjs">GrapesJS repository</a>
+        <br /><br />
+        Being a free and open source project contributors and supporters are extremely welcome.
+        If you like the project support it with a donation of your choice or become a backer/sponsor via
+        <a class="info-panel-link gjs-four-color" target="_blank" href="https://opencollective.com/grapesjs">Open Collective</a>
+    </div>
+</div>
+
+<script>
+    /*
+      Cosmos Configuration.
+    */
+    var ccmsEditorIsLocked = false;
+    // Current user
+    const ccms_editor_userid = "@this.Context.User.Identity.Name";
+    const isAuthor = @User.IsInRole("Authors").ToString().ToLower();
+    const isReviewer = @User.IsInRole("Reviewers").ToString().ToLower();
+    const hasModel = @((Model != null).ToString().ToLower());
+    // This needs global scope, so using var
+    var hasPermissionsSet = false;
+
+    function bgEditClickCustom(command) {
+        switch (command) {
+            case "Close":
+                next = function () {
+                    window.location.href = "@Url.Action("Index", "Editor")";
+                }
+                $("#divSaveFirstDialog").html("Save page before closing editor?");
+                modalCheckSaveFirst.show();
+                break;
+            case "Preview":
+                next = function () {
+                    window.open("@Url.Action("Preview", "Home")?articleNumber=" + @Model.Id);
+                }
+                $("#divSaveFirstDialog").html("Save page before opening preview?");
+                modalCheckSaveFirst.show();
+                break;
+            case "Code":
+                // Open in new window.
+                next = function () {
+                   window.location.href = "@Url.Action("EditCode", "Editor", new { Model.Id })";
+                }
+                $("#divSaveFirstDialog").html("Save page before opening code editor?");
+                modalCheckSaveFirst.show();
+                break;
+            case "Html":
+                next = function () {
+                    window.location.href = "@Url.Action("Edit", "Editor")/@Model.Id ";
+                }
+                $("#divSaveFirstDialog").html("Save page before opening HTML editor?");
+                modalCheckSaveFirst.show();
+                break;
+        }
+    }
+
+    function getLocalTimeZone() {
+        var datetime = new Date();
+        var dateTimeString = datetime.toString();
+        var timezone = dateTimeString.substring(dateTimeString.indexOf("(") - 1);
+        return timezone;
+    }
+
+    function closeEditor() {
+        window.location.href = "@Url.Action("Index", "Editor", new { Model.Id })";
+    }
+
+    async function saveChanges() {
+        // Activated from _LayoutEditor.cshtml in multiple locations;
+        const storedProjectData = await editor.store();
+    }
+
+    $("#frmSave").submit(function(event) {
+        event.preventDefault(); // Prevents the default form submission
+        saveChanges();
+    });
+
+    function preloadImages() {
+        const imageUrls = @Html.Raw(JsonConvert.SerializeObject(Model.ImageAssets));
+        imageUrls.forEach(url => {
+            const img = new Image();
+            img.src = url;
+        });
+        return imageUrls;
+    }
+
+    $(document).ready(function () {
+
+        $('#tbPublished').prop("disabled", "true");
+
+        $("#btnSaveAsDraft").hide();
+        $("#btnOpenInsertImage").hide();
+        $("#btnCcmsCodeEditor").show();
+
+        $("#liInsert").show();
+        $("#divTitleGroup").show();
+        $("#divTitle").html("@Model.Title");
+        $("#Title").val("@Model.Title");
+
+        // Alter the default action of the save changes button
+        // located on _LayoutEditor.cshtml.
+        $("#modalBtnSaveFirst").on("click", function () {
+            saveChanges();
+        });
+
+        if (hasModel && isReviewer === false && isAuthor === false && requiresAuthentication) {
+            $(".perm").show();
+        }
+
+        cosmos__designerLoadAssets("/pub/pub/articles/@Model.Id", "");
+    });
+
+    $(document).on("unload", function () {
+        // Close filemanager window if opened
+        if (typeof fileMgrPopup !== "undefined" && fileMgrPopup !== null && fileMgrPopup.location) {
+            fileMgrPopup.close();
+        }
+    });
+
+    /*
+
+        GrapesJS Editor (Designer) Configuration
+
+    */
+    const cosmos__id = '@Model.Id';
+    const cosmos__designerDataEndpoint = "/Editor/DesignerData";
+    const cosmos__designerUploadEndpoint = "/FileManager/SimpleUpload?id=" + cosmos__id + "&entityType=templates&editorType=grapesjs";
+    const cosmos__designerFormId = "frmSave";
+    let grapesjs__canvas__styles = @Html.Raw(JsonConvert.SerializeObject(Model.Styles));
+    let grapesjs__canvas__scripts = @Html.Raw(JsonConvert.SerializeObject(Model.Scripts));
+    let grapesjs__assets = preloadImages();
+
+</script>
+<script src="~/lib/grapesjs/build_20241212/designer.js"></script>

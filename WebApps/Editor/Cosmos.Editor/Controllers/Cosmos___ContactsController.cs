@@ -175,7 +175,7 @@ namespace Cosmos.Editor.Controllers
         }
 
         /// <summary>
-        /// This model is used to create a JSON file by the <see cref="GetContacts"/> method for use with jQuery <seealso href="https://datatables.net/">DataTable plugin.</seealso>
+        /// This model is used to create a JSON file by the <see cref="GetContacts"/> method for use with jQuery. <seealso href="https://datatables.net/">DataTable plugin.</seealso>
         /// </summary>
         private class Result
         {

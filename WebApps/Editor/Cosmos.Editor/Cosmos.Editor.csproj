@@ -128,10 +128,6 @@
 	  </Content>
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Folder Include="wwwroot\lib\grapesjs\" />
-	</ItemGroup>
-
 	<ProjectExtensions>
 		<VisualStudio>
 			<UserProperties libman_1json__JsonSchema="" />
