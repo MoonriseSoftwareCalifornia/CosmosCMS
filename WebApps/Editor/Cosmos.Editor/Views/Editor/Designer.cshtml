@@ -150,7 +150,7 @@
                 break;
             case "Preview":
                 next = function () {
-                    window.open("@Url.Action("Preview", "Home")?articleNumber=" + @Model.Id);
+                    window.open("@Url.Action("Preview", "Home")?articleNumber=@Model.Id");
                 }
                 $("#divSaveFirstDialog").html("Save page before opening preview?");
                 modalCheckSaveFirst.show();
@@ -243,7 +243,7 @@
     */
     const cosmos__id = '@Model.Id';
     const cosmos__designerDataEndpoint = "/Editor/DesignerData";
-    const cosmos__designerUploadEndpoint = "/FileManager/SimpleUpload?id=" + cosmos__id + "&entityType=templates&editorType=grapesjs";
+    const cosmos__designerUploadEndpoint = "/FileManager/SimpleUpload?id=" + cosmos__id + "&entityType=articles&editorType=grapesjs";
     const cosmos__designerFormId = "frmSave";
     let grapesjs__canvas__styles = @Html.Raw(JsonConvert.SerializeObject(Model.Styles));
     let grapesjs__canvas__scripts = @Html.Raw(JsonConvert.SerializeObject(Model.Scripts));

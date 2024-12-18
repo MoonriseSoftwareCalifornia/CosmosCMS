@@ -42,7 +42,7 @@ namespace Cosmos.Cms.Models
         public int VersionNumber { get; set; }
 
         /// <summary>
-        /// Gets or sets article. 
+        /// Gets or sets title. 
         /// </summary>
         [MaxLength(80)]
         [StringLength(80)]

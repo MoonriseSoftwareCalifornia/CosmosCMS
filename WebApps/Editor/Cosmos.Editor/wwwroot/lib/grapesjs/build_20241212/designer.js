@@ -450,6 +450,30 @@ pn.addButton('options', {
     },
 });
 
+let displayViews = true;
+
+pn.addButton('views', {
+    id: 'toggle-views',
+    className: 'fa-solid fa-toggle-on',
+    command: function () {
+        const btn = pn.getButton('views', 'toggle-views');
+        if (displayViews) {
+            document.querySelector('.gjs-pn-views-container').style.display = 'none';
+            displayViews = false;
+            btn.attributes.className = 'fa-solid fa-toggle-off';
+        } else {
+            document.querySelector('.gjs-pn-views-container').style.display = 'block';
+            editor.runCommand('open-blocks');
+            displayViews = true;
+            btn.attributes.className = 'fa-solid fa-toggle-on';
+        }
+    },
+    attributes: {
+        'title': 'Toggle design pannel display.',
+        'data-tooltip-pos': 'bottom',
+    },
+});
+
 // Simple warn notifier
 var origWarn = console.warn;
 toastr.options = {
@@ -547,5 +571,4 @@ editor.on('storage:start:load', () => {
 
 editor.on('storage:load', (data, res) => {
     $("#spinLoading").hide();
-    cosmos__designerLoadAssets("/pub", "/pub/articles");
 });

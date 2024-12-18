@@ -33,7 +33,7 @@ namespace Cosmos.Editor.Models.GrapesJs
         /// <param name="layout">Layout object.</param>
         /// <param name="id">Layout, template, or article ID.</param>
         /// <param name="title">Layout, template, or article title.</param>
-        public DesignerConfig(Layout layout, Guid id, string title)
+        public DesignerConfig(Layout layout, string id, string title)
         {
             var designerUtils = new DesignerUtilities();
             Styles = new List<string>();
@@ -51,7 +51,7 @@ namespace Cosmos.Editor.Models.GrapesJs
         /// <summary>
         /// Gets or sets the ID.
         /// </summary>
-        public Guid Id { get; set; }
+        public string Id { get; set; }
 
         /// <summary>
         /// Gets or sets the HTML content.

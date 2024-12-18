@@ -504,7 +504,7 @@ namespace Cosmos.Cms.Controllers
                 return NotFound();
             }
 
-            var config = new DesignerConfig(await dbContext.Layouts.FirstOrDefaultAsync(f => f.IsDefault), id, template.Title);
+            var config = new DesignerConfig(await dbContext.Layouts.FirstOrDefaultAsync(f => f.IsDefault), id.ToString(), template.Title);
             var assets = await FileManagerController.GetImageAssetArray(storageContext, "/pub", "/pub/articles");
             if (assets != null)
             {

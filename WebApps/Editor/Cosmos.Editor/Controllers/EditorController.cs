@@ -299,7 +299,7 @@ namespace Cosmos.Cms.Controllers
                 return NotFound();
             }
 
-            var config = new DesignerConfig(await dbContext.Layouts.FirstOrDefaultAsync(f => f.IsDefault), article.Id, article.Title);
+            var config = new DesignerConfig(await dbContext.Layouts.FirstOrDefaultAsync(f => f.IsDefault), article.ArticleNumber.ToString(), article.Title);
             var assets = await FileManagerController.GetImageAssetArray(storageContext, $"/pub/articles/{id}", string.Empty);
             if (assets != null)
             {
@@ -344,7 +344,7 @@ namespace Cosmos.Cms.Controllers
         /// <param name="title">Title.</param>
         /// <returns>IActionResult.</returns>
         [HttpPost]
-        public async Task<IActionResult> DesignerData([FromForm] int id, string htmlContent, string cssContent, string title)
+        public async Task<IActionResult> DesignerData([FromForm] Guid id, string htmlContent, string cssContent, string title)
         {
             if (!ModelState.IsValid)
             {

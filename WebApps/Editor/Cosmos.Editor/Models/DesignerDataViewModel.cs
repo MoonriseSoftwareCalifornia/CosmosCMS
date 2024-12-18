@@ -7,6 +7,9 @@
 
 namespace Cosmos.Editor.Models
 {
+    using Cosmos.Cms.Data;
+    using Cosmos.Common.Models;
+    using System;
     using System.ComponentModel.DataAnnotations;
 
     /// <summary>
@@ -17,12 +20,15 @@ namespace Cosmos.Editor.Models
         /// <summary>
         /// Gets or sets the ID.
         /// </summary>
-        [Required(AllowEmptyStrings = false)]
-        public string Id { get; set; }
+        public Guid Id { get; set; }
+
 
         /// <summary>
-        /// Gets or sets the article title.
+        /// Gets or sets title. 
         /// </summary>
+        [MaxLength(80)]
+        [StringLength(80)]
+        [ArticleTitleValidation]
         public string Title { get; set; }
 
         /// <summary>
@@ -35,4 +41,5 @@ namespace Cosmos.Editor.Models
         /// </summary>
         public string CssContent { get; set; }
     }
+
 }
