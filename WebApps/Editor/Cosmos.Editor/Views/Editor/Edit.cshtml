@@ -215,7 +215,7 @@
 
         // Close loading spinner and display saved status
         $("#divTitleGroup").show();
-        $("#divPublihedTitleGroup").show();
+        $("#divPublishedTitleGroup").show();
         $("#spinLoading").hide();
         $("#btnSavingStatus").show();
     };
@@ -232,11 +232,11 @@
         }
 
         $("#btnCcmsCodeEditor").show();
-
+        $("#btnCcmsGrapesJsEditor").show();
         $("#liBtnVersions").show();
 
         $("#btnVersions").attr("href", "/Editor/Versions/" + $("#ArticleNumber").val() + "?versionNumber=" + $("#VersionNumber").val());
-        
+
         setWorkingVersion($("#VersionNumber").val());
 
         $("#btnApply").click(function (e) {
@@ -382,7 +382,7 @@
         $(editors).each(function (index, editor) {
             // Get the source element for the editor (often a DIV)
             const sourceElement = editor.sourceElement;
-            
+
             // Get the ID
             const id = sourceElement.getAttribute("data-ccms-ceid");
             // Get the item
@@ -396,7 +396,7 @@
     }
 
     function findEditor(editorId) {
-        
+
         var iframe = document.getElementById("ccmsContFrame");
 
         //let areas = [];
@@ -411,7 +411,7 @@
             const sourceElement = ed.sourceElement;
             // Get the ID
             const id = sourceElement.getAttribute("data-ccms-ceid");
-            
+
             if (editorId === id) {
                 editor = ed;
             }
@@ -728,77 +728,68 @@
     }
 
     // Saves changes to page title, publishing, not content.
-    function saveChanges(data, editorId) {
-
-        if (validatePermissions() === false) {
-            // Need permissions set before going any further.
-            return;
-        }
-
-        // Signal to the user that saving has started.
-        saving();
-        saveInProgress = true;
-
-        // Get the latest date
-        savePublishDateTime();
-
-        // Build the post payload
-        var id = $("#Id").val();
-        var published = $("#Published").val();
-
-        var updated = $("#Updated").val();
-        var articleNumber = $("#ArticleNumber").val();
-
-        @*var data = {
-            Id: $("#Id").val(),
-            Title: $("#Title").val(),
-            Published: published,
-            Updated: updated,
-            BannerImage: $("#BannerImage").val(),
-            RoleList: $("#RoleList").val(),
-            UrlPath: "",
-            VersionNumber: $("#VersionNumber").val()
-        };*@
-
-        let model = {
-            Id: $("#Id").val(),
-            ArticleNumber: $("#ArticleNumber").val(),
-            EditorId: editorId,
-            UserId: ccms_editor_userid,
-            Published: published,
-            Updated: updated,
-            Title: $("#Title").val(),
-            Offset: -1,
-            Command: "SavePageProperties",
-            IsFocused: false,
-            VersionNumber: $("#VersionNumber").val(),
-            Data: data
-        };
-
-        $.post("@Url.Action("SaveLiveEditorData", "Editor")", model, function (data){
-            saveInProgress = false;
-            doneSaving();
-        }).fail(function(data){
-            alert("Problem!");
-        }).done(function (data) {
-            setWorkingVersion(data.Model.VersionNumber);
-            if (data.CdnResults !== null) {
-                setCdnResults(data.CdnResults);
-            }
-            try {
-                signalRConnection.invoke("Notification", JSON.stringify(model));
-            } catch (err) {
-                console.error(err);
+    async function saveChanges(data, editorId) {
+        return new Promise((resolve, reject) => {
+            if (validatePermissions() === false) {
+                // Need permissions set before going any further.
+                return;
             }
 
-            if (next) {
-                next();
-            }
+            // Signal to the user that saving has started.
+            saving();
+            saveInProgress = true;
+
+            // Get the latest date
+            savePublishDateTime();
+
+            // Build the post payload
+            var id = $("#Id").val();
+            var published = $("#Published").val();
+
+            var updated = $("#Updated").val();
+
+            let model = {
+                Id: $("#Id").val(),
+                ArticleNumber: $("#ArticleNumber").val(),
+                EditorId: editorId,
+                UserId: ccms_editor_userid,
+                Published: published,
+                Updated: updated,
+                Title: $("#Title").val(),
+                Offset: -1,
+                Command: "SavePageProperties",
+                IsFocused: false,
+                VersionNumber: $("#VersionNumber").val(),
+                Data: data
+            };
+
+            $.post("@Url.Action("SaveLiveEditorData", "Editor")", model, function (data){
+                saveInProgress = false;
+                doneSaving();
+            }).done(function (data) {
+                setWorkingVersion(data.Model.VersionNumber);
+                if (data.CdnResults !== null) {
+                    setCdnResults(data.CdnResults);
+                }
+                try {
+                    signalRConnection.invoke("Notification", JSON.stringify(model));
+                } catch (err) {
+                    console.error(err);
+                }
+                if (next !== null && typeof next  === 'function') {
+                    next();
+                    next = null;
+                }
+                resolve(response);
+            }).fail(function(error){
+                alert("Problem!");
+                reject(error);
+            });
         });
     }
 
     function cosmosSignalOthers(editor, command) {
-        
+
         const sourceElement = editor.sourceElement;
         const id = sourceElement.getAttribute("data-ccms-ceid");
 
@@ -822,11 +813,7 @@
         }
 
         if (command === "save") {
-
-            var html = editor.getData();
-
             saveChanges(editor.getData(), id);
-
         }
         else {
             let model = {

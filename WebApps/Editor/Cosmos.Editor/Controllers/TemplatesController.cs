@@ -537,26 +537,20 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Save designer data.
         /// </summary>
-        /// <param name="id">Item ID.</param>
-        /// <param name="htmlContent">Html content.</param>
-        /// <param name="cssContent">Css content.</param>
-        /// <param name="title">Title.</param>
+        /// <param name="id">Template ID.</param>
+        /// <param name="title">Template title.</param>
+        /// <param name="htmlContent">HTML content.</param>
+        /// <param name="cssContent">CSS content.</param>
         /// <returns>IActionResult.</returns>
         [HttpPost]
-        public async Task<IActionResult> DesignerData([FromForm] string id, string htmlContent, string cssContent, string title)
+        public async Task<IActionResult> DesignerData(Guid id, string title, string htmlContent, string cssContent)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            // Check for nested editable regions.
-            if (!NestedEditableRegionValidation.Validate(htmlContent))
-            {
-                return BadRequest("Cannot have nested editable regions.");
-            }
-
-            var model = new DesignerDataViewModel()
+            DesignerDataViewModel model = new DesignerDataViewModel()
             {
                 Id = id,
                 HtmlContent = htmlContent,
@@ -564,7 +558,13 @@ namespace Cosmos.Cms.Controllers
                 Title = title
             };
 
-            var entity = await dbContext.Templates.FirstOrDefaultAsync(f => f.Id == Guid.Parse(model.Id));
+            // Check for nested editable regions.
+            if (!NestedEditableRegionValidation.Validate(model.HtmlContent))
+            {
+                return BadRequest("Cannot have nested editable regions.");
+            }
+
+            var entity = await dbContext.Templates.FirstOrDefaultAsync(f => f.Id == model.Id);
 
             if (entity == null)
             {

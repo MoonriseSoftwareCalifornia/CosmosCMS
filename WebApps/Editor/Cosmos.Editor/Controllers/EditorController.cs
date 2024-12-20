@@ -306,21 +306,42 @@ namespace Cosmos.Cms.Controllers
                 config.ImageAssets.AddRange(assets);
             }
 
-            return View(config);
+            ViewData["DesignerConfig"] = config;
+            ViewData["Version"] = article.VersionNumber;
+
+            ViewData["PageTitle"] = article.Title;
+            ViewData["Published"] = null;
+            ViewData["LastPubDateTime"] = null;
+
+            var catalogEntry = await dbContext.ArticleCatalog.FirstOrDefaultAsync(f => f.ArticleNumber == id);
+
+            var designerUtils = new DesignerUtilities();
+            var data = designerUtils.ExtractDesignerData(article.Content);
+
+            return View(new ArticleDesignerDataViewModel
+            {
+                Id = article.Id,
+                ArticleNumber = article.ArticleNumber,
+                VersionNumber = article.VersionNumber,
+                Title = article.Title,
+                Published = null,
+                ArticlePermissions = catalogEntry.ArticlePermissions,
+                UrlPath = article.UrlPath,
+                BannerImage = article.BannerImage,
+                Updated = article.Updated,
+                HtmlContent = data.HtmlContent,
+                CssContent = data.CssContent,
+            });
         }
 
         /// <summary>
         /// Visual designer based on GrapeJS.
         /// </summary>
-        /// <param name="id">Template ID.</param>
+        /// <param name="id">Article number.</param>
         /// <returns>IActionResult.</returns>
         [HttpGet]
-        public async Task<IActionResult> DesignerData(int id)
+        public async Task<IActionResult> GetDesignerData(int id)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -332,19 +353,18 @@ namespace Cosmos.Cms.Controllers
                 return NotFound();
             }
 
-            return Json(new project(article.Content));
+            var htmlContent = articleLogic.Ensure_ContentEditable_IsMarked(article.Content);
+
+            return Json(new project(htmlContent));
         }
 
         /// <summary>
         /// Save designer data.
         /// </summary>
-        /// <param name="id">Item ID.</param>
-        /// <param name="htmlContent">Html content.</param>
-        /// <param name="cssContent">Css content.</param>
-        /// <param name="title">Title.</param>
+        /// <param name="model">Designer post model.</param>
         /// <returns>IActionResult.</returns>
         [HttpPost]
-        public async Task<IActionResult> DesignerData([FromForm] Guid id, string htmlContent, string cssContent, string title)
+        public async Task<IActionResult> PostDesignerData(ArticleDesignerDataViewModel model)
         {
             if (!ModelState.IsValid)
             {
@@ -352,13 +372,13 @@ namespace Cosmos.Cms.Controllers
             }
 
             // Check for nested editable regions.
-            if (!NestedEditableRegionValidation.Validate(htmlContent))
+            if (!NestedEditableRegionValidation.Validate(model.HtmlContent))
             {
                 return BadRequest("Cannot have nested editable regions.");
             }
 
             // Next pull the original. This is a view model, not tracked by DbContext.
-            var article = await articleLogic.Get(id, null);
+            var article = await articleLogic.Get(model.ArticleNumber, null);
 
             if (article == null)
             {
@@ -366,26 +386,32 @@ namespace Cosmos.Cms.Controllers
             }
 
             var designerUtils = new DesignerUtilities();
-            var html = designerUtils.AssembleDesignerOutput(new DesignerDataViewModel() { CssContent = cssContent, HtmlContent = htmlContent, Title = title, Id = id.ToString() });
+            var html = designerUtils.AssembleDesignerOutput(new DesignerDataViewModel() { CssContent = model.CssContent, HtmlContent = model.HtmlContent, Title = model.Title, Id = model.Id });
 
-
-            var result = await articleLogic.Save(
-                new ArticleViewModel()
-                {
-                    Id = article.Id,
-                    ArticleNumber = article.ArticleNumber,
-                    BannerImage = article.BannerImage,
-                    Content = html,
-                    Title = title,
-                    Published = article.Published,
-                    Expires = article.Expires,
-                    FooterJavaScript = article.FooterJavaScript,
-                    HeadJavaScript = article.HeadJavaScript,
-                    StatusCode = article.StatusCode,
-                    UrlPath = article.UrlPath,
-                    VersionNumber = article.VersionNumber,
-                    Updated = DateTimeOffset.UtcNow
-                }, await GetUserEmail());
+            try
+            {
+                var result = await articleLogic.Save(
+                                    new ArticleViewModel()
+                                    {
+                                        Id = article.Id,
+                                        ArticleNumber = article.ArticleNumber,
+                                        BannerImage = article.BannerImage,
+                                        Content = html,
+                                        Title = model.Title,
+                                        Published = model.Published,
+                                        Expires = article.Expires,
+                                        FooterJavaScript = article.FooterJavaScript,
+                                        HeadJavaScript = article.HeadJavaScript,
+                                        StatusCode = article.StatusCode,
+                                        UrlPath = article.UrlPath,
+                                        VersionNumber = article.VersionNumber,
+                                        Updated = DateTimeOffset.UtcNow
+                                    }, await GetUserEmail());
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
 
             return Json(new { success = true });
         }

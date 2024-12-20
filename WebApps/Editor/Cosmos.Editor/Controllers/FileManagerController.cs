@@ -122,6 +122,21 @@ namespace Cosmos.Cms.Controllers
             }
         }
 
+        /// <summary>
+        /// Fixes the path for the image asset array method.
+        /// </summary>
+        /// <param name="path">Path to fix.</param>
+        /// <returns>fixed path.</returns>
+        public static string FixPath(string path)
+        {
+            if (path.StartsWith("http://") || path.StartsWith("https://"))
+            {
+                return path;
+            }
+
+            return "/" + path.TrimStart('/'); // just in case
+        }
+
         private static long DivideByAndRoundUp(long number, long divideBy)
         {
             return (long)Math.Ceiling((float)number / (float)divideBy);
@@ -386,16 +401,6 @@ namespace Cosmos.Cms.Controllers
         public async Task<IActionResult> GetImageAssets(string path, string exclude = "")
         {
             return Json(await GetImageAssetArray(storageContext, path, exclude));
-        }
-
-        public static string FixPath(string path)
-        {
-            if (path.StartsWith("http://") || path.StartsWith("https://"))
-            {
-                return path;
-            }
-
-            return "/" + path.TrimStart('/'); // just in case
         }
 
         /// <summary>

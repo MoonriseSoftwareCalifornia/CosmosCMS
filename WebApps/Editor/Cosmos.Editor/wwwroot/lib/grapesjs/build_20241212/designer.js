@@ -16,23 +16,6 @@ function ccms___generateGUID() {
     });
 }
 
-async function cosmos__designerPostData() {
-
-    const formData = new FormData(document.getElementById(cosmos__designerFormId));
-
-    // Default options are marked with *
-    const response = await fetch(cosmos__designerDataEndpoint, {
-        method: 'POST', // *GET, POST, PUT, DELETE, etc.
-        body: formData
-    });
-
-    if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
-    }
-
-    const result = await response.json();
-}
-
 async function cosmos__designerLoadAssets(path, exclude) {
     cosmos__GetImageAssets(path, exclude)
         .then(json => {
@@ -49,6 +32,26 @@ async function cosmos__GetImageAssets(path, exclude) {
     return await response.json();
 }
 
+const sessionStoragePlugin = (editor) => {
+    // As sessionStorage is not an asynchronous API,
+    // the `async` keyword could be skipped
+    editor.Storage.add('cosmos', {
+        async load(options = {}) {
+            const response = await fetch(cosmos__designerDataEndpoint + "/" + cosmos__id);
+            const data = await response.json();
+            return data;
+        },
+        async store(data, options = {}) {
+            showSaving(); // Show saving message.
+            const pagesHtml = editor.Pages.getAll().map((page) => {
+                const component = page.getMainComponent();
+                $("#HtmlContent").val(editor.getHtml({ component }));
+                $("#CssContent").val(editor.getCss({ component }));
+                cosmos__designerPostData();
+            });
+        }
+    });
+};
 
 const editor = grapesjs.init({
     // Indicate where to init the editor. You can also pass an HTMLElement
@@ -328,6 +331,7 @@ const editor = grapesjs.init({
         'grapesjs-typed',
         'grapesjs-style-bg',
         'grapesjs-preset-webpage',
+        sessionStoragePlugin
     ],
     pluginsOpts: {
         'gjs-blocks-basic': { flexGrid: true },
@@ -368,46 +372,37 @@ const editor = grapesjs.init({
             },
         },
     },
-
     storageManager: {
-        type: 'remote', // Storage type. Available: local | remote
+        type: 'cosmos', // Storage type. Available: local | remote
         stepsBeforeSave: 1, // If autosave is enabled, indicates how many changes are necessary before the store method is triggered
         // ...
         // Default storage options
-        options: {
-            remote:
-            {
-                urlLoad: cosmos__designerDataEndpoint + '/' + cosmos__id,
-                // Enrich the store call
-                onStore: (data, editor) => {
-                    showSaving(); // Show saving message.
-                    editor.Pages.getAll().map((page) => {
-                        const component = page.getMainComponent();
-                        $("#Id").val(cosmos__id);
-                        $("#HtmlContent").val(editor.getHtml({ component }));
-                        $("#CssContent").val(editor.getCss({ component }));
-                        
-                        cosmos__designerPostData()
-                            .then(() => {
-                                showSaved();
-                            })
-                            .finally(() => {
-                                window.onbeforeunload = null;
-                                if (next !== null && typeof next === 'function') {
-                                    next();
-                                }
-                            });
-                        return {
-                            html: editor.getHtml({ component }),
-                            css: editor.getCss({ component }),
-                        };
-                    });
-                    return { data };
-                },
-                // If on load, you're returning the same JSON from above...
-                onLoad: (result) => result.data,
-            },
-        }
+        //options: {
+        //    remote:
+        //    {
+        //        urlLoad: cosmos__designerDataEndpoint + "/" + cosmos__id,
+        //        // Enrich the store call
+        //        onStore: (data, editor) => {
+        //            showSaving(); // Show saving message.
+        //            editor.Pages.getAll().map((page) => {
+        //                const component = page.getMainComponent();
+
+        //                $("#HtmlContent").val(editor.getHtml({ component }));
+        //                $("#CssContent").val(editor.getCss({ component }));
+
+        //                cosmos__designerPostData();
+
+        //                return {
+        //                    html: editor.getHtml({ component }),
+        //                    css: editor.getCss({ component }),
+        //                };
+        //            });
+        //            return { data };
+        //        },
+        //        // If on load, you're returning the same JSON from above...
+        //        onLoad: (result) => result.data,
+        //    },
+        //}
     },
 
 });

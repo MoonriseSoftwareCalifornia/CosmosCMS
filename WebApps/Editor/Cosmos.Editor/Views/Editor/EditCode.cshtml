@@ -294,8 +294,9 @@
                                        
                     checkDisplayLiveEditorButton();
 
-                    if (next) {
+                    if (next !== null && typeof next  === 'function') {
                         next();
+                        next = null;
                     }
                 } else {
                     var errorMsg = "Error(s):";
@@ -409,7 +410,7 @@
         $("#liBtnVersions").show();
 
         $("#divTitleGroup").show();
-        $("#divPublihedTitleGroup").show();
+        $("#divPublishedTitleGroup").show();
         $("#liInsert").show();
 
         $("#btnVersions").attr("href", "/Editor/Versions/" + $("#ArticleNumber").val() + "?versionNumber=" + $("#VersionNumber").val());
@@ -446,7 +447,7 @@
         }
 
         checkDisplayLiveEditorButton();
-
+        $("#btnCcmsGrapesJsEditor").show();
 
     });
 

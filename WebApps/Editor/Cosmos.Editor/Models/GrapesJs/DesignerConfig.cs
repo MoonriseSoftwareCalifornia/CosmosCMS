@@ -7,11 +7,9 @@
 
 namespace Cosmos.Editor.Models.GrapesJs
 {
-    using System;
     using System.Collections.Generic;
     using Cosmos.Common.Data;
     using Cosmos.Editor.Data.Logic;
-    using NuGet.ContentModel;
 
     /// <summary>
     /// Designer configuration.

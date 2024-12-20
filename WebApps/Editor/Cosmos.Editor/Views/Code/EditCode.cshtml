@@ -172,6 +172,10 @@
                         next();
                     }
                     toastMsg("Successfully saved.");
+                    if (next !== null && typeof next  === 'function') {
+                        next();
+                        next = null;
+                    }
                 } else {
                     var errorMsg = "<h5>Error(s) detected while saving:</h5>";
 
@@ -208,10 +212,6 @@
                 modalCheckSaveFirst.show();
                 break;
         }
-    }
-
-    function saveFirst() {
-        saveChanges(modalCheckSaveFirst, next);
     }
 
     function doNotSave() {

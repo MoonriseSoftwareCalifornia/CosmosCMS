@@ -27,7 +27,7 @@
             <div class="col-md-4 d-flex justify-content-end">
                 @if (!isReviewer && !isAuthor)
                 {
-                    <a href='/Editor/Permissions/@articleNumber' title='Set access permissions for users and roles.' id="btnArticleAccess" class='btn btn-secondary'><i class="fa-solid fa-users"></i></a>
+                    <a href='/Editor/Permissions/@articleNumber' data-toggle="tooltip" data-placement="top" title='Set access permissions for users and roles.' id="btnArticleAccess" class='btn btn-secondary'><i class="fa-solid fa-users"></i></a>
                 }
             </div>
         </div>
@@ -36,9 +36,9 @@
                 <div class="btn-group" role="group" aria-label="Page Actions">
                     @if (!isReviewer)
                     {
-                        <a id="btnNewVersion" class="btn btn-sm btn-success" title="New draft created from the latest version." asp-action="CreateVersion" asp-route-id="@ViewData["ArticleId"]">New Draft</a>
-                        <button id="btnCompare" class="btn btn-sm btn-secondary" title="Compare two versions." type="button" disabled>Compare</button>
-                        <button id="btnClear" class="btn btn-sm btn-secondary" title="Clear selection." type="button" disabled>Clear</button>
+                        <a id="btnNewVersion" data-toggle="tooltip" data-placement="top" class="btn btn-sm btn-success" title="New draft created from the latest version." asp-action="CreateVersion" asp-route-id="@ViewData["ArticleId"]">New Draft</a>
+                        <button id="btnCompare" data-toggle="tooltip" data-placement="top" class="btn btn-sm btn-secondary" title="Compare two versions." type="button" disabled>Compare</button>
+                        <button id="btnClear" data-toggle="tooltip" data-placement="top" class="btn btn-sm btn-secondary" title="Clear selection." type="button" disabled>Clear</button>
                         <a title="Return to page list" class="btn btn-sm btn-secondary" href="@Url.Action("Index")">Page list <i class="fa-solid fa-circle-arrow-right"></i></a>
                     }
                 </div>
@@ -57,7 +57,7 @@
                                 <th scope="col"></th>
                                 <th scope="col">Select</th>
                                 <th scope="col">#</th>
-                                <th scope="col">Actions</th>
+                                <th scope="col" style="text-align:center">Editor</th>
                                 <th scope="col">Updated</th>
                                 <th scope="col">Published</th>
                                 <th scope="col">Expires</th>
@@ -84,17 +84,16 @@
                                         </div>
                                     </td>
                                     <td scope="row" style="min-width:80px;">
-                                        v.@row.VersionNumber
+                                        <a class='btn btn-sm btn-secondary' data-toggle="tooltip" data-placement="top" title='Preview version @row.VersionNumber.' onclick='openPreview(@articleNumber, @row.VersionNumber)'><i class="fa-solid fa-magnifying-glass"></i> v.@row.VersionNumber</a>
                                     </td>
-                                    <td scope="row" style="width:260px">
+                                    <td scope="row" style="text-align:center;background-color: #2C2D2F;inset: 10px 20px 30px 40px;">
                                         <div class="btn-group" role="group" aria-label="Version actions">
-                                            <a class='btn btn-sm btn-secondary' title='Preview' onclick='openPreview(@articleNumber, @row.VersionNumber)'>Preview</a>
                                             @if (lastVersion == row.VersionNumber && isReviewer == false)
                                             {
                                                 @if (isAuthor == false)
                                                 {
-                                                    <a class='btn btn-sm btn-secondary' title='Edit with the design editor' href='/Editor/Designer/@articleNumber'>Design</a>
-                                                    <a class='btn btn-sm btn-secondary' title='Edit with the code editor' href='/Editor/EditCode/@articleNumber'>Code</a>
+                                                    <a class='btn btn-sm btn-secondary' data-toggle="tooltip" data-placement="top" title='The designer lets you create web pages with a drag-and-drop interface, no coding needed.' href='/Editor/Designer/@articleNumber'>Designer</a>
+                                                    <a class='btn btn-sm btn-secondary' data-toggle="tooltip" data-placement="top" title='The code editor is a browser-based code editor that powers Visual Studio Code.' href='/Editor/EditCode/@articleNumber'>Code</a>
                                                 }
                                                 else
                                                 {
@@ -102,7 +101,7 @@
                                                 }
                                                 @if (row.UsesHtmlEditor)
                                                 {
-                                                    <a class='btn btn-sm btn-secondary' title="Edit with live editor" href='/Editor/Edit/@articleNumber'>HTML</a>
+                                                    <a class='btn btn-sm btn-secondary' data-toggle="tooltip" data-placement="top" title="Visually create and edit web pages, ensuring the final output matches the editing view." href='/Editor/Edit/@articleNumber'>HTML</a>
                                                 }
                                                 else
                                                 {
@@ -134,7 +133,7 @@
                                         }
                                         else
                                         {
-                                            <a class='btn btn-sm btn-secondary' title='Promote this version to the latest version and put it in edit mode' href='/Editor/CreateVersion?id=@ViewData["ArticleId"]&entityId=@row.Id'><i class='fa fa-arrow-circle-up'></i></a>
+                                            <a class='btn btn-sm btn-secondary' data-toggle="tooltip" data-placement="top" title='Promote this version to the latest version and put it in edit mode' href='/Editor/CreateVersion?id=@ViewData["ArticleId"]&entityId=@row.Id'><i class='fa fa-arrow-circle-up'></i></a>
                                         }
                                     </td>
                                 </tr>
@@ -270,5 +269,7 @@
             reloadIds();
             window.location.href = "/Editor/Compare?leftId=" + ids[0] + "&rightId=" + ids[1];
         });
+
+        $('[data-toggle="tooltip"]').tooltip();
     });
 </script>

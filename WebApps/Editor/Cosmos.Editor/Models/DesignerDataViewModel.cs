@@ -1,4 +1,4 @@
-﻿// <copyright file="DesignerPostViewModel.cs" company="Moonrise Software, LLC">
+﻿// <copyright file="DesignerDataViewModel.cs" company="Moonrise Software, LLC">
 // Copyright (c) Moonrise Software, LLC. All rights reserved.
 // Licensed under the GNU Public License, Version 3.0 (https://www.gnu.org/licenses/gpl-3.0.html)
 // See https://github.com/MoonriseSoftwareCalifornia/CosmosCMS
@@ -7,10 +7,9 @@
 
 namespace Cosmos.Editor.Models
 {
-    using Cosmos.Cms.Data;
-    using Cosmos.Common.Models;
     using System;
     using System.ComponentModel.DataAnnotations;
+    using Cosmos.Cms.Data;
 
     /// <summary>
     /// GrapesJs designer post data view model.
@@ -21,7 +20,6 @@ namespace Cosmos.Editor.Models
         /// Gets or sets the ID.
         /// </summary>
         public Guid Id { get; set; }
-
 
         /// <summary>
         /// Gets or sets title. 
@@ -41,5 +39,4 @@ namespace Cosmos.Editor.Models
         /// </summary>
         public string CssContent { get; set; }
     }
-
 }

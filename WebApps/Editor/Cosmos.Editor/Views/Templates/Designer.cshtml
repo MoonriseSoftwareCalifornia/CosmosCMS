@@ -5,7 +5,7 @@
     ViewData["Title"] = Model.Title;
 }
 
-<form id="frmSave">
+<form id="frmSave" asp-action="DesignerData" asp-controller="Templates">
     <input type="hidden" id="Id" name="Id" value="@Model.Id" />
     <input type="hidden" id="Title" name="Title" value="@Model.Title" />
     <input type="hidden" id="HtmlContent" name="HtmlContent" />
@@ -179,13 +179,23 @@
 
     async function saveChanges() {
         // Activated from _LayoutEditor.cshtml in multiple locations;
-        const storedProjectData = await editor.store();
+        await editor.store();
     }
 
     $("#frmSave").submit(function(event) {
         event.preventDefault(); // Prevents the default form submission
         saveChanges();
     });
+
+    function cosmos__designerPostData() {
+        $.post(cosmos__designerDataEndpoint,
+            $("#frmSave").serialize(),
+            function(response) {
+                saveInProgress = false;
+                doneSaving();
+            }
+        );
+    }
 
     function preloadImages() {
         const imageUrls = @Html.Raw(JsonConvert.SerializeObject(Model.ImageAssets));

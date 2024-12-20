@@ -1,15 +1,28 @@
 ﻿@using Newtonsoft.Json
-@model Cosmos.Editor.Models.GrapesJs.DesignerConfig
+@model Cosmos.Editor.Models.ArticleDesignerDataViewModel
 @{
     Layout = "_LayoutEditor";
     ViewData["Title"] = Model.Title;
+
+    var designerConfig = (Cosmos.Editor.Models.GrapesJs.DesignerConfig)ViewData["DesignerConfig"];
 }
 
-<form id="frmSave">
+<form id="frmSave" asp-action="DesignerData" asp-controller="Editor" method="post">
     <input type="hidden" id="Id" name="Id" value="@Model.Id" />
     <input type="hidden" id="Title" name="Title" value="@Model.Title" />
     <input type="hidden" id="HtmlContent" name="HtmlContent" />
     <input type="hidden" id="CssContent" name="CssContent" />
+    <input type="hidden" asp-for="SaveAsNewVersion" />
+    <input type="hidden" asp-for="VersionNumber" />
+    <input type="hidden" asp-for="ArticleNumber" />
+    <input type="hidden" asp-for="Published" />
+    <input type="hidden" asp-for="Updated" />
+    <input type="hidden" asp-for="RoleList" />
+    <input type="hidden" asp-for="UrlPath" />
+    <input type="hidden" asp-for="IsValid" />
+    <input type="hidden" asp-for="EditorType" />
+    <input type="hidden" asp-for="UpdateExisting" />
+    <input type="hidden" asp-for="BannerImage" />
 </form>
 
 <style>
@@ -150,7 +163,16 @@
                 break;
             case "Preview":
                 next = function () {
-                    window.open("@Url.Action("Preview", "Home")?articleNumber=@Model.Id");
+                    PromiseWindow.open("@Url.Action("Preview", "Home")?articleNumber=@Model.ArticleNumber")
+                        .then(
+                              function(data) {
+                                  next = null;
+                              },
+                              function(error) {
+                                  alert("Error opening preview.");
+                                  next = null;
+                              }
+                        );
                 }
                 $("#divSaveFirstDialog").html("Save page before opening preview?");
                 modalCheckSaveFirst.show();
@@ -158,14 +180,14 @@
             case "Code":
                 // Open in new window.
                 next = function () {
-                   window.location.href = "@Url.Action("EditCode", "Editor", new { Model.Id })";
+                   window.location.href = "@Url.Action("EditCode", "Editor", new { Model.ArticleNumber })";
                 }
                 $("#divSaveFirstDialog").html("Save page before opening code editor?");
                 modalCheckSaveFirst.show();
                 break;
             case "Html":
                 next = function () {
-                    window.location.href = "@Url.Action("Edit", "Editor")/@Model.Id ";
+                    window.location.href = "@Url.Action("Edit", "Editor")/@Model.ArticleNumber ";
                 }
                 $("#divSaveFirstDialog").html("Save page before opening HTML editor?");
                 modalCheckSaveFirst.show();
@@ -184,9 +206,13 @@
         window.location.href = "@Url.Action("Index", "Editor", new { Model.Id })";
     }
 
+    // Activated from _LayoutEditor.cshtml in multiple locations;
     async function saveChanges() {
-        // Activated from _LayoutEditor.cshtml in multiple locations;
-        const storedProjectData = await editor.store();
+        await editor.store();
+        if (next !== null && typeof next  === 'function') {
+            next();
+            next = null;
+        }
     }
 
     $("#frmSave").submit(function(event) {
@@ -194,8 +220,20 @@
         saveChanges();
     });
 
+    function cosmos__designerPostData() {
+        return new Promise((resolve, reject) => {
+            $.post('@Url.Action("PostDesignerData", "Editor")',
+                $("#frmSave").serialize(),
+                function(response) {
+                    saveInProgress = false;
+                    doneSaving();
+                }
+            );
+        });
+    }
+
     function preloadImages() {
-        const imageUrls = @Html.Raw(JsonConvert.SerializeObject(Model.ImageAssets));
+        const imageUrls = @Html.Raw(JsonConvert.SerializeObject(designerConfig.ImageAssets));
         imageUrls.forEach(url => {
             const img = new Image();
             img.src = url;
@@ -213,6 +251,10 @@
 
         $("#liInsert").show();
         $("#divTitleGroup").show();
+        $("#divPublishedTitleGroup").show();
+        $("#spinLoading").hide();
+        $("#btnSavingStatus").show();
+
         $("#divTitle").html("@Model.Title");
         $("#Title").val("@Model.Title");
 
@@ -241,12 +283,12 @@
         GrapesJS Editor (Designer) Configuration
 
     */
-    const cosmos__id = '@Model.Id';
-    const cosmos__designerDataEndpoint = "/Editor/DesignerData";
+    const cosmos__id = '@Model.ArticleNumber';
+    const cosmos__designerDataEndpoint = "/Editor/GetDesignerData";
     const cosmos__designerUploadEndpoint = "/FileManager/SimpleUpload?id=" + cosmos__id + "&entityType=articles&editorType=grapesjs";
     const cosmos__designerFormId = "frmSave";
-    let grapesjs__canvas__styles = @Html.Raw(JsonConvert.SerializeObject(Model.Styles));
-    let grapesjs__canvas__scripts = @Html.Raw(JsonConvert.SerializeObject(Model.Scripts));
+    let grapesjs__canvas__styles = @Html.Raw(JsonConvert.SerializeObject(designerConfig.Styles));
+    let grapesjs__canvas__scripts = @Html.Raw(JsonConvert.SerializeObject(designerConfig.Scripts));
     let grapesjs__assets = preloadImages();
 
 </script>

@@ -36,6 +36,7 @@
         <link href="https://unpkg.com/grapick/dist/grapick.min.css" rel="stylesheet">
     }
 
+    <script src="~/lib/promise-window/promise-window.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
     <script src="~/lib/jquery/jquery.min.js"></script>
     <script src="~/lib/jqueryui/jquery-ui.min.js"></script>
@@ -292,7 +293,7 @@
                         </div>
                     </li>
                     <li class="nav-item">
-                        <div id="divPublihedTitleGroup" class="input-group input-group-sm mt-1" style="display:none">
+                        <div id="divPublishedTitleGroup" class="input-group input-group-sm mt-1" style="display:none">
                             <div id="lblPublished" class="input-group-text" style="height:31px;">Published:</div>
                             <input autocomplete="off" class="form-control text-truncate" name="tbPublished" id="tbPublished" placeholder="DRAFT (not published)" value="@((DateTimeOffset?)ViewData["Published"])" />
                             <button class="btn btn-sm btn-danger" title="Clicking this button publishes this page version immediately." type="button" id="btnPublishNow" onclick="bgEditClick('Publish')" style="display:none">Publish Now</button>
@@ -320,7 +321,7 @@
                     <div id="divSaveFirstDialog"></div>
                 </div>
                 <div class="modal-footer">
-                    <button id="modalBtnSaveFirst" type="button" class="btn btn-secondary" onclick="saveFirst()" data-bs-dismiss="modal">Yes</button>
+                    <button id="modalBtnSaveFirst" type="button" class="btn btn-secondary" onclick="saveChanges()" data-bs-dismiss="modal">Yes</button>
                     <button type="button" class="btn btn-secondary" onclick="doNotSave()" data-bs-dismiss="modal">No</button>
                 </div>
             </div>
@@ -701,11 +702,6 @@
                     bgEditClickCustom(command);
                     break;
             }
-        }
-
-        function saveFirst() {
-            saveChanges();
-            next();
         }
 
         function doNotSave() {
