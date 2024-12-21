@@ -166,26 +166,12 @@
                 $("#divSaveFirstDialog").html("Save page before closing editor?");
                 modalCheckSaveFirst.show();
                 break;
-            case "Code":
-                next = function () {
-                    window.location.href = "@Url.Action("EditCode", "Editor")/" + $("#ArticleNumber").val();
-                }
-                $("#divSaveFirstDialog").html("Save before opening code editor?");
-                modalCheckSaveFirst.show();
-                break;
             case "Preview":
                 $("#iframePreview").prop("src", "@Url.Action("Preview", "Home")?articleNumber=" + @Model.ArticleNumber);
                 modalPreview.show();
                 modalPreview.handleUpdate();
                 break;
         }
-    }
-
-    function getLocalTimeZone() {
-        const datetime = new Date();
-        const dateTimeString = datetime.toString();
-        const timezone = dateTimeString.substring(dateTimeString.indexOf("(") - 1);
-        return timezone;
     }
 
     function setupFrame() {

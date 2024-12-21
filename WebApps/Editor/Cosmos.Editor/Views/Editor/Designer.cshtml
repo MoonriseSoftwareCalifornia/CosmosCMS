@@ -8,10 +8,10 @@
 }
 
 <form id="frmSave" asp-action="DesignerData" asp-controller="Editor" method="post">
-    <input type="hidden" id="Id" name="Id" value="@Model.Id" />
-    <input type="hidden" id="Title" name="Title" value="@Model.Title" />
-    <input type="hidden" id="HtmlContent" name="HtmlContent" />
-    <input type="hidden" id="CssContent" name="CssContent" />
+    <input type="hidden" asp-for="Id" value="@Model.Id" />
+    <input type="hidden" asp-for="Title" value="@Model.Title" />
+    <input type="hidden" asp-for="HtmlContent" />
+    <input type="hidden" asp-for="CssContent" />
     <input type="hidden" asp-for="SaveAsNewVersion" />
     <input type="hidden" asp-for="VersionNumber" />
     <input type="hidden" asp-for="ArticleNumber" />
@@ -169,7 +169,6 @@
                                   next = null;
                               },
                               function(error) {
-                                  alert("Error opening preview.");
                                   next = null;
                               }
                         );
@@ -177,29 +176,7 @@
                 $("#divSaveFirstDialog").html("Save page before opening preview?");
                 modalCheckSaveFirst.show();
                 break;
-            case "Code":
-                // Open in new window.
-                next = function () {
-                   window.location.href = "@Url.Action("EditCode", "Editor", new { Model.ArticleNumber })";
-                }
-                $("#divSaveFirstDialog").html("Save page before opening code editor?");
-                modalCheckSaveFirst.show();
-                break;
-            case "Html":
-                next = function () {
-                    window.location.href = "@Url.Action("Edit", "Editor")/@Model.ArticleNumber ";
-                }
-                $("#divSaveFirstDialog").html("Save page before opening HTML editor?");
-                modalCheckSaveFirst.show();
-                break;
         }
-    }
-
-    function getLocalTimeZone() {
-        var datetime = new Date();
-        var dateTimeString = datetime.toString();
-        var timezone = dateTimeString.substring(dateTimeString.indexOf("(") - 1);
-        return timezone;
     }
 
     function closeEditor() {
@@ -257,6 +234,8 @@
 
         $("#divTitle").html("@Model.Title");
         $("#Title").val("@Model.Title");
+
+        checkDisplayLiveEditorButton();
 
         // Alter the default action of the save changes button
         // located on _LayoutEditor.cshtml.

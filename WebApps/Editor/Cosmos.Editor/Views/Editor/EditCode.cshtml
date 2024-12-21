@@ -138,18 +138,6 @@
         createAndLoadEditor(id);
     }
 
-    function checkDisplayLiveEditorButton() {
-        var content = $("#Content").val().toLowerCase();
-        const hasContentEditable = content.indexOf("=contenteditable");
-        const hasCeid = content.indexOf("data-ccms-ceid=");
-
-        if (hasContentEditable > -1 || hasCeid > -1) {
-            $("#btnCcmsHtmlEditor").show();
-        } else {
-            $("#btnCcmsHtmlEditor").hide();
-        }
-    }
-
     //
     // Creates and loads a Monaco Editor.
     //
@@ -292,7 +280,7 @@
                     $("#HeadJavaScript").val(response.Model.HeadJavaScript);
                     $("#FooterJavaScript").val(response.Model.FooterJavaScript);
                                        
-                    checkDisplayLiveEditorButton();
+                    checkDisplayLiveEditorButton('Content');
 
                     if (next !== null && typeof next  === 'function') {
                         next();
@@ -350,21 +338,7 @@
                 modalPreview.show();
                 modalPreview.handleUpdate();
                 break;
-            case "Html":
-                next = function () {
-                    window.location.href = "@Url.Action("Edit", "Editor")/" + $("#ArticleNumber").val();
-                }
-                $("#divSaveFirstDialog").html("Save page before opening Live editor?");
-                modalCheckSaveFirst.show();
-                break;
         }
-    }
-
-    function getLocalTimeZone() {
-        var datetime = new Date();
-        var dateTimeString = datetime.toString();
-        var timezone = dateTimeString.substring(dateTimeString.indexOf("(") - 1);
-        return timezone;
     }
 
     $(document).ready(function () {

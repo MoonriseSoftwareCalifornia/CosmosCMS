@@ -771,6 +771,22 @@
             }
         }
 
+        function checkDisplayLiveEditorButton(field) {
+            const element = document.getElementById(field);
+            if (typeof element === 'undefined' || element === null) {
+                return;
+            };
+            var content = element.value.toLowerCase();
+            const hasContentEditable = content.indexOf("=contenteditable");
+            const hasCeid = content.indexOf("data-ccms-ceid=");
+
+            if (hasContentEditable > -1 || hasCeid > -1) {
+                $("#btnCcmsHtmlEditor").show();
+            } else {
+                $("#btnCcmsHtmlEditor").hide();
+            }
+        }
+
         $(document).ready(function () {
 
             // Sets the color of the permissions button to
