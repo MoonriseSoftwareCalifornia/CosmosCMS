@@ -120,14 +120,6 @@
 
     });
 
-    function bgEditClickCustom(command) {
-        switch (command) {
-            case "Close":
-                window.location.href = "@Url.Action("Versions", "Editor")/@Model.Articles[0].ArticleNumber";
-                break;
-        }
-    }
-
     function createAndLoadEditor(id) {
         if (editor !== null && typeof editor !== "undefined") {
             //if (editor.getModel()) {

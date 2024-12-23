@@ -81,18 +81,6 @@
 
     </script>
     <!-- Full screen modal -->
-    <div class="modal fade" id="modalPreview" tabindex="-3">
-        <div class="modal-dialog modal-fullscreen">
-            <div id="modalContent" class="modal-content">
-                <div class="modal-header bg-dark text-light">
-                    <button type="button" class="btn btn-sm btn-primary" data-bs-dismiss="modal">Close Preview</button>
-                </div>
-                <div class="modal-body">
-                    <iframe id="iframePreview" class="d-block w-100" onload="setupPreviewFrame()" style="height:100%"></iframe>
-                </div>
-            </div>
-        </div>
-    </div>
     <div class="modal fade" id="modalImageCropper" tabindex="-1" aria-labelledby="modalLabel" style="display: none;" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -145,7 +133,6 @@
     var enableAutoSave = true;
     // Modals
     const vsCodeModal = new bootstrap.Modal(document.getElementById('modalVsCode'));
-    const modalPreview = new bootstrap.Modal(document.getElementById('modalPreview'));
     const linksToast = new bootstrap.Toast(document.getElementById('linksToast'));
 
     $("#frmSave").submit(function (e) {
@@ -173,7 +160,7 @@
                 break;
         }
     }
-
+       
     function setupFrame() {
         const iframe = document.getElementById("ccmsContFrame");
         const iframeWin = iframe.contentWindow || iframe.contentDocument.parentWindow;

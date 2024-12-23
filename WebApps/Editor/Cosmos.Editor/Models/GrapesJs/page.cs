@@ -1,11 +1,20 @@
-﻿using System.Collections.Generic;
+﻿// <copyright file="page.cs" company="Moonrise Software, LLC">
+// Copyright (c) Moonrise Software, LLC. All rights reserved.
+// Licensed under the GNU Public License, Version 3.0 (https://www.gnu.org/licenses/gpl-3.0.html)
+// See https://github.com/MoonriseSoftwareCalifornia/CosmosCMS
+// for more information concerning the license and the contributors participating to this project.
+// </copyright>
 
 namespace Cosmos.Editor.Models.GrapesJs
 {
+    using System.Collections.Generic;
+
     /// <summary>
     /// Represents a project in GrapesJs.
     /// </summary>
+#pragma warning disable CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
     public class project
+#pragma warning restore CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="project"/> class.
@@ -32,7 +41,9 @@ namespace Cosmos.Editor.Models.GrapesJs
     /// <summary>
     /// Represents a page in GrapesJs.
     /// </summary>
+#pragma warning disable CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
     public class page
+#pragma warning restore CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="page"/> class.

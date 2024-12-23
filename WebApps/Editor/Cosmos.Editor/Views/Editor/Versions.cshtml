@@ -18,6 +18,11 @@
 
     var currentVersion = (int?)ViewData["CurrentVersion"];
 }
+<style>
+    .toLocalTimeZone {
+        font-size: 0.8em;
+    }
+</style>
 <div class="pt-3">
     <div class="container mt-3">
         <div class="row">
@@ -47,7 +52,6 @@
                 <partial name="~/Views/Shared/GridPager/_GridPager.cshtml" model="pagerModel"></partial>
             </div>
         </div>
-
         <div class="row bg-dark">
             <div class="col-md-12">
                 <div class="table-responsive custom-table-responsive">
@@ -75,15 +79,12 @@
                                             <div type='button' class='btn btn-sm btn-primary'>Now editing <span class='badge text-bg-secondary'><i class='fa-solid fa-right-long'></i></span></div>
                                         }
                                     </td>
-                                    <td scope="row" style="min-width:80px;">
+                                    <td scope="row">
                                         <div class="form-check">
-                                            <input class="form-check-input gridCheckBox" data-ccms-id='@row.Id' type="checkbox">
-                                            <label class="form-check-label">
-                                                Select
-                                            </label>
+                                            <input class="form-check-input gridCheckBox" data-toggle="tooltip" data-placement="top" title="Check to select item." data-ccms-id='@row.Id' type="checkbox">
                                         </div>
                                     </td>
-                                    <td scope="row" style="min-width:80px;">
+                                    <td scope="row" style="min-width:140px;">
                                         <a class='btn btn-sm btn-secondary' data-toggle="tooltip" data-placement="top" title='Preview version @row.VersionNumber.' onclick='openPreview(@articleNumber, @row.VersionNumber)'><i class="fa-solid fa-magnifying-glass"></i> v.@row.VersionNumber</a>
                                     </td>
                                     <td scope="row" style="text-align:center;background-color: #2C2D2F;inset: 10px 20px 30px 40px;">
@@ -92,8 +93,8 @@
                                             {
                                                 @if (isAuthor == false)
                                                 {
-                                                    <a class='btn btn-sm btn-secondary' data-toggle="tooltip" data-placement="top" title='The designer lets you create web pages with a drag-and-drop interface, no coding needed.' href='/Editor/Designer/@articleNumber'>Designer</a>
-                                                    <a class='btn btn-sm btn-secondary' data-toggle="tooltip" data-placement="top" title='The code editor is a browser-based code editor that powers Visual Studio Code.' href='/Editor/EditCode/@articleNumber'>Code</a>
+                                                    <a class='btn btn-sm btn-secondary' role="button" data-toggle="tooltip" data-placement="top" title='The designer lets you create web pages with a drag-and-drop interface, no coding needed.' href='/Editor/Designer/@articleNumber'>Designer</a>
+                                                    <a class='btn btn-sm btn-secondary' role="button" data-toggle="tooltip" data-placement="top" title='The code editor is a browser-based code editor that powers Visual Studio Code.' href='/Editor/EditCode/@articleNumber'>Code</a>
                                                 }
                                                 else
                                                 {
@@ -101,11 +102,11 @@
                                                 }
                                                 @if (row.UsesHtmlEditor)
                                                 {
-                                                    <a class='btn btn-sm btn-secondary' data-toggle="tooltip" data-placement="top" title="Visually create and edit web pages, ensuring the final output matches the editing view." href='/Editor/Edit/@articleNumber'>HTML</a>
+                                                    <a class='btn btn-sm btn-secondary' role="button" data-toggle="tooltip" data-placement="top" title="Create and edit web pages using a word processor like view, ensuring the final output matches the editing view." href='/Editor/Edit/@articleNumber'>HTML</a>
                                                 }
                                                 else
                                                 {
-                                                    <span></span>
+                                                    <a class='btn btn-sm btn-secondary disabled' role="button" data-toggle="tooltip" data-placement="top" title="HTML editor not enabled for this page (see <a href='https://cosmos.moonrise.net/page_templates'>documentation</a> on how to enable)." aria-disabled="true">HTML</a>
                                                 }
                                             }
                                             @* @if (isReviewer)
@@ -143,13 +144,11 @@
                 </div>
             </div>
         </div>
-
         <div class="row cpws-table-pager-row-bottom">
             <div class="col-md-12 d-flex justify-content-center">
                 <partial name="~/Views/Shared/GridPager/_GridPager.cshtml" model="pagerModel"></partial>
             </div>
         </div>
-
         <div class="row">
             <div class="col">
                 <a title="Return to page list" class="btn btn-sm btn-secondary mt-2" href="@Url.Action("Index")">Page list <i class="fa-solid fa-circle-arrow-right"></i></a>

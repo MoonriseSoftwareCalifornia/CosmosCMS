@@ -139,37 +139,6 @@
     // This needs global scope, so using var
     var hasPermissionsSet = false;
 
-    function bgEditClickCustom(command) {
-        switch (command) {
-            case "Close":
-                next = function () {
-                    window.location.href = "@Url.Action("Index", "Templates")";
-                }
-                $("#divSaveFirstDialog").html("Save page before closing editor?");
-                modalCheckSaveFirst.show();
-                break;
-            case "Preview":
-                next = function () {
-                    window.open("@Url.Action("Preview", "Templates", new { Model?.Id })");
-                }
-                $("#divSaveFirstDialog").html("Save page before opening preview?");
-                modalCheckSaveFirst.show();
-                break;
-            case "Code":
-                // Open in new window.
-                next = function () {
-                       window.location.href = "@Url.Action("EditCode", "Templates", new { Model.Id })";
-                }
-                $("#divSaveFirstDialog").html("Save page before closing editor?");
-                modalCheckSaveFirst.show();
-            break;
-        }
-    }
-
-    function closeEditor() {
-        window.location.href = "@Url.Action("Index", "Templates", new { Model.Id })";
-    }
-
     async function saveChanges() {
         // Activated from _LayoutEditor.cshtml in multiple locations;
         await editor.store();
@@ -186,6 +155,10 @@
             function(response) {
                 saveInProgress = false;
                 doneSaving();
+                if (next !== null && typeof next  === 'function') {
+                    next();
+                    next = null;
+                }
             }
         );
     }

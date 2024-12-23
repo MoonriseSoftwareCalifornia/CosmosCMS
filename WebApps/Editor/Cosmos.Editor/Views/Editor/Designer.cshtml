@@ -152,33 +152,6 @@
     // This needs global scope, so using var
     var hasPermissionsSet = false;
 
-    function bgEditClickCustom(command) {
-        switch (command) {
-            case "Close":
-                next = function () {
-                    window.location.href = "@Url.Action("Index", "Editor")";
-                }
-                $("#divSaveFirstDialog").html("Save page before closing editor?");
-                modalCheckSaveFirst.show();
-                break;
-            case "Preview":
-                next = function () {
-                    PromiseWindow.open("@Url.Action("Preview", "Home")?articleNumber=@Model.ArticleNumber")
-                        .then(
-                              function(data) {
-                                  next = null;
-                              },
-                              function(error) {
-                                  next = null;
-                              }
-                        );
-                }
-                $("#divSaveFirstDialog").html("Save page before opening preview?");
-                modalCheckSaveFirst.show();
-                break;
-        }
-    }
-
     function closeEditor() {
         window.location.href = "@Url.Action("Index", "Editor", new { Model.Id })";
     }
@@ -204,6 +177,7 @@
                 function(response) {
                     saveInProgress = false;
                     doneSaving();
+                    checkDisplayLiveEditorButton("HtmlContent");
                 }
             );
         });
@@ -235,8 +209,6 @@
         $("#divTitle").html("@Model.Title");
         $("#Title").val("@Model.Title");
 
-        checkDisplayLiveEditorButton();
-
         // Alter the default action of the save changes button
         // located on _LayoutEditor.cshtml.
         $("#modalBtnSaveFirst").on("click", function () {
@@ -248,6 +220,8 @@
         }
 
         cosmos__designerLoadAssets("/pub/pub/articles/@Model.Id", "");
+
+        checkDisplayLiveEditorButton("HtmlContent");
     });
 
     $(document).on("unload", function () {
