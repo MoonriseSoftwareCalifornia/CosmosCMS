@@ -53,6 +53,8 @@ const sessionStoragePlugin = (editor) => {
     });
 };
 
+cosmos_plugin_array.push(sessionStoragePlugin);
+
 const editor = grapesjs.init({
     // Indicate where to init the editor. You can also pass an HTMLElement
     container: '#gjs',
@@ -331,7 +333,7 @@ const editor = grapesjs.init({
         'grapesjs-typed',
         'grapesjs-style-bg',
         'grapesjs-preset-webpage',
-        sessionStoragePlugin
+        cosmos_plugin_array
     ],
     pluginsOpts: {
         'gjs-blocks-basic': { flexGrid: true },
@@ -374,35 +376,7 @@ const editor = grapesjs.init({
     },
     storageManager: {
         type: 'cosmos', // Storage type. Available: local | remote
-        stepsBeforeSave: 1, // If autosave is enabled, indicates how many changes are necessary before the store method is triggered
-        // ...
-        // Default storage options
-        //options: {
-        //    remote:
-        //    {
-        //        urlLoad: cosmos__designerDataEndpoint + "/" + cosmos__id,
-        //        // Enrich the store call
-        //        onStore: (data, editor) => {
-        //            showSaving(); // Show saving message.
-        //            editor.Pages.getAll().map((page) => {
-        //                const component = page.getMainComponent();
-
-        //                $("#HtmlContent").val(editor.getHtml({ component }));
-        //                $("#CssContent").val(editor.getCss({ component }));
-
-        //                cosmos__designerPostData();
-
-        //                return {
-        //                    html: editor.getHtml({ component }),
-        //                    css: editor.getCss({ component }),
-        //                };
-        //            });
-        //            return { data };
-        //        },
-        //        // If on load, you're returning the same JSON from above...
-        //        onLoad: (result) => result.data,
-        //    },
-        //}
+        stepsBeforeSave: 1,
     },
 
 });
@@ -511,7 +485,6 @@ for (var i = 0; i < titles.length; i++) {
 editor.on('storage:load', function (e) { checkDisplayLiveEditorButton('HtmlContent');  console.log('Loaded ', e) });
 editor.on('storage:store', function (e) { console.log('Stored ', e) });
 
-
 // Do stuff on load
 editor.on('load', function () {
     var $ = grapesjs.$;
@@ -568,3 +541,19 @@ editor.on('storage:start:load', () => {
 editor.on('storage:load', (data, res) => {
     $("#spinLoading").hide();
 });
+
+// Add the CKEditor editing block
+// Unmovable container
+editor.DomComponents.addType('ccms-ckeditor-block', {
+    model: {
+        defaults: {
+            attributes: {
+                // Default attributes
+                type: 'text',
+                name: 'data-ccms-ceid',
+                placeholder: ccms___generateGUID(),
+            },
+        }
+    }
+});
+//data-ccms-ceid: ccms___generateGUID(), class: 'ck-content' 

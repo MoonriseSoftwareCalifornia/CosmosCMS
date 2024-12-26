@@ -13,6 +13,7 @@ namespace Cosmos.Cms.Controllers
     using System.Text;
     using System.Threading.Tasks;
     using System.Web;
+    using Cosmos.BlobService;
     using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Cms.Data.Logic;
     using Cosmos.Cms.Models;
@@ -20,13 +21,16 @@ namespace Cosmos.Cms.Controllers
     using Cosmos.Common.Data;
     using Cosmos.Common.Models;
     using Cosmos.Editor.Controllers;
+    using Cosmos.Editor.Data;
+    using Cosmos.Editor.Data.Logic;
+    using Cosmos.Editor.Models;
+    using Cosmos.Editor.Models.GrapesJs;
     using HtmlAgilityPack;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.ModelBinding;
     using Microsoft.EntityFrameworkCore;
-    using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
 
     /// <summary>
@@ -40,6 +44,7 @@ namespace Cosmos.Cms.Controllers
         private readonly ApplicationDbContext dbContext;
         private readonly Uri blobPublicAbsoluteUrl;
         private readonly IViewRenderService viewRenderService;
+        private readonly StorageContext storageContext;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LayoutsController"/> class.
@@ -48,17 +53,20 @@ namespace Cosmos.Cms.Controllers
         /// <param name="userManager">User manager.</param>
         /// <param name="articleLogic"><see cref="ArticleEditLogic">Article edit logic</see>.</param>
         /// <param name="options"><see cref="CosmosConfig">Cosmos configuration</see> options.</param>
+        /// <param name="storageContext">Storage context.</param>
         /// <param name="viewRenderService">View rendering service.</param>
         public LayoutsController(
             ApplicationDbContext dbContext,
             UserManager<IdentityUser> userManager,
             ArticleEditLogic articleLogic,
             IOptions<CosmosConfig> options,
+            StorageContext storageContext,
             IViewRenderService viewRenderService)
             : base(dbContext, userManager)
         {
             this.dbContext = dbContext;
             this.articleLogic = articleLogic;
+            this.storageContext = storageContext;
 
             var htmlUtilities = new HtmlUtilities();
 
@@ -273,6 +281,115 @@ namespace Cosmos.Cms.Controllers
 
             return RedirectToAction("Index");
         }
+
+
+        /// <summary>
+        /// Loads the designer GUI.
+        /// </summary>
+        /// <param name="id">Template ID.</param>
+        /// <returns>View.</returns>
+        public async Task<IActionResult> Designer(Guid id)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // Loads GrapeJS.
+            ViewData["IsDesigner"] = true;
+
+            var template = await dbContext.Layouts.FirstOrDefaultAsync(f => f.Id == id);
+            if (template == null)
+            {
+                return NotFound();
+            }
+
+            var config = new DesignerConfig(await dbContext.Layouts.FirstOrDefaultAsync(f => f.IsDefault), id.ToString(), template.LayoutName);
+            var assets = await FileManagerController.GetImageAssetArray(storageContext, "/pub", "/pub/articles");
+            if (assets != null)
+            {
+                config.ImageAssets.AddRange(assets);
+            }
+
+            return View(config);
+        }
+
+        /// <summary>
+        /// Visual designer based on GrapeJS.
+        /// </summary>
+        /// <param name="id">Template ID.</param>
+        /// <returns>IActionResult.</returns>
+        [HttpGet]
+        public async Task<IActionResult> DesignerData(Guid id)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var entity = await dbContext.Layouts.FirstOrDefaultAsync(f => f.Id == id);
+
+            var builder = new StringBuilder();
+            builder.AppendLine(entity.HtmlHeader);
+            builder.AppendLine("<div data-gjs-type='grapesjs-not-editable' draggable='false' style='display:flex;flex-direction:column;'></div>");
+            builder.AppendLine(entity.FooterHtmlContent);
+
+            return Json(new project(builder.ToString()));
+        }
+
+        /// <summary>
+        /// Save designer data.
+        /// </summary>
+        /// <param name="id">Template ID.</param>
+        /// <param name="title">Template title.</param>
+        /// <param name="htmlContent">HTML content.</param>
+        /// <param name="cssContent">CSS content.</param>
+        /// <returns>IActionResult.</returns>
+        [HttpPost]
+        public async Task<IActionResult> DesignerData(Guid id, string title, string htmlContent, string cssContent)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            DesignerDataViewModel model = new DesignerDataViewModel()
+            {
+                Id = id,
+                HtmlContent = htmlContent,
+                CssContent = cssContent,
+                Title = title
+            };
+
+            // Check for nested editable regions.
+            if (!NestedEditableRegionValidation.Validate(model.HtmlContent))
+            {
+                return BadRequest("Cannot have nested editable regions.");
+            }
+
+            var entity = await dbContext.Templates.FirstOrDefaultAsync(f => f.Id == model.Id);
+
+            if (entity == null)
+            {
+                return NotFound();
+            }
+
+            model.HtmlContent = articleLogic.Ensure_ContentEditable_IsMarked(model.HtmlContent);
+
+            if (string.IsNullOrEmpty(model.Title))
+            {
+                var c = await dbContext.Templates.CountAsync();
+                entity.Title = string.IsNullOrEmpty(entity.Title) ? $"Template {c}" : entity.Title;
+            }
+
+            var designerUtils = new DesignerUtilities();
+            entity.Content = designerUtils.AssembleDesignerOutput(model);
+
+            await dbContext.SaveChangesAsync();
+
+            return Json(new { success = true });
+        }
+
 
         /// <summary>
         /// Edit the page header and footer of a layout.

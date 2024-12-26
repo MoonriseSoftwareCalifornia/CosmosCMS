@@ -29,13 +29,13 @@
 
     @if (isDesigner == true)
     {
-        <link rel="stylesheet" href="~/lib/grapesjsbuild/stylesheets/toastr.min.css">
-        @* <link rel="stylesheet" href="stylesheets/grapes.min.css?v0.21.10"> *@
+        <link rel="stylesheet" href="~/lib/grapesjsui/stylesheets/toastr.min.css">
         <link rel="stylesheet" href="~/lib/grapesjs/css/grapes.min.css">
-        <link rel="stylesheet" href="~/lib/grapesjsbuild/stylesheets/grapesjs-preset-webpage.min.css">
-        <link rel="stylesheet" href="~/lib/grapesjsbuild/stylesheets/tooltip.css">
-        <link rel="stylesheet" href="~/lib/grapesjsbuild/stylesheets/demos.css?v3.1">
+        <link rel="stylesheet" href="~/lib/grapesjsui/stylesheets/grapesjs-preset-webpage.min.css">
+        <link rel="stylesheet" href="~/lib/grapesjsui/stylesheets/tooltip.css">
+        <link rel="stylesheet" href="~/lib/grapesjsui/stylesheets/demos.css?v3.1">
         <link href="https://unpkg.com/grapick/dist/grapick.min.css" rel="stylesheet">
+        <link href="~/lib/grapesjs/build_20241212/ccms-designer.css" rel="stylesheet" />
     }
 
     <script src="~/lib/promise-window/promise-window.min.js"></script>
@@ -52,7 +52,7 @@
 
     @if (isDesigner == true)
     {
-        <script src="~/lib/grapesjsbuild/js/toastr.min.js"></script>
+        <script src="~/lib/grapesjsui/js/toastr.min.js"></script>
         <script src="~/lib/grapesjs/grapes.min.js"></script>
         <script src="https://unpkg.com/grapesjs-preset-webpage@1.0.2"></script>
         <script src="https://unpkg.com/grapesjs-blocks-basic@1.0.1"></script>
@@ -77,55 +77,55 @@
             }
 
             .icon-dir-row {
-                background: url("./lib/grapesjsbuild/img/flex-dir-row.png") no-repeat center;
+                background: url("./lib/grapesjsui/img/flex-dir-row.png") no-repeat center;
             }
 
             .icon-dir-row-rev {
-                background: url("./lib/grapesjsbuild/img/flex-dir-row-rev.png") no-repeat center;
+                background: url("./lib/grapesjsui/img/flex-dir-row-rev.png") no-repeat center;
             }
 
             .icon-dir-col {
-                background: url("./lib/grapesjsbuild/img/flex-dir-col.png") no-repeat center;
+                background: url("./lib/grapesjsui/img/flex-dir-col.png") no-repeat center;
             }
 
             .icon-dir-col-rev {
-                background: url("./lib/grapesjsbuild/img/flex-dir-col-rev.png") no-repeat center;
+                background: url("./lib/grapesjsui/img/flex-dir-col-rev.png") no-repeat center;
             }
 
             .icon-just-start {
-                background: url("./lib/grapesjsbuild/img/flex-just-start.png") no-repeat center;
+                background: url("./lib/grapesjsui/img/flex-just-start.png") no-repeat center;
             }
 
             .icon-just-end {
-                background: url("./lib/grapesjsbuild/img/flex-just-end.png") no-repeat center;
+                background: url("./lib/grapesjsui/img/flex-just-end.png") no-repeat center;
             }
 
             .icon-just-sp-bet {
-                background: url("./lib/grapesjsbuild/img/flex-just-sp-bet.png") no-repeat center;
+                background: url("./lib/grapesjsui/img/flex-just-sp-bet.png") no-repeat center;
             }
 
             .icon-just-sp-ar {
-                background: url("./lib/grapesjsbuild/img/flex-just-sp-ar.png") no-repeat center;
+                background: url("./lib/grapesjsui/img/flex-just-sp-ar.png") no-repeat center;
             }
 
             .icon-just-sp-cent {
-                background: url("./lib/grapesjsbuild/img/flex-just-sp-cent.png") no-repeat center;
+                background: url("./lib/grapesjsui/img/flex-just-sp-cent.png") no-repeat center;
             }
 
             .icon-al-start {
-                background: url("./lib/grapesjsbuild/img/flex-al-start.png") no-repeat center;
+                background: url("./lib/grapesjsui/img/flex-al-start.png") no-repeat center;
             }
 
             .icon-al-end {
-                background: url("./lib/grapesjsbuild/img/flex-al-end.png") no-repeat center;
+                background: url("./lib/grapesjsui/img/flex-al-end.png") no-repeat center;
             }
 
             .icon-al-str {
-                background: url("./lib/grapesjsbuild/img/flex-al-str.png") no-repeat center;
+                background: url("./lib/grapesjsui/img/flex-al-str.png") no-repeat center;
             }
 
             .icon-al-center {
-                background: url("./lib/grapesjsbuild/img/flex-al-center.png") no-repeat center;
+                background: url("./lib/grapesjsui/img/flex-al-center.png") no-repeat center;
             }
 
             [data-tooltip]::after {

@@ -1,0 +1,66 @@
+﻿/* GrapesJS */
+/* Let's highlight canvas boundaries */
+#gjs {
+    border: 1px solid #e63900;
+}
+
+gjs-editor-cont {
+    display: flex;
+    flex-direction: column;
+}
+
+.gjs-block {
+    width: auto;
+    height: auto;
+    min-height: auto;
+}
+
+.panel__top {
+    padding: 0;
+    width: 100%;
+    display: flex;
+    position: initial;
+    justify-content: center;
+    justify-content: space-between;
+}
+
+.panel__basic-actions {
+    position: initial;
+}
+
+.editor-row {
+    display: flex;
+    justify-content: flex-start;
+    align-items: stretch;
+    flex-wrap: nowrap;
+}
+
+.editor-canvas {
+    flex-grow: 1;
+}
+
+.panel__right {
+    flex-basis: 230px;
+    position: relative;
+    overflow-y: auto;
+}
+
+.panel__switcher {
+    position: initial;
+}
+
+.panel__devices {
+    position: initial;
+}
+
+.ccms-layout-body {
+    display: flex;
+    justify-content: center; /* Centers horizontally */
+    align-items: center; /* Centers vertically */
+    height: 50vh;
+}
+
+.ccms-layout-body-msg {
+    width: 50%; /* Adjust as needed */
+    height: 50%; /* Adjust as needed */
+}

@@ -68,7 +68,7 @@
                             <thead>
                                 <tr>
                                     <th scope="col"></th>
-                                    <th scope="col">Actions</th>
+                                    <th scope="col">Editors</th>
                                     <th scope="col">Design Name</th>
                                     <th scope="col">Notes</th>
                                     <th scope="col">Trash</th>
@@ -92,7 +92,8 @@
                                             <div class="btn-group" role="group" aria-label="Layer actions">
                                                 <a class="btn btn-sm btn-secondary" target="_blank" href="@Url.Action("Preview", "Layouts", new { Id = row.Id})" title="Preview"><span class="fa fa-binoculars"></span></a>
                                                 <a class="btn btn-sm btn-secondary" href="@Url.Action("EditNotes", "Layouts", new { Id = row.Id})" title="Edit Notes"><span class="fa fa-clipboard"></span></a>
-                                                <a class="btn btn-sm btn-secondary" href="@Url.Action("EditCode", "Layouts", new { Id = row.Id})" title="Code editor"><img src="/images/monaco-vscode-logo.png" height="22" /></a>
+                                                <a class="btn btn-sm btn-secondary" href="@Url.Action("Designer", "Layouts", new { Id = row.Id})" title="Designer">Designer</a>
+                                                <a class="btn btn-sm btn-secondary" href="@Url.Action("EditCode", "Layouts", new { Id = row.Id})" title="Code editor">Code</a>
                                                 <a class="btn btn-sm btn-secondary" href="@Url.Action("ExportLayout", "Layouts", new { Id = row.Id})" title="Export design"><span class="fa-solid fa-cloud-arrow-down"></span></a>
                                             </div>
                                         </td>

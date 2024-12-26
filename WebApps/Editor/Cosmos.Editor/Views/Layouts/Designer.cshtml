@@ -27,7 +27,6 @@
     .perm {
         display: none;
     }
-
 </style>
 
 <div style="display: none">
@@ -153,13 +152,31 @@
         GrapesJS Editor (Designer) Configuration
 
     */
+    let cosmos_plugin_array = [];
     const cosmos__id = '@Model.Id';
-    const cosmos__designerDataEndpoint = "/Templates/DesignerData";
+    const cosmos__designerDataEndpoint = "/Layouts/DesignerData";
     const cosmos__designerUploadEndpoint = "/FileManager/SimpleUpload?id=" + cosmos__id + "&entityType=templates&editorType=grapesjs";
     const cosmos__designerFormId = "frmSave";
     let grapesjs__canvas__styles = @Html.Raw(JsonConvert.SerializeObject(Model.Styles));
     let grapesjs__canvas__scripts = @Html.Raw(JsonConvert.SerializeObject(Model.Scripts));
     let grapesjs__assets = preloadImages();
-
 </script>
 <script src="~/lib/grapesjs/build_20241212/designer.js"></script>
+<script>
+    // Unmovable container
+    editor.DomComponents.addType('ccms-layout-body', {
+        model: {
+            defaults: {
+                attributes: { class: 'ccms-layout-body' },
+                removable: true,
+                draggable: true,
+                droppable: true,
+                badgable: true,
+                stylable: true,
+                highlightable: true,
+                copyable: true,
+                resizable: false,
+                editable: false
+            }
+        }});
+</script>
