@@ -130,6 +130,10 @@ namespace Cosmos.Editor.Data.Logic
         {
             htmlEditor.LoadHtml(html);
             var body = htmlEditor.DocumentNode.SelectSingleNode("//body");
+            if (body == null)
+            {
+                return html;
+            }
             return body?.InnerHtml;
         }
 

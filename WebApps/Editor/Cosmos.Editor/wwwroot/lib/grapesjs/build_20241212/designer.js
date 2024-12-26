@@ -16,20 +16,14 @@ function ccms___generateGUID() {
     });
 }
 
-async function cosmos__designerLoadAssets(path, exclude) {
-    cosmos__GetImageAssets(path, exclude)
-        .then(json => {
-            editor.AssetManager.add(json);
-            editor.AssetManager.render();
-        });
-}
-
-async function cosmos__GetImageAssets(path, exclude) {
-    const url = "/FileManager/GetImageAssets?path=" + path + "&exclude=" + exclude;
+async function cosmos__designerLoadAssets() {
+    const url = "/FileManager/GetImageAssets?path=" + cosmos__designerDataEndpoint + "&exclude=" + cosmos__designerAssetsExclude;
     const response = await fetch(url, {
         method: 'GET'
     });
-    return await response.json();
+    const json = await response.json();
+    editor.AssetManager.add(json);
+    editor.AssetManager.render();
 }
 
 const sessionStoragePlugin = (editor) => {
@@ -52,8 +46,6 @@ const sessionStoragePlugin = (editor) => {
         }
     });
 };
-
-cosmos_plugin_array.push(sessionStoragePlugin);
 
 const editor = grapesjs.init({
     // Indicate where to init the editor. You can also pass an HTMLElement
@@ -333,7 +325,7 @@ const editor = grapesjs.init({
         'grapesjs-typed',
         'grapesjs-style-bg',
         'grapesjs-preset-webpage',
-        cosmos_plugin_array
+        sessionStoragePlugin
     ],
     pluginsOpts: {
         'gjs-blocks-basic': { flexGrid: true },
@@ -401,7 +393,7 @@ cmdm.add('open-info', function () {
     var mdlDialog = document.querySelector('.gjs-mdl-dialog');
     mdlDialog.className += ' ' + mdlClass;
     infoContainer.style.display = 'block';
-    modal.setTitle('About this demo');
+    modal.setTitle('About the designer');
     modal.setContent(infoContainer);
     modal.open();
     modal.getModel().once('change:open', function () {
@@ -482,7 +474,12 @@ for (var i = 0; i < titles.length; i++) {
 }
 
 // Store and load events
-editor.on('storage:load', function (e) { checkDisplayLiveEditorButton('HtmlContent');  console.log('Loaded ', e) });
+editor.on('storage:load', function (e) {
+    checkDisplayLiveEditorButton('HtmlContent');
+    cosmos__designerLoadAssets();
+    console.log('Loaded ', e)
+});
+
 editor.on('storage:store', function (e) { console.log('Stored ', e) });
 
 // Do stuff on load

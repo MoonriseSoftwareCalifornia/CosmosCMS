@@ -330,10 +330,31 @@ namespace Cosmos.Cms.Controllers
             var entity = await dbContext.Layouts.FirstOrDefaultAsync(f => f.Id == id);
 
             var builder = new StringBuilder();
-            builder.AppendLine(entity.HtmlHeader);
-            builder.AppendLine("<div data-gjs-type='grapesjs-not-editable' draggable='false' style='display:flex;flex-direction:column;'></div>");
-            builder.AppendLine(entity.FooterHtmlContent);
-
+            builder.AppendLine("<body>");
+            builder.AppendLine("<!--CCMS--START--HEADER-->");
+            if (string.IsNullOrEmpty(entity.HtmlHeader))
+            {
+                entity.Head = "<header style='height:50px;display:flex;justify-content:center;align-items: center;>HEADER GOES HERE</header>";
+            }
+            else
+            {
+                builder.AppendLine(entity.HtmlHeader);
+            }
+            builder.AppendLine("<!--CCMS--END--HEADER-->");
+            builder.AppendLine("<div data-gjs-type='grapesjs-not-editable' draggable='false' style='height:50vh;display:flex;justify-content:center;align-items: center;'>");
+            builder.AppendLine("<div style='text-align: center'>PAGE CONTENT GOES IN THIS BLOCK<br/>Cannot edit with layout designer.</div>");
+            builder.AppendLine("</div>");
+            builder.AppendLine("<!--CCMS--START--FOOTER-->");
+            if (string.IsNullOrEmpty(entity.FooterHtmlContent))
+            {
+                entity.Head = "<footer style='height:50px;display:flex;justify-content:center;align-items: center;>FOOTER GOES HERE</footer>";
+            }
+            else
+            {
+                builder.AppendLine(entity.FooterHtmlContent);
+            }
+            builder.AppendLine("<!--CCMS--END--FOOTER-->");
+            builder.AppendLine("</body>");
             return Json(new project(builder.ToString()));
         }
 
@@ -353,41 +374,62 @@ namespace Cosmos.Cms.Controllers
                 return BadRequest(ModelState);
             }
 
-            DesignerDataViewModel model = new DesignerDataViewModel()
-            {
-                Id = id,
-                HtmlContent = htmlContent,
-                CssContent = cssContent,
-                Title = title
-            };
-
             // Check for nested editable regions.
-            if (!NestedEditableRegionValidation.Validate(model.HtmlContent))
+            if (!NestedEditableRegionValidation.Validate(htmlContent))
             {
                 return BadRequest("Cannot have nested editable regions.");
             }
 
-            var entity = await dbContext.Templates.FirstOrDefaultAsync(f => f.Id == model.Id);
+            var entity = await dbContext.Layouts.FirstOrDefaultAsync(f => f.Id == id);
 
             if (entity == null)
             {
                 return NotFound();
             }
 
-            model.HtmlContent = articleLogic.Ensure_ContentEditable_IsMarked(model.HtmlContent);
+            // Get header and footer content.
+            var header = GetTextBetween(htmlContent, "<!--CCMS--START--HEADER-->", "<!--CCMS--END--HEADER-->");
+            var footer = GetTextBetween(htmlContent, "<!--CCMS--START--FOOTER-->", "<!--CCMS--END--FOOTER-->");
 
-            if (string.IsNullOrEmpty(model.Title))
-            {
-                var c = await dbContext.Templates.CountAsync();
-                entity.Title = string.IsNullOrEmpty(entity.Title) ? $"Template {c}" : entity.Title;
-            }
-
+            // Assemble the designer output.
             var designerUtils = new DesignerUtilities();
-            entity.Content = designerUtils.AssembleDesignerOutput(model);
+            footer = designerUtils.AssembleDesignerOutput(new DesignerDataViewModel()
+            {
+                HtmlContent = footer,
+                CssContent = cssContent,
+                Title = title
+            });
+
+            // Update the layout.
+            entity.HtmlHeader = header;
+            entity.FooterHtmlContent = footer;
 
             await dbContext.SaveChangesAsync();
 
             return Json(new { success = true });
+        }
+
+        private string GetTextBetween(string input, string start, string end)
+        {
+            if (string.IsNullOrEmpty(input) || string.IsNullOrEmpty(start) || string.IsNullOrEmpty(end))
+            {
+                return string.Empty;
+            }
+
+            int startIndex = input.IndexOf(start);
+            if (startIndex == -1)
+            {
+                return string.Empty;
+            }
+
+            startIndex += start.Length;
+            int endIndex = input.IndexOf(end, startIndex);
+            if (endIndex == -1)
+            {
+                return string.Empty;
+            }
+
+            return input.Substring(startIndex, endIndex - startIndex);
         }
 
 
