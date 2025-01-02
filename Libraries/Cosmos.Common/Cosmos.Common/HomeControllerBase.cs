@@ -296,7 +296,8 @@ namespace Cosmos.Common
                 var query = url.Query.Split('=');
                 return int.Parse(query[1]);
             }
-            else if (url.PathAndQuery.ToLower().Contains("editor/ccmscontent"))
+
+            if (url.PathAndQuery.ToLower().Contains("editor/ccmscontent"))
             {
                 var query = url.PathAndQuery.Split('/');
                 return int.Parse(query.LastOrDefault());

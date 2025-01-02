@@ -58,17 +58,12 @@ namespace Cosmos.Publisher.Controllers
                 var path = HttpContext.Request.Path.ToString().ToLower();
 
                 // See if the article is in protected storage.
-                if (path.StartsWith("/pub/articles/"))
+                if (path.StartsWith("/pub/articles/") && int.TryParse(path.TrimStart('/').Split('/')[2], out var articleNumber))
                 {
-                    var id = path.TrimStart('/').Split('/')[2];
-
-                    if (int.TryParse(id, out var articleNumber))
+                    // Check for user authorization.
+                    if (!await CosmosUtilities.AuthUser(dbContext, User, articleNumber))
                     {
-                        // Check for user authorization.
-                        if (!await CosmosUtilities.AuthUser(dbContext, User, articleNumber))
-                        {
-                            return Unauthorized();
-                        }
+                        return Unauthorized();
                     }
                 }
 

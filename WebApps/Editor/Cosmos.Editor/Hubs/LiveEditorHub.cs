@@ -49,7 +49,7 @@ namespace Cosmos.Cms.Hubs
         /// <summary>
         /// Adds an editor to the page group.
         /// </summary>
-        /// <param name="articleNumber"></param>
+        /// <param name="articleNumber">Article number.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task JoinArticleGroup(string articleNumber)
         {
@@ -59,7 +59,7 @@ namespace Cosmos.Cms.Hubs
         /// <summary>
         /// Joins the editing room.
         /// </summary>
-        /// <param name="data"></param>
+        /// <param name="data">Data being sent.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task Notification(string data)
         {
@@ -91,8 +91,8 @@ namespace Cosmos.Cms.Hubs
         /// <summary>
         /// Sends a signal to update editors in the group.
         /// </summary>
-        /// <param name="editorId"></param>
-        /// <param name="data"></param>
+        /// <param name="editorId">Editor ID.</param>
+        /// <param name="data">Data to communicate.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task UpdateEditors(string editorId, string data)
         {

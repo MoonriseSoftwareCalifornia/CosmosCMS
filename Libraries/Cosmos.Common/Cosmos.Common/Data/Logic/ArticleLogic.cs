@@ -16,7 +16,6 @@ namespace Cosmos.Common.Data.Logic
     using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Common.Data;
     using Cosmos.Common.Models;
-    using MailChimp.Net.Models;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Caching.Distributed;
     using Microsoft.Extensions.Caching.Memory;
@@ -47,10 +46,10 @@ namespace Cosmos.Common.Data.Logic
             this.isEditor = isEditor;
         }
 
-        /// <summary>
-        /// Gets provides cache hit information.
-        /// </summary>
-        public string[] CacheResult { get; internal set; }
+        ///// <summary>
+        ///// Gets provides cache hit information.
+        ///// </summary>
+        //public string[] CacheResult { get; internal set; }
 
         /// <summary>
         ///     Gets database Content.
@@ -62,27 +61,27 @@ namespace Cosmos.Common.Data.Logic
         /// </summary>
         protected IOptions<CosmosConfig> CosmosOptions { get; }
 
-        /// <summary>
-        /// Determines if a publisher can serve requests.
-        /// </summary>
-        /// <returns>Indicates the publisher is healthy using a <see cref="bool"/>.</returns>
-        public static bool GetPublisherHealth() => true;
+        ///// <summary>
+        ///// Determines if a publisher can serve requests.
+        ///// </summary>
+        ///// <returns>Indicates the publisher is healthy using a <see cref="bool"/>.</returns>
+        //public static bool GetPublisherHealth() => true;
 
-        /// <summary>
-        ///     Serializes an object using <see cref="Newtonsoft.Json.JsonConvert.SerializeObject(object)" />
-        ///     and <see cref="System.Text.Encoding.UTF32" />.
-        /// </summary>
-        /// <param name="obj">Object to serialize into a byte array.</param>
-        /// <returns>Returns a <see cref="byte"/> array.</returns>
-        public static byte[] Serialize(object obj)
-        {
-            if (obj == null)
-            {
-                return null;
-            }
+        ///// <summary>
+        /////     Serializes an object using <see cref="Newtonsoft.Json.JsonConvert.SerializeObject(object)" />
+        /////     and <see cref="System.Text.Encoding.UTF32" />.
+        ///// </summary>
+        ///// <param name="obj">Object to serialize into a byte array.</param>
+        ///// <returns>Returns a <see cref="byte"/> array.</returns>
+        //public static byte[] Serialize(object obj)
+        //{
+        //    if (obj == null)
+        //    {
+        //        return null;
+        //    }
 
-            return Encoding.UTF32.GetBytes(JsonConvert.SerializeObject(obj));
-        }
+        //    return Encoding.UTF32.GetBytes(JsonConvert.SerializeObject(obj));
+        //}
 
         /// <summary>
         ///     Deserializes an object using <see cref="Newtonsoft.Json.JsonConvert.DeserializeObject(string)" />

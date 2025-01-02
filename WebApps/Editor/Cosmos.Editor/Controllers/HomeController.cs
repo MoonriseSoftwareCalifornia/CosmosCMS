@@ -143,110 +143,117 @@ namespace Cosmos.Cms.Controllers
         /// <param name="mode">json or nothing.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [AllowAnonymous]
-        public async Task<IActionResult> Index(string lang = "", string mode = "")
+        public async Task<IActionResult> Index(string lang = "")
         {
-            if (!ModelState.IsValid) 
+            if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
             if (User.Identity?.IsAuthenticated == false)
             {
-                // See if we need to register a new user.
-                if (await dbContext.Users.CosmosAnyAsync())
-                {
-                    return Redirect("~/Identity/Account/Login");
-                }
-
-                return Redirect("~/Identity/Account/Register");
+                return await HandleUnauthenticatedUser();
             }
-            else
+
+            var user = await userManager.GetUserAsync(User);
+            if (user == null)
             {
-                // Make sure the user's claims identity has an account here.
-                var user = await userManager.GetUserAsync(User);
+                Response.Cookies.Delete("CosmosAuthCookie");
+                return Redirect("~/Identity/Account/Logout");
+            }
 
-                if (user == null)
-                {
-                    Response.Cookies.Delete("CosmosAuthCookie");
-                    return Redirect("~/Identity/Account/Logout");
-                }
+            await EnsureUserRoles(user);
 
-                if (options.Value.SiteSettings.AllowSetup && (await dbContext.Users.CountAsync()) == 1 && !User.IsInRole("Administrators"))
-                {
-                    await userManager.AddToRoleAsync(user, "Administrators");
-                }
-
-                if (!User.IsInRole("Reviewers") && !User.IsInRole("Authors") && !User.IsInRole("Editors") &&
-                    !User.IsInRole("Administrators"))
-                {
-                    return View("~/Views/Home/AccessPending.cshtml");
-                }
+            if (!UserHasRequiredRole())
+            {
+                return View("~/Views/Home/AccessPending.cshtml");
             }
 
             if (options.Value.SiteSettings.AllowSetup)
             {
-                // Enable static website for Azure BLOB storage
-                if (!options.Value.SiteSettings.CosmosRequiresAuthentication)
-                {
-                    await storageContext.EnableAzureStaticWebsite();
-                }
-                else
-                {
-                    await storageContext.DisableAzureStaticWebsite();
-                }
+                await ConfigureAzureStaticWebsite();
             }
 
-            // If we do not yet have a layout, go to a page where we can select one.
             if (!await EnsureLayoutExists())
             {
                 return RedirectToAction("Index", "Layouts");
             }
 
-            // If there are not web pages yet, let's go create a new home page.
             if (!await EnsureArticleExists())
             {
                 return RedirectToAction("Index", "Editor");
             }
 
-            // If yes, do NOT include headers that allow caching. 
             Response.Headers[HeaderNames.CacheControl] = "no-store";
 
-            // Response.Headers[HeaderNames.Pragma] = "no-cache"; This conflicts with Azure Frontdoor premium with private links and affinity set.
-            var article = await articleLogic.GetByUrl(HttpContext.Request.Path, lang);
-
-            // Article not found?
-            // try getting a version not published.
+            var article = await GetArticleByUrl(HttpContext.Request.Path, lang);
             if (article == null)
             {
-                // See if a page is un-published, but does exist, let us edit it.
-                article = await articleLogic.GetByUrl(HttpContext.Request.Path, lang, false);
-
-                if (article != null)
-                {
-                    // Go into edit mode
-                    if (!string.IsNullOrEmpty(article.Content) && article.Content.ToLower().Contains(" data-ccms-ceid="))
-                    {
-                        return RedirectToAction("Edit", "Editor", new { id = article.ArticleNumber });
-                    }
-
-                    return RedirectToAction("EditCode", "Editor", new { id = article.ArticleNumber });
-                }
-
-                // Create your own not found page for a graceful page for users.
-                article = await articleLogic.GetByUrl("/not_found", lang);
-
-                HttpContext.Response.StatusCode = 404;
-
-                if (article == null)
-                {
-                    return NotFound();
-                }
+                return await HandleArticleNotFound(lang);
             }
 
             article.EditModeOn = false;
             article.ReadWriteMode = true;
 
             return View(article);
+        }
+
+        private async Task<IActionResult> HandleUnauthenticatedUser()
+        {
+            if (await dbContext.Users.CosmosAnyAsync())
+            {
+                return Redirect("~/Identity/Account/Login");
+            }
+
+            return Redirect("~/Identity/Account/Register");
+        }
+
+        private async Task EnsureUserRoles(IdentityUser user)
+        {
+            if (options.Value.SiteSettings.AllowSetup && (await dbContext.Users.CountAsync()) == 1 && !User.IsInRole("Administrators"))
+            {
+                await userManager.AddToRoleAsync(user, "Administrators");
+            }
+        }
+
+        private bool UserHasRequiredRole()
+        {
+            return User.IsInRole("Reviewers") || User.IsInRole("Authors") || User.IsInRole("Editors") || User.IsInRole("Administrators");
+        }
+
+        private async Task ConfigureAzureStaticWebsite()
+        {
+            if (!options.Value.SiteSettings.CosmosRequiresAuthentication)
+            {
+                await storageContext.EnableAzureStaticWebsite();
+            }
+            else
+            {
+                await storageContext.DisableAzureStaticWebsite();
+            }
+        }
+
+        private async Task<ArticleViewModel> GetArticleByUrl(string path, string lang)
+        {
+            return await articleLogic.GetByUrl(path, lang) ?? await articleLogic.GetByUrl(path, lang, false);
+        }
+
+        private async Task<IActionResult> HandleArticleNotFound(string lang)
+        {
+            var article = await articleLogic.GetByUrl("/not_found", lang);
+            HttpContext.Response.StatusCode = 404;
+
+            if (article == null)
+            {
+                return NotFound();
+            }
+
+            if (!string.IsNullOrEmpty(article.Content) && article.Content.ToLower().Contains(" data-ccms-ceid="))
+            {
+                return RedirectToAction("Edit", "Editor", new { id = article.ArticleNumber });
+            }
+
+            return RedirectToAction("EditCode", "Editor", new { id = article.ArticleNumber });
         }
 
         /// <summary>

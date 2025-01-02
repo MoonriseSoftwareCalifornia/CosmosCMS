@@ -34,9 +34,9 @@ namespace Cosmos.Cms.Data
         /// <summary>
         ///     Validates the current value.
         /// </summary>
-        /// <param name="value"></param>
-        /// <param name="validationContext"></param>
-        /// <returns></returns>
+        /// <param name="value">Value to test.</param>
+        /// <param name="validationContext">Validation context.</param>
+        /// <returns>Validation result.</returns>
         protected override ValidationResult IsValid(object value, ValidationContext validationContext)
         {
             // Make sure it doesn't conflict with the public blob path
@@ -78,15 +78,8 @@ namespace Cosmos.Cms.Data
 
                 foreach (var item in paths)
                 {
-                    if (item.Path.EndsWith("*"))
-                    {
-                        var wild = item.Path.TrimEnd(new char[] { '*' }).ToLower();
-                        if (title.StartsWith(wild))
-                        {
-                            return new ValidationResult($"'{value.ToString()}' conflicts with a reserved path.");
-                        }
-                    }
-                    else if (title == item.Path.ToLower())
+                    var path = item.Path.TrimEnd('*').ToLower();
+                    if (item.Path.EndsWith("*") ? title.StartsWith(path) : title == path)
                     {
                         return new ValidationResult($"'{value.ToString()}' conflicts with a reserved path.");
                     }
