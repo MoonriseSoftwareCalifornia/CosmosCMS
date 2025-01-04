@@ -24,6 +24,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cosmos.MicrosoftGraph", "Li
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cosmos.Publisher.B2C", "WebApps\Publisher.B2C\Cosmos.Publisher.B2C.csproj", "{89456517-D671-40D4-965F-A87A76C8E773}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CosmosDb.DataProtection", "DataProtection.EntityFrameworkCore\CosmosDb.DataProtection.csproj", "{C6DDB7C1-F347-4314-BE9F-BC432B09DB6C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -58,6 +60,10 @@ Global
 		{89456517-D671-40D4-965F-A87A76C8E773}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{89456517-D671-40D4-965F-A87A76C8E773}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{89456517-D671-40D4-965F-A87A76C8E773}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6DDB7C1-F347-4314-BE9F-BC432B09DB6C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6DDB7C1-F347-4314-BE9F-BC432B09DB6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6DDB7C1-F347-4314-BE9F-BC432B09DB6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6DDB7C1-F347-4314-BE9F-BC432B09DB6C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

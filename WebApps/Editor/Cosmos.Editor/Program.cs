@@ -35,6 +35,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json.Serialization;
+using CosmosDb.DataProtection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -154,7 +155,7 @@ builder.Services.AddDataProtection()
     {
         EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
         ValidationAlgorithm = ValidationAlgorithm.HMACSHA256
-    }).PersistKeysToDbContext<ApplicationDbContext>();
+    }).PersistKeysToCosmosDbContext<ApplicationDbContext>();
 
 // ===========================================================
 // SUPPORTED OAuth Providers
