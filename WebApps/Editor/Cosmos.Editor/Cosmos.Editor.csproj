@@ -129,7 +129,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="wwwroot\lib\grapesjs\build_20241212\plugins\" />
+	  <Folder Include="wwwroot\lib\grapesjs-blocks-bootstrap-5\" />
+	  <Folder Include="wwwroot\lib\grapesjs-blocks-bootstrap4\" />
 	</ItemGroup>
 
 	<ProjectExtensions>

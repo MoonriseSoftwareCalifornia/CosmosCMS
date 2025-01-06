@@ -25,7 +25,7 @@
     <input type="hidden" asp-for="BannerImage" />
 </form>
 
-<partial name="_GrapesJsEditor" model="null" />
+<partial name="_GrapesJsEditor" model="designerConfig" />
 
 <script>
     /*
@@ -69,15 +69,6 @@
                 }
             );
         });
-    }
-
-    function preloadImages() {
-        const imageUrls = @Html.Raw(JsonConvert.SerializeObject(designerConfig.ImageAssets));
-        imageUrls.forEach(url => {
-            const img = new Image();
-            img.src = url;
-        });
-        return imageUrls;
     }
 
     $(document).ready(function () {

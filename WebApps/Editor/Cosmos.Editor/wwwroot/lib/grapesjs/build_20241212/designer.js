@@ -26,27 +26,6 @@ async function cosmos__designerLoadAssets() {
     editor.AssetManager.render();
 }
 
-const sessionStoragePlugin = (editor) => {
-    // As sessionStorage is not an asynchronous API,
-    // the `async` keyword could be skipped
-    editor.Storage.add('cosmos', {
-        async load(options = {}) {
-            const response = await fetch(cosmos__designerDataEndpoint + "/" + cosmos__id);
-            const data = await response.json();
-            return data;
-        },
-        async store(data, options = {}) {
-            showSaving(); // Show saving message.
-            const pagesHtml = editor.Pages.getAll().map((page) => {
-                const component = page.getMainComponent();
-                $("#HtmlContent").val(editor.getHtml({ component }));
-                $("#CssContent").val(editor.getCss({ component }));
-                cosmos__designerPostData();
-            });
-        }
-    });
-};
-
 const editor = grapesjs.init({
     // Indicate where to init the editor. You can also pass an HTMLElement
     container: '#gjs',
@@ -64,7 +43,7 @@ const editor = grapesjs.init({
     assetManager: {
         upload: cosmos__designerUploadEndpoint,
         embedAsBase64: false,
-        assets: grapesjs__assets,
+        assets: preloadImages(),
     },
     selectorManager: {
         selectorManager: { componentFirst: true },
@@ -311,61 +290,8 @@ const editor = grapesjs.init({
         }
         ],
     },
-    plugins: [
-        'gjs-blocks-basic',
-        'grapesjs-plugin-forms',
-        'grapesjs-component-countdown',
-        'grapesjs-plugin-export',
-        'grapesjs-tabs',
-        'grapesjs-custom-code',
-        'grapesjs-touch',
-        'grapesjs-parser-postcss',
-        'grapesjs-tooltip',
-        'grapesjs-tui-image-editor',
-        'grapesjs-typed',
-        'grapesjs-style-bg',
-        'grapesjs-preset-webpage',
-        sessionStoragePlugin
-    ],
-    pluginsOpts: {
-        'gjs-blocks-basic': { flexGrid: true },
-        'grapesjs-tui-image-editor': {
-            script: [
-                // 'https://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.6.7/fabric.min.js',
-                'https://uicdn.toast.com/tui.code-snippet/v1.5.2/tui-code-snippet.min.js',
-                'https://uicdn.toast.com/tui-color-picker/v2.2.7/tui-color-picker.min.js',
-                'https://uicdn.toast.com/tui-image-editor/v3.15.2/tui-image-editor.min.js'
-            ],
-            style: [
-                'https://uicdn.toast.com/tui-color-picker/v2.2.7/tui-color-picker.min.css',
-                'https://uicdn.toast.com/tui-image-editor/v3.15.2/tui-image-editor.min.css',
-            ],
-        },
-        'grapesjs-tabs': {
-            tabsBlock: { category: 'Extra' }
-        },
-        'grapesjs-typed': {
-            block: {
-                category: 'Extra',
-                content: {
-                    type: 'typed',
-                    'type-speed': 40,
-                    strings: [
-                        'Text row one',
-                        'Text row two',
-                        'Text row three',
-                    ],
-                }
-            }
-        },
-        'grapesjs-preset-webpage': {
-            modalImportTitle: 'Import Template',
-            modalImportLabel: '<div style="margin-bottom: 10px; font-size: 13px;">Paste here your HTML/CSS and click Import</div>',
-            modalImportContent: function (editor) {
-                return editor.getHtml() + '<style>' + editor.getCss() + '</style>'
-            },
-        },
-    },
+    plugins: grapesJsPlugins,
+    pluginsOpts: pluginOptions,
     storageManager: {
         type: 'cosmos', // Storage type. Available: local | remote
         stepsBeforeSave: 1,

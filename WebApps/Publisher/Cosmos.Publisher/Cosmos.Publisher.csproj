@@ -29,6 +29,7 @@
 	<ItemGroup>
 		<Content Include="..\..\Editor\Cosmos.Editor\wwwroot\css\ckeditor-content.css" Link="wwwroot\css\ckeditor-content.css" />
 		<Content Include="..\..\Editor\Cosmos.Editor\wwwroot\css\imagestyle.css" Link="wwwroot\css\imagestyle.css" />
+		<Content Include="..\..\Editor\Cosmos.Editor\wwwroot\lib\tailwindcss\tailwind.css" Link="wwwroot\lib\tailwindcss\tailwind.css" />
 		<Content Include="Views\Home\Index.cshtml.BAK" />
 	</ItemGroup>
 
@@ -76,8 +77,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="wwwroot\ccms\js\" />
 	  <Folder Include="wwwroot\lib\cosmos\" />
+	  <Folder Include="wwwroot\lib\cosmos\" />
+	  <Folder Include="wwwroot\lib\tailwindcss\" />
 	</ItemGroup>
 
 </Project>

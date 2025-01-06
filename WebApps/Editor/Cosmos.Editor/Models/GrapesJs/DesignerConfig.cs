@@ -8,6 +8,7 @@
 namespace Cosmos.Editor.Models.GrapesJs
 {
     using System.Collections.Generic;
+    using System.Linq;
     using Cosmos.Common.Data;
     using Cosmos.Editor.Data.Logic;
 
@@ -37,10 +38,39 @@ namespace Cosmos.Editor.Models.GrapesJs
             Styles = new List<string>();
             Scripts = new List<string>();
             ImageAssets = new List<string>();
+            Plugins = new List<DesignerPlugin>();
 
             Styles.AddRange(designerUtils.ExtractStyleReferences(layout.Head));
             Scripts.AddRange(designerUtils.ExtractScriptReferences(layout.Head));
             Scripts.AddRange(designerUtils.ExtractScriptReferences(layout.FooterHtmlContent));
+
+            if (Styles.Any(a => a.Contains("bootstrap", System.StringComparison.OrdinalIgnoreCase) && a.Contains("5")))
+            {
+                Plugins.Add(new DesignerPlugin
+                {
+                    Name = "grapesjs-blocks-bootstrap-5",
+                    Url = "/lib/grapesjs-blocks-bootstrap-5/grapesjs-blocks-bootstrap-5.min.js",
+                    Options = "'grapesjs-blocks-bootstrap-5': { blocks: {}, blockCategories: {}, labels: {}, gridDevicesPanel: true, formPredefinedActions: [ {name: 'Contact', value: '/contact'}, {name: 'landing', value: '/landing'}, ] }"
+                });
+            }
+            else if (Styles.Any(a => a.Contains("bootstrap", System.StringComparison.OrdinalIgnoreCase) && a.Contains("4")))
+            {
+                Plugins.Add(new DesignerPlugin
+                {
+                    Name = "grapesjs-blocks-bootstrap4",
+                    Url = "/lib/grapesjs-blocks-bootstrap4/grapesjs-blocks-bootstrap4.min.js",
+                    Options = "'grapesjs-blocks-bootstrap4': { blocks: {}, blockCategories: {}, labels: {}, gridDevicesPanel: true, formPredefinedActions: [ {name: 'Contact', value: '/contact'}, {name: 'landing', value: '/landing'}, ] }"
+                });
+            }
+            else if (layout.Head.Contains("cdn.tailwindcss.com", System.StringComparison.OrdinalIgnoreCase))
+            {
+                Plugins.Add(new DesignerPlugin
+                {
+                    Name = "grapesjs-tailwind",
+                    Url = "https://unpkg.com/grapesjs-tailwind",
+                    Options = "'grapesjs-tailwind': { }"
+                });
+            }
 
             Id = id;
             Title = title;
@@ -81,5 +111,10 @@ namespace Cosmos.Editor.Models.GrapesJs
         /// Gets or sets the project script URLs.
         /// </summary>
         public List<string> Scripts { get; set; }
+
+        /// <summary>
+        /// Gets or sets the designer plugins.
+        /// </summary>
+        public List<DesignerPlugin> Plugins { get; set; }
     }
 }

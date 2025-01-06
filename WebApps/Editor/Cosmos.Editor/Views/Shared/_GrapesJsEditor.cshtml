@@ -1,4 +1,18 @@
-﻿<style>
+﻿@using System
+@using System.Text
+@using Newtonsoft.Json
+@model Cosmos.Editor.Models.GrapesJs.DesignerConfig
+
+@{
+    var pluginScripts = new StringBuilder();
+    var pluginOptions = new StringBuilder();
+    foreach (var plugin in Model.Plugins)
+    {
+        pluginScripts.AppendLine($"<script src='{plugin.Url}'></script>");
+        pluginOptions.AppendLine(plugin.Options.TrimEnd(',') + ",");
+    }
+}
+<style>
     body {
         display: flex;
         flex-direction: column;
@@ -13,7 +27,126 @@
     .perm {
         display: none;
     }
+
+    @if (Model.Plugins.Any(a => a.Name == "grapesjs-tailwind"))
+    {
+        <text>
+            .change-theme-button {
+              width: 40px;
+              height: 40px;
+              border-radius: 50%;
+              margin: 5px;
+            }
+
+            .change-theme-button:focus {
+              /* background-color: yellow; */
+              outline: none;
+              box-shadow: 0 0 0 2pt #c5c5c575;
+            }
+        </text>
+    }
 </style>
+
+@Html.Raw(pluginScripts.ToString())
+
+<script>
+    const sessionStoragePlugin = (editor) => {
+        // As sessionStorage is not an asynchronous API,
+        // the `async` keyword could be skipped
+        editor.Storage.add('cosmos', {
+            async load(options = {}) {
+                const response = await fetch(cosmos__designerDataEndpoint + "/" + cosmos__id);
+                const data = await response.json();
+                return data;
+            },
+            async store(data, options = {}) {
+                showSaving(); // Show saving message.
+                const pagesHtml = editor.Pages.getAll().map((page) => {
+                    const component = page.getMainComponent();
+                    $("#HtmlContent").val(editor.getHtml({ component }));
+                    $("#CssContent").val(editor.getCss({ component }));
+                    cosmos__designerPostData();
+                });
+            }
+        });
+    };
+
+    let grapesJsPlugins = [
+        'gjs-blocks-basic',
+        'grapesjs-plugin-forms',
+        'grapesjs-component-countdown',
+        'grapesjs-plugin-export',
+        'grapesjs-tabs',
+        'grapesjs-custom-code',
+        'grapesjs-touch',
+        'grapesjs-parser-postcss',
+        'grapesjs-tooltip',
+        'grapesjs-tui-image-editor',
+        'grapesjs-typed',
+        'grapesjs-style-bg',
+        'grapesjs-preset-webpage',
+        'grapesjs-navbar',
+        sessionStoragePlugin,
+        @foreach (var plugin in Model.Plugins)
+        {
+        <text>        '@plugin.Name',</text>
+        }
+    ];
+
+    const pluginOptions = {
+        'gjs-blocks-basic': { flexGrid: true },
+        'grapesjs-tui-image-editor': {
+            script: [
+                // 'https://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.6.7/fabric.min.js',
+                'https://uicdn.toast.com/tui.code-snippet/v1.5.2/tui-code-snippet.min.js',
+                'https://uicdn.toast.com/tui-color-picker/v2.2.7/tui-color-picker.min.js',
+                'https://uicdn.toast.com/tui-image-editor/v3.15.2/tui-image-editor.min.js'
+            ],
+            style: [
+                'https://uicdn.toast.com/tui-color-picker/v2.2.7/tui-color-picker.min.css',
+                'https://uicdn.toast.com/tui-image-editor/v3.15.2/tui-image-editor.min.css',
+            ],
+        },
+        'grapesjs-tabs': {
+            tabsBlock: { category: 'Extra' }
+        },
+        'grapesjs-typed': {
+            block: {
+                category: 'Extra',
+                content: {
+                    type: 'typed',
+                    'type-speed': 40,
+                    strings: [
+                        'Text row one',
+                        'Text row two',
+                        'Text row three',
+                    ],
+                }
+            }
+        },
+        'grapesjs-preset-webpage': {
+            modalImportTitle: 'Import Template',
+            modalImportLabel: '<div style="margin-bottom: 10px; font-size: 13px;">Paste here your HTML/CSS and click Import</div>',
+            modalImportContent: function (editor) {
+                return editor.getHtml() + '<style>' + editor.getCss() + '</style>'
+            },
+        },
+        'grapesjs-navbar': {/* ...options */ },
+        @foreach (var plugin in Model.Plugins)
+        {
+         <text>        @Html.Raw(plugin.Options),</text>
+        }
+    };
+
+    function preloadImages() {
+        const imageUrls = @Html.Raw(JsonConvert.SerializeObject(Model.ImageAssets));
+        imageUrls.forEach(url => {
+            const img = new Image();
+            img.src = url;
+        });
+        return imageUrls;
+    }
+</script>
 <div style="display: none">
     <div class="gjs-logo-cont">
         <a href="https://grapesjs.com"><img class="gjs-logo" src="~/lib/grapesjsui/img/grapesjs-logo-cl.png"></a>

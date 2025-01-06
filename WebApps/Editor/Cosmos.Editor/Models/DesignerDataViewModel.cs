@@ -8,8 +8,11 @@
 namespace Cosmos.Editor.Models
 {
     using System;
+    using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
     using Cosmos.Cms.Data;
+    using Cosmos.Editor.Models.GrapesJs;
+    using MailChimp.Net.Models;
 
     /// <summary>
     /// GrapesJs designer post data view model.
@@ -38,5 +41,6 @@ namespace Cosmos.Editor.Models
         /// Gets or sets the CSS content.
         /// </summary>
         public string CssContent { get; set; }
+
     }
 }
