@@ -11,6 +11,10 @@
       "destination": "/wwwroot/lib/cropperjs"
     },
     {
+      "library": "grapesjs@0.22.3",
+      "destination": "wwwroot/lib/grapesjs/"
+    },
+    {
       "library": "jquery-cropper@1.0.1",
       "destination": "/wwwroot/lib/jquery-cropper"
     },

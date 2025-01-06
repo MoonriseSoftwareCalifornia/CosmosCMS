@@ -68,6 +68,18 @@
         createAndLoadEditor(id);
     }
 
+    function bgEditClickCustom(command) {
+        switch (command) {
+            case "Close":
+                next = function () {
+                    window.location.href = "/Code/Source?target=@(System.IO.Path.GetDirectoryName(Model.Path).Replace("\\", "/"))";
+                }
+                $("#divSaveFirstDialog").html("Save page before closing editor?");
+                modalCheckSaveFirst.show();
+                break;
+        }
+    }
+
     //
     // Creates and loads a Monaco Editor.
     //
@@ -172,6 +184,10 @@
                         next();
                     }
                     toastMsg("Successfully saved.");
+                    if (next !== null && typeof next  === 'function') {
+                        next();
+                        next = null;
+                    }
                 } else {
                     var errorMsg = "<h5>Error(s) detected while saving:</h5>";
 
@@ -196,22 +212,6 @@
     function btnSelectField(e) {
         fieldName = e.target.text();
         saveExistingLoadNewEditor(e.id);
-    }
-
-    function bgEditClickCustom(command) {
-        switch (command) {
-            case "Close":
-                next = function () {
-                    window.location.href = "/Code/Source?target=@(System.IO.Path.GetDirectoryName(Model.Path).Replace("\\", "/"))";
-                }
-                $("#divSaveFirstDialog").html("Save page before closing editor?");
-                modalCheckSaveFirst.show();
-                break;
-        }
-    }
-
-    function saveFirst() {
-        saveChanges(modalCheckSaveFirst, next);
     }
 
     function doNotSave() {

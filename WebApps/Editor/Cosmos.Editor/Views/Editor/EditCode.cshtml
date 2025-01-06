@@ -71,39 +71,8 @@
     </div>
 
     <script>
-        function setupPreviewFrame() {
-            const iframe = document.getElementById("iframePreview");
-            const iframeWin = iframe.contentWindow || iframe.contentDocument.parentWindow;
-            if (iframeWin.document.body) {
-
-                $("#modalContent").height = 50 + (window.innerHeight - document.getElementById("ccmsNavMenu").clientHeight);
-
-                // disable all links
-                const contents = $("#iframePreview").contents();
-
-                const anchors = contents.find("a");
-
-                $(anchors).click(function (e) {
-                    e.preventDefault();
-                    alert("Links are disabled while in edit mode.");
-                });
-            }
-        }
+        
     </script>
-
-    <!-- Full screen modal -->
-    <div class="modal fade" id="modalPreview" tabindex="-3">
-        <div class="modal-dialog modal-fullscreen">
-            <div id="modalContent" class="modal-content">
-                <div class="modal-header bg-dark text-light">
-                    <button type="button" class="btn btn-sm btn-primary text-light" data-bs-dismiss="modal">Close Preview</button>
-                </div>
-                <div class="modal-body">
-                    <iframe id="iframePreview" class="d-block w-100" onload="setupPreviewFrame()" style="height:100%"></iframe>
-                </div>
-            </div>
-        </div>
-    </div>
 }
 <script>
     var editor;
@@ -119,10 +88,6 @@
     // This needs global scope, so using var
     var hasPermissionsSet = @hasPermissionsSet.ToString().ToLower();
 
-    // Indicates a save is in progress - used to deconflict simultaneous saves
-    var saveInProgress = false;
-    const modalPreview = new bootstrap.Modal(document.getElementById('modalPreview'));
-
     $("#frmSave").submit(function (e) {
         e.preventDefault();
         saveChanges();
@@ -136,18 +101,6 @@
             $("#" + fieldId).val(editor.getValue());
         }
         createAndLoadEditor(id);
-    }
-
-    function checkDisplayLiveEditorButton() {
-        var content = $("#Content").val().toLowerCase();
-        const hasContentEditable = content.indexOf("=contenteditable");
-        const hasCeid = content.indexOf("data-ccms-ceid=");
-
-        if (hasContentEditable > -1 || hasCeid > -1) {
-            $("#btnCcmsHtmlEditor").show();
-        } else {
-            $("#btnCcmsHtmlEditor").hide();
-        }
     }
 
     //
@@ -219,6 +172,7 @@
             $("#spinLoading").hide();
             
             $("#btnSavingStatus").show();
+            checkDisplayLiveEditorButton('Content'); // Check after load data.
         });
     }
 
@@ -292,10 +246,11 @@
                     $("#HeadJavaScript").val(response.Model.HeadJavaScript);
                     $("#FooterJavaScript").val(response.Model.FooterJavaScript);
                                        
-                    checkDisplayLiveEditorButton();
+                    checkDisplayLiveEditorButton('Content'); // Check after post data.
 
-                    if (next) {
+                    if (next !== null && typeof next  === 'function') {
                         next();
+                        next = null;
                     }
                 } else {
                     var errorMsg = "Error(s):";
@@ -313,8 +268,6 @@
                     $("#divErrorLog").html(errorMsg);
                     var errorModal = new bootstrap.Modal(document.getElementById('modalSavingError'));
                     errorModal.show();
-
-                    checkDisplayLiveEditorButton();
                 }
             }
         ).fail(handle_error);
@@ -330,40 +283,6 @@
     function btnSelectField(e) {
         fieldName = e.target.text();
         saveExistingLoadNewEditor(e.id);
-    }
-
-    function bgEditClickCustom(command) {
-
-        var modelId = $("#Id").val();
-
-        switch (command) {
-            case "Close":
-                next = function () {
-                    window.location.href = "@Url.Action("Versions", "Editor")/@Model.ArticleNumber";
-                }
-                $("#divSaveFirstDialog").html("Save page before closing editor?");
-                modalCheckSaveFirst.show();
-                break;
-            case "Preview":
-                $("#iframePreview").prop("src", "@Url.Action("Preview", "Home")?articleNumber=" + @Model.ArticleNumber);
-                modalPreview.show();
-                modalPreview.handleUpdate();
-                break;
-            case "Html":
-                next = function () {
-                    window.location.href = "@Url.Action("Edit", "Editor")/" + $("#ArticleNumber").val();
-                }
-                $("#divSaveFirstDialog").html("Save page before opening Live editor?");
-                modalCheckSaveFirst.show();
-                break;
-        }
-    }
-
-    function getLocalTimeZone() {
-        var datetime = new Date();
-        var dateTimeString = datetime.toString();
-        var timezone = dateTimeString.substring(dateTimeString.indexOf("(") - 1);
-        return timezone;
     }
 
     $(document).ready(function () {
@@ -409,7 +328,7 @@
         $("#liBtnVersions").show();
 
         $("#divTitleGroup").show();
-        $("#divPublihedTitleGroup").show();
+        $("#divPublishedTitleGroup").show();
         $("#liInsert").show();
 
         $("#btnVersions").attr("href", "/Editor/Versions/" + $("#ArticleNumber").val() + "?versionNumber=" + $("#VersionNumber").val());
@@ -445,8 +364,7 @@
             $(".perm").show();
         }
 
-        checkDisplayLiveEditorButton();
-
+        $("#btnCcmsGrapesJsEditor").show();
 
     });
 

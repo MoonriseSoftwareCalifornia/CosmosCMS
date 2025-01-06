@@ -68,7 +68,7 @@ namespace Cosmos.Cms.Common.Services.Configurations
         public StorageConfig StorageConfig { get; set; }
 
         /// <summary>
-        ///    Gets or sets a value indicating whether to use static website for the publisher
+        ///    Gets or sets a value indicating whether to use static website for the publisher.
         /// </summary>
         public bool UseStaticPublisherWebsite { get; set; } = false;
 

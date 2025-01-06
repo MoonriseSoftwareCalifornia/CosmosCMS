@@ -57,15 +57,6 @@
         createAndLoadEditor(id);
     }
 
-    function btnCustomClick(e) {
-        switch (e.target.text()) {
-        case "Preview":
-            // Open in new window.
-            window.open("@Url.Action("Preview", "Templates", new {Model.Id})");
-            break;
-        }
-    }
-
     //
     // Creates and loads a Monaco Editor.
     //
@@ -130,7 +121,7 @@
     }
 
     // Save the changes for this editor
-    function saveChanges(myModal, next) {
+    function saveChanges(myModal) {
 
         saving();
 
@@ -157,8 +148,9 @@
                 doneSaving();
 
                 if (response.IsValid) {
-                    if (typeof (next) !== "undefined" && next !== null) {
+                    if (next !== null && typeof next  === 'function') {
                         next();
+                        next = null;
                     }
                     toastMsg("Successfully saved.");
                 } else {
@@ -187,32 +179,6 @@
         saveExistingLoadNewEditor(e.id);
     }
 
-    function bgEditClickCustom(command) {
-        switch (command) {
-            case "Close":
-                next = function () {
-                    window.location.href = "@Url.Action("Index", "Templates")";
-                }
-                $("#divSaveFirstDialog").html("Save page before closing editor?");
-                modalCheckSaveFirst.show();
-                break;
-            case "Preview":
-                next = function () {
-                    window.open("@Url.Action("Preview", "Templates", new {Model?.Id})");
-                }
-                $("#divSaveFirstDialog").html("Save page before opening preview?");
-                modalCheckSaveFirst.show();
-                break;
-        }
-    }
-
-    function getLocalTimeZone() {
-        var datetime = new Date();
-        var dateTimeString = datetime.toString();
-        var timezone = dateTimeString.substring(dateTimeString.indexOf("(") - 1);
-        return timezone;
-    }
-
     $(document).ready(function () {
 
         $("body").addClass("cwps-editor-container");
@@ -229,6 +195,7 @@
         }
 
         $('#tbPublished').prop("disabled", "true");
+        $('#btnCcmsGrapesJsEditor').show();
 
         $("#btnSaveAsDraft").hide();
         $("#btnOpenInsertImage").hide();

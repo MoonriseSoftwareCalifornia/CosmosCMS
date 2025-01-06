@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
 	<PropertyGroup>
-		<TargetFramework>net9.0</TargetFramework>
+		<TargetFramework>net8.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<UserSecretsId>aspnet-Cosmos.Publisher.B2C-71704cad-c747-40ee-a136-5310c7606587</UserSecretsId>
@@ -9,7 +9,7 @@
 		<EnableSdkContainerDebugging>True</EnableSdkContainerDebugging>
 		<ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:8.0</ContainerBaseImage>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-		<Version>9.0.0.1</Version>
+		<Version>8.1.0.0</Version>
 		<DockerfileContext>..\..</DockerfileContext>
 	</PropertyGroup>
 
@@ -32,24 +32,23 @@
 		<PackageReference Include="Cosmos.EmailServices" Version="8.0.11.31" />
 		<PackageReference Include="Cosmos.MicrosoftGraph" Version="8.0.11.31" />
 		<PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />
-		<PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.0" />
-		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="9.0.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.10" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.10" />
 		<PackageReference Include="Microsoft.Extensions.Caching.Cosmos" Version="1.7.0" />
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
-		<PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="9.0.0" />
-		<PackageReference Include="System.Formats.Asn1" Version="9.0.0" />
+		<PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.6" />
+		<PackageReference Include="System.Formats.Asn1" Version="8.0.1" />
 
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.0" NoWarn="NU1605" />
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.0" NoWarn="NU1605" />
-		<PackageReference Include="Microsoft.Identity.Web" Version="3.5.0" />
-		<PackageReference Include="Microsoft.Identity.Web.UI" Version="3.5.0" />
-		<PackageReference Include="Microsoft.Identity.Web.DownstreamApi" Version="3.5.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.10" NoWarn="NU1605" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="8.0.10" NoWarn="NU1605" />
+		<PackageReference Include="Microsoft.Identity.Web" Version="3.4.0" />
+		<PackageReference Include="Microsoft.Identity.Web.UI" Version="3.4.0" />
+		<PackageReference Include="Microsoft.Identity.Web.DownstreamApi" Version="3.4.0" />
 		
 		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		
 	</ItemGroup>
 
 	<ItemGroup>
@@ -59,12 +58,14 @@
 	<ItemGroup>
 	  <Content Include="..\Editor\Cosmos.Editor\wwwroot\css\ckeditor-content.css" Link="wwwroot\css\ckeditor-content.css" />
 	  <Content Include="..\Editor\Cosmos.Editor\wwwroot\css\imagestyle.css" Link="wwwroot\css\imagestyle.css" />
+	  <Content Include="..\Editor\Cosmos.Editor\wwwroot\lib\tailwindcss\tailwind.css" Link="wwwroot\lib\tailwindcss\tailwind.css" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="wwwroot\ccms\js\" />
 	  <Folder Include="wwwroot\js\" />
 	  <Folder Include="wwwroot\lib\cosmos\" />
+	  <Folder Include="wwwroot\lib\cosmos\" />
+	  <Folder Include="wwwroot\lib\tailwindcss\" />
 	</ItemGroup>
 
 	<ItemGroup>

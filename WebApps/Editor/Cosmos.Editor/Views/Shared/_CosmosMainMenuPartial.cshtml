@@ -163,12 +163,6 @@
 
                     div += "<div class='btn-group btn-group-sm' role='group'>";
 
-                    // if (element.UsesHtmlEditor === true) {
-                    //     div += "<a class='btn btn-sm btn-secondary' title='Use the live view editor' href='/Editor/Edit/" + element.ArticleNumber + "' style='width:90px;'>";
-                    // } else if (isAuthor === false) {
-                    //     div += "<a class='btn btn-sm btn-secondary' title='Code editor' href='/Editor/EditCode/" + element.ArticleNumber + "' style='width:90px;'>";
-                    // }
-
                     if (element.Published === null && element.Published !== "") {
                         div += "<span class='badge text-bg-secondary'>v." + element.VersionNumber + " DRAFT</span>";
                     } else {
@@ -188,15 +182,16 @@
 
                     if (isAuthor === false) {
                         showEditDropDown = true;
-                        div += "<a class='btn btn-sm btn-secondary' title='Code editor' href='/Editor/EditCode/" + element.ArticleNumber + "'><img src='/images/monaco-vscode-logo.png' height='22' />  Code editor</a>";
+                        div += "<a class='btn btn-sm btn-secondary' title='Code editor' href='/Editor/Designer/" + element.ArticleNumber + "'>Designer</a>";
+                        div += "<a class='btn btn-sm btn-secondary' title='Code editor' href='/Editor/EditCode/" + element.ArticleNumber + "'>Code</a>";
+                        if (element.UsesHtmlEditor === true) {
+                            showEditDropDown = true;
+                            div += "<a class='btn btn-sm btn-secondary' title='Page editor' href='/Editor/Edit/" + element.ArticleNumber + "'>HTML</a>";
+                        } else {
+                            div += "<a class='btn btn-sm btn-secondary' href='#' style='width:109px;'></a>";
+                        }
                     }
 
-                    if (element.UsesHtmlEditor === true) {
-                        showEditDropDown = true;
-                        div += "<a class='btn btn-sm btn-secondary' title='Page editor' href='/Editor/Edit/" + element.ArticleNumber + "'><img src='/images/ckeditor-5-proj-logo.svg' height='22' /> Page editor</a>";
-                    } else {
-                        div += "<a class='btn btn-sm btn-secondary' href='#' style='width:109px;'></a>";
-                    }
                     div += "</div>";
                     div += "</div>";
                     div += "</li>";

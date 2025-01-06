@@ -31,5 +31,17 @@ namespace Cosmos.Cms.Models
         /// </summary>
         [JsonProperty("fileName")]
         public string FileName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the image width.
+        /// </summary>
+        [JsonProperty("imageWidth")]
+        public string ImageWidth { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the image height.
+        /// </summary>
+        [JsonProperty("imageHeight")]
+        public string ImageHeight { get; set; } = string.Empty;
     }
 }

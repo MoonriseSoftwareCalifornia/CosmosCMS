@@ -436,6 +436,61 @@ namespace Cosmos.BlobService
         }
 
         /// <summary>
+        ///    Gets the blob items for a given path.
+        /// </summary>
+        /// <param name="path">Path to search.</param>
+        /// <param name="extensions">Extensions to match.</param>
+        /// <returns>FileManagerEntry list.</returns>
+        public async Task<List<FileManagerEntry>> GetBlobItemsAsync(string path, string[] extensions)
+        {
+            if (!string.IsNullOrEmpty(path))
+            {
+                path = path.TrimStart('/');
+            }
+
+            var entries = new List<FileManagerEntry>();
+            var azureDriver = (AzureStorage)GetPrimaryDriver();
+            var azureResults = await azureDriver.GetBlobItemsAsync(path);
+            foreach (var azureResult in azureResults)
+            {
+                var extension = Path.GetExtension(azureResult.Name).ToLower();
+                if (extensions.Contains(extension))
+                {
+                    var fileName = Path.GetFileNameWithoutExtension(azureResult.Name);
+                    var modified = azureResult.Properties.LastModified?.UtcDateTime ?? DateTime.UtcNow;
+                    var entry = new FileManagerEntry
+                    {
+                        Created = DateTime.Now,
+                        CreatedUtc = DateTime.UtcNow,
+                        Extension = extension,
+                        HasDirectories = false,
+                        IsDirectory = false,
+                        Modified = modified,
+                        ModifiedUtc = modified,
+                        Name = fileName,
+                        Path = azureResult.Name,
+                        Size = azureResult.Properties.ContentLength ?? 0
+                    };
+
+                    if (azureResult.Metadata.TryGetValue("ccmsimagex", out var ccmsImageX))
+                    {
+                        if (azureResult.Metadata.TryGetValue("ccmsimagey", out var ccmsImageY)
+                            && azureResult.Metadata.TryGetValue("ccmsimagedpi", out var ccmsImageDpi))
+                        {
+                            entry.ImageX = int.Parse(ccmsImageX);
+                            entry.ImageY = int.Parse(ccmsImageY);
+                            entry.ImageDpi = int.Parse(ccmsImageDpi);
+                        }
+                    }
+
+                    entries.Add(entry);
+            }
+            }
+
+            return entries;
+        }
+
+        /// <summary>
         ///     Gets the contents for a folder.
         /// </summary>
         /// <param name="path">Path to folder.</param>

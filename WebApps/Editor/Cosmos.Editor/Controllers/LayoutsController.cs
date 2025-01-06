@@ -13,6 +13,7 @@ namespace Cosmos.Cms.Controllers
     using System.Text;
     using System.Threading.Tasks;
     using System.Web;
+    using Cosmos.BlobService;
     using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Cms.Data.Logic;
     using Cosmos.Cms.Models;
@@ -20,13 +21,16 @@ namespace Cosmos.Cms.Controllers
     using Cosmos.Common.Data;
     using Cosmos.Common.Models;
     using Cosmos.Editor.Controllers;
+    using Cosmos.Editor.Data;
+    using Cosmos.Editor.Data.Logic;
+    using Cosmos.Editor.Models;
+    using Cosmos.Editor.Models.GrapesJs;
     using HtmlAgilityPack;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.ModelBinding;
     using Microsoft.EntityFrameworkCore;
-    using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
 
     /// <summary>
@@ -40,6 +44,7 @@ namespace Cosmos.Cms.Controllers
         private readonly ApplicationDbContext dbContext;
         private readonly Uri blobPublicAbsoluteUrl;
         private readonly IViewRenderService viewRenderService;
+        private readonly StorageContext storageContext;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LayoutsController"/> class.
@@ -48,17 +53,20 @@ namespace Cosmos.Cms.Controllers
         /// <param name="userManager">User manager.</param>
         /// <param name="articleLogic"><see cref="ArticleEditLogic">Article edit logic</see>.</param>
         /// <param name="options"><see cref="CosmosConfig">Cosmos configuration</see> options.</param>
+        /// <param name="storageContext">Storage context.</param>
         /// <param name="viewRenderService">View rendering service.</param>
         public LayoutsController(
             ApplicationDbContext dbContext,
             UserManager<IdentityUser> userManager,
             ArticleEditLogic articleLogic,
             IOptions<CosmosConfig> options,
+            StorageContext storageContext,
             IViewRenderService viewRenderService)
             : base(dbContext, userManager)
         {
             this.dbContext = dbContext;
             this.articleLogic = articleLogic;
+            this.storageContext = storageContext;
 
             var htmlUtilities = new HtmlUtilities();
 
@@ -273,6 +281,157 @@ namespace Cosmos.Cms.Controllers
 
             return RedirectToAction("Index");
         }
+
+
+        /// <summary>
+        /// Loads the designer GUI.
+        /// </summary>
+        /// <param name="id">Template ID.</param>
+        /// <returns>View.</returns>
+        public async Task<IActionResult> Designer(Guid id)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // Loads GrapeJS.
+            ViewData["IsDesigner"] = true;
+
+            var template = await dbContext.Layouts.FirstOrDefaultAsync(f => f.Id == id);
+            if (template == null)
+            {
+                return NotFound();
+            }
+
+            var config = new DesignerConfig(await dbContext.Layouts.FirstOrDefaultAsync(f => f.IsDefault), id.ToString(), template.LayoutName);
+            var assets = await FileManagerController.GetImageAssetArray(storageContext, "/pub", "/pub/articles");
+            if (assets != null)
+            {
+                config.ImageAssets.AddRange(assets);
+            }
+
+            return View(config);
+        }
+
+        /// <summary>
+        /// Visual designer based on GrapeJS.
+        /// </summary>
+        /// <param name="id">Template ID.</param>
+        /// <returns>IActionResult.</returns>
+        [HttpGet]
+        public async Task<IActionResult> DesignerData(Guid id)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var entity = await dbContext.Layouts.FirstOrDefaultAsync(f => f.Id == id);
+
+            var builder = new StringBuilder();
+            builder.AppendLine("<body>");
+            builder.AppendLine("<!--CCMS--START--HEADER-->");
+            if (string.IsNullOrEmpty(entity.HtmlHeader))
+            {
+                entity.Head = "<header style='height:50px;display:flex;justify-content:center;align-items: center;>HEADER GOES HERE</header>";
+            }
+            else
+            {
+                builder.AppendLine(entity.HtmlHeader);
+            }
+            builder.AppendLine("<!--CCMS--END--HEADER-->");
+            builder.AppendLine("<div data-gjs-type='grapesjs-not-editable' draggable='false' style='height:50vh;display:flex;justify-content:center;align-items: center;'>");
+            builder.AppendLine("<div style='text-align: center'>PAGE CONTENT GOES IN THIS BLOCK<br/>Cannot edit with layout designer.</div>");
+            builder.AppendLine("</div>");
+            builder.AppendLine("<!--CCMS--START--FOOTER-->");
+            if (string.IsNullOrEmpty(entity.FooterHtmlContent))
+            {
+                entity.Head = "<footer style='height:50px;display:flex;justify-content:center;align-items: center;>FOOTER GOES HERE</footer>";
+            }
+            else
+            {
+                builder.AppendLine(entity.FooterHtmlContent);
+            }
+            builder.AppendLine("<!--CCMS--END--FOOTER-->");
+            builder.AppendLine("</body>");
+            return Json(new project(builder.ToString()));
+        }
+
+        /// <summary>
+        /// Save designer data.
+        /// </summary>
+        /// <param name="id">Template ID.</param>
+        /// <param name="title">Template title.</param>
+        /// <param name="htmlContent">HTML content.</param>
+        /// <param name="cssContent">CSS content.</param>
+        /// <returns>IActionResult.</returns>
+        [HttpPost]
+        public async Task<IActionResult> DesignerData(Guid id, string title, string htmlContent, string cssContent)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // Check for nested editable regions.
+            if (!NestedEditableRegionValidation.Validate(htmlContent))
+            {
+                return BadRequest("Cannot have nested editable regions.");
+            }
+
+            var entity = await dbContext.Layouts.FirstOrDefaultAsync(f => f.Id == id);
+
+            if (entity == null)
+            {
+                return NotFound();
+            }
+
+            // Get header and footer content.
+            var header = GetTextBetween(htmlContent, "<!--CCMS--START--HEADER-->", "<!--CCMS--END--HEADER-->");
+            var footer = GetTextBetween(htmlContent, "<!--CCMS--START--FOOTER-->", "<!--CCMS--END--FOOTER-->");
+
+            // Assemble the designer output.
+            var designerUtils = new DesignerUtilities();
+            footer = designerUtils.AssembleDesignerOutput(new DesignerDataViewModel()
+            {
+                HtmlContent = footer,
+                CssContent = cssContent,
+                Title = title
+            });
+
+            // Update the layout.
+            entity.HtmlHeader = header;
+            entity.FooterHtmlContent = footer;
+
+            await dbContext.SaveChangesAsync();
+
+            return Json(new { success = true });
+        }
+
+        private string GetTextBetween(string input, string start, string end)
+        {
+            if (string.IsNullOrEmpty(input) || string.IsNullOrEmpty(start) || string.IsNullOrEmpty(end))
+            {
+                return string.Empty;
+            }
+
+            int startIndex = input.IndexOf(start);
+            if (startIndex == -1)
+            {
+                return string.Empty;
+            }
+
+            startIndex += start.Length;
+            int endIndex = input.IndexOf(end, startIndex);
+            if (endIndex == -1)
+            {
+                return string.Empty;
+            }
+
+            return input.Substring(startIndex, endIndex - startIndex);
+        }
+
 
         /// <summary>
         /// Edit the page header and footer of a layout.
@@ -574,7 +733,7 @@ namespace Cosmos.Cms.Controllers
         /// <param name="id">ID of the layout.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [Authorize(Roles = "Administrators, Editors, Authors, Team Members")]
-        public async Task<IActionResult> ExportLayout(int? id)
+        public async Task<IActionResult> ExportLayout(Guid? id)
         {
             if (!ModelState.IsValid)
             {
@@ -583,23 +742,8 @@ namespace Cosmos.Cms.Controllers
 
             var article = await articleLogic.GetByUrl(string.Empty);
 
-            var view = "~/Views/Layouts/ExportLayout.cshtml";
-            var exportName = $"layout-{article.Layout.Id}.html";
-
-            if (id.HasValue)
-            {
-                if (id.Value < 0)
-                {
-                    // Blank layout
-                    view = "~/Views/Layouts/ExportBlank.cshtml";
-                    exportName = "blank-layout.html";
-                }
-                else
-                {
-                    var layout = await dbContext.Layouts.FindAsync(id.Value);
-                    article.Layout = new LayoutViewModel(layout);
-                }
-            }
+            var layout = await dbContext.Layouts.FirstOrDefaultAsync(f => f.Id == id);
+            article.Layout = new LayoutViewModel(layout);
 
             var htmlUtilities = new HtmlUtilities();
 
@@ -613,11 +757,11 @@ namespace Cosmos.Cms.Controllers
             article.Content = htmlUtilities.RelativeToAbsoluteUrls(article.Content, blobPublicAbsoluteUrl, false);
             article.FooterJavaScript = htmlUtilities.RelativeToAbsoluteUrls(article.HeadJavaScript, blobPublicAbsoluteUrl, false);
 
-            var html = await viewRenderService.RenderToStringAsync(view, article);
+            var html = await viewRenderService.RenderToStringAsync("~/Views/Layouts/ExportLayout.cshtml", article);
 
             var bytes = Encoding.UTF8.GetBytes(html);
 
-            return File(bytes, "application/octet-stream", exportName);
+            return File(bytes, "application/octet-stream", $"layout-{article.Layout.Id}.html");
         }
 
         /// <summary>

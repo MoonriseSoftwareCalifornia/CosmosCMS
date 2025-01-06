@@ -45,12 +45,12 @@ namespace Cosmos.Cms.Models
         /// <summary>
         /// Gets or sets image width.
         /// </summary>
-        public int width { get; set; }
+        public string width { get; set; }
 
         /// <summary>
         /// Gets or sets image height.
         /// </summary>
-        public int height { get; set; }
+        public string height { get; set; }
 
         /// <summary>
         /// Gets or sets folder where image should reside.

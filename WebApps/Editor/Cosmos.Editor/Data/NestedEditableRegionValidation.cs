@@ -18,7 +18,7 @@ namespace Cosmos.Editor.Data
         /// Validates if content has a nested editable region, which will mess up CKEditor.
         /// </summary>
         /// <param name="html">HTML content.</param>
-        /// <returns>Validation success</returns>
+        /// <returns>Validation success.</returns>
         public static bool Validate(string html)
         {
             // Check for nested editable regions as this will mess up CKEditor.

@@ -11,6 +11,7 @@ namespace Cosmos.Cms.Controllers
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Cosmos.BlobService;
     using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Cms.Data.Logic;
     using Cosmos.Cms.Models;
@@ -18,6 +19,9 @@ namespace Cosmos.Cms.Controllers
     using Cosmos.Common.Data.Logic;
     using Cosmos.Common.Models;
     using Cosmos.Editor.Data;
+    using Cosmos.Editor.Data.Logic;
+    using Cosmos.Editor.Models;
+    using Cosmos.Editor.Models.GrapesJs;
     using HtmlAgilityPack;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
@@ -34,6 +38,7 @@ namespace Cosmos.Cms.Controllers
         private readonly ArticleEditLogic articleLogic;
         private readonly ApplicationDbContext dbContext;
         private readonly IOptions<CosmosConfig> options;
+        private readonly StorageContext storageContext;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TemplatesController"/> class.
@@ -41,11 +46,13 @@ namespace Cosmos.Cms.Controllers
         /// </summary>
         /// <param name="dbContext">Database context.</param>
         /// <param name="userManager">User manager.</param>
+        /// <param name="storageContext">Storage context service.</param>
         /// <param name="articleLogic">Article edit logic.</param>
-        /// <param name="options">Cosmos Options</param>
+        /// <param name="options">Cosmos Options.</param>
         public TemplatesController(
             ApplicationDbContext dbContext,
             UserManager<IdentityUser> userManager,
+            StorageContext storageContext,
             ArticleEditLogic articleLogic,
             IOptions<CosmosConfig> options)
             : base(dbContext, userManager)
@@ -53,11 +60,16 @@ namespace Cosmos.Cms.Controllers
             this.dbContext = dbContext;
             this.articleLogic = articleLogic;
             this.options = options;
+            this.storageContext = storageContext;
         }
 
         /// <summary>
         /// Index view model.
         /// </summary>
+        /// <param name="sortOrder">Sort order.</param>
+        /// <param name="currentSort">Current sort field.</param>
+        /// <param name="pageNo">Page number.</param>
+        /// <param name="pageSize">Page size.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> Index(string sortOrder = "asc", string currentSort = "Title", int pageNo = 0, int pageSize = 10)
         {
@@ -472,6 +484,110 @@ namespace Cosmos.Cms.Controllers
         }
 
         /// <summary>
+        /// Loads the designer GUI.
+        /// </summary>
+        /// <param name="id">Template ID.</param>
+        /// <returns>View.</returns>
+        public async Task<IActionResult> Designer(Guid id)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // Loads GrapeJS.
+            ViewData["IsDesigner"] = true;
+
+            var template = await dbContext.Templates.FirstOrDefaultAsync(f => f.Id == id);
+            if (template == null)
+            {
+                return NotFound();
+            }
+
+            var config = new DesignerConfig(await dbContext.Layouts.FirstOrDefaultAsync(f => f.IsDefault), id.ToString(), template.Title);
+            var assets = await FileManagerController.GetImageAssetArray(storageContext, "/pub", "/pub/articles");
+            if (assets != null)
+            {
+                config.ImageAssets.AddRange(assets);
+            }
+
+            return View(config);
+        }
+
+        /// <summary>
+        /// Visual designer based on GrapeJS.
+        /// </summary>
+        /// <param name="id">Template ID.</param>
+        /// <returns>IActionResult.</returns>
+        [HttpGet]
+        public async Task<IActionResult> DesignerData(Guid id)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var entity = await dbContext.Templates.FirstOrDefaultAsync(f => f.Id == id);
+
+            var htmlContent = articleLogic.Ensure_ContentEditable_IsMarked(entity.Content);
+
+            return Json(new project(htmlContent));
+        }
+
+        /// <summary>
+        /// Save designer data.
+        /// </summary>
+        /// <param name="id">Template ID.</param>
+        /// <param name="title">Template title.</param>
+        /// <param name="htmlContent">HTML content.</param>
+        /// <param name="cssContent">CSS content.</param>
+        /// <returns>IActionResult.</returns>
+        [HttpPost]
+        public async Task<IActionResult> DesignerData(Guid id, string title, string htmlContent, string cssContent)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            DesignerDataViewModel model = new DesignerDataViewModel()
+            {
+                Id = id,
+                HtmlContent = htmlContent,
+                CssContent = cssContent,
+                Title = title
+            };
+
+            // Check for nested editable regions.
+            if (!NestedEditableRegionValidation.Validate(model.HtmlContent))
+            {
+                return BadRequest("Cannot have nested editable regions.");
+            }
+
+            var entity = await dbContext.Templates.FirstOrDefaultAsync(f => f.Id == model.Id);
+
+            if (entity == null)
+            {
+                return NotFound();
+            }
+
+            model.HtmlContent = articleLogic.Ensure_ContentEditable_IsMarked(model.HtmlContent);
+
+            if (string.IsNullOrEmpty(model.Title))
+            {
+                var c = await dbContext.Templates.CountAsync();
+                entity.Title = string.IsNullOrEmpty(entity.Title) ? $"Template {c}" : entity.Title;
+            }
+
+            var designerUtils = new DesignerUtilities();
+            entity.Content = designerUtils.AssembleDesignerOutput(model);
+
+            await dbContext.SaveChangesAsync();
+
+            return Json(new { success = true });
+        }
+
+        /// <summary>
         /// Preview a template.
         /// </summary>
         /// <param name="id">Template ID.</param>
@@ -515,7 +631,7 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Preview a template.
         /// </summary>
-        /// <param name="id">Template ID</param>
+        /// <param name="id">Template ID.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> Trash(Guid id)
         {
@@ -536,8 +652,8 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Updates a page using the latest template version.
         /// </summary>
-        /// <param name="id">Article number</param>
-        /// <param name="templateId">Template ID</param>
+        /// <param name="id">Article number.</param>
+        /// <param name="templateId">Template ID.</param>
         /// <returns>Returns a redirect to the live editor.</returns>
         public async Task<IActionResult> UpdatePage(int id, Guid templateId)
         {

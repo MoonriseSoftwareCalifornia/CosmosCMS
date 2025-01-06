@@ -26,7 +26,7 @@ namespace Cosmos.Editor.Models
         /// Initializes a new instance of the <see cref="ArticlePermissionsViewModel"/> class.
         /// </summary>
         /// <param name="entry">Catalog entry.</param>
-        /// <param name="forRoles">Updating roles?</param>
+        /// <param name="forRoles">Updating roles?.</param>
         public ArticlePermissionsViewModel(CatalogEntry entry, bool forRoles = true)
         {
             Title = entry.Title;

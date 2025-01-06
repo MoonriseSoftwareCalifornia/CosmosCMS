@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net9.0</TargetFramework>
-		<AssemblyVersion>9.0.0.1</AssemblyVersion>
-		<FileVersion>9.0.0.1</FileVersion>
-		<Version>9.0.0.1</Version>
+		<TargetFramework>net8.0</TargetFramework>
+		<AssemblyVersion>8.1.0.0</AssemblyVersion>
+		<FileVersion>8.1.0.0</FileVersion>
+		<Version>8.1.0.0</Version>
 		<Title>Cosmos CMS Azure Storage Provider</Title>
 		<Authors>toiyabe62</Authors>
 		<Company>Moonrise Software LLC</Company>
@@ -35,9 +35,9 @@
 		<PackageReference Include="Azure.Identity" Version="1.13.1" />
 		<PackageReference Include="Azure.Storage.Blobs" Version="12.23.0" />
 		<PackageReference Include="Azure.Storage.Files.Shares" Version="12.21.0" />
-		<PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="9.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Options" Version="9.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Options" Version="8.0.2" />
 		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

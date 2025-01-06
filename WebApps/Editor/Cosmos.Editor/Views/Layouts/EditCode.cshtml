@@ -126,7 +126,7 @@
     }
 
     // Save the changes for this editor
-    function saveChanges(myModal, next) {
+    function saveChanges(myModal) {
 
         saving();
 
@@ -159,8 +159,9 @@
                 doneSaving();
 
                 if (response.IsValid) {
-                    if (typeof (next) !== "undefined" && next !== null) {
+                    if (next !== null && typeof next  === 'function') {
                         next();
+                        next = null;
                     }
                     toastMsg("Successfully saved.");
                 } else {
@@ -187,31 +188,6 @@
     function btnSelectField(e) {
         fieldName = e.target.text();
         saveExistingLoadNewEditor(e.id);
-    }
-
-    function bgEditClickCustom(command) {
-        switch (command) {
-            case "Close":
-                next = function () {
-                    window.location.href = "/Layouts/Index";
-                }
-                $("#divSaveFirstDialog").html("Save page before closing editor?");
-                modalCheckSaveFirst.show();
-                break;
-            case "Preview":
-                window.open("@Url.Action("Preview", "Layouts", new {Model.Id})");
-                break;
-            case "Layouts":
-                window.location.href = "@Url.Action("Index", "Layouts", new {Model.Id})";
-                break;
-        }
-    }
-
-    function getLocalTimeZone() {
-        var datetime = new Date();
-        var dateTimeString = datetime.toString();
-        var timezone = dateTimeString.substring(dateTimeString.indexOf("(") - 1);
-        return timezone;
     }
 
     $(document).ready(function () {

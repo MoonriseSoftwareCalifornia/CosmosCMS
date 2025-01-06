@@ -1,15 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
 	<PropertyGroup>
-		<TargetFramework>net9.0</TargetFramework>
+		<TargetFramework>net8.0</TargetFramework>
 		<UserSecretsId>aspnet-CDT.Cosmos.Cms-7EA5716F-3AA0-40C0-B742-C20FE7803177</UserSecretsId>
 		<AnalysisLevel>5.0</AnalysisLevel>
 		<EnableNETAnalyzers>false</EnableNETAnalyzers>
 		<RepositoryUrl>https://github.com/CosmosSoftware/CosmosCms</RepositoryUrl>
 		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-		<Version>9.0.0.1</Version>
-		<AssemblyVersion>9.0.0.1</AssemblyVersion>
-		<FileVersion>9.0.0.1</FileVersion>
+		<Version>8.1.0.0</Version>
+		<AssemblyVersion>8.1.0.0</AssemblyVersion>
+		<FileVersion>8.1.0.0</FileVersion>
 		<RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
 		<Authors></Authors>
 		<ApplicationInsightsResourceId>/subscriptions/9bdb8e29-156f-4fc9-a1fe-1bb6a915a4f0/resourceGroups/CosmosCMS/providers/microsoft.insights/components/edit-cosmos-cms202107021426</ApplicationInsightsResourceId>
@@ -80,25 +80,25 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Azure.Extensions.AspNetCore.DataProtection.Blobs" Version="1.4.0" />
 		<PackageReference Include="Azure.Identity" Version="1.13.1" />
 		<PackageReference Include="Azure.ResourceManager" Version="1.13.0" />
 		<PackageReference Include="Azure.ResourceManager.Cdn" Version="1.3.0" />
 		<PackageReference Include="CsvHelper" Version="33.0.1" />
 		<PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="9.0.0" />
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.0" />
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.MicrosoftAccount" Version="9.0.0" />
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.0" />
-		<PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="9.0.0" />
-		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="9.0.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.10" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.10" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.MicrosoftAccount" Version="8.0.10" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="8.0.10" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.10" />
 		<PackageReference Include="Microsoft.Azure.SignalR" Version="1.29.0" />
 		<PackageReference Include="Microsoft.Extensions.Azure" Version="1.9.0" />
 		<PackageReference Include="Microsoft.Extensions.Caching.Cosmos" Version="1.7.0" />
 		
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
 		
-		<PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="9.0.0" />
-		<PackageReference Include="NUglify" Version="1.21.11" />
+		<PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.6" />
+		<PackageReference Include="NUglify" Version="1.21.10" />
 		<PackageReference Include="PasswordGenerator" Version="2.1.0" />
 		<PackageReference Include="SixLabors.ImageSharp" Version="3.1.6" />
 		<PackageReference Include="MimeTypeMapOfficial" Version="1.0.17" />
@@ -106,12 +106,11 @@
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="System.Drawing.Common" Version="9.0.0" />
-		<PackageReference Include="System.Formats.Asn1" Version="9.0.0" />
+		<PackageReference Include="System.Drawing.Common" Version="8.0.10" />
+		<PackageReference Include="System.Formats.Asn1" Version="8.0.1" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\..\..\DataProtection.EntityFrameworkCore\CosmosDb.DataProtection.csproj" />
 	  <ProjectReference Include="..\..\..\Libraries\Cosmos.BlobService\Cosmos.BlobService\Cosmos.BlobService.csproj" />
 	  <ProjectReference Include="..\..\..\Libraries\Cosmos.Common\Cosmos.Common\Cosmos.Common.csproj" />
 	  <ProjectReference Include="..\..\..\Libraries\Cosmos.EmailServices\Cosmos.EmailServices.csproj" />
@@ -127,6 +126,11 @@
 	  <Content Update="wwwroot\lib\cosmos\jquery.blockui.js">
 	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
 	  </Content>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="wwwroot\lib\grapesjs-blocks-bootstrap-5\" />
+	  <Folder Include="wwwroot\lib\grapesjs-blocks-bootstrap4\" />
 	</ItemGroup>
 
 	<ProjectExtensions>

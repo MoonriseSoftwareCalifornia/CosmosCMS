@@ -8,6 +8,9 @@
     var isAuthor = User.IsInRole("Authors");
     var title = ViewData["PageTitle"];
     var requiresAuth = options.Value.SiteSettings.CosmosRequiresAuthentication;
+    var isDesigner = (bool?)ViewData["IsDesigner"];
+    var controllerName = ViewContext.RouteData.Values["controller"].ToString();
+    var actionName = ViewContext.RouteData.Values["action"].ToString();
 }
 <!DOCTYPE HTML>
 <html>
@@ -19,11 +22,24 @@
     <link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" />
     <link rel="stylesheet" type="text/css" href="~/lib/jquery-ui-combobox/jquery-ui-combobox.css" />
 
-    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" type="text/css" href="~/lib/font-awesome/css/all.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
     <link rel="stylesheet" type="text/css" href="~/css/2024-01-20-01-site.css" />
     <link rel="stylesheet" type="text/css" href="~/css/CodeEditor.css" />
 
+    @if (isDesigner == true)
+    {
+        <link rel="stylesheet" href="~/lib/grapesjsui/stylesheets/toastr.min.css">
+        <link rel="stylesheet" href="~/lib/grapesjs/css/grapes.min.css">
+        <link rel="stylesheet" href="~/lib/grapesjsui/stylesheets/grapesjs-preset-webpage.min.css">
+        <link rel="stylesheet" href="~/lib/grapesjsui/stylesheets/tooltip.css">
+        <link rel="stylesheet" href="~/lib/grapesjsui/stylesheets/demos.css?v3.1">
+        <link href="https://unpkg.com/grapick/dist/grapick.min.css" rel="stylesheet">
+        <link href="~/lib/grapesjs/build_20241212/ccms-designer.css" rel="stylesheet" />
+
+    }
+
+    <script src="~/lib/promise-window/promise-window.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
     <script src="~/lib/jquery/jquery.min.js"></script>
     <script src="~/lib/jqueryui/jquery-ui.min.js"></script>
@@ -32,16 +48,127 @@
     <script src="~/ccms/js/TimeUtils.js"></script>
 
     <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
-
     <!-- http://www.daterangepicker.com/ -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
-    <style>
-        .perm {
-            display: none;
-        }
-        /*default for permissions tools*/
-    </style>
 
+    @if (isDesigner == true)
+    {
+        <script src="~/lib/grapesjsui/js/toastr.min.js"></script>
+        <script src="~/lib/grapesjs/grapes.min.js"></script>
+        <script src="https://unpkg.com/grapesjs-preset-webpage@1.0.2"></script>
+        <script src="https://unpkg.com/grapesjs-blocks-basic@1.0.1"></script>
+        <script src="https://unpkg.com/grapesjs-plugin-forms@2.0.5"></script>
+        <script src="https://unpkg.com/grapesjs-component-countdown@1.0.1"></script>
+        <script src="https://unpkg.com/grapesjs-plugin-export@1.0.11"></script>
+        <script src="https://unpkg.com/grapesjs-tabs@1.0.6"></script>
+        <script src="https://unpkg.com/grapesjs-custom-code@1.0.1"></script>
+        <script src="https://unpkg.com/grapesjs-touch@0.1.1"></script>
+        <script src="https://unpkg.com/grapesjs-parser-postcss@1.0.1"></script>
+        <script src="https://unpkg.com/grapesjs-tooltip@0.1.7"></script>
+        <script src="https://unpkg.com/grapesjs-tui-image-editor@0.1.3"></script>
+        <script src="https://unpkg.com/grapesjs-typed@1.0.5"></script>
+        <script src="https://unpkg.com/grapesjs-style-bg@2.0.1"></script>
+        <script src="https://unpkg.com/grapesjs-navbar"></script>
+
+        <style type="text/css">
+            .icons-flex {
+                background-size: 70% 65% !important;
+                height: 15px;
+                width: 17px;
+                opacity: 0.9;
+            }
+
+            .icon-dir-row {
+                background: url("./lib/grapesjsui/img/flex-dir-row.png") no-repeat center;
+            }
+
+            .icon-dir-row-rev {
+                background: url("./lib/grapesjsui/img/flex-dir-row-rev.png") no-repeat center;
+            }
+
+            .icon-dir-col {
+                background: url("./lib/grapesjsui/img/flex-dir-col.png") no-repeat center;
+            }
+
+            .icon-dir-col-rev {
+                background: url("./lib/grapesjsui/img/flex-dir-col-rev.png") no-repeat center;
+            }
+
+            .icon-just-start {
+                background: url("./lib/grapesjsui/img/flex-just-start.png") no-repeat center;
+            }
+
+            .icon-just-end {
+                background: url("./lib/grapesjsui/img/flex-just-end.png") no-repeat center;
+            }
+
+            .icon-just-sp-bet {
+                background: url("./lib/grapesjsui/img/flex-just-sp-bet.png") no-repeat center;
+            }
+
+            .icon-just-sp-ar {
+                background: url("./lib/grapesjsui/img/flex-just-sp-ar.png") no-repeat center;
+            }
+
+            .icon-just-sp-cent {
+                background: url("./lib/grapesjsui/img/flex-just-sp-cent.png") no-repeat center;
+            }
+
+            .icon-al-start {
+                background: url("./lib/grapesjsui/img/flex-al-start.png") no-repeat center;
+            }
+
+            .icon-al-end {
+                background: url("./lib/grapesjsui/img/flex-al-end.png") no-repeat center;
+            }
+
+            .icon-al-str {
+                background: url("./lib/grapesjsui/img/flex-al-str.png") no-repeat center;
+            }
+
+            .icon-al-center {
+                background: url("./lib/grapesjsui/img/flex-al-center.png") no-repeat center;
+            }
+
+            [data-tooltip]::after {
+                background: rgba(51, 51, 51, 0.9);
+            }
+
+            .gjs-pn-commands {
+                min-height: 40px;
+            }
+
+            #gjs-sm-float {
+                display: none;
+            }
+
+            .gjs-logo-version {
+                background-color: #756467;
+            }
+
+            .gjs-pn-btn.gjs-pn-active {
+                box-shadow: none;
+            }
+
+            .CodeMirror {
+                min-height: 450px;
+                margin-bottom: 8px;
+            }
+
+            .grp-handler-close {
+                background-color: transparent;
+                color: #ddd;
+            }
+
+            .grp-handler-cp-wrap {
+                border-color: transparent;
+            }
+        </style>
+        <script>
+            let cosmos_plugin_array = [];
+        </script>
+    }
+    
     <script src="~/lib/microsoft-signalr/signalr.min.js"></script>
     @Html.Raw(JavaScriptSnippet.FullScript)
 </head>
@@ -62,7 +189,7 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-dark" id="ddSave">
                             <li id="btnOtherPages" style="display:none">
-                                <a class="dropdown-item" title="Open another web page." onclick="bgEditClick('pages')" href="#">Pages</a>
+                                <a class="dropdown-item" title="Open another web page." onclick="bgEditClick('Pages')" href="#">Pages</a>
                             </li>
                             <li id="btnSaveChanges">
                                 <a class="dropdown-item" title="Update this page." onclick="bgEditClick('Save')" href="#">Save</a>
@@ -96,11 +223,14 @@
                             @if (isAuthor == false)
                             {
                                 <li id="btnCcmsCodeEditor" style="display:none">
-                                    <a class="dropdown-item" onclick="bgEditClick('Code')">Code editor <img src="/images/monaco-vscode-logo.png" height="20" /></a>
+                                    <a class="dropdown-item" onclick="bgEditClick('Code')">Code editor</a>
                                 </li>
                             }
                             <li id="btnCcmsHtmlEditor" style="display:none">
-                                <a class="dropdown-item" onclick="bgEditClick('Html')">Live editor <img src="/images/ckeditor-5-proj-logo.svg" height="20" /></a>
+                                <a class="dropdown-item" onclick="bgEditClick('Html')">HTML editor</a>
+                            </li>
+                            <li id="btnCcmsGrapesJsEditor" style="display:none">
+                                <a class="dropdown-item" onclick="bgEditClick('Designer')">Design editor</a>
                             </li>
                             <li id="liBtnVersions" style="display:none">
                                 <a id="btnVersions" class="dropdown-item" href="#" target="_blank">Page versions</a>
@@ -170,7 +300,7 @@
                         </div>
                     </li>
                     <li class="nav-item">
-                        <div id="divPublihedTitleGroup" class="input-group input-group-sm mt-1" style="display:none">
+                        <div id="divPublishedTitleGroup" class="input-group input-group-sm mt-1" style="display:none">
                             <div id="lblPublished" class="input-group-text" style="height:31px;">Published:</div>
                             <input autocomplete="off" class="form-control text-truncate" name="tbPublished" id="tbPublished" placeholder="DRAFT (not published)" value="@((DateTimeOffset?)ViewData["Published"])" />
                             <button class="btn btn-sm btn-danger" title="Clicking this button publishes this page version immediately." type="button" id="btnPublishNow" onclick="bgEditClick('Publish')" style="display:none">Publish Now</button>
@@ -188,223 +318,7 @@
         </div>
     </nav>
 
-    <div class="modal" id="modalCheckSaveFirst" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Save First?</h5>
-                </div>
-                <div class="modal-body">
-                    <div id="divSaveFirstDialog"></div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" onclick="saveFirst()" data-bs-dismiss="modal">Yes</button>
-                    <button type="button" class="btn btn-secondary" onclick="doNotSave()" data-bs-dismiss="modal">No</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal" id="modalCheckPermissions" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">No Permissions Set</h5>
-                </div>
-                <div class="modal-body">
-                    <p>ALERT: Permissions are required prior to publishing a page.</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="bgEditClick('permissions')" data-bs-dismiss="modal">Set Permissions</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal" id="modalChangeTitle" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content bg-dark text-light">
-                <div class="modal-header">
-                    <h5 id="modalChgTitleHeader" class="modal-title">Change URL</h5>
-                </div>
-                <div class="modal-body">
-                    <form id="frmChangeTitle">
-                        <div class="form-group">
-                            <label id="lblCurrentTitle" for="currentTitle" title="Showing current URL" class="control-label">Current URL:</label>
-                            <div class="form-control" id="currentTitle"></div>
-                        </div>
-                        <div class="form-group">
-                            <label id="lblNewTitle" for="newTitle" class="control-label">New URL: /</label>
-                            <input class="form-control" autocomplete="off" required id="newTitle" title="Enter new URL" />
-                            <span id="newTitleValidation" class="btn btn-sm btn-danger" style="display:none"></span>
-                        </div>
-                        <div id="divUrlTitleExamples" style="display:none">
-                            <p>Example URLs:</p>
-                            <label id="lblCurrentTitle" for="currentTitle" class="control-label">Example URL:</label>
-                            <div class="form-control" id="currentTitle">Water</div>
-                            <label id="lblCurrentTitle" for="currentTitle" class="control-label">Example URL with a parent page:</label>
-                            <div class="form-control" id="currentTitle">Water/Images</div>
-                            <label id="lblCurrentTitle" for="currentTitle" class="control-label">Example URL with two parent pages:</label>
-                            <div class="form-control" id="currentTitle">Water/Images/Mountain Tops</div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="submit" class="btn btn-secondary">Change and Save</button>
-                            <button id="btnCancelChgTitle" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal" id="modalSavingError" tabindex="-1">
-        <div class="modal-dialog bg-dark">
-            <div class="modal-header">
-                <h5 class="modal-title text-light">Error Detected</h5>
-            </div>
-            <div class="modal-body text-light">
-                <div id="divErrorLog" class="text-light"></div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal" id="pickPageModal" tabindex="-1">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content bg-dark text-white">
-                <div class="modal-header">
-                    <h4 class="text-light">
-                        Insert Page Link
-                    </h4>
-                </div>
-                <div class="modal-body">
-                    <div class="container-fluid">
-                        <div class="row mb-3">
-                            <label for="combobox">Page search:</label>
-                            <div class="row">
-                                <div class="col-9">
-                                    <input id="combobox" autocomplete="off" laceholder="Search for a page ..." type="text" class="form-control bg-dark text-light custom-combobox" aria-label="Type to search for a page." style="height:26px">
-                                </div>
-                                <div class="col-3">
-                                    <button type="button" id="btnRefreshList" title="Refresh search" class="btn btn-sm btn-secondary">Refresh <i class="fa-solid fa-rotate"></i></button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row mb-3" id="pageSelectResults">
-                            <div class="col-9">
-                                <div id="pageStatus" class="text-light" style="display:none;font-size:0.8rem;">
-                                </div>
-                            </div>
-                            <div class="col-3">
-                                <a id="btnOpenLink" href="#" target="_blank" class="btn btn-sm btn-secondary" style="display:none">Versions <i class="fa-solid fa-circle-arrow-right"></i></a>
-                            </div>
-                        </div>
-                        <div id="divLinkDetails" style="display:none">
-                            <div class="row mb-3">
-                                <label for="inputLinkText" class="form-label">Link text:</label>
-                                <input id="inputLinkText" type="text" class="form-control form-control-sm">
-                                <span id="inputLinkTextError" class="badge badge-danger" style="display:none">Link text is required.</span>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-fooder">
-                    <div class="container-fluid">
-                        <div class="row mb-3">
-                            <div class="col-auto ms-5">
-                                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                <button id="btnApplyLink" type="button" class="btn btn-sm btn-primary" disabled>Apply <i class="fa-solid fa-circle-arrow-right"></i></button>
-                                <a id="btnCreatePage" target="_blank" href="" class="btn btn-sm btn-primary" style="display:none">Create page <i class="fa-solid fa-circle-arrow-right"></i></a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal" id="modalSelectFile" tabindex="-1">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content bg-dark text-white">
-                <div class="modal-body" style="height: 100vh;position:relative;">
-                    <div style="height:100%;width:100%;">
-                        <button id="btnSelectFileAndClose" type="button" class="btn btn-sm btn-success" data-bs-dismiss="modal" disabled>Select and Close</button>
-                        <button type="button" class="btn btn-sm btn-primary" data-bs-dismiss="modal">Cancel</button>
-                        <button id="btnClear" type="button" class="btn btn-sm btn-primary" title="Clear list of selected items" style="display:none">Clear Selected</button>
-                        <div id="spinFileMgrLoading" class="btn btn-sm btn-primary mt-1 ms-3 me-3">
-                            <div class="align-items-center text-light">
-                                <strong>Loading...</strong>
-                                <div class="spinner-border spinner-border-sm text-light" role="status"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <iframe id="iframeSelectFile" class="m-fileselector-container" style="height: 100%; width: 100%;"></iframe>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Full screen modal -->
-    <script>
-
-        function setupFileMgrFrame() {
-            const iframe = document.getElementById("iframeFileMgr");
-            const iframeWin = iframe.contentWindow || iframe.contentDocument.parentWindow;
-            if (iframeWin.document.body) {
-
-                $("#fileMgrModalContent").height = 50 + (window.innerHeight - document.getElementById("ccmsNavMenu").clientHeight);
-
-                // disable all links
-                const contents = $("#iframePreview").contents();
-
-                const anchors = contents.find("a");
-
-                $(anchors).click(function (e) {
-                    e.preventDefault();
-                    alert("Links are disabled while in edit mode.");
-                });
-            }
-        }
-
-        function setupPermMgrFrame() {
-            const iframe = document.getElementById("iframePermMgr");
-            const iframeWin = iframe.contentWindow || iframe.contentDocument.parentWindow;
-            if (iframeWin.document.body) {
-                $("#permMgrModalContent").height = 50 + (window.innerHeight - document.getElementById("ccmsNavMenu").clientHeight);
-            }
-        }
-    </script>
-
-    <div class="modal fade" id="modalFileMgr" tabindex="-3">
-        <div class="modal-dialog modal-fullscreen">
-            <div id="fileMgrModalContent" class="modal-content">
-                <div class="modal-header bg-dark text-light">
-                    <button type="button" class="btn btn-sm btn-primary" data-bs-dismiss="modal">Close File Manager</button>
-                </div>
-                <div class="modal-body">
-                    <iframe id="iframeFileMgr" class="d-block w-100" onload="setupFileMgrFrame()" style="height:100%"></iframe>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="modalPermMgr" tabindex="-4">
-        <div class="modal-dialog modal-fullscreen">
-            <div id="permMgrModalContent" class="modal-content">
-                <div class="modal-header bg-dark text-light">
-                    <button type="button" class="btn btn-sm btn-primary" data-bs-dismiss="modal">Close Permissions Manager</button>
-                </div>
-                <div class="modal-body">
-                    <iframe id="iframePermMgr" class="d-block w-100" onload="setupPermMgrFrame()" style="height:100%"></iframe>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script>
         // Must have global scope so using var
         var requiresAuthentication = @requiresAuth.ToString().ToLower();
@@ -412,7 +326,202 @@
 
     @RenderBody()
 
+    <div id="modals">
+        <div class="modal fade" id="modalCheckSaveFirst" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Save First?</h5>
+                    </div>
+                    <div class="modal-body">
+                        <div id="divSaveFirstDialog"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="modalBtnSaveFirst" type="button" class="btn btn-secondary" onclick="saveChanges()" data-bs-dismiss="modal">Yes</button>
+                        <button type="button" class="btn btn-secondary" onclick="doNotSave()" data-bs-dismiss="modal">No</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="modalCheckPermissions" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">No Permissions Set</h5>
+                    </div>
+                    <div class="modal-body">
+                        <p>ALERT: Permissions are required prior to publishing a page.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" onclick="bgEditClick('permissions')" data-bs-dismiss="modal">Set Permissions</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="modalChangeTitle" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content bg-dark text-light">
+                    <div class="modal-header">
+                        <h5 id="modalChgTitleHeader" class="modal-title">Change URL</h5>
+                    </div>
+                    <div class="modal-body">
+                        <form id="frmChangeTitle">
+                            <div class="form-group">
+                                <label id="lblCurrentTitle" for="currentTitle" title="Showing current URL" class="control-label">Current URL:</label>
+                                <div class="form-control" id="currentTitle"></div>
+                            </div>
+                            <div class="form-group">
+                                <label id="lblNewTitle" for="newTitle" class="control-label">New URL: /</label>
+                                <input class="form-control" autocomplete="off" required id="newTitle" title="Enter new URL" />
+                                <span id="newTitleValidation" class="btn btn-sm btn-danger" style="display:none"></span>
+                            </div>
+                            <div id="divUrlTitleExamples" style="display:none">
+                                <p>Example URLs:</p>
+                                <label id="lblCurrentTitle" for="currentTitle" class="control-label">Example URL:</label>
+                                <div class="form-control" id="currentTitle">Water</div>
+                                <label id="lblCurrentTitle" for="currentTitle" class="control-label">Example URL with a parent page:</label>
+                                <div class="form-control" id="currentTitle">Water/Images</div>
+                                <label id="lblCurrentTitle" for="currentTitle" class="control-label">Example URL with two parent pages:</label>
+                                <div class="form-control" id="currentTitle">Water/Images/Mountain Tops</div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-secondary">Change and Save</button>
+                                <button id="btnCancelChgTitle" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="modalSavingError" tabindex="-1">
+            <div class="modal-dialog bg-dark">
+                <div class="modal-header">
+                    <h5 class="modal-title text-light">Error Detected</h5>
+                </div>
+                <div class="modal-body text-light">
+                    <div id="divErrorLog" class="text-light"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="pickPageModal" tabindex="-1">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content bg-dark text-white">
+                    <div class="modal-header">
+                        <h4 class="text-light">
+                            Insert Page Link
+                        </h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="container-fluid">
+                            <div class="row mb-3">
+                                <label for="combobox">Page search:</label>
+                                <div class="row">
+                                    <div class="col-9">
+                                        <input id="combobox" autocomplete="off" laceholder="Search for a page ..." type="text" class="form-control bg-dark text-light custom-combobox" aria-label="Type to search for a page." style="height:26px">
+                                    </div>
+                                    <div class="col-3">
+                                        <button type="button" id="btnRefreshList" title="Refresh search" class="btn btn-sm btn-secondary">Refresh <i class="fa-solid fa-rotate"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mb-3" id="pageSelectResults">
+                                <div class="col-9">
+                                    <div id="pageStatus" class="text-light" style="display:none;font-size:0.8rem;">
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <a id="btnOpenLink" href="#" target="_blank" class="btn btn-sm btn-secondary" style="display:none">Versions <i class="fa-solid fa-circle-arrow-right"></i></a>
+                                </div>
+                            </div>
+                            <div id="divLinkDetails" style="display:none">
+                                <div class="row mb-3">
+                                    <label for="inputLinkText" class="form-label">Link text:</label>
+                                    <input id="inputLinkText" type="text" class="form-control form-control-sm">
+                                    <span id="inputLinkTextError" class="badge badge-danger" style="display:none">Link text is required.</span>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-fooder">
+                        <div class="container-fluid">
+                            <div class="row mb-3">
+                                <div class="col-auto ms-5">
+                                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button id="btnApplyLink" type="button" class="btn btn-sm btn-primary" disabled>Apply <i class="fa-solid fa-circle-arrow-right"></i></button>
+                                    <a id="btnCreatePage" target="_blank" href="" class="btn btn-sm btn-primary" style="display:none">Create page <i class="fa-solid fa-circle-arrow-right"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="modalSelectFile" tabindex="-1">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content bg-dark text-white">
+                    <div class="modal-body" style="height: 100vh;position:relative;">
+                        <div style="height:100%;width:100%;">
+                            <button id="btnSelectFileAndClose" type="button" class="btn btn-sm btn-success" data-bs-dismiss="modal" disabled>Select and Close</button>
+                            <button type="button" class="btn btn-sm btn-primary" data-bs-dismiss="modal">Cancel</button>
+                            <button id="btnClear" type="button" class="btn btn-sm btn-primary" title="Clear list of selected items" style="display:none">Clear Selected</button>
+                            <div id="spinFileMgrLoading" class="btn btn-sm btn-primary mt-1 ms-3 me-3">
+                                <div class="align-items-center text-light">
+                                    <strong>Loading...</strong>
+                                    <div class="spinner-border spinner-border-sm text-light" role="status"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <iframe id="iframeSelectFile" class="m-fileselector-container" style="height: 100%; width: 100%;"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="modalFileMgr" tabindex="-3">
+            <div class="modal-dialog modal-fullscreen">
+                <div id="fileMgrModalContent" class="modal-content">
+                    <div class="modal-header bg-dark text-light">
+                        <button type="button" class="btn btn-sm btn-primary" data-bs-dismiss="modal">Close File Manager</button>
+                    </div>
+                    <div class="modal-body">
+                        <iframe id="iframeFileMgr" class="d-block w-100" style="height:100%"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="modalPermMgr" tabindex="-4">
+            <div class="modal-dialog modal-fullscreen">
+                <div id="permMgrModalContent" class="modal-content">
+                    <div class="modal-header bg-dark text-light">
+                        <button type="button" class="btn btn-sm btn-primary" data-bs-dismiss="modal">Close Permissions Manager</button>
+                    </div>
+                    <div class="modal-body">
+                        <iframe id="iframePermMgr" class="d-block w-100" style="height:100%"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="modalPreview" tabindex="-3">
+            <div class="modal-dialog modal-fullscreen">
+                <div id="modalContent" class="modal-content">
+                    <div class="modal-header bg-dark text-light">
+                        <button type="button" class="btn btn-sm btn-primary" data-bs-dismiss="modal">Close Preview</button>
+                    </div>
+                    <div class="modal-body">
+                        <iframe id="iframePreview" class="d-block w-100" style="height:100%"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
+
+        const isDesigner = @((isDesigner.HasValue ? isDesigner : false).ToString().ToLower());
 
         const modalChangeTitle = new bootstrap.Modal(document.getElementById('modalChangeTitle'));
         const modalCheckSaveFirst = new bootstrap.Modal(document.getElementById('modalCheckSaveFirst'));
@@ -421,9 +530,16 @@
         const modalFileMgr = new bootstrap.Modal(document.getElementById('modalFileMgr'));
         const modalPermMgr = new bootstrap.Modal(document.getElementById('modalPermMgr'));
         const modalCheckPermissions = new bootstrap.Modal(document.getElementById('modalCheckPermissions'));
-
         const fileBaseUrl = "@(options.Value.SiteSettings.BlobPublicUrl.TrimEnd('/'))";
         const errorModal = new bootstrap.Modal(document.getElementById('modalSavingError'));
+        document.getElementById('modalFileMgr').addEventListener('hidden.bs.modal', event => {
+            if (isDesigner) {
+                cosmos__designerLoadAssets("/pub", "pub/articles");
+            }
+        });
+        // Indicates a save is in progress - used to deconflict simultaneous saves
+        var saveInProgress = false;
+        const modalPreview = new bootstrap.Modal(document.getElementById('modalPreview'));
 
         // VARIABLES
         // Function to fire after modal action
@@ -445,6 +561,25 @@
         // Selected anchor data
         let selectedAnchorData;
         var selectFileMode;
+
+        function setupIframes(iframeId, contentId) {
+            var iframe = $(iframeId);
+            $(contentId).height = 50 + (window.innerHeight - document.getElementById("ccmsNavMenu").clientHeight);
+            // disable all links for preview.
+            if (iframeId === 'iframePreview') {
+                $(iframe.contents().find("a")).click(function (e) {
+                    e.preventDefault();
+                    alert("Links are disabled while in preview mode.");
+                });
+            }
+        }
+
+        $("#iframePreview").on("load", setupIframes("#iframePreview", "#modalContent"));
+        
+        $("#iframeFileMgr").on("load", setupIframes("#iframeFileMgr", "#fileMgrModalContent"));
+        
+        $("#iframePermMgr").on("load", setupIframes("#iframePermMgr", "#permMgrModalContent"));
+        
 
         function openSelectFileModal(mode) {
 
@@ -487,13 +622,92 @@
             $("#btnSavingText").html("Saved");
         }
 
-        function bgEditClick(command) {
+        function getDirectoryName(path) {
+            if (!path) return '';
+            const lastSlashIndex = path.lastIndexOf('/');
+            if (lastSlashIndex === -1) return '';
+            return path.substring(0, lastSlashIndex);
+        }
 
+        function bgEditClick(command) {
+            var articleNumber = $("#ArticleNumber").val();
+            var itemPath = getDirectoryName($("#Path").val());
+            var itemId = $("#Id").val();
             switch (command) {
+                case "Code":
+                    next = function () {
+                        if ("@controllerName" == "Editor") {
+                            window.location.href = "/@controllerName/EditCode/" + articleNumber;
+                        } else {
+                            window.location.href = "/@controllerName/EditCode/" + itemId;
+                        }
+                    }
+                    $("#divSaveFirstDialog").html("Save before opening code editor?");
+                    modalCheckSaveFirst.show();
+                    break;
+                case "Designer":
+                    next = function () {
+                        if ("@controllerName" == "Editor") {
+                            window.location.href = "/Editor/Designer/" + articleNumber;
+                        } else {
+                            window.location.href = "/@controllerName/Designer/" + itemId;
+                        }
+                    }
+                    $("#divSaveFirstDialog").html("Save before opening code editor?");
+                    modalCheckSaveFirst.show();
+                    break;
+                case "Html":
+                    next = function () {
+                        if ("@controllerName" == "Editor") {
+                            window.location.href = "/Editor/Edit/" + articleNumber;
+                        } else {
+                            window.location.href = "/@controllerName/Edit/" + itemId;
+                        }
+                    }
+                    $("#divSaveFirstDialog").html("Save before opening HTML editor?");
+                    modalCheckSaveFirst.show();
+                    break;
+                case "Preview":
+                    next = function () {
+                        if ("@controllerName" == "Editor") {
+                            $("#iframePreview").prop("src", "/Home/Preview?articleNumber=" + articleNumber);
+                            modalPreview.show();
+                            modalPreview.handleUpdate();
+                        } else {
+                            window.location.href = "/@controllerName/Preview/" + itemId;
+                        }
+                    }
+                    $("#divSaveFirstDialog").html("Save before opening HTML editor?");
+                    modalCheckSaveFirst.show();
+                    break;
+                    break;
+                case "Layouts":
+                    window.location.href = "/Layouts/Index/" + itemId;
+                    break;
                 case "pages":
                     // Note: 'next' is defined in _LayoutEditor.cshtml.
                     next = function () {
-                        window.location.href = "@Url.Action("Index", "Editor")";
+                        window.location.href = "/Editor/Index";
+                    }
+                    $("#divSaveFirstDialog").html("Save page before closing editor?");
+                    modalCheckSaveFirst.show();
+                    break;
+                case "Close":
+                    next = function () {
+                        switch("@controllerName") {
+                            case "Code":
+                                window.location.href = "/Code/Source?target=" + itemPath;
+                                break;
+                            case "Editor":
+                                window.location.href = "/Editor/Versions/" + articleNumber;
+                                break;
+                            case "FileManager":
+                                window.location.href = "/FileManager/Index?target=" + itemPath;
+                                break;
+                            default:
+                                window.location.href = "/@controllerName/Index";
+                                break;
+                        }
                     }
                     $("#divSaveFirstDialog").html("Save page before closing editor?");
                     modalCheckSaveFirst.show();
@@ -561,11 +775,6 @@
             }
         }
 
-        function saveFirst() {
-            saveChanges();
-            next();
-        }
-
         function doNotSave() {
             modalCheckSaveFirst.hide();
             next();
@@ -630,6 +839,22 @@
                     $("#btnArticleAccess").removeClass("btn-success");
                     $("#btnArticleAccess").addClass("btn-danger");
                 }
+            }
+        }
+
+        function checkDisplayLiveEditorButton(field) {
+            const element = document.getElementById(field);
+            if (typeof element === 'undefined' || element === null) {
+                return;
+            };
+            var content = element.value.toLowerCase();
+            const hasContentEditable = content.indexOf("=contenteditable");
+            const hasCeid = content.indexOf("data-ccms-ceid=");
+
+            if (hasContentEditable > -1 || hasCeid > -1) {
+                $("#btnCcmsHtmlEditor").show();
+            } else {
+                $("#btnCcmsHtmlEditor").hide();
             }
         }
 
@@ -941,7 +1166,6 @@
         function setCdnResults(cdnResults) {
             const dateTime = new Date(cdnResults[0].EstimatedFlushDateTime);
             const now = new Date();
-
         }
     </script>
 

@@ -1,0 +1,181 @@
+﻿@using System
+@using System.Text
+@using Newtonsoft.Json
+@model Cosmos.Editor.Models.GrapesJs.DesignerConfig
+
+@{
+    var pluginScripts = new StringBuilder();
+    var pluginOptions = new StringBuilder();
+    foreach (var plugin in Model.Plugins)
+    {
+        pluginScripts.AppendLine($"<script src='{plugin.Url}'></script>");
+        pluginOptions.AppendLine(plugin.Options.TrimEnd(',') + ",");
+    }
+}
+<style>
+    body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+
+    .cwps-body {
+        background-color: white !important;
+        height: 100% !important;
+    }
+
+    .perm {
+        display: none;
+    }
+
+    @if (Model.Plugins.Any(a => a.Name == "grapesjs-tailwind"))
+    {
+        <text>
+            .change-theme-button {
+              width: 40px;
+              height: 40px;
+              border-radius: 50%;
+              margin: 5px;
+            }
+
+            .change-theme-button:focus {
+              /* background-color: yellow; */
+              outline: none;
+              box-shadow: 0 0 0 2pt #c5c5c575;
+            }
+        </text>
+    }
+</style>
+
+@Html.Raw(pluginScripts.ToString())
+
+<script>
+    const sessionStoragePlugin = (editor) => {
+        // As sessionStorage is not an asynchronous API,
+        // the `async` keyword could be skipped
+        editor.Storage.add('cosmos', {
+            async load(options = {}) {
+                const response = await fetch(cosmos__designerDataEndpoint + "/" + cosmos__id);
+                const data = await response.json();
+                return data;
+            },
+            async store(data, options = {}) {
+                showSaving(); // Show saving message.
+                const pagesHtml = editor.Pages.getAll().map((page) => {
+                    const component = page.getMainComponent();
+                    $("#HtmlContent").val(editor.getHtml({ component }));
+                    $("#CssContent").val(editor.getCss({ component }));
+                    cosmos__designerPostData();
+                });
+            }
+        });
+    };
+
+    let grapesJsPlugins = [
+        'gjs-blocks-basic',
+        'grapesjs-plugin-forms',
+        'grapesjs-component-countdown',
+        'grapesjs-plugin-export',
+        'grapesjs-tabs',
+        'grapesjs-custom-code',
+        'grapesjs-touch',
+        'grapesjs-parser-postcss',
+        'grapesjs-tooltip',
+        'grapesjs-tui-image-editor',
+        'grapesjs-typed',
+        'grapesjs-style-bg',
+        'grapesjs-preset-webpage',
+        'grapesjs-navbar',
+        sessionStoragePlugin,
+        @foreach (var plugin in Model.Plugins)
+        {
+        <text>        '@plugin.Name',</text>
+        }
+    ];
+
+    const pluginOptions = {
+        'gjs-blocks-basic': { flexGrid: true },
+        'grapesjs-tui-image-editor': {
+            script: [
+                // 'https://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.6.7/fabric.min.js',
+                'https://uicdn.toast.com/tui.code-snippet/v1.5.2/tui-code-snippet.min.js',
+                'https://uicdn.toast.com/tui-color-picker/v2.2.7/tui-color-picker.min.js',
+                'https://uicdn.toast.com/tui-image-editor/v3.15.2/tui-image-editor.min.js'
+            ],
+            style: [
+                'https://uicdn.toast.com/tui-color-picker/v2.2.7/tui-color-picker.min.css',
+                'https://uicdn.toast.com/tui-image-editor/v3.15.2/tui-image-editor.min.css',
+            ],
+        },
+        'grapesjs-tabs': {
+            tabsBlock: { category: 'Extra' }
+        },
+        'grapesjs-typed': {
+            block: {
+                category: 'Extra',
+                content: {
+                    type: 'typed',
+                    'type-speed': 40,
+                    strings: [
+                        'Text row one',
+                        'Text row two',
+                        'Text row three',
+                    ],
+                }
+            }
+        },
+        'grapesjs-preset-webpage': {
+            modalImportTitle: 'Import Template',
+            modalImportLabel: '<div style="margin-bottom: 10px; font-size: 13px;">Paste here your HTML/CSS and click Import</div>',
+            modalImportContent: function (editor) {
+                return editor.getHtml() + '<style>' + editor.getCss() + '</style>'
+            },
+        },
+        'grapesjs-navbar': {/* ...options */ },
+        @foreach (var plugin in Model.Plugins)
+        {
+         <text>        @Html.Raw(plugin.Options),</text>
+        }
+    };
+
+    function preloadImages() {
+        const imageUrls = @Html.Raw(JsonConvert.SerializeObject(Model.ImageAssets));
+        imageUrls.forEach(url => {
+            const img = new Image();
+            img.src = url;
+        });
+        return imageUrls;
+    }
+</script>
+<div style="display: none">
+    <div class="gjs-logo-cont">
+        <a href="https://grapesjs.com"><img class="gjs-logo" src="~/lib/grapesjsui/img/grapesjs-logo-cl.png"></a>
+        <div class="gjs-logo-version"></div>
+    </div>
+</div>
+<div id="gjs" style="height:0px; overflow:hidden">
+    <!-- CONTENT GOES HERE -->
+</div>
+<div id="info-panel" style="display:none">
+    <br />
+    <svg class="info-panel-logo" xmlns="https://www.w3.org/2000/svg" version="1">
+        <g id="gjs-logo">
+            <path d="M40 5l-12.9 7.4 -12.9 7.4c-1.4 0.8-2.7 2.3-3.7 3.9 -0.9 1.6-1.5 3.5-1.5 5.1v14.9 14.9c0 1.7 0.6 3.5 1.5 5.1 0.9 1.6 2.2 3.1 3.7 3.9l12.9 7.4 12.9 7.4c1.4 0.8 3.3 1.2 5.2 1.2 1.9 0 3.8-0.4 5.2-1.2l12.9-7.4 12.9-7.4c1.4-0.8 2.7-2.2 3.7-3.9 0.9-1.6 1.5-3.5 1.5-5.1v-14.9 -12.7c0-4.6-3.8-6-6.8-4.2l-28 16.2" style="fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-width:10;stroke:#fff" />
+        </g>
+    </svg>
+    <br />
+    <div class="info-panel-label">
+        <b>GrapesJS Webpage Builder</b> is a simple showcase of what is possible to achieve with the
+        <a class="info-panel-link gjs-four-color" target="_blank" href="https://github.com/artf/grapesjs">GrapesJS</a>
+        core library
+        <br /><br />
+        For any hint about the demo check the
+        <a class="info-panel-link gjs-four-color" target="_blank" href="https://github.com/artf/grapesjs-preset-webpage">Webpage Preset repository</a>
+        and open an issue. For problems with the builder itself, open an issue on the main
+        <a class="info-panel-link gjs-four-color" target="_blank" href="https://github.com/artf/grapesjs">GrapesJS repository</a>
+        <br /><br />
+        Being a free and open source project contributors and supporters are extremely welcome.
+        If you like the project support it with a donation of your choice or become a backer/sponsor via
+        <a class="info-panel-link gjs-four-color" target="_blank" href="https://opencollective.com/grapesjs">Open Collective</a>
+    </div>
+</div>

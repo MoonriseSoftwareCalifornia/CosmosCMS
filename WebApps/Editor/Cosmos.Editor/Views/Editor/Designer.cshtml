@@ -1,0 +1,128 @@
+﻿@using Newtonsoft.Json
+@model Cosmos.Editor.Models.ArticleDesignerDataViewModel
+@{
+    Layout = "_LayoutEditor";
+    ViewData["Title"] = Model.Title;
+
+    var designerConfig = (Cosmos.Editor.Models.GrapesJs.DesignerConfig)ViewData["DesignerConfig"];
+}
+
+<form id="frmSave" asp-action="DesignerData" asp-controller="Editor" method="post">
+    <input type="hidden" asp-for="Id" value="@Model.Id" />
+    <input type="hidden" asp-for="Title" value="@Model.Title" />
+    <input type="hidden" asp-for="HtmlContent" />
+    <input type="hidden" asp-for="CssContent" />
+    <input type="hidden" asp-for="SaveAsNewVersion" />
+    <input type="hidden" asp-for="VersionNumber" />
+    <input type="hidden" asp-for="ArticleNumber" />
+    <input type="hidden" asp-for="Published" />
+    <input type="hidden" asp-for="Updated" />
+    <input type="hidden" asp-for="RoleList" />
+    <input type="hidden" asp-for="UrlPath" />
+    <input type="hidden" asp-for="IsValid" />
+    <input type="hidden" asp-for="EditorType" />
+    <input type="hidden" asp-for="UpdateExisting" />
+    <input type="hidden" asp-for="BannerImage" />
+</form>
+
+<partial name="_GrapesJsEditor" model="designerConfig" />
+
+<script>
+    /*
+      Cosmos Configuration.
+    */
+    var ccmsEditorIsLocked = false;
+    // Current user
+    const ccms_editor_userid = "@this.Context.User.Identity.Name";
+    const isAuthor = @User.IsInRole("Authors").ToString().ToLower();
+    const isReviewer = @User.IsInRole("Reviewers").ToString().ToLower();
+    const hasModel = @((Model != null).ToString().ToLower());
+    // This needs global scope, so using var
+    var hasPermissionsSet = false;
+
+    function closeEditor() {
+        window.location.href = "@Url.Action("Index", "Editor", new { Model.Id })";
+    }
+
+    // Activated from _LayoutEditor.cshtml in multiple locations;
+    async function saveChanges() {
+        await editor.store();
+        if (next !== null && typeof next  === 'function') {
+            next();
+            next = null;
+        }
+    }
+
+    $("#frmSave").submit(function(event) {
+        event.preventDefault(); // Prevents the default form submission
+        saveChanges();
+    });
+
+    function cosmos__designerPostData() {
+        return new Promise((resolve, reject) => {
+            $.post('@Url.Action("PostDesignerData", "Editor")',
+                $("#frmSave").serialize(),
+                function(response) {
+                    saveInProgress = false;
+                    doneSaving();
+                    checkDisplayLiveEditorButton("HtmlContent");
+                }
+            );
+        });
+    }
+
+    $(document).ready(function () {
+
+        $('#tbPublished').prop("disabled", "true");
+
+        $("#btnSaveAsDraft").hide();
+        $("#btnOpenInsertImage").hide();
+        $("#btnCcmsCodeEditor").show();
+
+        $("#liInsert").show();
+        $("#divTitleGroup").show();
+        $("#divPublishedTitleGroup").show();
+        $("#spinLoading").hide();
+        $("#btnSavingStatus").show();
+
+        $("#divTitle").html("@Model.Title");
+        $("#Title").val("@Model.Title");
+
+        // Alter the default action of the save changes button
+        // located on _LayoutEditor.cshtml.
+        $("#modalBtnSaveFirst").on("click", function () {
+            saveChanges();
+        });
+
+        if (hasModel && isReviewer === false && isAuthor === false && requiresAuthentication) {
+            $(".perm").show();
+        }
+
+        checkDisplayLiveEditorButton("HtmlContent");
+    });
+
+    $(document).on("unload", function () {
+        // Close filemanager window if opened
+        if (typeof fileMgrPopup !== "undefined" && fileMgrPopup !== null && fileMgrPopup.location) {
+            fileMgrPopup.close();
+        }
+    });
+
+    /*
+
+        GrapesJS Editor (Designer) Configuration
+
+    */
+    const cosmos__id = '@Model.ArticleNumber';
+
+    const cosmos__designerAssetsEndPoint = "/pub/articles/" + cosmos__id;
+    const cosmos__designerAssetsExclude = "";
+    const cosmos__designerDataEndpoint = "/Editor/GetDesignerData";
+    const cosmos__designerUploadEndpoint = "/FileManager/SimpleUpload?id=" + cosmos__id + "&entityType=articles&editorType=grapesjs";
+
+    let grapesjs__canvas__styles = @Html.Raw(JsonConvert.SerializeObject(designerConfig.Styles));
+    let grapesjs__canvas__scripts = @Html.Raw(JsonConvert.SerializeObject(designerConfig.Scripts));
+    let grapesjs__assets = preloadImages();
+
+</script>
+<script src="~/lib/grapesjs/build_20241212/designer.js"></script>

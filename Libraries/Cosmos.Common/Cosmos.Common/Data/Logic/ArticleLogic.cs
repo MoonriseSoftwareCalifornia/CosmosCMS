@@ -190,7 +190,7 @@ namespace Cosmos.Common.Data.Logic
         /// <param name="lang">Language to return content as.</param>
         /// <param name="cacheSpan">Length of time for cache to exist.</param>
         /// <param name="layoutCache">Layout cache duration.</param>
-        /// <param name="headRequest">Is this a head request?</param>
+        /// <param name="headRequest">Is this a head request?.</param>
         /// <returns>
         ///     <see cref="ArticleViewModel" />.
         /// </returns>

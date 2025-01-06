@@ -11,6 +11,7 @@ namespace Cosmos.BlobService.Drivers
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Runtime.CompilerServices;
     using System.Text;
     using System.Threading.Tasks;
     using Azure;
@@ -20,6 +21,7 @@ namespace Cosmos.BlobService.Drivers
     using Azure.Storage.Blobs.Specialized;
     using Cosmos.BlobService.Config;
     using Cosmos.BlobService.Models;
+    using static System.Net.Mime.MediaTypeNames;
 
     /// <summary>
     ///     Azure blob storage driver.
@@ -108,7 +110,9 @@ namespace Cosmos.BlobService.Drivers
                 {
                     { "ccmsuploaduid", fileMetaData.UploadUid },
                     { "ccmssize", fileMetaData.TotalFileSize.ToString() },
-                    { "ccmsdatetime", uploadDateTime.UtcDateTime.Ticks.ToString() }
+                    { "ccmsdatetime", uploadDateTime.UtcDateTime.Ticks.ToString() },
+                    { "ccmsimagewidth", fileMetaData.ImageWidth },
+                    { "ccmsimageheight", fileMetaData.ImageHeight }
                 };
 
                 _ = await appendClient.SetMetadataAsync(dictionaryObject);
@@ -406,8 +410,28 @@ namespace Cosmos.BlobService.Drivers
             }
 
             var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+
             var resultSegment = containerClient.GetBlobsByHierarchyAsync(prefix: path, delimiter: "/").AsPages();
             var results = new List<BlobHierarchyItem>();
+
+            await foreach (var blobPage in resultSegment)
+            {
+                results.AddRange(blobPage.Values);
+            }
+
+            return results;
+        }
+
+        /// <summary>
+        ///    Gets a list of blobs for a given path.
+        /// </summary>
+        /// <param name="path">Path to search.</param>
+        /// <returns>BlobItem list.</returns>
+        public async Task<List<BlobItem>> GetBlobItemsAsync(string path)
+        {
+            var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+            var resultSegment = containerClient.GetBlobsAsync(prefix: path).AsPages();
+            var results = new List<BlobItem>();
 
             await foreach (var blobPage in resultSegment)
             {
@@ -476,5 +500,6 @@ namespace Cosmos.BlobService.Drivers
 
             return containerClient.GetAppendBlobClient(path);
         }
+
     }
 }

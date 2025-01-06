@@ -191,32 +191,9 @@
         saveExistingLoadNewEditor(e.id);
     }
 
-    function bgEditClickCustom(command) {
-        switch (command) {
-            case "Close":
-                next = function () {
-                    window.location.href = "/FileManager/Index?target=@(System.IO.Path.GetDirectoryName(Model.Path).Replace("\\", "/"))";
-                }
-                $("#divSaveFirstDialog").html("Save page before closing editor?");
-                modalCheckSaveFirst.show();
-                break;
-        }
-    }
-
-    function saveFirst() {
-        saveChanges(modalCheckSaveFirst, next);
-    }
-
     function doNotSave() {
         modalCheckSaveFirst.hide();
         next();
-    }
-
-    function getLocalTimeZone() {
-        var datetime = new Date();
-        var dateTimeString = datetime.toString();
-        var timezone = dateTimeString.substring(dateTimeString.indexOf("(") - 1);
-        return timezone;
     }
 
     $(document).ready(function () {

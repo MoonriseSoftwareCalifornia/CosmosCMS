@@ -81,18 +81,6 @@
 
     </script>
     <!-- Full screen modal -->
-    <div class="modal fade" id="modalPreview" tabindex="-3">
-        <div class="modal-dialog modal-fullscreen">
-            <div id="modalContent" class="modal-content">
-                <div class="modal-header bg-dark text-light">
-                    <button type="button" class="btn btn-sm btn-primary" data-bs-dismiss="modal">Close Preview</button>
-                </div>
-                <div class="modal-body">
-                    <iframe id="iframePreview" class="d-block w-100" onload="setupPreviewFrame()" style="height:100%"></iframe>
-                </div>
-            </div>
-        </div>
-    </div>
     <div class="modal fade" id="modalImageCropper" tabindex="-1" aria-labelledby="modalLabel" style="display: none;" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -145,7 +133,6 @@
     var enableAutoSave = true;
     // Modals
     const vsCodeModal = new bootstrap.Modal(document.getElementById('modalVsCode'));
-    const modalPreview = new bootstrap.Modal(document.getElementById('modalPreview'));
     const linksToast = new bootstrap.Toast(document.getElementById('linksToast'));
 
     $("#frmSave").submit(function (e) {
@@ -166,13 +153,6 @@
                 $("#divSaveFirstDialog").html("Save page before closing editor?");
                 modalCheckSaveFirst.show();
                 break;
-            case "Code":
-                next = function () {
-                    window.location.href = "@Url.Action("EditCode", "Editor")/" + $("#ArticleNumber").val();
-                }
-                $("#divSaveFirstDialog").html("Save before opening code editor?");
-                modalCheckSaveFirst.show();
-                break;
             case "Preview":
                 $("#iframePreview").prop("src", "@Url.Action("Preview", "Home")?articleNumber=" + @Model.ArticleNumber);
                 modalPreview.show();
@@ -180,14 +160,7 @@
                 break;
         }
     }
-
-    function getLocalTimeZone() {
-        const datetime = new Date();
-        const dateTimeString = datetime.toString();
-        const timezone = dateTimeString.substring(dateTimeString.indexOf("(") - 1);
-        return timezone;
-    }
-
+       
     function setupFrame() {
         const iframe = document.getElementById("ccmsContFrame");
         const iframeWin = iframe.contentWindow || iframe.contentDocument.parentWindow;
@@ -215,7 +188,7 @@
 
         // Close loading spinner and display saved status
         $("#divTitleGroup").show();
-        $("#divPublihedTitleGroup").show();
+        $("#divPublishedTitleGroup").show();
         $("#spinLoading").hide();
         $("#btnSavingStatus").show();
     };
@@ -232,11 +205,11 @@
         }
 
         $("#btnCcmsCodeEditor").show();
-
+        $("#btnCcmsGrapesJsEditor").show();
         $("#liBtnVersions").show();
 
         $("#btnVersions").attr("href", "/Editor/Versions/" + $("#ArticleNumber").val() + "?versionNumber=" + $("#VersionNumber").val());
-        
+
         setWorkingVersion($("#VersionNumber").val());
 
         $("#btnApply").click(function (e) {
@@ -382,7 +355,7 @@
         $(editors).each(function (index, editor) {
             // Get the source element for the editor (often a DIV)
             const sourceElement = editor.sourceElement;
-            
+
             // Get the ID
             const id = sourceElement.getAttribute("data-ccms-ceid");
             // Get the item
@@ -396,7 +369,7 @@
     }
 
     function findEditor(editorId) {
-        
+
         var iframe = document.getElementById("ccmsContFrame");
 
         //let areas = [];
@@ -411,7 +384,7 @@
             const sourceElement = ed.sourceElement;
             // Get the ID
             const id = sourceElement.getAttribute("data-ccms-ceid");
-            
+
             if (editorId === id) {
                 editor = ed;
             }
@@ -728,77 +701,68 @@
     }
 
     // Saves changes to page title, publishing, not content.
-    function saveChanges(data, editorId) {
-
-        if (validatePermissions() === false) {
-            // Need permissions set before going any further.
-            return;
-        }
-
-        // Signal to the user that saving has started.
-        saving();
-        saveInProgress = true;
-
-        // Get the latest date
-        savePublishDateTime();
-
-        // Build the post payload
-        var id = $("#Id").val();
-        var published = $("#Published").val();
-
-        var updated = $("#Updated").val();
-        var articleNumber = $("#ArticleNumber").val();
-
-        @*var data = {
-            Id: $("#Id").val(),
-            Title: $("#Title").val(),
-            Published: published,
-            Updated: updated,
-            BannerImage: $("#BannerImage").val(),
-            RoleList: $("#RoleList").val(),
-            UrlPath: "",
-            VersionNumber: $("#VersionNumber").val()
-        };*@
-
-        let model = {
-            Id: $("#Id").val(),
-            ArticleNumber: $("#ArticleNumber").val(),
-            EditorId: editorId,
-            UserId: ccms_editor_userid,
-            Published: published,
-            Updated: updated,
-            Title: $("#Title").val(),
-            Offset: -1,
-            Command: "SavePageProperties",
-            IsFocused: false,
-            VersionNumber: $("#VersionNumber").val(),
-            Data: data
-        };
-
-        $.post("@Url.Action("SaveLiveEditorData", "Editor")", model, function (data){
-            saveInProgress = false;
-            doneSaving();
-        }).fail(function(data){
-            alert("Problem!");
-        }).done(function (data) {
-            setWorkingVersion(data.Model.VersionNumber);
-            if (data.CdnResults !== null) {
-                setCdnResults(data.CdnResults);
-            }
-            try {
-                signalRConnection.invoke("Notification", JSON.stringify(model));
-            } catch (err) {
-                console.error(err);
+    async function saveChanges(data, editorId) {
+        return new Promise((resolve, reject) => {
+            if (validatePermissions() === false) {
+                // Need permissions set before going any further.
+                return;
             }
 
-            if (next) {
-                next();
-            }
+            // Signal to the user that saving has started.
+            saving();
+            saveInProgress = true;
+
+            // Get the latest date
+            savePublishDateTime();
+
+            // Build the post payload
+            var id = $("#Id").val();
+            var published = $("#Published").val();
+
+            var updated = $("#Updated").val();
+
+            let model = {
+                Id: $("#Id").val(),
+                ArticleNumber: $("#ArticleNumber").val(),
+                EditorId: editorId,
+                UserId: ccms_editor_userid,
+                Published: published,
+                Updated: updated,
+                Title: $("#Title").val(),
+                Offset: -1,
+                Command: "SavePageProperties",
+                IsFocused: false,
+                VersionNumber: $("#VersionNumber").val(),
+                Data: data
+            };
+
+            $.post("@Url.Action("SaveLiveEditorData", "Editor")", model, function (data){
+                saveInProgress = false;
+                doneSaving();
+            }).done(function (data) {
+                setWorkingVersion(data.Model.VersionNumber);
+                if (data.CdnResults !== null) {
+                    setCdnResults(data.CdnResults);
+                }
+                try {
+                    signalRConnection.invoke("Notification", JSON.stringify(model));
+                } catch (err) {
+                    console.error(err);
+                }
+                if (next !== null && typeof next  === 'function') {
+                    next();
+                    next = null;
+                }
+                resolve(response);
+            }).fail(function(error){
+                alert("Problem!");
+                reject(error);
+            });
         });
     }
 
     function cosmosSignalOthers(editor, command) {
-        
+
         const sourceElement = editor.sourceElement;
         const id = sourceElement.getAttribute("data-ccms-ceid");
 
@@ -822,11 +786,7 @@
         }
 
         if (command === "save") {
-
-            var html = editor.getData();
-
             saveChanges(editor.getData(), id);
-
         }
         else {
             let model = {
