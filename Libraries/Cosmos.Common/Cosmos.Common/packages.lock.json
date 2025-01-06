@@ -4,17 +4,15 @@
     "net9.0": {
       "AspNetCore.Identity.CosmosDb": {
         "type": "Direct",
-        "requested": "[9.0.0, )",
-        "resolved": "9.0.0",
-        "contentHash": "trE53lV0pPE9tfryFsmByzyGjFNOkbiHAYfSlhR8fugTFILzSOSxtlib1qgDigLO4D1xU75Seh6mpE6RCOGB4A==",
+        "requested": "[8.0.7, )",
+        "resolved": "8.0.7",
+        "contentHash": "+R8uxMVPsKPGCWKT0sjFPTCMUo5mcStaOr5lQ5OTvCDUmlU00hAh5Ll/nK9XAIDEnHy5qDQ4wSPWGtYhcWqmxg==",
         "dependencies": {
-          "Duende.IdentityServer.EntityFramework.Storage": "7.0.8",
-          "Microsoft.AspNetCore.Identity.EntityFrameworkCore": "9.0.0",
-          "Microsoft.AspNetCore.Identity.UI": "9.0.0",
-          "Microsoft.EntityFrameworkCore.Cosmos": "9.0.0",
-          "Microsoft.Extensions.Caching.Memory": "9.0.0",
-          "Newtonsoft.Json": "13.0.3",
-          "System.Text.Json": "9.0.0"
+          "Duende.IdentityServer.EntityFramework.Storage": "7.0.6",
+          "Microsoft.AspNetCore.Identity.EntityFrameworkCore": "8.0.8",
+          "Microsoft.AspNetCore.Identity.UI": "8.0.8",
+          "Microsoft.EntityFrameworkCore.Cosmos": "8.0.8",
+          "Newtonsoft.Json": "13.0.3"
         }
       },
       "Azure.Extensions.AspNetCore.Configuration.Secrets": {
@@ -178,17 +176,17 @@
       },
       "Duende.IdentityServer.EntityFramework.Storage": {
         "type": "Transitive",
-        "resolved": "7.0.8",
-        "contentHash": "CgxDDW+d05aZk6U4raKHF9VPnneb93piGkEDKKTirkCo3g6EdxEVTLmuoQIZa1Q/4WvJJt9biyH0hhrpI0hBSA==",
+        "resolved": "7.0.6",
+        "contentHash": "YzzqnlpuRPPN6EyrhoDW7/gYD4v5A21vQNcvrc7iNXfOl3NjE3B0izVeZplkQbu/bo0vezKs5/QENRKnstJtVw==",
         "dependencies": {
-          "Duende.IdentityServer.Storage": "7.0.8",
+          "Duende.IdentityServer.Storage": "7.0.6",
           "Microsoft.EntityFrameworkCore.Relational": "8.0.0"
         }
       },
       "Duende.IdentityServer.Storage": {
         "type": "Transitive",
-        "resolved": "7.0.8",
-        "contentHash": "SG0k4QunnIoK2+X0muNaZRRWY5HvlOkr9zFBn66MxyY6+mTb0JZ1lQNA9MNNokX7LRHIKwYsmbDxfjkBVa5iVw==",
+        "resolved": "7.0.6",
+        "contentHash": "HCPsIxH+o8p9+wHezriASLoOo0sK3L1krV9s1NECBl8cQPH2UOEV2cpW84+Fougb1Os9P946FhrIn+7S2tJ5rg==",
         "dependencies": {
           "IdentityModel": "6.2.0",
           "Microsoft.AspNetCore.DataProtection.Abstractions": "8.0.3"
@@ -233,8 +231,8 @@
       },
       "Microsoft.Azure.Cosmos": {
         "type": "Transitive",
-        "resolved": "3.43.0",
-        "contentHash": "pOzs1aOe23KMm/uk8zh+AUQlevhYQ5UOcqIWQjcCTZwjyIn354MGZl0yJ4IuPPMzsSgKBE6gKSnwk0zJqFH6WQ==",
+        "resolved": "3.35.4",
+        "contentHash": "oDwaE4TlQHec3R8CH5xLgvci5Fpj4q/W1kSPu3gm2Q49cJXXyEQqGp/j3dgM7O/fwrm9u5ZgvYtkpor2f4i2wQ==",
         "dependencies": {
           "Azure.Core": "1.19.0",
           "Microsoft.Bcl.AsyncInterfaces": "1.0.0",
@@ -243,10 +241,9 @@
           "System.Buffers": "4.5.1",
           "System.Collections.Immutable": "1.7.0",
           "System.Configuration.ConfigurationManager": "6.0.0",
-          "System.Diagnostics.DiagnosticSource": "6.0.1",
           "System.Memory": "4.5.4",
           "System.Numerics.Vectors": "4.5.0",
-          "System.Runtime.CompilerServices.Unsafe": "6.0.0",
+          "System.Runtime.CompilerServices.Unsafe": "4.6.0",
           "System.Threading.Tasks.Extensions": "4.5.4",
           "System.ValueTuple": "4.5.0"
         }
@@ -314,15 +311,11 @@
       },
       "Microsoft.EntityFrameworkCore.Cosmos": {
         "type": "Transitive",
-        "resolved": "9.0.0",
-        "contentHash": "xRIr6WobztXzRHI+F69hi2vKk9NJ8/8B+7OxBa2VqmHJA2BkCND6JZF2bTK6Q8lqnm0WSrnEejl5+Y9+mI+8jQ==",
+        "resolved": "8.0.8",
+        "contentHash": "Z8JO42lHzc+xmoSOFi1d9nKTJNrHSII4cmZakmRq1jse+2eEhESe7l5xh7F0lOLoquxqMwhUiHnarC0h/0QVjg==",
         "dependencies": {
-          "Microsoft.Azure.Cosmos": "3.43.0",
-          "Microsoft.EntityFrameworkCore": "9.0.0",
-          "Microsoft.Extensions.Caching.Memory": "9.0.0",
-          "Microsoft.Extensions.Logging": "9.0.0",
-          "Newtonsoft.Json": "13.0.3",
-          "System.Text.Json": "9.0.0"
+          "Microsoft.Azure.Cosmos": "3.35.4",
+          "Microsoft.EntityFrameworkCore": "8.0.8"
         }
       },
       "Microsoft.EntityFrameworkCore.Relational": {
