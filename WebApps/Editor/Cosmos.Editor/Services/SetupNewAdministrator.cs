@@ -8,6 +8,7 @@
 namespace Cosmos.Editor.Services
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using Cosmos.Cms.Data;
@@ -75,6 +76,8 @@ namespace Cosmos.Editor.Services
         /// <returns>True if roles are now present.</returns>
         public static async Task<bool> Ensure_Roles_Exists(RoleManager<IdentityRole> roleManager)
         {
+            var rolesCreated = new List<string>();
+
             foreach (var role in RequiredIdentityRoles.Roles)
             {
                 if (!await roleManager.RoleExistsAsync(role))
@@ -87,13 +90,30 @@ namespace Cosmos.Editor.Services
                         var exception = new InvalidOperationException($"Code: {error?.Code} - {error?.Description}");
                         throw exception;
                     }
+
+                    rolesCreated.Add(role);
                 }
             }
 
-            var roleCount = (int)await roleManager.Roles.CountAsync();
-
-            return roleCount == RequiredIdentityRoles.Roles.Count;
+            return AreArraysEqual(rolesCreated, RequiredIdentityRoles.Roles);
         }
 
+        private static bool AreArraysEqual(List<string> array1, List<string> array2)
+        {
+            if (array1.Count != array2.Count)
+            { 
+                return false;
+            }
+
+            foreach (var item in array1)
+            {
+                if (!array2.Contains(item))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 }
