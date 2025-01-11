@@ -85,8 +85,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                 var admins = await userManager.GetUsersInRoleAsync("Administrators");
                 var emailHandler = new EmailHandler(emailSender, logger);
 
-                var test = await userManager.Users.ToListAsync();
-
                 var user = await userManager.FindByEmailAsync(Input.Email);
                 if (user == null)
                 {

@@ -133,7 +133,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                     // If the user is a new administrator, don't do these things
                     if (!newAdministrator)
                     {
-
                         var admins = await userManager.GetUsersInRoleAsync("Administrators");
                         var editors = await userManager.GetUsersInRoleAsync("Administrators");
 
