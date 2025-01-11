@@ -183,6 +183,11 @@ namespace Cosmos.Common.Data
                 .HasPartitionKey(k => k.Id)
                 .HasKey(node => node.Id);
 
+            modelBuilder.Entity<AuthorInfo>().HasPartitionKey(k => k.UserId);
+            modelBuilder.Entity<Contact>().HasPartitionKey(k => k.Id);
+            modelBuilder.Entity<NodeScript>().HasPartitionKey(k => k.Id);
+            modelBuilder.Entity<DataProtectionKey>().HasPartitionKey(k => k.Id);
+
             base.OnModelCreating(modelBuilder);
         }
     }
