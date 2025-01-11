@@ -47,42 +47,29 @@ namespace Cosmos.EmailServices
             {
                 if (settings.Exists(f => f.Name == "AZURECOM"))
                 {
-                    var config = JsonConvert.DeserializeObject<AzureCommunicationEmailProviderOptions>(settings.Find(f => f.Name == "AZURECOM").Value);
-                    if (config == null)
+                    var json = settings.Find(f => f.Name == "AZURECOM")?.Value;
+                    if (json == null)
                     {
                         throw new ArgumentException("Could not retrieve options from 'Azure Communications Email' setting");
                     }
-                    else
-                    {
-                        var options = Options.Create(config);
-                        azureCommunicationEmailSender = new AzureCommunicationEmailSender(options, (ILogger<AzureCommunicationEmailSender>)logger, defaultAzureCredential);
-                    }
+
+                    var config = JsonConvert.DeserializeObject<AzureCommunicationEmailProviderOptions>(json) ?? throw new ArgumentException("Could not retrieve options from 'Azure Communications Email' setting");
+                    var options = Options.Create(config);
+                    azureCommunicationEmailSender = new AzureCommunicationEmailSender(options, (ILogger<AzureCommunicationEmailSender>)logger, defaultAzureCredential);
                 }
                 else if (settings.Exists(f => f.Name == "SENDGRID"))
                 {
-                    var config = JsonConvert.DeserializeObject<SendGridEmailProviderOptions>(settings.Find(f => f.Name == "SENDGRID").Value);
-                    if (config == null)
-                    {
-                        throw new ArgumentException("Could not retrieve options from 'SendGrid Email' setting");
-                    }
-                    else
-                    {
-                        var options = Options.Create(config);
-                        sendGridEmailSender = new SendGridEmailSender(options, (ILogger<SendGridEmailSender>)logger);
-                    }
+                    var json = settings.Find(f => f.Name == "SENDGRID")?.Value ?? throw new ArgumentException("Could not retrieve options from 'SendGrid Email' setting");
+                    var config = JsonConvert.DeserializeObject<SendGridEmailProviderOptions>(json) ?? throw new ArgumentException("Could parse options from 'SendGrid Email' setting");
+                    var options = Options.Create(config);
+                    sendGridEmailSender = new SendGridEmailSender(options, (ILogger<SendGridEmailSender>)logger);
                 }
                 else if (settings.Exists(f => f.Name == "SMTP"))
                 {
-                    var config = JsonConvert.DeserializeObject<SmtpEmailProviderOptions>(settings.Find(f => f.Name == "SMTP").Value);
-                    if (config == null)
-                    {
-                        throw new ArgumentException("Could not retrieve options from 'SMTP Email' setting");
-                    }
-                    else
-                    {
-                        var options = Options.Create(config);
-                        smtpEmailSender = new SmtpEmailSender(options);
-                    }
+                    var json = settings.Find(f => f.Name == "SMTP")?.Value ?? throw new ArgumentException("Could not retrieve options from 'SMTP Email' setting");
+                    var config = JsonConvert.DeserializeObject<SmtpEmailProviderOptions>(json) ?? throw new ArgumentException("Could not retrieve options from 'SMTP Email' setting");
+                    var options = Options.Create(config);
+                    smtpEmailSender = new SmtpEmailSender(options);
                 }
             }
         }

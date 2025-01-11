@@ -221,7 +221,6 @@ builder.Services.AddRateLimiter(_ => _
         options.QueueLimit = 2;
     }));
 // END
-
 builder.Services.AddResponseCaching();
 
 // Get the boot variables loaded, and

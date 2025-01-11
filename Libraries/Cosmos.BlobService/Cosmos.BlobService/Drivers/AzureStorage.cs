@@ -500,6 +500,5 @@ namespace Cosmos.BlobService.Drivers
 
             return containerClient.GetAppendBlobClient(path);
         }
-
     }
 }

@@ -33,7 +33,6 @@ public static class CosmosDbDataProtectionExtensions
                 options.XmlRepository = new CosmosDbXmlRepository<TContext>(services, loggerFactory);
             });
         });
-
         return builder;
     }
 }
