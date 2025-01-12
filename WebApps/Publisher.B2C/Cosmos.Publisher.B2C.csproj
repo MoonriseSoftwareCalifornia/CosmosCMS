@@ -52,29 +52,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Content Include="..\Editor\Cosmos.Editor\wwwroot\css\ckeditor-content.css" Link="wwwroot\css\ckeditor-content.css" />
-	  <Content Include="..\Editor\Cosmos.Editor\wwwroot\css\imagestyle.css" Link="wwwroot\css\imagestyle.css" />
-	  <Content Include="..\Editor\Cosmos.Editor\wwwroot\lib\tailwindcss\tailwind.css" Link="wwwroot\lib\tailwindcss\tailwind.css" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="wwwroot\js\" />
-	  <Folder Include="wwwroot\lib\cosmos\" />
-	  <Folder Include="wwwroot\lib\cosmos\" />
-	  <Folder Include="wwwroot\lib\tailwindcss\" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <None Include="..\Editor\Cosmos.Editor\wwwroot\ccms\js\cosmosUtils.js" Link="wwwroot\ccms\js\cosmosUtils.js" />
-	  <None Include="..\Editor\Cosmos.Editor\wwwroot\ccms\js\GoogleTranslations.js" Link="wwwroot\ccms\js\GoogleTranslations.js" />
-	  <None Include="..\Editor\Cosmos.Editor\wwwroot\ccms\js\TimeUtils.js" Link="wwwroot\ccms\js\TimeUtils.js" />
-	  <None Include="..\Editor\Cosmos.Editor\wwwroot\lib\cosmos\crumbs.js" Link="wwwroot\lib\cosmos\crumbs.js" />
-	  <None Include="..\Editor\Cosmos.Editor\wwwroot\lib\cosmos\forms.js" Link="wwwroot\lib\cosmos\forms.js" />
-	  <None Include="..\Editor\Cosmos.Editor\wwwroot\lib\cosmos\jquery-powerbi.js" Link="wwwroot\lib\cosmos\jquery-powerbi.js" />
-	  <None Include="..\Editor\Cosmos.Editor\wwwroot\lib\cosmos\nav-builder.js" Link="wwwroot\lib\cosmos\nav-builder.js" />
-	  <None Include="..\Editor\Cosmos.Editor\wwwroot\lib\cosmos\powerbi.js" Link="wwwroot\lib\cosmos\powerbi.js" />
-	  <None Include="..\Editor\Cosmos.Editor\wwwroot\lib\cosmos\toc.js" Link="wwwroot\lib\cosmos\toc.js" />
-	  <None Include="..\Publisher\Cosmos.Publisher\wwwroot\js\site.js" Link="wwwroot\js\site.js" />
+	  <Folder Include="wwwroot\" />
 	</ItemGroup>
 
 	<ItemGroup>

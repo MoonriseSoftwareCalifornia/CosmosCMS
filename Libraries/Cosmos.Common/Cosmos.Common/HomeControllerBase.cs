@@ -36,7 +36,6 @@ namespace Cosmos.Common
         private readonly StorageContext storageContext;
         private readonly ILogger logger;
         private readonly PowerBiTokenService powerBiTokenService;
-        private readonly string[] powerBiScopeBase = ["https://analysis.windows.net/powerbi/api/.default"];
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HomeControllerBase"/> class.
