@@ -9,7 +9,7 @@
 		<EnableSdkContainerDebugging>True</EnableSdkContainerDebugging>
 		<ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:8.0</ContainerBaseImage>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-		<Version>9.0.0.3</Version>
+		<Version>9.0.0.4</Version>
 		<DockerfileContext>..\..</DockerfileContext>
 	</PropertyGroup>
 
@@ -52,14 +52,16 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="wwwroot\" />
-	</ItemGroup>
-
-	<ItemGroup>
 	  <ProjectReference Include="..\..\Libraries\Cosmos.BlobService\Cosmos.BlobService\Cosmos.BlobService.csproj" />
 	  <ProjectReference Include="..\..\Libraries\Cosmos.Common\Cosmos.Common\Cosmos.Common.csproj" />
 	  <ProjectReference Include="..\..\Libraries\Cosmos.EmailServices\Cosmos.EmailServices.csproj" />
 	  <ProjectReference Include="..\..\Libraries\Cosmos.MicrosoftGraph\Cosmos.MicrosoftGraph.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Content Update="wwwroot\*">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
 	</ItemGroup>
 
 </Project>

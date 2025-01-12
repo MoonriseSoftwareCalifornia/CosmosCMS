@@ -2,15 +2,15 @@
 
 	<PropertyGroup>
 		<TargetFramework>net9.0</TargetFramework>
-		<AssemblyVersion>9.0.0.3</AssemblyVersion>
-		<FileVersion>9.0.0.3</FileVersion>
+		<AssemblyVersion>9.0.0.4</AssemblyVersion>
+		<FileVersion>9.0.0.4</FileVersion>
 		<Nullable>disable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<UserSecretsId>aspnet-Cosmos.Cms.Publisher-F1D91233-1093-41F8-B23F-43E81E1454FF</UserSecretsId>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 		<EnableSdkContainerSupport>true</EnableSdkContainerSupport>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
-		<Version>9.0.0.3</Version>
+		<Version>9.0.0.4</Version>
 		<DockerfileContext>..\..\..</DockerfileContext>
 	</PropertyGroup>
 
@@ -64,14 +64,16 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="wwwroot\" />
-	</ItemGroup>
-
-	<ItemGroup>
 	  <ProjectReference Include="..\..\..\Libraries\Cosmos.BlobService\Cosmos.BlobService\Cosmos.BlobService.csproj" />
 	  <ProjectReference Include="..\..\..\Libraries\Cosmos.Common\Cosmos.Common\Cosmos.Common.csproj" />
 	  <ProjectReference Include="..\..\..\Libraries\Cosmos.EmailServices\Cosmos.EmailServices.csproj" />
 	  <ProjectReference Include="..\..\..\Libraries\Cosmos.MicrosoftGraph\Cosmos.MicrosoftGraph.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Update="wwwroot\*">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
 	</ItemGroup>
 
 </Project>

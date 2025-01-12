@@ -7,9 +7,9 @@
 		<EnableNETAnalyzers>false</EnableNETAnalyzers>
 		<RepositoryUrl>https://github.com/CosmosSoftware/CosmosCms</RepositoryUrl>
 		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-		<Version>9.0.0.3</Version>
-		<AssemblyVersion>9.0.0.3</AssemblyVersion>
-		<FileVersion>9.0.0.3</FileVersion>
+		<Version>9.0.0.4</Version>
+		<AssemblyVersion>9.0.0.4</AssemblyVersion>
+		<FileVersion>9.0.0.4</FileVersion>
 		<RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
 		<Authors></Authors>
 		<ApplicationInsightsResourceId>/subscriptions/9bdb8e29-156f-4fc9-a1fe-1bb6a915a4f0/resourceGroups/CosmosCMS/providers/microsoft.insights/components/edit-cosmos-cms202107021426</ApplicationInsightsResourceId>
@@ -117,15 +117,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Content Update="wwwroot\images\logos\logo-white.png">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </Content>
-	  <Content Update="wwwroot\images\logos\primarylogowhite.png">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </Content>
-	  <Content Update="wwwroot\lib\cosmos\jquery.blockui.js">
-	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-	  </Content>
+		<Content Update="wwwroot\*">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -138,5 +132,6 @@
 			<UserProperties libman_1json__JsonSchema="" />
 		</VisualStudio>
 	</ProjectExtensions>
+
 
 </Project>

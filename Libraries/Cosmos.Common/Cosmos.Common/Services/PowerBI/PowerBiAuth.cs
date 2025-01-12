@@ -17,11 +17,6 @@ namespace Cosmos.Common.Services.PowerBI
     public class PowerBiAuth : OAuth
     {
         /// <summary>
-        /// Gets or sets the tenant ID of the client application.
-        /// </summary>
-        public string TenantId { get; set; } = string.Empty;
-
-        /// <summary>
         /// Gets or sets the Power BI scope base array.
         /// </summary>
         public string[] ScopeBase { get; set; } = ["https://analysis.windows.net/powerbi/api/.default"];
