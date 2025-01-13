@@ -11,6 +11,7 @@ namespace Cosmos.Common.Data
     using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore.Diagnostics;
 
     /// <summary>
     ///     Database Context for Cosmos CMS.
@@ -22,8 +23,9 @@ namespace Cosmos.Common.Data
         /// </summary>
         /// <param name="options">Database context options.</param>
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-            : base(options)
+            : base(options, true)
         {
+            // Adding true to base constructor to enable CosmosDB provider is backward compatible with the previous version.
         }
 
         /// <summary>
@@ -106,6 +108,12 @@ namespace Cosmos.Common.Data
         /// <param name="optionsBuilder">DbContextOptionsBuilder.</param>
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
+            // Synchronous blocking on asynchronous methods can result in deadlock, and the
+            // Azure Cosmos DB SDK only supports async methods.
+            // https://docs.microsoft.com/en-us/ef/core/providers/cosmos/limitations#synchronous-and-blocking-calls
+            // TODO: Remove all synchronous calls to the database.
+            optionsBuilder.ConfigureWarnings(w => w.Ignore(CosmosEventId.SyncNotSupported));
+
             // https://github.com/dotnet/efcore/issues/33328
             // Note this is done because using the default azure credential causes problems here.
             base.OnConfiguring(optionsBuilder);
@@ -174,6 +182,22 @@ namespace Cosmos.Common.Data
                 .ToContainer("Templates")
                 .HasPartitionKey(k => k.Id)
                 .HasKey(node => node.Id);
+
+            modelBuilder.Entity<AuthorInfo>()
+                .HasPartitionKey(k => k.Id)
+                .HasKey(k => k.Id);
+
+            modelBuilder.Entity<Contact>()
+                .HasPartitionKey(k => k.Id)
+                .HasKey(k => k.Id);
+
+            modelBuilder.Entity<NodeScript>()
+                .HasPartitionKey(k => k.Id)
+                .HasKey(k => k.Id);
+
+            modelBuilder.Entity<DataProtectionKey>()
+                .HasPartitionKey(k => k.Id)
+                .HasKey(k => k.Id);
 
             base.OnModelCreating(modelBuilder);
         }

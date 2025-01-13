@@ -64,7 +64,7 @@ namespace Cosmos.EmailServices
         /// <param name="htmlMessage">Email message in HTML.</param>
         /// <param name="emailFrom">From email address.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task SendEmailAsync(string toEmail, string subject, string htmlMessage, string emailFrom)
+        public async Task SendEmailAsync(string toEmail, string subject, string htmlMessage, string? emailFrom)
         {
             await SendEmailAsync(toEmail, subject, string.Empty, htmlMessage, emailFrom);
         }
@@ -140,7 +140,6 @@ namespace Cosmos.EmailServices
             }
 
             logger.LogInformation(SendResult.Message);
-
         }
     }
 }

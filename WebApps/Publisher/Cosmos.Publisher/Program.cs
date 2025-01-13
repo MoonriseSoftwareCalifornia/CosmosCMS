@@ -16,9 +16,10 @@ using Cosmos.Common.Services.Configurations;
 using Cosmos.Common.Services.PowerBI;
 using Cosmos.EmailServices;
 using Cosmos.MicrosoftGraph;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
+using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
@@ -220,8 +221,8 @@ builder.Services.AddRateLimiter(_ => _
         options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
         options.QueueLimit = 2;
     }));
-// END
 
+// END
 builder.Services.AddResponseCaching();
 
 // Get the boot variables loaded, and
@@ -286,6 +287,13 @@ app.UseResponseCaching(); // https://docs.microsoft.com/en-us/aspnet/core/perfor
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapGet("ccms__antiforgery/token", (IAntiforgery forgeryService, HttpContext context) =>
+{
+    var tokens = forgeryService.GetAndStoreTokens(context);
+    context.Response.Headers["XSRF-TOKEN"] = tokens.RequestToken;
+    return Results.Ok();
+});
 
 app.MapControllerRoute(
     name: "pub",

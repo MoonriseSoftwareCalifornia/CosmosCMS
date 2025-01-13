@@ -19,6 +19,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.RazorPages;
     using Microsoft.AspNetCore.RateLimiting;
+    using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
 
@@ -112,7 +113,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                 await dbContext.Database.EnsureCreatedAsync();
             }
 
-            if (userManager.Users.Count() == 0)
+            if (await userManager.Users.CountAsync() == 0)
             {
                 return RedirectToPage("Register");
             }

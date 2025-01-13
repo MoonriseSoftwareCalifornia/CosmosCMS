@@ -43,7 +43,7 @@ namespace Cosmos.Publisher.B2C.Controllers
             this.dbContext = dbContext;
             this.storageContext = storageContext;
             this.configuration = configuration;
-            this.userGroupName = configuration.GetValue<string>("UserGroups:User")!;
+            userGroupName = configuration.GetValue<string>("UserGroups:User") !;
         }
 
         /// <summary>

@@ -7,6 +7,7 @@
 
 namespace Cosmos.Common.Data
 {
+    using System;
     using System.ComponentModel.DataAnnotations;
     using System.ComponentModel.DataAnnotations.Schema;
 
@@ -15,11 +16,18 @@ namespace Cosmos.Common.Data
     /// </summary>
     public class AuthorInfo
     {
+
         /// <summary>
         /// Gets or sets the user ID.
         /// </summary>
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
+        [Display(Name = "User Id")]
+        public Guid Id { get; set; } = Guid.NewGuid();
+
+        /// <summary>
+        /// Gets or sets the user ID.
+        /// </summary>
         [Display(Name = "User Id")]
         public string UserId { get; set; }
 

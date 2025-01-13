@@ -18,11 +18,6 @@ namespace Cosmos.EmailServices
     /// </summary>
     public static class ServiceCollectionExtensions
     {
-        public static void AddCosmosEmailServices(this ServiceCollection services)
-        {
-
-        }
-
         /// <summary>
         /// Adds the Cosmos Email Services to the services collection.
         /// </summary>
