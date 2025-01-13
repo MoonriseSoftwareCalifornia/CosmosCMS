@@ -34,9 +34,9 @@ namespace Cosmos.Cms.Data
         /// <summary>
         ///     Validates the current value.
         /// </summary>
-        /// <param name="value"></param>
-        /// <param name="validationContext"></param>
-        /// <returns></returns>
+        /// <param name="value">The valule to compare.</param>
+        /// <param name="validationContext">Validation context.</param>
+        /// <returns>Valitation result.</returns>
         protected override ValidationResult IsValid(object value, ValidationContext validationContext)
         {
             // Make sure it doesn't conflict with the public blob path
