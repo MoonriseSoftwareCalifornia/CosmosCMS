@@ -99,16 +99,6 @@ namespace Cosmos.Cms.Data.Logic
         public Root CommunityCatalog { get; private set; }
 
         /// <summary>
-        /// Loads the default community layout.
-        /// </summary>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        /// <remarks>This is used when setting up Cosmos.</remarks>
-        public async Task<Layout> GetDefaultCommunityLayout()
-        {
-            return await GetCommunityLayout(DefaultLayoutId, true);
-        }
-
-        /// <summary>
         /// Gets a specified layout.
         /// </summary>
         /// <param name="layoutId">Layout ID.</param>
@@ -139,8 +129,8 @@ namespace Cosmos.Cms.Data.Logic
         /// <summary>
         /// Creates a new layout from HTML.
         /// </summary>
-        /// <param name="html"></param>
-        /// <returns></returns>
+        /// <param name="html">HTML content.</param>
+        /// <returns>Layout.</returns>
         public Layout ParseHtml(string html)
         {
             var contentHtmlDocument = new HtmlDocument();
@@ -217,26 +207,9 @@ namespace Cosmos.Cms.Data.Logic
         }
 
         /// <summary>
-        /// Gets all the layouts in the community catalog.
-        /// </summary>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task<List<Layout>> GetAllCommunityLayouts()
-        {
-            var layoutIds = CommunityCatalog.LayoutCatalog.Select(s => s.Id).ToList();
-            var layouts = new List<Layout>();
-
-            foreach (var id in layoutIds)
-            {
-                layouts.Add(await GetCommunityLayout(id, id == DefaultLayoutId));
-            }
-
-            return layouts.OrderBy(o => o.LayoutName).ToList();
-        }
-
-        /// <summary>
         /// Parses an HTML page and loads it as either a <see cref="Template"/> or an <see cref="Article"/>.
         /// </summary>
-        /// <param name="html"></param>
+        /// <param name="html">HTML content.</param>
         /// <returns>Body content of a page.</returns>
         /// <remarks>Template pages should NOT contain any layout components.</remarks>
         public T ParseHtml<T>(string html)

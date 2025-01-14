@@ -61,15 +61,6 @@ namespace Cosmos.Cms.Data.Logic
         public new ApplicationDbContext DbContext => base.DbContext;
 
         /// <summary>
-        ///     Determine if this service is configured.
-        /// </summary>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task<bool> IsConfigured()
-        {
-            return await DbContext.IsConfigured();
-        }
-
-        /// <summary>
         ///     Validate that the title is not already taken by another article.
         /// </summary>
         /// <param name="title">Title.</param>
@@ -368,27 +359,6 @@ namespace Cosmos.Cms.Data.Logic
         }
 
         /// <summary>
-        /// Permanently deletes an <paramref name="articleNumber"/>, does not trash item.
-        /// </summary>
-        /// <param name="articleNumber">Article number.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task Purge(int articleNumber)
-        {
-            var doomed = await DbContext.Articles.Where(w => w.ArticleNumber == articleNumber).ToListAsync();
-
-            if (doomed == null)
-            {
-                throw new KeyNotFoundException($"Article number {articleNumber} not found.");
-            }
-
-            DbContext.Articles.RemoveRange(doomed);
-
-            await DbContext.SaveChangesAsync();
-
-            await DeleteCatalogEntry(articleNumber);
-        }
-
-        /// <summary>
         ///     Retrieves and article and all its versions from trash.
         /// </summary>
         /// <param name="articleNumber">Article number.</param>
@@ -583,56 +553,6 @@ namespace Cosmos.Cms.Data.Logic
             };
 
             return result;
-        }
-
-        /// <summary>
-        /// Performs a global search and replace (except items in trash).
-        /// </summary>
-        /// <param name="model">Search and replace view model.</param>
-        /// <param name="userId">ID of the current user for logs.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task SearchAndReplace(SearchAndReplaceViewModel model, string userId)
-        {
-            if (model.ArticleNumber.HasValue)
-            {
-                await ArticleSearchAndReplace(model);
-            }
-            else
-            {
-                // We are doing a global search and replace
-                var articleQuery = DbContext.Articles.AsQueryable();
-
-                if (model.LimitToPublished)
-                {
-                    articleQuery = articleQuery.Where(a => a.Published != null);
-                }
-
-                if (model.IncludeContent)
-                {
-                    articleQuery = articleQuery.Where(w => w.Content.Contains(model.FindValue));
-                }
-
-                if (model.IncludeTitle)
-                {
-                    articleQuery = articleQuery.Where(w => w.Title.Contains(model.FindValue));
-                }
-
-                var articleNumbers = await articleQuery.Select(s => s.ArticleNumber).ToListAsync();
-
-                foreach (var articleNumber in articleNumbers)
-                {
-                    await ArticleSearchAndReplace(
-                        new SearchAndReplaceViewModel()
-                        {
-                            ArticleNumber = articleNumber,
-                            FindValue = model.FindValue,
-                            IncludeContent = model.IncludeContent,
-                            IncludeTitle = model.IncludeTitle,
-                            LimitToPublished = model.LimitToPublished,
-                            ReplaceValue = model.ReplaceValue
-                        });
-                }
-            }
         }
 
         /// <summary>
@@ -855,53 +775,6 @@ namespace Cosmos.Cms.Data.Logic
             {
                 model.HeaderJavaScript = UpdateHeadBaseTag(model.HeaderJavaScript, model.UrlPath);
             }
-        }
-
-        /// <summary>
-        ///     Changes the status of an article by marking all versions with that status.
-        /// </summary>
-        /// <param name="articleNumber">Article to set status for.</param>
-        /// <param cref="StatusCodeEnum" name="code">Status code.</param>
-        /// <param name="userId">User ID.</param>
-        /// <exception cref="Exception">User ID or article number not found.</exception>
-        /// <returns>Returns the number of versions for the given article where status was set.</returns>
-        public async Task<int> SetStatus(int articleNumber, StatusCodeEnum code, string userId)
-        {
-            if (!await DbContext.Users.Where(a => a.Id == userId).CosmosAnyAsync())
-            {
-                throw new ArgumentException($"User ID: {userId} not found!");
-            }
-
-            var versions =
-                await DbContext.Articles.Where(a => a.ArticleNumber == articleNumber).ToListAsync();
-
-            if (!versions.Any())
-            {
-                throw new ArgumentException($"Article number: {articleNumber} not found!");
-            }
-
-            foreach (var version in versions)
-            {
-                version.StatusCode = (int)code;
-
-                var statusText = code switch
-                {
-                    StatusCodeEnum.Deleted => "deleted",
-                    StatusCodeEnum.Active => "active",
-                    _ => "inactive"
-                };
-
-                DbContext.ArticleLogs.Add(new ArticleLog
-                {
-                    ActivityNotes = $"Status changed to '{statusText}'.",
-                    IdentityUserId = userId,
-                    DateTimeStamp = DateTime.Now.ToUniversalTime(),
-                    ArticleId = version.Id
-                });
-            }
-
-            var count = await DbContext.SaveChangesAsync();
-            return count;
         }
 
         /// <summary>
@@ -1423,63 +1296,6 @@ namespace Cosmos.Cms.Data.Logic
 
                 model.FooterJavaScript = footerDoc.DocumentNode.OuterHtml;
             }
-        }
-
-        private async Task ArticleSearchAndReplace(SearchAndReplaceViewModel model)
-        {
-            // We are doing a search and replace only for versions for a single article
-            var articleQuery = DbContext.Articles.Where(a => a.ArticleNumber == model.ArticleNumber);
-
-            if (model.LimitToPublished)
-            {
-                articleQuery = articleQuery.Where(a => a.Published != null);
-            }
-
-            if (model.IncludeContent)
-            {
-                articleQuery = articleQuery.Where(w => w.Content.Contains(model.FindValue));
-            }
-
-            if (model.IncludeTitle)
-            {
-                articleQuery = articleQuery.Where(w => w.Title.Contains(model.FindValue));
-            }
-
-            var entities = await articleQuery.ToListAsync();
-
-            if (entities.Count == 0)
-            {
-                throw new ArgumentException("Article number not found.");
-            }
-
-            var oldTitle = entities.FirstOrDefault().Title;
-
-            foreach (var entity in entities)
-            {
-                if (model.IncludeContent)
-                {
-                    entity.Content = entity.Content.Replace(model.FindValue, model.ReplaceValue);
-                }
-
-                if (model.IncludeTitle)
-                {
-                    entity.Title = entity.Title.Replace(model.FindValue, model.ReplaceValue);
-                }
-            }
-
-            if (model.IncludeTitle)
-            {
-                await HandleTitleChange(entities.FirstOrDefault(), oldTitle);
-            }
-
-            if (entities.Exists(a => a.Published.HasValue))
-            {
-                var last = entities.OrderByDescending(a => a.Published.Value).LastOrDefault();
-                await HandlePublishing(last);
-            }
-
-            // Finally update the catalog entry
-            await UpdateCatalogEntry(model.ArticleNumber.Value, (StatusCodeEnum)entities.FirstOrDefault().StatusCode);
         }
 
         /// <summary>
