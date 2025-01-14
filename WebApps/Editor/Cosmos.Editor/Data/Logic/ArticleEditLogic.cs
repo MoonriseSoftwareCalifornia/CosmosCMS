@@ -26,6 +26,7 @@ namespace Cosmos.Cms.Data.Logic
     using Microsoft.Extensions.Options;
     using Newtonsoft.Json;
     using SendGrid.Helpers.Errors.Model;
+    using static System.Runtime.InteropServices.JavaScript.JSType;
 
     /// <summary>
     ///     Article Editor Logic.
@@ -231,6 +232,39 @@ namespace Cosmos.Cms.Data.Logic
             await UpdateCatalogEntry(article.ArticleNumber, (StatusCodeEnum)article.StatusCode);
 
             return await BuildArticleViewModel(article, "en-US");
+        }
+
+        /// <summary>
+        /// Gets or creates a catalog entry for an article.
+        /// </summary>
+        /// <param name="articleNumber">Article number.</param>
+        /// <returns>CatalogEntry.</returns>
+        public async Task<CatalogEntry> GetCatalogEntry(int articleNumber)
+        {
+            var catalogEntry = await DbContext.ArticleCatalog.FirstOrDefaultAsync(f => f.ArticleNumber == articleNumber);
+
+            if (catalogEntry == null)
+            {
+                var article = await Get(articleNumber, null);
+                var template = await DbContext.Articles.Select(s => new { s.TemplateId, s.Id }).FirstOrDefaultAsync(f => f.Id == article.Id);
+
+                catalogEntry = new CatalogEntry()
+                {
+                    ArticleNumber = articleNumber,
+                    Updated = article.Updated,
+                    Status = article.StatusCode == StatusCodeEnum.Active ? "Active" : "Inactive",
+                    Published = article.Published,
+                    Title = article.Title,
+                    UrlPath = article.UrlPath,
+                    TemplateId = template.Id,
+                };
+
+                DbContext.ArticleCatalog.Add(catalogEntry);
+
+                await DbContext.SaveChangesAsync();
+            }
+
+            return catalogEntry;
         }
 
         /// <summary>
@@ -1518,7 +1552,7 @@ namespace Cosmos.Cms.Data.Logic
         {
             var articleNumber = DbContext.Articles.Max(m => m.ArticleNumber) + 1;
 
-            return new()
+            return new ()
             {
                 Id = template.Id,
                 ArticleNumber = articleNumber,
@@ -1677,9 +1711,10 @@ namespace Cosmos.Cms.Data.Logic
             // Capture the new title
             var newTitle = article.Title;
 
-            var articleNumbersToUpdate = new List<int>();
-
-            articleNumbersToUpdate.Add(article.ArticleNumber);
+            var articleNumbersToUpdate = new List<int>
+            {
+                article.ArticleNumber
+            };
 
             // Validate that title is not already taken.
             if (!await ValidateTitle(newTitle, article.ArticleNumber))
@@ -1883,7 +1918,7 @@ namespace Cosmos.Cms.Data.Logic
         }
 
         /// <summary>
-        /// Update catalog entry.
+        /// Creates or updates a catalog entry.
         /// </summary>
         /// <param name="articleNumber">Article number.</param>
         /// <param name="code">Article status code.</param>
@@ -1892,31 +1927,13 @@ namespace Cosmos.Cms.Data.Logic
         {
             var data = await DbContext.Articles.Where(w => w.ArticleNumber == articleNumber).OrderBy(o => o.VersionNumber).LastOrDefaultAsync();
 
-            var catalogEntry = await DbContext.ArticleCatalog.FirstOrDefaultAsync(f => f.ArticleNumber == articleNumber);
+            var catalogEntry = await GetCatalogEntry(articleNumber);
 
-            if (catalogEntry == null)
-            {
-                catalogEntry = new CatalogEntry()
-                {
-                    ArticleNumber = articleNumber,
-                    Updated = data.Updated,
-                    Status = code == StatusCodeEnum.Active ? "Active" : "Inactive",
-                    Published = data.Published,
-                    Title = data.Title,
-                    UrlPath = data.UrlPath,
-                    TemplateId = data.TemplateId
-                };
-
-                DbContext.ArticleCatalog.Add(catalogEntry);
-            }
-            else
-            {
-                catalogEntry.Updated = data.Updated;
-                catalogEntry.Status = code == StatusCodeEnum.Active ? "Active" : "Inactive";
-                catalogEntry.Published = data.Published;
-                catalogEntry.Title = data.Title;
-                catalogEntry.UrlPath = data.UrlPath;
-            }
+            catalogEntry.Updated = data.Updated;
+            catalogEntry.Status = code == StatusCodeEnum.Active ? "Active" : "Inactive";
+            catalogEntry.Published = data.Published;
+            catalogEntry.Title = data.Title;
+            catalogEntry.UrlPath = data.UrlPath;
 
             await DbContext.SaveChangesAsync();
         }

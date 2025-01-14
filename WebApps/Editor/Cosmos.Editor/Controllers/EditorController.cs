@@ -313,7 +313,7 @@ namespace Cosmos.Cms.Controllers
             ViewData["Published"] = null;
             ViewData["LastPubDateTime"] = null;
 
-            var catalogEntry = await dbContext.ArticleCatalog.FirstOrDefaultAsync(f => f.ArticleNumber == id);
+            var catalogEntry = await articleLogic.GetCatalogEntry(id);
 
             var designerUtils = new DesignerUtilities();
             var data = designerUtils.ExtractDesignerData(article.Content);
@@ -1269,7 +1269,7 @@ namespace Cosmos.Cms.Controllers
             ViewData["pageSize"] = pageSize;
             ViewData["showingRoles"] = forRoles;
 
-            var catalogEntry = await dbContext.ArticleCatalog.FirstOrDefaultAsync(f => f.ArticleNumber == id);
+            var catalogEntry = await articleLogic.GetCatalogEntry(id);
 
             ViewData["ArticleNumber"] = catalogEntry.ArticleNumber;
             ViewData["ArticlePermissions"] = catalogEntry.ArticlePermissions;
@@ -1348,7 +1348,7 @@ namespace Cosmos.Cms.Controllers
 
             try
             {
-                var article = await dbContext.ArticleCatalog.FirstOrDefaultAsync(f => f.ArticleNumber == id);
+                var article = await articleLogic.GetCatalogEntry(id);
 
                 if (article.ArticlePermissions == null)
                 {
@@ -1674,7 +1674,7 @@ namespace Cosmos.Cms.Controllers
                 return Unauthorized();
             }
 
-            return View(new HtmlEditorViewModel(model, await dbContext.ArticleCatalog.FirstOrDefaultAsync(f => f.ArticleNumber == id)));
+            return View(new HtmlEditorViewModel(model, await articleLogic.GetCatalogEntry(id)));
         }
 
         /// <summary>
@@ -1702,8 +1702,8 @@ namespace Cosmos.Cms.Controllers
             ViewData["Published"] = null;
             ViewData["LastPubDateTime"] = null;
 
-            var catalogEntry = await dbContext.ArticleCatalog.FirstOrDefaultAsync(f => f.ArticleNumber == id);
-
+            var catalogEntry = await articleLogic.GetCatalogEntry(id);
+            
             return View(new EditCodePostModel
             {
                 Id = article.Id,
@@ -1792,7 +1792,7 @@ namespace Cosmos.Cms.Controllers
 
             // Next pull the original. This is a view model, not tracked by DbContext.
             var article = await articleLogic.Get(model.ArticleNumber, null);
-            var entry = await dbContext.ArticleCatalog.FirstOrDefaultAsync(f => f.ArticleNumber == model.ArticleNumber);
+            var entry = await articleLogic.GetCatalogEntry(model.ArticleNumber);
 
             if (article == null)
             {
