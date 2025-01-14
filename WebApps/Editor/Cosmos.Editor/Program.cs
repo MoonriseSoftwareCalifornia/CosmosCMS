@@ -23,10 +23,12 @@ using Cosmos.Common.Services.Configurations;
 using Cosmos.Common.Services.PowerBI;
 using Cosmos.Editor.Services;
 using Cosmos.EmailServices;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
@@ -374,6 +376,13 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseRateLimiter();
+
+app.MapGet("ccms__antiforgery/token", (IAntiforgery forgeryService, HttpContext context) =>
+{
+    var tokens = forgeryService.GetAndStoreTokens(context);
+    context.Response.Headers["XSRF-TOKEN"] = tokens.RequestToken;
+    return Results.Ok();
+});
 
 // Point to the route that will return the SignalR Hub.
 app.MapHub<LiveEditorHub>("/___cwps_hubs_live_editor");

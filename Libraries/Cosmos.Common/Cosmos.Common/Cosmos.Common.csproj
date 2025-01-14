@@ -15,9 +15,9 @@
 		<SignAssembly>false</SignAssembly>
 		<AnalysisLevel>5.0</AnalysisLevel>
 		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-		<Version>9.0.0.4</Version>
-		<AssemblyVersion>9.0.0.4</AssemblyVersion>
-		<FileVersion>9.0.0.4</FileVersion>
+		<Version>9.0.0.5</Version>
+		<AssemblyVersion>9.0.0.5</AssemblyVersion>
+		<FileVersion>9.0.0.5</FileVersion>
 		<UserSecretsId>498e495c-d772-4d44-870d-92009f01de57</UserSecretsId>
 		<PackageProjectUrl>https://www.moonrise.net/cosmos</PackageProjectUrl>
 		<NeutralLanguage></NeutralLanguage>
@@ -61,6 +61,12 @@
 		<DefineConstants>TRACE</DefineConstants>
 		<WarningLevel>0</WarningLevel>
 	</PropertyGroup>
+
+	<ItemGroup>
+	  <Compile Remove="Validators\**" />
+	  <EmbeddedResource Remove="Validators\**" />
+	  <None Remove="Validators\**" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<Content Remove="C:\Users\toiya\.nuget\packages\aspnetcore.identity.cosmosdb\2.1.4\contentFiles\any\net7.0\_res\icons\nuget-icon.ico" />
@@ -110,9 +116,6 @@
 			<Pack>True</Pack>
 			<PackagePath>\</PackagePath>
 		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<Folder Include="Validators\" />
 	</ItemGroup>
 
 

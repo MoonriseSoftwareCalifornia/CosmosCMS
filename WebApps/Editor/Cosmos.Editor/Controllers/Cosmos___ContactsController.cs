@@ -44,8 +44,39 @@ namespace Cosmos.Editor.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> Index()
         {
+            var alertSetting = await dbContext.Settings.FirstOrDefaultAsync(w => w.Group == "ContactsConfig" && w.Name == "EnableAlerts");
+            bool enabled = false;
+            if (alertSetting != null)
+            {
+                enabled = bool.Parse(alertSetting.Value);
+            }
+
+            ViewData["EnableAlerts"] = enabled;
             ViewData["MailChimpIntegrated"] = await dbContext.Settings.Where(w => w.Group == "MailChimp").CosmosAnyAsync();
             return View();
+        }
+
+        /// <summary>
+        /// Enables or disables the contact alert when contacts are new or updated.
+        /// </summary>
+        /// <param name="enable">Indicates if enabled.</param>
+        /// <returns>Success or not.</returns>
+        [HttpPost]
+        public async Task<IActionResult> EnableAlerts(bool enable)
+        {
+            var setting = await dbContext.Settings.Where(w => w.Group == "ContactsConfig" && w.Name == "EnableAlerts").FirstOrDefaultAsync();
+            if (setting == null)
+            {
+                setting = new Setting() { Group = "ContactsConfig", Name = "EnableAlerts", Value = enable.ToString(), Description = "Send an email alert when a new contact is added or an existing contact is updated." };
+                dbContext.Settings.Add(setting);
+            }
+            else
+            {
+                setting.Value = enable.ToString();
+            }
+
+            await dbContext.SaveChangesAsync();
+            return Ok();
         }
 
         /// <summary>

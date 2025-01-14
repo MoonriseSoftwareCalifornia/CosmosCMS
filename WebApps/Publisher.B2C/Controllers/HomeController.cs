@@ -15,6 +15,7 @@ using Cosmos.Common.Models;
 using Cosmos.Common.Services.PowerBI;
 using Cosmos.Publisher.B2C.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using System.Diagnostics;
@@ -43,6 +44,7 @@ public class HomeController : B2CBaseController
     /// <param name="storageContext">Storage context.</param>
     /// <param name="powerBiTokenService">Service used to get tokens from Power BI.</param>
     /// <param name="configuration">Application configuration.</param>
+    /// <param name="emailSender">Email service.</param>
     public HomeController(
         ILogger<HomeController> logger,
         ArticleLogic articleLogic,
@@ -50,8 +52,9 @@ public class HomeController : B2CBaseController
         ApplicationDbContext dbContext,
         StorageContext storageContext,
         PowerBiTokenService powerBiTokenService,
-        IConfiguration configuration)
-        : base(articleLogic, dbContext, storageContext, logger, powerBiTokenService, configuration)
+        IConfiguration configuration,
+        IEmailSender emailSender)
+        : base(articleLogic, dbContext, storageContext, logger, powerBiTokenService, configuration, emailSender)
     {
         this.logger = logger;
         this.articleLogic = articleLogic;

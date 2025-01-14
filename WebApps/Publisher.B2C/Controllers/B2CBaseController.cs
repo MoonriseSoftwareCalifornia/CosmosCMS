@@ -13,6 +13,7 @@ namespace Cosmos.Publisher.B2C.Controllers
     using Cosmos.Common.Data;
     using Cosmos.Common.Data.Logic;
     using Cosmos.Common.Services.PowerBI;
+    using Microsoft.AspNetCore.Identity.UI.Services;
 
     /// <summary>
     /// Base controller for B2C controllers.
@@ -30,8 +31,16 @@ namespace Cosmos.Publisher.B2C.Controllers
         /// <param name="logger">Log service.</param>
         /// <param name="powerBiTokenService">Power BI service.</param>
         /// <param name="configuration">Application configuration.</param>
-        public B2CBaseController(ArticleLogic articleLogic, ApplicationDbContext dbContext, StorageContext storageContext, ILogger logger, PowerBiTokenService powerBiTokenService, IConfiguration configuration)
-            : base(articleLogic, dbContext, storageContext, logger, powerBiTokenService)
+        /// <param name="emailSender">Email service.</param>
+        public B2CBaseController(
+            ArticleLogic articleLogic,
+            ApplicationDbContext dbContext,
+            StorageContext storageContext,
+            ILogger logger,
+            PowerBiTokenService powerBiTokenService,
+            IConfiguration configuration,
+            IEmailSender emailSender)
+            : base(articleLogic, dbContext, storageContext, logger, powerBiTokenService, emailSender)
         {
             this.configuration = configuration;
         }

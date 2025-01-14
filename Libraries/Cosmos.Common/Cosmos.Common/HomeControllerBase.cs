@@ -20,6 +20,7 @@ namespace Cosmos.Common
     using MailChimp.Net.Models;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Cors;
+    using Microsoft.AspNetCore.Identity.UI.Services;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.RateLimiting;
     using Microsoft.EntityFrameworkCore;
@@ -36,6 +37,7 @@ namespace Cosmos.Common
         private readonly StorageContext storageContext;
         private readonly ILogger logger;
         private readonly PowerBiTokenService powerBiTokenService;
+        private readonly IEmailSender emailSender;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HomeControllerBase"/> class.
@@ -45,18 +47,21 @@ namespace Cosmos.Common
         /// <param name="storageContext">Storage context.</param>
         /// <param name="logger">Logger service.</param>
         /// <param name="powerBiTokenService">Power BI Token Service.</param>
+        /// <param name="emailSender">Email sender service.</param>
         public HomeControllerBase(
             ArticleLogic articleLogic,
             ApplicationDbContext dbContext,
             StorageContext storageContext,
             ILogger logger,
-            PowerBiTokenService powerBiTokenService)
+            PowerBiTokenService powerBiTokenService,
+            IEmailSender emailSender)
         {
             this.articleLogic = articleLogic;
             this.dbContext = dbContext;
             this.storageContext = storageContext;
             this.logger = logger;
             this.powerBiTokenService = powerBiTokenService;
+            this.emailSender = emailSender;
         }
 
         /// <summary>
@@ -165,6 +170,25 @@ namespace Cosmos.Common
                     var updated = await manager.Members.AddOrUpdateAsync(mclist.Id, member);
 
                     logger.LogInformation($"Add or updated {updated.FullName} {updated.EmailAddress} with MailChimp on {updated.LastChanged}.");
+                }
+
+                var alertsSetting = await dbContext.Settings.FirstOrDefaultAsync(w => w.Group == "ContactsConfig" && w.Name == "EnableAlerts");
+
+                if (alertsSetting != null && bool.Parse(alertsSetting.Value) == true)
+                {
+                    // Not using UserManager because we don't want to require injection for that in this base class.
+                    var adminUserGroup = await dbContext.Roles.FirstOrDefaultAsync(w => w.NormalizedName == "ADMINISTRATORS");
+                    var roleUsers = await dbContext.UserRoles.Where(w => w.RoleId == adminUserGroup.Id).Select(s => s.UserId).ToArrayAsync();
+                    var admins = await dbContext.Users.Where(w => roleUsers.Contains(w.Id)).Select(s => s.Email).ToArrayAsync();
+
+                    var subject = "New Contact Information";
+                    var body = $"<p>New contact information received from {model.FirstName} {model.LastName} at {model.Email} on website '{HttpContext.Request.Host}.'</p>";
+                    body += $"<p><a title='Download contacts list.' href='https://{HttpContext.Request.Host}/Cosmos___Contacts'>Click here</a> to open your contact list. You can download the list from there.</p>";
+
+                    foreach (var e in admins)
+                    {
+                        await emailSender.SendEmailAsync(e, subject, body);
+                    }
                 }
 
                 return Json(model);

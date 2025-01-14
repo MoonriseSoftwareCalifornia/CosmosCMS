@@ -23,6 +23,7 @@ namespace Cosmos.Cms.Controllers
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Identity;
+    using Microsoft.AspNetCore.Identity.UI.Services;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
@@ -53,6 +54,7 @@ namespace Cosmos.Cms.Controllers
         /// <param name="userManager">User manager.</param>
         /// <param name="storageContext"><see cref="StorageContext">File storage context</see>.</param>
         /// <param name="powerBiTokenService">Service used to get tokens from Power BI.</param>
+        /// <param name="emailSender">Email service.</param>
         public HomeController(
             ILogger<HomeController> logger,
             IOptions<CosmosConfig> options,
@@ -60,8 +62,9 @@ namespace Cosmos.Cms.Controllers
             ArticleEditLogic articleLogic,
             UserManager<IdentityUser> userManager,
             StorageContext storageContext,
-            PowerBiTokenService powerBiTokenService)
-            : base(articleLogic, dbContext, storageContext, logger, powerBiTokenService)
+            PowerBiTokenService powerBiTokenService,
+            IEmailSender emailSender)
+            : base(articleLogic, dbContext, storageContext, logger, powerBiTokenService, emailSender)
         {
             this.logger = logger;
             this.options = options;

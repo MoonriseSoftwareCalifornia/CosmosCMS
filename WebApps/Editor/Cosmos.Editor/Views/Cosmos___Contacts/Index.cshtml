@@ -1,6 +1,7 @@
 ﻿@{
     ViewData["Title"] = "Customer Contact List";
     var mailChimpIntegrated = (bool)ViewData["MailChimpIntegrated"];
+    var enabled = (bool)ViewData["EnableAlerts"];
 }
 <div class="pt-3">
     <div class="container">
@@ -21,8 +22,14 @@
             </div>
         </div>
         <div class="row cpws-table-pager-row-top">
-            <div class="col-md-12">
+            <div class="col-md-10">
                 <a class="btn btn-sm btn-secondary float-right" title="Download the contact list." href="/Cosmos___Contacts/ExportContacts" download>Download</a>
+            </div>
+            <div class="col-md-2 justify-content-end">
+                <div class="form-check form-switch pt-2">
+                    <input id="switchAlert" class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckChecked" @if (enabled) { <text>checked</text>} />
+                    <label class="form-check-label text-light" for="flexSwitchCheckChecked">Enable alerts</label>
+                </div>
             </div>
         </div>
         <div class="row bg-dark text-light">
@@ -81,5 +88,21 @@
                 searchable: false
             }
         ]
+    });
+
+    $('#switchAlert').change(function () {
+        var enabled = $(this).prop('checked');
+        $.ajax({
+            url: '/Cosmos___Contacts/EnableAlerts',
+            type: 'POST',
+            data: { enable: enabled },
+            success: function (data) {
+                if (data.success) {
+                    //toastr.success(data.message);
+                } else {
+                    //toastr.error(data.message);
+                }
+            }
+        });
     });
 </script>
