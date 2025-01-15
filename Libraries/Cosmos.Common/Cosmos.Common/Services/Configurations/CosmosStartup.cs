@@ -7,11 +7,11 @@
 
 namespace Cosmos.Cms.Common.Services.Configurations
 {
-    using System;
     using Azure.Identity;
     using Cosmos.Common.Services.Configurations;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Options;
+    using System;
 
     /// <summary>
     ///     Cosmos startup configuration.

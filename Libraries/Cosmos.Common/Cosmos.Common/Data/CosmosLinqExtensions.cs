@@ -7,9 +7,9 @@
 
 namespace Cosmos.Common.Data
 {
+    using Microsoft.EntityFrameworkCore;
     using System.Linq;
     using System.Threading.Tasks;
-    using Microsoft.EntityFrameworkCore;
 
     /// <summary>
     /// Cosmos custom Any LINQ method.

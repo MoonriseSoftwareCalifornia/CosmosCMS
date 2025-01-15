@@ -7,16 +7,16 @@
 
 namespace Cosmos.Common.Services.PowerBI
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Runtime.InteropServices;
-    using System.Threading.Tasks;
     using Microsoft.Extensions.Options;
     using Microsoft.Identity.Client;
     using Microsoft.PowerBI.Api;
     using Microsoft.PowerBI.Api.Models;
     using Microsoft.Rest;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Runtime.InteropServices;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Power BI Token service.
@@ -137,9 +137,9 @@ namespace Cosmos.Common.Services.PowerBI
             // Create a request for getting Embed token.
             // This method works only with new Power BI V2 workspace experience.
             var tokenRequest = new GenerateTokenRequestV2(
-                reports: new List<GenerateTokenRequestV2Report>() { new (reportId) },
+                reports: new List<GenerateTokenRequestV2Report>() { new(reportId) },
                 datasets: datasetIds != null ? datasetIds.Select(datasetId => new GenerateTokenRequestV2Dataset(datasetId.ToString())).ToList() : null,
-                targetWorkspaces: targetWorkspaceId != null && targetWorkspaceId != Guid.Empty ? new List<GenerateTokenRequestV2TargetWorkspace>() { new (targetWorkspaceId.Value) } : null);
+                targetWorkspaces: targetWorkspaceId != null && targetWorkspaceId != Guid.Empty ? new List<GenerateTokenRequestV2TargetWorkspace>() { new(targetWorkspaceId.Value) } : null);
 
             // Generate Embed token.
             var embedToken = pbiClient.EmbedToken.GenerateToken(tokenRequest);
@@ -172,7 +172,7 @@ namespace Cosmos.Common.Services.PowerBI
 
             // Create a request for getting Embed token.
             // This method works only with new Power BI V2 workspace experience.
-            var tokenRequest = new GenerateTokenRequestV2(datasets: datasets, reports: reports, targetWorkspaces: targetWorkspaceId != Guid.Empty ? new List<GenerateTokenRequestV2TargetWorkspace>() { new (targetWorkspaceId) } : null);
+            var tokenRequest = new GenerateTokenRequestV2(datasets: datasets, reports: reports, targetWorkspaces: targetWorkspaceId != Guid.Empty ? new List<GenerateTokenRequestV2TargetWorkspace>() { new(targetWorkspaceId) } : null);
 
             // Generate Embed token
             var embedToken = pbiClient.EmbedToken.GenerateToken(tokenRequest);

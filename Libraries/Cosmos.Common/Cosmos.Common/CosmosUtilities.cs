@@ -7,15 +7,15 @@
 
 namespace Cosmos.Common
 {
+    using Cosmos.BlobService;
+    using Cosmos.Common.Data;
+    using Cosmos.Common.Models;
+    using Microsoft.EntityFrameworkCore;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Security.Claims;
     using System.Threading.Tasks;
-    using Cosmos.BlobService;
-    using Cosmos.Common.Data;
-    using Cosmos.Common.Models;
-    using Microsoft.EntityFrameworkCore;
 
     /// <summary>
     /// Static utilities class.

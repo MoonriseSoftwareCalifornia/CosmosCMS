@@ -7,21 +7,20 @@
 
 namespace Cosmos.Common.Data.Logic
 {
+    using Cosmos.Cms.Common.Services.Configurations;
+    using Cosmos.Common.Data;
+    using Cosmos.Common.Models;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Caching.Distributed;
+    using Microsoft.Extensions.Caching.Memory;
+    using Microsoft.Extensions.Options;
+    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
-    using Cosmos.Cms.Common.Services.Configurations;
-    using Cosmos.Common.Data;
-    using Cosmos.Common.Models;
-    using MailChimp.Net.Models;
-    using Microsoft.EntityFrameworkCore;
-    using Microsoft.Extensions.Caching.Distributed;
-    using Microsoft.Extensions.Caching.Memory;
-    using Microsoft.Extensions.Options;
-    using Newtonsoft.Json;
 
     /// <summary>
     ///     Main logic behind getting and maintaining web site articles.

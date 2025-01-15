@@ -7,8 +7,8 @@
 
 namespace Cosmos.Common.Models
 {
-    using System.Collections.Generic;
     using Cosmos.Common.Data;
+    using System.Collections.Generic;
 
     /// <summary>
     ///     Default layouts installed during setup.
@@ -49,7 +49,7 @@ namespace Cosmos.Common.Models
         /// <returns>Returns a <see cref="Layout"/>.</returns>
         public static Layout GetOceanside()
         {
-            return new ()
+            return new()
             {
                 // Negative ID added to avoid this error while seeding:
                 // The seed entity for entity type 'Layout' cannot be added because a non-zero value is required for property 'Id'. Consider providing a negative value to avoid collisions with non-seed data.

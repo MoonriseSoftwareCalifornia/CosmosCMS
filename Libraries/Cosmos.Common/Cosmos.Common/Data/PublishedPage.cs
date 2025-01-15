@@ -7,9 +7,9 @@
 
 namespace Cosmos.Common.Data
 {
+    using Cosmos.Common.Data.Logic;
     using System;
     using System.ComponentModel.DataAnnotations;
-    using Cosmos.Common.Data.Logic;
 
     /// <summary>
     /// Published article or page.

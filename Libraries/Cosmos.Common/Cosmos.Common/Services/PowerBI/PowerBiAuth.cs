@@ -7,8 +7,8 @@
 
 namespace Cosmos.Common.Services.PowerBI
 {
-    using System.Linq;
     using Cosmos.Common.Services.Configurations;
+    using System.Linq;
 
     /// <summary>
     /// Power BI Entra ID App configuration.

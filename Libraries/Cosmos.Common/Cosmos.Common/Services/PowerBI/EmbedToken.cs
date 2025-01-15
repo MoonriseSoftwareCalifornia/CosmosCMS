@@ -7,8 +7,8 @@
 
 namespace Cosmos.Common.Services.PowerBI
 {
-    using System;
     using Microsoft.Rest;
+    using System;
 
     /// <summary>
     /// Embed Token.

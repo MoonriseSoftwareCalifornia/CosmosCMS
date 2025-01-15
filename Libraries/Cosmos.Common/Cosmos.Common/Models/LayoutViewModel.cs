@@ -7,10 +7,10 @@
 
 namespace Cosmos.Common.Models
 {
+    using Cosmos.Common.Data;
     using System;
     using System.ComponentModel.DataAnnotations;
     using System.Web;
-    using Cosmos.Common.Data;
 
     /// <summary>
     ///     VSiew model used on layout list page.
