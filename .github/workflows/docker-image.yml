@@ -25,7 +25,3 @@ jobs:
       run: docker build . --file WebApps/Publisher/Cosmos.Publisher/Dockerfile --tag ${{ secrets.DOCKERLOGIN}}/cosmos-publisher:latest
     - name: Push Publisher container to Docker Hub
       run: docker push ${{ secrets.DOCKERLOGIN}}/cosmos-publisher
-    - name: Build B2C Publisher Docker Image
-      run: docker build . --file WebApps/Publisher.B2C/Dockerfile --tag ${{ secrets.DOCKERLOGIN}}/cosmos-publisher-b2c:latest
-    - name: Push B2C Publisher container to Docker Hub
-      run: docker push ${{ secrets.DOCKERLOGIN}}/cosmos-publisher-b2c
