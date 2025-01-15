@@ -5,10 +5,10 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System.Collections.Generic;
+
 namespace Cosmos.Editor.Models.GrapesJs
 {
-    using System.Collections.Generic;
-
     /// <summary>
     /// Represents a project in GrapesJs.
     /// </summary>

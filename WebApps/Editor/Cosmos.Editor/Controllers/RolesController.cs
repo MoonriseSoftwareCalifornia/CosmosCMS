@@ -5,21 +5,21 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using Cosmos.Cms.Common.Services.Configurations;
+using Cosmos.Cms.Models;
+using Cosmos.Common.Data;
+using Cosmos.Editor.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+
 namespace Cosmos.IdentityManagement.Website.Controllers
 {
-    using System;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Cosmos.Cms.Common.Services.Configurations;
-    using Cosmos.Cms.Models;
-    using Cosmos.Common.Data;
-    using Cosmos.Editor.Services;
-    using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Identity;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.EntityFrameworkCore;
-    using Microsoft.Extensions.Options;
-
     /// <summary>
     /// Role management controller.
     /// </summary>

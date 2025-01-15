@@ -5,13 +5,13 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using Cosmos.Cms.Models.Interfaces;
+
 namespace Cosmos.Cms.Models
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel.DataAnnotations;
-    using Cosmos.Cms.Models.Interfaces;
-
     /// <summary>
     /// Template code editor view model.
     /// </summary>

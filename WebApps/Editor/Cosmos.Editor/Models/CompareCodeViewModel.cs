@@ -5,12 +5,12 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System.Collections.Generic;
+using Cosmos.Cms.Models.Interfaces;
+using Cosmos.Common.Models;
+
 namespace Cosmos.Cms.Models
 {
-    using System.Collections.Generic;
-    using Cosmos.Cms.Models.Interfaces;
-    using Cosmos.Common.Models;
-
     /// <summary>
     /// Compare code between two pages.
     /// </summary>

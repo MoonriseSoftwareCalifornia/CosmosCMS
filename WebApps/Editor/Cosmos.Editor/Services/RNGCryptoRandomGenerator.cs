@@ -5,11 +5,11 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System;
+using System.Security.Cryptography;
+
 namespace Cosmos.Cms.Services
 {
-    using System;
-    using System.Security.Cryptography;
-
     /// <summary>
     /// Random number generator.
     /// </summary>

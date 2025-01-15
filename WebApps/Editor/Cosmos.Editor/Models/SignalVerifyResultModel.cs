@@ -5,10 +5,10 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System;
+
 namespace Cosmos.Cms.Models
 {
-    using System;
-
     /// <summary>
     ///     This is a verification message that an Editor can be reached.
     /// </summary>

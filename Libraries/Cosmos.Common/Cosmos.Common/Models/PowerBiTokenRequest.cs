@@ -5,11 +5,11 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System;
+using System.Collections.Generic;
+
 namespace Cosmos.Common.Models
 {
-    using System;
-    using System.Collections.Generic;
-
     /// <summary>
     /// Power BI Token request model.
     /// </summary>

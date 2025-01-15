@@ -7,11 +7,11 @@
 
 namespace Cosmos.Common.Models
 {
+    using System;
+    using System.ComponentModel.DataAnnotations;
     using Cosmos.Common.Data.Logic;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Options;
-    using System;
-    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     ///     Article view model, used to display content on a web page.

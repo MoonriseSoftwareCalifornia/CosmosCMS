@@ -5,14 +5,14 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using Cosmos.Common.Data;
+using Cosmos.Common.Models;
+
 namespace Cosmos.Editor.Models
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel.DataAnnotations;
-    using Cosmos.Common.Data;
-    using Cosmos.Common.Models;
-
     /// <summary>
     /// Article designer post model.
     /// </summary>

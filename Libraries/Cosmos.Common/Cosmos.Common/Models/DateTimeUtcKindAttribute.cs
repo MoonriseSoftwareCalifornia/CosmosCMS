@@ -5,11 +5,11 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System;
+using System.ComponentModel.DataAnnotations;
+
 namespace Cosmos.Common.Models
 {
-    using System;
-    using System.ComponentModel.DataAnnotations;
-
     /// <summary>
     ///     Ensures that a DateTime object is of kind UTC.
     /// </summary>

@@ -5,10 +5,10 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System.Collections.Generic;
+
 namespace Cosmos.Cms.Data
 {
-    using System.Collections.Generic;
-
     /// <summary>
     /// Required roles for Cosmos.
     /// </summary>

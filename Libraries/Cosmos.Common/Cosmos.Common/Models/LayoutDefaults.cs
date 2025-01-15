@@ -5,11 +5,11 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using Cosmos.Common.Data;
+using System.Collections.Generic;
+
 namespace Cosmos.Common.Models
 {
-    using Cosmos.Common.Data;
-    using System.Collections.Generic;
-
     /// <summary>
     ///     Default layouts installed during setup.
     /// </summary>

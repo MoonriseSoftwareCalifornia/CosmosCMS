@@ -5,12 +5,12 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System;
+using System.ComponentModel.DataAnnotations;
+using Cosmos.Common.Data;
+
 namespace Cosmos.Cms.Models
 {
-    using System;
-    using System.ComponentModel.DataAnnotations;
-    using Cosmos.Common.Data;
-
     /// <summary>
     /// Article Edit Menu Item.
     /// </summary>

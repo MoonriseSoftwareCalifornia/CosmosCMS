@@ -5,23 +5,23 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Azure;
+using Azure.Identity;
+using Azure.ResourceManager;
+using Azure.ResourceManager.Cdn;
+using Azure.ResourceManager.Cdn.Models;
+using Cosmos.Common.Data;
+using Cosmos.Editor.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
 namespace Cosmos.Editor.Controllers
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Azure;
-    using Azure.Identity;
-    using Azure.ResourceManager;
-    using Azure.ResourceManager.Cdn;
-    using Azure.ResourceManager.Cdn.Models;
-    using Cosmos.Common.Data;
-    using Cosmos.Editor.Services;
-    using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.EntityFrameworkCore;
-
     /// <summary>
     /// The CDN controller.
     /// </summary>

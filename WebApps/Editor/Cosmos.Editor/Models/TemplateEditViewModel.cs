@@ -5,11 +5,11 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System;
+using System.ComponentModel.DataAnnotations;
+
 namespace Cosmos.Cms.Models
 {
-    using System;
-    using System.ComponentModel.DataAnnotations;
-
     /// <summary>
     /// Edit template title and description.
     /// </summary>

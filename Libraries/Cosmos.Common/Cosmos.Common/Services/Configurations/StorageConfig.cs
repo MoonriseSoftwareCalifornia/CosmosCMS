@@ -5,11 +5,11 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using Cosmos.Cms.Common.Services.Configurations.Storage;
+using System.Collections.Generic;
+
 namespace Cosmos.Cms.Common.Services.Configurations
 {
-    using Cosmos.Cms.Common.Services.Configurations.Storage;
-    using System.Collections.Generic;
-
     /// <summary>
     ///     Storage provider configuration.
     /// </summary>

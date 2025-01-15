@@ -5,10 +5,10 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System.ComponentModel.DataAnnotations;
+
 namespace Cosmos.Cms.Common.Services.Configurations
 {
-    using System.ComponentModel.DataAnnotations;
-
     /// <summary>
     ///     SendGrid Authentication Options.
     /// </summary>

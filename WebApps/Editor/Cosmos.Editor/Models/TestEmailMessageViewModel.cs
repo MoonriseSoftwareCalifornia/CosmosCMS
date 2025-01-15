@@ -5,10 +5,10 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System.ComponentModel.DataAnnotations;
+
 namespace Cosmos.Editor.Models
 {
-    using System.ComponentModel.DataAnnotations;
-
     /// <summary>
     /// Email message view model.
     /// </summary>

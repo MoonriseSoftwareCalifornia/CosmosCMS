@@ -5,13 +5,13 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System.Collections.Generic;
+using Azure.ResourceManager;
+using Cosmos.Editor.Controllers;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+
 namespace Cosmos.Cms.Models
 {
-    using System.Collections.Generic;
-    using Azure.ResourceManager;
-    using Cosmos.Editor.Controllers;
-    using Microsoft.AspNetCore.Mvc.ModelBinding;
-
     /// <summary>
     ///     Code editor return result model.
     /// </summary>

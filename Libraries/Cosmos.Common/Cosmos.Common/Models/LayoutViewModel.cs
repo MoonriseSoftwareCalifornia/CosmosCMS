@@ -5,13 +5,13 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using Cosmos.Common.Data;
+using System;
+using System.ComponentModel.DataAnnotations;
+using System.Web;
+
 namespace Cosmos.Common.Models
 {
-    using Cosmos.Common.Data;
-    using System;
-    using System.ComponentModel.DataAnnotations;
-    using System.Web;
-
     /// <summary>
     ///     VSiew model used on layout list page.
     /// </summary>

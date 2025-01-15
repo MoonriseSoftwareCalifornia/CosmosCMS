@@ -5,12 +5,12 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System.Collections.Generic;
+using Cosmos.Common.Models;
+using Cosmos.Editor.Controllers;
+
 namespace Cosmos.Cms.Models
 {
-    using System.Collections.Generic;
-    using Cosmos.Common.Models;
-    using Cosmos.Editor.Controllers;
-
     /// <summary>
     ///   The result of a update operation.
     /// </summary>

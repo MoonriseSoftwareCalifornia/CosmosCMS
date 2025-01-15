@@ -5,29 +5,29 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Web;
+using Azure.ResourceManager;
+using Cosmos.Cms.Common.Services.Configurations;
+using Cosmos.Cms.Controllers;
+using Cosmos.Cms.Models;
+using Cosmos.Common.Data;
+using Cosmos.Common.Data.Logic;
+using Cosmos.Common.Models;
+using Cosmos.Editor.Controllers;
+using Cosmos.Editor.Services;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+using SendGrid.Helpers.Errors.Model;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+
 namespace Cosmos.Cms.Data.Logic
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using System.Web;
-    using Azure.ResourceManager;
-    using Cosmos.Cms.Common.Services.Configurations;
-    using Cosmos.Cms.Controllers;
-    using Cosmos.Cms.Models;
-    using Cosmos.Common.Data;
-    using Cosmos.Common.Data.Logic;
-    using Cosmos.Common.Models;
-    using Cosmos.Editor.Controllers;
-    using Cosmos.Editor.Services;
-    using Microsoft.EntityFrameworkCore;
-    using Microsoft.Extensions.Caching.Memory;
-    using Microsoft.Extensions.Options;
-    using Newtonsoft.Json;
-    using SendGrid.Helpers.Errors.Model;
-    using static System.Runtime.InteropServices.JavaScript.JSType;
-
     /// <summary>
     ///     Article Editor Logic.
     /// </summary>

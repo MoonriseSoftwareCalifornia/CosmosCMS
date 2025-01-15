@@ -5,11 +5,11 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System;
+using System.Net;
+
 namespace Cosmos.Editor.Controllers
 {
-    using System;
-    using System.Net;
-
     /// <summary>
     /// Cdn purge result.
     /// </summary>

@@ -5,11 +5,11 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using Cosmos.EmailServices;
+using Microsoft.AspNetCore.Identity;
+
 namespace Cosmos.Cms.Models
 {
-    using Cosmos.EmailServices;
-    using Microsoft.AspNetCore.Identity;
-
     /// <summary>
     /// Returns the result of creating a user with the bulk-create method.
     /// </summary>

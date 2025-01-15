@@ -5,39 +5,39 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Web;
+using Cosmos.BlobService;
+using Cosmos.BlobService.Models;
+using Cosmos.Cms.Common.Services.Configurations;
+using Cosmos.Cms.Data.Logic;
+using Cosmos.Cms.Models;
+using Cosmos.Cms.Services;
+using Cosmos.Common.Data;
+using Cosmos.Editor.Controllers;
+using Cosmos.Editor.Models;
+using Cosmos.Editor.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using MimeTypes;
+using Newtonsoft.Json;
+using NuGet.Packaging.Signing;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
+
 namespace Cosmos.Cms.Controllers
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
-    using System.Web;
-    using Cosmos.BlobService;
-    using Cosmos.BlobService.Models;
-    using Cosmos.Cms.Common.Services.Configurations;
-    using Cosmos.Cms.Data.Logic;
-    using Cosmos.Cms.Models;
-    using Cosmos.Cms.Services;
-    using Cosmos.Common.Data;
-    using Cosmos.Editor.Controllers;
-    using Cosmos.Editor.Models;
-    using Cosmos.Editor.Services;
-    using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Hosting;
-    using Microsoft.AspNetCore.Http;
-    using Microsoft.AspNetCore.Identity;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.EntityFrameworkCore;
-    using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Options;
-    using MimeTypes;
-    using Newtonsoft.Json;
-    using NuGet.Packaging.Signing;
-    using SixLabors.ImageSharp;
-    using SixLabors.ImageSharp.Processing;
-        
     /// <summary>
     /// File manager controller.
     /// </summary>

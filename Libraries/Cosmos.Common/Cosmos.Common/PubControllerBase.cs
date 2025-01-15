@@ -5,18 +5,18 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using Cosmos.BlobService;
+using Cosmos.Cms.Common.Services.Configurations;
+using Cosmos.Common;
+using Cosmos.Common.Data;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using Microsoft.Net.Http.Headers;
+using System;
+using System.Threading.Tasks;
+
 namespace Cosmos.Publisher.Controllers
 {
-    using Cosmos.BlobService;
-    using Cosmos.Cms.Common.Services.Configurations;
-    using Cosmos.Common;
-    using Cosmos.Common.Data;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.Extensions.Options;
-    using Microsoft.Net.Http.Headers;
-    using System;
-    using System.Threading.Tasks;
-
     /// <summary>
     /// Secure file access controller and proxy.
     /// </summary>

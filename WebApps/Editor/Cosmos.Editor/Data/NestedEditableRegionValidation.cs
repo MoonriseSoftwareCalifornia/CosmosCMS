@@ -5,10 +5,10 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System.Linq;
+
 namespace Cosmos.Editor.Data
 {
-    using System.Linq;
-
     /// <summary>
     /// Checks for nested Editable Regions.
     /// </summary>

@@ -5,15 +5,15 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Logging;
+
 namespace Cosmos.Cms.Areas.Identity.Pages.Account
 {
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Identity;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.AspNetCore.Mvc.RazorPages;
-    using Microsoft.Extensions.Logging;
-
     /// <summary>
     /// Logout page model.
     /// </summary>

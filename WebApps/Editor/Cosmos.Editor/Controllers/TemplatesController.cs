@@ -5,30 +5,30 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Cosmos.BlobService;
+using Cosmos.Cms.Common.Services.Configurations;
+using Cosmos.Cms.Data.Logic;
+using Cosmos.Cms.Models;
+using Cosmos.Common.Data;
+using Cosmos.Common.Data.Logic;
+using Cosmos.Common.Models;
+using Cosmos.Editor.Data;
+using Cosmos.Editor.Data.Logic;
+using Cosmos.Editor.Models;
+using Cosmos.Editor.Models.GrapesJs;
+using HtmlAgilityPack;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+
 namespace Cosmos.Cms.Controllers
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Cosmos.BlobService;
-    using Cosmos.Cms.Common.Services.Configurations;
-    using Cosmos.Cms.Data.Logic;
-    using Cosmos.Cms.Models;
-    using Cosmos.Common.Data;
-    using Cosmos.Common.Data.Logic;
-    using Cosmos.Common.Models;
-    using Cosmos.Editor.Data;
-    using Cosmos.Editor.Data.Logic;
-    using Cosmos.Editor.Models;
-    using Cosmos.Editor.Models.GrapesJs;
-    using HtmlAgilityPack;
-    using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Identity;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.EntityFrameworkCore;
-    using Microsoft.Extensions.Options;
-
     /// <summary>
     /// Templates controller.
     /// </summary>

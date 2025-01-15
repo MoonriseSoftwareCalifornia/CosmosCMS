@@ -5,18 +5,18 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System.ComponentModel.DataAnnotations;
+using System.Text;
+using System.Text.Encodings.Web;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.WebUtilities;
+
 namespace Cosmos.Cms.Areas.Identity.Pages.Account.Manage
 {
-    using System.ComponentModel.DataAnnotations;
-    using System.Text;
-    using System.Text.Encodings.Web;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Identity;
-    using Microsoft.AspNetCore.Identity.UI.Services;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.AspNetCore.Mvc.RazorPages;
-    using Microsoft.AspNetCore.WebUtilities;
-
     /// <summary>
     /// User email page model.
     /// </summary>

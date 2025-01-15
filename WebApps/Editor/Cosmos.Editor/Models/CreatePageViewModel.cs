@@ -5,14 +5,14 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using Cosmos.Cms.Data;
+using Microsoft.AspNetCore.Mvc.Rendering;
+
 namespace Cosmos.Cms.Models
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel.DataAnnotations;
-    using Cosmos.Cms.Data;
-    using Microsoft.AspNetCore.Mvc.Rendering;
-
     /// <summary>
     /// Create page view model.
     /// </summary>

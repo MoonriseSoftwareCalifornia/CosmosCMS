@@ -5,11 +5,11 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System;
+using System.ComponentModel.DataAnnotations;
+
 namespace Cosmos.Common.Models
 {
-    using System;
-    using System.ComponentModel.DataAnnotations;
-
     /// <summary>
     /// Contact view model for editing and reporting.
     /// </summary>

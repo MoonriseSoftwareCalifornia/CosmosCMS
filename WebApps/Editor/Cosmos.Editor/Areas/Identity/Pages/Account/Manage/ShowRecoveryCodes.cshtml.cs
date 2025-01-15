@@ -5,11 +5,11 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+
 namespace Cosmos.Cms.Areas.Identity.Pages.Account.Manage
 {
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.AspNetCore.Mvc.RazorPages;
-
     /// <summary>
     /// Show recover codes page model.
     /// </summary>

@@ -5,12 +5,12 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System;
+using System.Collections.Generic;
+using System.Threading;
+
 namespace Cosmos.Cms.Common
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Threading;
-
     // https://stackoverflow.com/questions/1563191/cleanest-way-to-write-retry-logic
 
     /// <summary>

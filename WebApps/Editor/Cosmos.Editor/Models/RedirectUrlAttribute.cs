@@ -5,10 +5,10 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System.ComponentModel.DataAnnotations;
+
 namespace Cosmos.Cms.Models
 {
-    using System.ComponentModel.DataAnnotations;
-
     /// <summary>
     /// Validates if a URL is a valid redirect URL.
     /// </summary>

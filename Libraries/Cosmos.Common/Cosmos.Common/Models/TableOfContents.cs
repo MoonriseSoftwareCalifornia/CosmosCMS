@@ -5,10 +5,10 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System.Collections.Generic;
+
 namespace Cosmos.Common.Models
 {
-    using System.Collections.Generic;
-
     /// <summary>
     /// Table of context entity.
     /// </summary>

@@ -5,16 +5,16 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System;
+using System.Threading.Tasks;
+using Cosmos.Cms.Data.Logic;
+using Cosmos.Cms.Models;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+
 namespace Cosmos.Cms.Hubs
 {
-    using System;
-    using System.Threading.Tasks;
-    using Cosmos.Cms.Data.Logic;
-    using Cosmos.Cms.Models;
-    using Microsoft.AspNetCore.SignalR;
-    using Microsoft.Extensions.Logging;
-    using Newtonsoft.Json;
-
     /// <summary>
     /// Live editor collaboration hub.
     /// </summary>

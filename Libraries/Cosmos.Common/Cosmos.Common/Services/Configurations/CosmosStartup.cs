@@ -5,14 +5,14 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using Azure.Identity;
+using Cosmos.Common.Services.Configurations;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
+using System;
+
 namespace Cosmos.Cms.Common.Services.Configurations
 {
-    using Azure.Identity;
-    using Cosmos.Common.Services.Configurations;
-    using Microsoft.Extensions.Configuration;
-    using Microsoft.Extensions.Options;
-    using System;
-
     /// <summary>
     ///     Cosmos startup configuration.
     /// </summary>

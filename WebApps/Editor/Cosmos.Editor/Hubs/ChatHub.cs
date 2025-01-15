@@ -5,23 +5,23 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Cosmos.BlobService;
+using Cosmos.Cms.Data.Logic;
+using Cosmos.Cms.Models;
+using Cosmos.Common.Data;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+
 namespace Cosmos.Cms.Hubs
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
-    using Cosmos.BlobService;
-    using Cosmos.Cms.Data.Logic;
-    using Cosmos.Cms.Models;
-    using Cosmos.Common.Data;
-    using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.SignalR;
-    using Microsoft.EntityFrameworkCore;
-    using Newtonsoft.Json;
-
     /// <summary>
     /// Chat hub.
     /// </summary>

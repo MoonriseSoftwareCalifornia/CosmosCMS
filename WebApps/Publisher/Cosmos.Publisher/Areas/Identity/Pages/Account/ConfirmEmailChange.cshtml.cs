@@ -5,17 +5,17 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System.Diagnostics.CodeAnalysis;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.WebUtilities;
+
 namespace Cosmos.Cms.Areas.Identity.Pages.Account
 {
-    using System.Diagnostics.CodeAnalysis;
-    using System.Text;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Identity;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.AspNetCore.Mvc.RazorPages;
-    using Microsoft.AspNetCore.WebUtilities;
-
     /// <summary>
     /// Confirm email change page model.
     /// </summary>

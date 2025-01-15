@@ -5,11 +5,11 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System.ComponentModel.DataAnnotations;
+using Cosmos.Cms.Common.Services.Configurations;
+
 namespace Cosmos.Cms.Models
 {
-    using System.ComponentModel.DataAnnotations;
-    using Cosmos.Cms.Common.Services.Configurations;
-
     /// <summary>
     ///     Configuration index view model.
     /// </summary>

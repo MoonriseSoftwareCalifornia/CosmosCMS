@@ -16,7 +16,6 @@ namespace Cosmos.Common.Data
     /// </summary>
     public class AuthorInfo
     {
-
         /// <summary>
         /// Gets or sets the user ID.
         /// </summary>

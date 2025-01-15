@@ -5,10 +5,10 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using Microsoft.Extensions.Caching.Memory;
+
 namespace Cosmos.Cms.Common.Services
 {
-    using Microsoft.Extensions.Caching.Memory;
-
     /// <summary>
     /// Short term memory cache to take pressure off of Redis and SQL.
     /// </summary>

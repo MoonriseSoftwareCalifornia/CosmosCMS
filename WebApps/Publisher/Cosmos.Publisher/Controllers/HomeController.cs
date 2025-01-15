@@ -5,25 +5,25 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System.Diagnostics;
+using System.Net;
+using System.Text;
+using System.Web;
+using Cosmos.BlobService;
+using Cosmos.Cms.Common.Services.Configurations;
+using Cosmos.Cms.Publisher.Models;
+using Cosmos.Common;
+using Cosmos.Common.Data;
+using Cosmos.Common.Data.Logic;
+using Cosmos.Common.Models;
+using Cosmos.Common.Services.PowerBI;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+
 namespace Cosmos.Cms.Publisher.Controllers
 {
-    using System.Diagnostics;
-    using System.Net;
-    using System.Text;
-    using System.Web;
-    using Cosmos.BlobService;
-    using Cosmos.Cms.Common.Services.Configurations;
-    using Cosmos.Cms.Publisher.Models;
-    using Cosmos.Common;
-    using Cosmos.Common.Data;
-    using Cosmos.Common.Data.Logic;
-    using Cosmos.Common.Models;
-    using Cosmos.Common.Services.PowerBI;
-    using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Identity.UI.Services;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.Extensions.Options;
-
     /// <summary>
     /// Home page controller.
     /// </summary>

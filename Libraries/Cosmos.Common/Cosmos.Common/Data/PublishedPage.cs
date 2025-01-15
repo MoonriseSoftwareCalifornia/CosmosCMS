@@ -5,12 +5,12 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using Cosmos.Common.Data.Logic;
+using System;
+using System.ComponentModel.DataAnnotations;
+
 namespace Cosmos.Common.Data
 {
-    using Cosmos.Common.Data.Logic;
-    using System;
-    using System.ComponentModel.DataAnnotations;
-
     /// <summary>
     /// Published article or page.
     /// </summary>

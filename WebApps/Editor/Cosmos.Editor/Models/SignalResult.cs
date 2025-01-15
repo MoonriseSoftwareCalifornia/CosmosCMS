@@ -5,11 +5,11 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System;
+using System.Collections.Generic;
+
 namespace Cosmos.Cms.Models
 {
-    using System;
-    using System.Collections.Generic;
-
     /// <summary>
     /// Signal result.
     /// </summary>

@@ -5,10 +5,10 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System;
+
 namespace Cosmos.Cms.Models
 {
-    using System;
-
     /// <summary>
     /// Grid pager partial view model.
     /// </summary>

@@ -5,11 +5,11 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System.Collections.Generic;
+using Microsoft.AspNetCore.Mvc.Rendering;
+
 namespace Cosmos.Cms.Models
 {
-    using System.Collections.Generic;
-    using Microsoft.AspNetCore.Mvc.Rendering;
-
     /// <summary>
     /// File manager view model.
     /// </summary>

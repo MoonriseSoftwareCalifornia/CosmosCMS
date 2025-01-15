@@ -5,11 +5,11 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System.Security.Cryptography;
+using System.Text;
+
 namespace Cosmos.Editor
 {
-    using System.Security.Cryptography;
-    using System.Text;
-
     /// <summary>
     /// Little functions to help the program.cs build.
     /// </summary>

@@ -5,10 +5,10 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System;
+
 namespace Cosmos.Common.Data
 {
-    using System;
-
     /// <summary>
     /// Tracks article numbers.
     /// </summary>

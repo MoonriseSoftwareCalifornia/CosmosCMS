@@ -5,10 +5,10 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System.Collections.Generic;
+
 namespace Cosmos.Common.Services.PowerBI
 {
-    using System.Collections.Generic;
-
     /// <summary>
     /// Embed parameters.
     /// </summary>

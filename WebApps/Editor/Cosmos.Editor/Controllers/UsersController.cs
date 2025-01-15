@@ -5,27 +5,27 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Text;
+using System.Text.Encodings.Web;
+using System.Threading.Tasks;
+using Cosmos.Cms.Models;
+using Cosmos.Common.Data;
+using Cosmos.Editor.Services;
+using Cosmos.EmailServices;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+
 namespace Cosmos.Cms.Controllers
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Linq;
-    using System.Text;
-    using System.Text.Encodings.Web;
-    using System.Threading.Tasks;
-    using Cosmos.Cms.Models;
-    using Cosmos.Common.Data;
-    using Cosmos.Editor.Services;
-    using Cosmos.EmailServices;
-    using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Identity;
-    using Microsoft.AspNetCore.Identity.UI.Services;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.AspNetCore.WebUtilities;
-    using Microsoft.EntityFrameworkCore;
-    using Microsoft.Extensions.Logging;
-
     // See: https://docs.microsoft.com/en-us/aspnet/core/mvc/controllers/areas?view=aspnetcore-3.1
 
     /// <summary>

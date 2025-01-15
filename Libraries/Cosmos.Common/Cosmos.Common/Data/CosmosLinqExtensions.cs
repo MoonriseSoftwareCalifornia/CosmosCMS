@@ -5,12 +5,12 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using System.Threading.Tasks;
+
 namespace Cosmos.Common.Data
 {
-    using Microsoft.EntityFrameworkCore;
-    using System.Linq;
-    using System.Threading.Tasks;
-
     /// <summary>
     /// Cosmos custom Any LINQ method.
     /// </summary>

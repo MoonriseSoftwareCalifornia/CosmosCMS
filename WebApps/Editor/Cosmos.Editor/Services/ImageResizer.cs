@@ -5,11 +5,11 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System;
+using Cosmos.Cms.Models;
+
 namespace Cosmos.Cms.Services
 {
-    using System;
-    using Cosmos.Cms.Models;
-
     /// <summary>
     /// Image resize utility.
     /// </summary>

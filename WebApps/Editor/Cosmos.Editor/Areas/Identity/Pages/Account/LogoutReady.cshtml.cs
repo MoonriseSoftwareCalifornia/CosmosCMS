@@ -5,10 +5,10 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using Microsoft.AspNetCore.Mvc.RazorPages;
+
 namespace Cosmos.Cms.Areas.Identity.Pages.Account
 {
-    using Microsoft.AspNetCore.Mvc.RazorPages;
-
     /// <summary>
     /// Logout ready page model.
     /// </summary>

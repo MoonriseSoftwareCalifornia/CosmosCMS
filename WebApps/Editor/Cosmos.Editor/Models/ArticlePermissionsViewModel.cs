@@ -5,11 +5,11 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System;
+using Cosmos.Common.Data;
+
 namespace Cosmos.Editor.Models
 {
-    using System;
-    using Cosmos.Common.Data;
-
     /// <summary>
     /// Article permissions view model.
     /// </summary>

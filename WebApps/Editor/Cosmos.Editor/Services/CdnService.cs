@@ -5,22 +5,22 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using Azure;
+using Azure.Identity;
+using Azure.ResourceManager;
+using Azure.ResourceManager.Cdn;
+using Azure.ResourceManager.Cdn.Models;
+using Cosmos.Common.Data;
+using Cosmos.Editor.Controllers;
+
 namespace Cosmos.Editor.Services
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel.DataAnnotations;
-    using System.Linq;
-    using System.Net;
-    using System.Threading.Tasks;
-    using Azure;
-    using Azure.Identity;
-    using Azure.ResourceManager;
-    using Azure.ResourceManager.Cdn;
-    using Azure.ResourceManager.Cdn.Models;
-    using Cosmos.Common.Data;
-    using Cosmos.Editor.Controllers;
-
     /// <summary>
     ///     Configuration for Azure Front Door, Edgio or Microsoft CDN.
     /// </summary>

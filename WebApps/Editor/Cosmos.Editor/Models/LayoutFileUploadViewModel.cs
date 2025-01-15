@@ -5,12 +5,12 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System;
+using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
+
 namespace Cosmos.Cms.Models
 {
-    using System;
-    using System.ComponentModel.DataAnnotations;
-    using Microsoft.AspNetCore.Http;
-
     /// <summary>
     /// Layout file upload view model.
     /// </summary>

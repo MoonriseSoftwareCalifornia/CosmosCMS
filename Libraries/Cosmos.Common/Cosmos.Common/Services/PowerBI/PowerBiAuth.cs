@@ -5,11 +5,11 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using Cosmos.Common.Services.Configurations;
+using System.Linq;
+
 namespace Cosmos.Common.Services.PowerBI
 {
-    using Cosmos.Common.Services.Configurations;
-    using System.Linq;
-
     /// <summary>
     /// Power BI Entra ID App configuration.
     /// </summary>

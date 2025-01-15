@@ -5,20 +5,20 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+using Cosmos.Common.Data;
+using Cosmos.Common.Data.Logic;
+using HtmlAgilityPack;
+using Newtonsoft.Json;
+
 namespace Cosmos.Cms.Data.Logic
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel.DataAnnotations;
-    using System.Linq;
-    using System.Net.Http;
-    using System.Text;
-    using System.Threading.Tasks;
-    using Cosmos.Common.Data;
-    using Cosmos.Common.Data.Logic;
-    using HtmlAgilityPack;
-    using Newtonsoft.Json;
-
     /// <summary>
     /// Loads external layouts and associated page templates into Comsos CMS.
     /// </summary>

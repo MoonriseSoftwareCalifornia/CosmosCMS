@@ -5,10 +5,10 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using Newtonsoft.Json;
+
 namespace Cosmos.Cms.Models
 {
-    using Newtonsoft.Json;
-
     /// <summary>
     /// Filepond upload metadata.
     /// </summary>

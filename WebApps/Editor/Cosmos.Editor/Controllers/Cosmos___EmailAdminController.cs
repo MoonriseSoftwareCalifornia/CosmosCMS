@@ -5,17 +5,17 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System;
+using System.Threading.Tasks;
+using Cosmos.Editor.Models;
+using Cosmos.EmailServices;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+
 namespace Cosmos.Editor.Controllers
 {
-    using System;
-    using System.Threading.Tasks;
-    using Cosmos.Editor.Models;
-    using Cosmos.EmailServices;
-    using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Identity.UI.Services;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.Extensions.Logging;
-
     /// <summary>
     /// Email administrator controller.
     /// </summary>

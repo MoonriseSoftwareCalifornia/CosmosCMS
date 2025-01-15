@@ -5,11 +5,11 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System;
+using HtmlAgilityPack;
+
 namespace Cosmos.Cms.Services
 {
-    using System;
-    using HtmlAgilityPack;
-
     /// <summary>
     /// Html Utilities.
     /// </summary>

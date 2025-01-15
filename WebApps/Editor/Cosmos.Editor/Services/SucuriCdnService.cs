@@ -5,15 +5,15 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+using Cosmos.Editor.Controllers;
+
 namespace Cosmos.Editor.Services
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Net.Http;
-    using System.Text;
-    using System.Threading.Tasks;
-    using Cosmos.Editor.Controllers;
-
     /// <summary>
     /// Sucuri CDN service API class.
     /// </summary>

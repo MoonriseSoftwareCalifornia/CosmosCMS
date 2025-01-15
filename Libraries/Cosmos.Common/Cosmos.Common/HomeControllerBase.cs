@@ -7,6 +7,9 @@
 
 namespace Cosmos.Common
 {
+    using System;
+    using System.Linq;
+    using System.Threading.Tasks;
     using Cosmos.BlobService;
     using Cosmos.Common.Data;
     using Cosmos.Common.Data.Logic;
@@ -23,9 +26,6 @@ namespace Cosmos.Common
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
     using Microsoft.PowerBI.Api.Models;
-    using System;
-    using System.Linq;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// Methods common to both the editor and publisher home controllers.

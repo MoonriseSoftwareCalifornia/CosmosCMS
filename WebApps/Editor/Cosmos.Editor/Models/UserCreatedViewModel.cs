@@ -5,11 +5,11 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System.ComponentModel.DataAnnotations;
+using Cosmos.EmailServices;
+
 namespace Cosmos.Cms.Models
 {
-    using System.ComponentModel.DataAnnotations;
-    using Cosmos.EmailServices;
-
     /// <summary>
     /// User created view model.
     /// </summary>

@@ -5,11 +5,11 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+
 namespace Cosmos.Cms.Models
 {
-    using System.Collections.Generic;
-    using System.ComponentModel.DataAnnotations;
-
     /// <summary>
     /// Users in a Role.
     /// </summary>

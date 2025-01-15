@@ -5,16 +5,16 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using Cosmos.Cms.Data;
+using Cosmos.Cms.Models.Interfaces;
+using Cosmos.Common.Data;
+using Cosmos.Common.Models;
+
 namespace Cosmos.Cms.Models
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel.DataAnnotations;
-    using Cosmos.Cms.Data;
-    using Cosmos.Cms.Models.Interfaces;
-    using Cosmos.Common.Data;
-    using Cosmos.Common.Models;
-
     /// <summary>
     /// Edit code post view model.
     /// </summary>

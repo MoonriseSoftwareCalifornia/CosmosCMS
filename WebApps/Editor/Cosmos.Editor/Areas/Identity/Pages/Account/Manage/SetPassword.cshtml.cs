@@ -5,14 +5,14 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System.ComponentModel.DataAnnotations;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+
 namespace Cosmos.Cms.Areas.Identity.Pages.Account.Manage
 {
-    using System.ComponentModel.DataAnnotations;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Identity;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.AspNetCore.Mvc.RazorPages;
-
     /// <summary>
     /// Set password page model.
     /// </summary>

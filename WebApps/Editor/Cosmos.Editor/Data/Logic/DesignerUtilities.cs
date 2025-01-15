@@ -5,13 +5,13 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System.Collections.Generic;
+using System.Linq;
+using Cosmos.Editor.Models;
+using HtmlAgilityPack;
+
 namespace Cosmos.Editor.Data.Logic
 {
-    using System.Collections.Generic;
-    using System.Linq;
-    using Cosmos.Editor.Models;
-    using HtmlAgilityPack;
-
     /// <summary>
     /// Contains utility methods for the designer (GraphsJS) editor.
     /// </summary>
