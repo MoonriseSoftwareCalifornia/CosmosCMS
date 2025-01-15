@@ -122,7 +122,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\..\Cosmos.Common\Cosmos.Common\Cosmos.Common.csproj" />
+	  <ProjectReference Include="..\Common\Cosmos.Common.csproj" />
 	</ItemGroup>
 
 	<ProjectExtensions>

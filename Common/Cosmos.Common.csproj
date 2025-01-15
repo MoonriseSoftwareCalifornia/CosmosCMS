@@ -9,7 +9,7 @@
 		<Description>This package contains all the common methods and objects used by the Cosmos CMS editor website, and by any website service the role of a publishing website.</Description>
 		<Copyright>Eric Kauffman</Copyright>
 		<RepositoryType>Class Library</RepositoryType>
-		<PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<SignAssembly>false</SignAssembly>
