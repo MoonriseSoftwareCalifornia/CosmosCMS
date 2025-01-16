@@ -4,17 +4,18 @@
 [![CodeQL](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml)
 [![Publish Docker Images CI](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml)
 
-Older content management systems need significant modification and expertise to adapt to the cloud and perform well, while newer systems perform far better, they come with a price.  They are often difficult for administrators and content creators to use and maintain, or, are proprietary and expensive to own--and often requiring a steep learning curve and training budget.
+Older content management systems need significant modification and expertise to adapt to the cloud and perform well, while newer systems perform far better--but at a steep price.  Newer systems are often difficult to use and maintain. 
+Often, they are proprietary and expensive to own--and come with a steep learning curve and training budget.
 
 Cosmos solves these problems:
 
-* First of all, it is open source. Free to install and use, and obtain the source code.
-* Next, it is cloud-native which means it is high performance "out of the box" not needing modification.
+* First of all, it is open source. Free to install and use.
+* Next, it is cloud-native and is high performance "out of the box." No mods needed.
 * Its installation and operation are a "breeze."
 * No steep learning curve, or expensive expertise to develop.
 * Web developers need only be skilled in general HTML, CSS and JavaScript to build websites.
 * Developers can hand over content management to non-technical maintainers with little or no training.
-* Cosmos comes with the best content tools on the plantet: CKEditor, GrapesJS, VS Code, FileRobot.
+* Cosmos comes with the best content tools on the planet: CKEditor, GrapesJS, VS Code, FileRobot.
 
 Content creators and developers have called Cosmos "a dream to use. "Here is a look at the content tools built-in to it:
 
