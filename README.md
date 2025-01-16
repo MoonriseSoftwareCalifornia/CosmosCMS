@@ -1,5 +1,5 @@
 # Cosmos CMS
-[Project Website](https://cosmos.moonrise.net) | [Documentation](https://cosmos.moonrise.net/Docs) | [Get Free Help](https://cosmos.moonrise.net/Support) | [YouTube Channel](https://www.youtube.com/@cosmos-cms) | [Install](#Installation)
+[Project Website](https://cosmos.moonrise.net) | [Documentation](https://cosmos.moonrise.net/Docs) | [Get Free Help](https://cosmos.moonrise.net/Support) | [YouTube Channel](https://www.youtube.com/@cosmos-cms) | [Install](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS?tab=readme-ov-file#installation)
 
 [![CodeQL](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml)
 [![Publish Docker Images CI](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml)
@@ -96,26 +96,3 @@ Here is a listing of each template with a deployment link:
 * Install with [Azure Communication Services (with Email)](https://learn.microsoft.com/en-us/azure/communication-services/quickstarts/email/send-email?tabs=windows%2Cconnection-string%2Csend-email-and-get-status-async%2Csync-client&pivots=platform-azportal) integration. [[View Source]](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/blob/main/ArmTemplates/Installation/azuredeploy-azurecomm.json) [[Run Script]](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FMoonriseSoftwareCalifornia%2FCosmosCMS%2Frefs%2Fheads%2Fmain%2FArmTemplates%2FInstallation%2Fazuredeploy-azurecomm.json "Clicking here will use this script to deploy Cosmos with this option.")
 * Install with [Twillio SendGrid](https://sendgrid.com/en-us/partners/azure) integration. [[View Source]](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/blob/main/ArmTemplates/Installation/azuredeploy-sendgrid.json) [[Run Script]](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FMoonriseSoftwareCalifornia%2FCosmosCMS%2Frefs%2Fheads%2Fmain%2FArmTemplates%2FInstallation%2Fazuredeploy-sendgrid.json "Clicking here will use this script to deploy Cosmos with this option.")
 * Install to work with any SMTP service. [[View Source]](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/blob/main/ArmTemplates/Installation/azuredeploy-smtp.json) [[Run Script]](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FMoonriseSoftwareCalifornia%2FCosmosCMS%2Frefs%2Fheads%2Fmain%2FArmTemplates%2FInstallation%2Fazuredeploy-smtp.json "Clicking here will use this script to deploy Cosmos with this option.")
-
-## Features
-
-For non-technical users:
-* Cosmos offers a set of user-friendly editing tools that enables you to write content and upload media files directly inside of web pages. It also has an "Auto Save" feature so you save your changes as you create.
-* It also comes with a built-in image editor making quick edits possible without having to first download the image.
-
-For web designers and engineers:
-* Cosmos is an open canvas, allowing them to use their choice of UI framework.
-* Back-end developers can work with .Net, NodeJS, React, Angular, Java, PHP, or Perl, users can build custom functionality in Cosmos.
-* Cosmos comes with the Monaco code editor which uses the same engine as Visual Studio Code.
-* It also comes with DIFF tool that enables users to compare any two versions of a web page. This tool, combined with the HTML editor's "AutoSave" feature, makes it easy for users to create and manage content efficiently.
-
-For administrators:
-* Its tight integration with Azure allows it to scale up for high performance with multi-region “hot” replicas or scale down for less demanding scenarios and operate very inexpensively.
-* Cosmos is built with integration for Azure CDNs, Front Door and Web Application Firewall, and needs little to no configuration for each. 
-
-## Contents of this repository
-
-* The Content Editor
-* The publisher
-* Code libraries
-
