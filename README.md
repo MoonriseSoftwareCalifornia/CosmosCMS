@@ -1,10 +1,12 @@
 # Cosmos CMS
-[Project Website](https://cosmos.moonrise.net) | [Documentation](https://cosmos.moonrise.net) | [Get Help](https://cosmos.moonrise.net/Support)
+[Project Website](https://cosmos.moonrise.net) | [Documentation](https://cosmos.moonrise.net/Docs) | [Get Free Help](https://cosmos.moonrise.net/Support) | [YouTube Channel](https://www.youtube.com/@cosmos-cms) | [Install](#Installation)
 
 [![CodeQL](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml)
 [![Publish Docker Images CI](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml)
 
-Cosmos CMS is light weight, high performance, cloud-native web content management system that uses the best tools on the planet to create and manage web content.
+Cosmos CMS is light weight, high performance, cloud-native web content management system that uses the best tools on the planet to create and manage web content. It is freely distributed as open source software licensed under [GNU GENERAL PUBLIC LICENSE Version 3](License.md).
+
+Forks, pull requests, feature and code suggestions, and any type of help is welcomed and greatly appreciated!
 
 ## CKEditor 5
 
@@ -17,6 +19,8 @@ Cosmos CMS is light weight, high performance, cloud-native web content managemen
 ![GrapesJS](grapesjs.png)
 
 [GrapesJS](https://grapesjs.com/) is a free, open-source web builder framework designed to help developers and designers create and customize web pages and HTML templates with ease. It features a visual editor with a drag-and-drop interface, allowing users to build complex web pages without needing extensive coding knowledge [3](https://esketchers.com/grapesjs-things-to-consider-before-using-it/). GrapesJS is popular due to its flexibility, extensive customization options, and a wide range of pre-designed templates and components [4](https://www.talentica.com/blogs/grapesjs-things-to-consider-before-using-it/). It was initially developed to be integrated into Content Management Systems (CMS) to speed up the creation of dynamic templates, making it a versatile tool for both beginners and experienced developers [4](https://www.talentica.com/blogs/grapesjs-things-to-consider-before-using-it/). The ability to export designs in various formats and its active community support further contribute to its widespread adoption [3](https://esketchers.com/grapesjs-things-to-consider-before-using-it/).
+
+See our [YouTube video](https://www.youtube.com/watch?v=mVGPlbnbC5c) that shows GrapesJS at work with Cosmos.
 
 ## Monaco/Visual Studio Code
 
@@ -36,39 +40,62 @@ Our implementation of Monaco includes a DIFF tool and Emmet Notation.
 
 [FilePond](https://pqina.nl/filepond/) is a versatile file upload library designed for web applications, offering a sleek and customizable interface for handling file uploads. It supports features like image previews, drag-and-drop functionality, and file validation, making it user-friendly and efficient [9](https://npm-compare.com/filepond). FilePond's popularity stems from its ease of integration, extensive customization options, and the ability to handle various file types seamlessly [9](https://npm-compare.com/filepond). Its active community and continuous updates ensure it remains a reliable and up-to-date solution for developers looking to enhance their web applications with robust file upload capabilities [9](https://npm-compare.com/filepond).
 
-## Free Install Options
+## Cosmos CMS Architecture
 
-Install Cosmos without email provider integration (can be added later):
+Cosmos is a **decoupled web content management system (CMS)**. This separates the content creation and management from the presentation layer. In this setup, the backend (where content is created and managed) is independent of the frontend (where content is displayed). This allows content to be delivered to various platforms, such as websites, mobile apps, and IoT devices, through APIs, without being tied to a specific presentation framework.
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fcosmosassets.z22.web.core.windows.net%2FArmTemplates%2FInstallation%2Fazuredeploy-no-email.json)
+The benefits of a decoupled CMS include greater flexibility and scalability. Since the backend and frontend are independent, developers can use different technologies for each, optimizing performance and user experience. It also allows for faster updates and easier maintenance, as changes in one layer do not directly affect the other. Additionally, content can be reused across multiple channels, enhancing consistency and efficiency in content delivery.
 
-### These install options require an Email service to already be installed:
+### The Editor App
 
-| Email Service | Install Button |
-| ------------- | -------------- |
-| [Azure Communication Services (with Email)](https://learn.microsoft.com/en-us/azure/communication-services/quickstarts/email/send-email?tabs=windows%2Cconnection-string%2Csend-email-and-get-status-async%2Csync-client&pivots=platform-azportal)| [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fcosmosassets.z22.web.core.windows.net%2FArmTemplates%2FInstallation%2Fazuredeploy-azurecomm.json) |
-| [Twillio SendGrid](https://sendgrid.com/en-us/partners/azure) | [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fcosmosassets.z22.web.core.windows.net%2FArmTemplates%2FInstallation%2Fazuredeploy-sendgrid.json) |
-| Any SMTP Email service | [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fcosmosassets.z22.web.core.windows.net%2FArmTemplates%2FInstallation%2Fazuredeploy-smtp.json) |
+Content is created an managed using the "Editor," which includes the content editing tools menstioned above. The source code for the editor can be found in the [Editor](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/tree/main/Editor) folder of this repository.
 
-## About
+### The Publisher
 
-Cosmos is a "decoupled"](https://en.wikipedia.org/wiki/Headless_content_management_system#Decoupled_CMS) web content management system, meaning content distribution is separated from content management. This provides significant performance and security benefits over monolithic systems of the past.
+Your website and content is hosted by the [Publisher](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/tree/main/Publisher) web application. It is designed to be extremely fast. This is accomplished through keeping the code base lean and uncomplicated.
 
-Content distribution is handled by:
+### NoSQL Database - Cosmos DB
 
-* A static website backed by blob storage, where static content like CSS, JavaScript and images are served from. This is where the majority of content comes from.
-* [A lightweight dynamic, ready-only API/HTML website](https://github.com/MoonriseSoftwareCalifornia/Cosmos/tree/main/WebApps/Publisher) hosts the dynamic content.
+Cosmos CMS uses **Azure Cosmos DB**, which is a fully managed, globally distributed NoSQL and relational database service provided by Microsoft. It is designed to offer high availability, low latency, and seamless scalability for modern applications. Azure Cosmos DB supports multiple data models, including document, key-value, graph, and column-family, and provides APIs for popular databases like MongoDB, Cassandra, and Gremlin [10](https://learn.microsoft.com/en-us/azure/cosmos-db/) [11](https://learn.microsoft.com/en-us/azure/cosmos-db/introduction).
 
-Content is managed by a [separate web application](https://github.com/MoonriseSoftwareCalifornia/Cosmos/tree/main/WebApps/Editor) that uses:
+We built Cosmos CMS upon this database to leverage its high availability, low latency, and global distribution capabilities. Cosmos DB's ability to handle diverse data models and provide seamless scalability ensures that the CMS can efficiently manage and deliver content to users worldwide. Its multi-region data distribution feature allows for fast, localized access to content, enhancing user experience. Additionally, Cosmos DB's robust security and enterprise-grade SLAs ensure that the CMS remains reliable and secure, even under heavy traffic and complex workloads.
 
-* [CKEditor](https://www.cosmoswps.com/cosmos/documentation/creating_content/live_editor) for easy WYSIWYG or ["live" editing](https://www.cosmoswps.com/cosmos/documentation/creating_content/live_editor)
-* Online version of VS Code called ["Monaco"](https://microsoft.github.io/monaco-editor/)
-* [File management tool](https://www.cosmoswps.com/cosmos/documentation/managing_files) for the static website and server-side code
-* An [online image editor](https://www.cosmoswps.com/cosmos/documentation/creating_content/image_editor)
+### Blob Storage and Static Website
 
-Data is stored in Azure Cosmos--a NoSQL database with regional redundancy with active-active replication.
+Cosmos stores static assets uploaded as content to the website in a **blob storage** with a **static website**. This is key to how Cosmos can perform so well. Hosting website assets this way offers several benefits:
 
-Because Cosmos stores content in a cloud-based BLOB storage and NoSQL database, it comes with near-limitless storage capacity.
+* Using blob storage with a static website significantly improves performance, as content is served directly from the storage, reducing server load and latency.
+* Additionally, blob storage provides a cost-effective and scalable solution for storing large amounts of unstructured data, such as images, videos, and documents.
+* It ensures high availability and durability, meaning your assets are always accessible and protected against data loss.
+* This setup also simplifies deployment and maintenance, as there is no need for server-side processing, making it easier to manage and update your website.
+
+## Code Base
+
+If you are a JavaScript developer you should feel right at home with Cosmos.  The bulk of the code (69%) is from CKEditor, GrapesJS, Monaco, Filerobot, and Filepond--all of which are JavaScript based. Back-end logic is written in ASP.NET Core (C#), and that accounts for only 9%. What remains is CSS, HTML, SCSS and TypeScript.
+
+![Code Base Percentages](CosmosCodeBase.png)
+
+Most of what makes up Cosmos is NPM and NuGet package-based.
+
+## Docker Containers
+
+Both the Editor and Publisher are deployed as Docker containers.  Each can be found on Docker Hub:
+
+* [Editor Docker Container](https://hub.docker.com/r/toiyabe/cosmos-editor)
+* [Publisher Docker Container](https://hub.docker.com/r/toiyabe/cosmos-publisher)
+
+## Installation
+
+Cosmos and all its components are installed using Azure Resource Manager (ARM) templates.  The source code for these templates are located in the [ArmTemplates](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/tree/main/ArmTemplates/Installation) folder of this repository.
+
+Here is a [YouTube video](https://www.youtube.com/watch?v=KUC58_6mH24&t=47s) that shows how the install works.
+
+Here is a listing of each template with a deployment link:
+
+* Install without EMail service integration.  This is a good option if you would like to quickly try Cosmos. EMail integration can be added later. [[View Source]](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/blob/main/ArmTemplates/Installation/azuredeploy-no-email.json) [[Run Script]](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FMoonriseSoftwareCalifornia%2FCosmosCMS%2Frefs%2Fheads%2Fmain%2FArmTemplates%2FInstallation%2Fazuredeploy-no-email.json "Clicking here will use this script to deploy Cosmos with this option.")
+* Install with [Azure Communication Services (with Email)](https://learn.microsoft.com/en-us/azure/communication-services/quickstarts/email/send-email?tabs=windows%2Cconnection-string%2Csend-email-and-get-status-async%2Csync-client&pivots=platform-azportal) integration. [[View Source]](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/blob/main/ArmTemplates/Installation/azuredeploy-azurecomm.json) [[Run Script]](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FMoonriseSoftwareCalifornia%2FCosmosCMS%2Frefs%2Fheads%2Fmain%2FArmTemplates%2FInstallation%2Fazuredeploy-azurecomm.json "Clicking here will use this script to deploy Cosmos with this option.")
+* Install with [Twillio SendGrid](https://sendgrid.com/en-us/partners/azure) integration. [[View Source]](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/blob/main/ArmTemplates/Installation/azuredeploy-sendgrid.json) [[Run Script]](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FMoonriseSoftwareCalifornia%2FCosmosCMS%2Frefs%2Fheads%2Fmain%2FArmTemplates%2FInstallation%2Fazuredeploy-sendgrid.json "Clicking here will use this script to deploy Cosmos with this option.")
+* Install to work with any SMTP service. [[View Source]](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/blob/main/ArmTemplates/Installation/azuredeploy-smtp.json) [[Run Script]](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FMoonriseSoftwareCalifornia%2FCosmosCMS%2Frefs%2Fheads%2Fmain%2FArmTemplates%2FInstallation%2Fazuredeploy-smtp.json "Clicking here will use this script to deploy Cosmos with this option.")
 
 ## Features
 
