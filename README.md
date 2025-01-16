@@ -8,7 +8,7 @@ Older web content management systems like WordPress need significant modificatio
 
 Cosmos solves these problems:
 
-* First of all, it is open source. Free to install and use.
+* First of all, it is ***open source***. Free to install and use.
 * Next, it is "out of the box" high performance and more secure. No mods needed.
 * Its installation and operation are a "breeze."
 * No steep learning curve, or expensive expertise to develop.
