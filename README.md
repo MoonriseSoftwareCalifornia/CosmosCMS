@@ -4,7 +4,7 @@
 [![CodeQL](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml)
 [![Publish Docker Images CI](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml)
 
-Older content management systems need significant modification and expertise to adapt to the cloud and perform well, while newer systems are offten difficult to use for administrators and content creators, or are proprietary and expensive to own--and often requiring a steep learning curve and training investment.
+Older content management systems need significant modification and expertise to adapt to the cloud and perform well, while newer systems perform far better, they come with a price.  They are often difficult for administrators and content creators to use and maintain, or, are proprietary and expensive to own--and often requiring a steep learning curve and training budget.
 
 Cosmos solves these problems:
 
