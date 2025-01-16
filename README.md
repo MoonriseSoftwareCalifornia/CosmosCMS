@@ -4,17 +4,31 @@
 [![CodeQL](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml)
 [![Publish Docker Images CI](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml)
 
-Older web content management systems like WordPress need significant modification perform reasonably well.  They also have well known security issues.  Newer systems can perform far better and be more secure--but they often come at a steep price because they are proprietary and can be difficult to use and maintain--and come with a steep learning curve.  Finally, some of the newer systems come with heavy, awkward, difficult UIs that take effort to learn.
+The origin of Cosmos comes from frustrations we had with WordPress. Don't get us wrong.  WordPress has its place. But we wanted to go to the next level--and it wasn't working out.  Here are top three reasons people switch (includes why we did):
+
+1. **Security Concerns**: WordPress is a popular target for hackers due to its widespread use, its older architecture, and outdated plugins and themes can introduce vulnerabilities, making sites susceptible to attacks.
+
+2. **Performance Issues**: WordPress sites can become slow and bulky, especially when using multiple plugins, ad because of its older architecture. This can negatively impact user experience and search engine rankings.
+
+3. **Complexity and Maintenance**: Setting up and maintaining a WordPress site can be time-consuming and requires technical knowledge. Regular updates, backups, and troubleshooting can be overwhelming for some users.
+
+There are alternatives.  Drupal, SiteCore, DotNetNuke to name a few.  But people run into common problems:
+
+1. **Complexity and Learning Curve**: Alternatives often have a steep learning curve, making it difficult for new users to get up to speed. The platform requires significant training and expertise to use effectively.
+
+2. **Cost**: Some, like SiteCore, can be quite expensive to use, especially for smaller businesses or agency. They are proprietary, initial setup difficult, licensing fees, and ongoing maintenance costs can add up quickly.
+
+3. **Performance Issues**: And performance issues may remain, particularly with older versions. This can include slow load times and difficulties with scalability as the amount of content and traffic increases. To overcome requires costly investment.
 
 Cosmos solves these problems:
 
-* First of all, it is ***open source***. Free to install and use.
 * Next, it is "out of the box" high performance and more secure. No mods needed.
 * Its installation and operation are a "breeze."
 * No steep learning curve, or expensive expertise to develop.
 * Web developers need only be skilled in general HTML, CSS and JavaScript to build websites.
 * Developers can hand over content management to non-technical maintainers with little or no training.
 * Cosmos comes with the best content tools on the planet: CKEditor, GrapesJS, VS Code, FileRobot.
+* Best of all, Cosmos is ***open source***. Free to install and use.
 
 Content creators and developers have called Cosmos "a dream to use. "Here is a look at the content tools built-in to it:
 
