@@ -4,9 +4,18 @@
 [![CodeQL](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml)
 [![Publish Docker Images CI](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml)
 
-Cosmos CMS is light weight, high performance, cloud-native web content management system that uses the best tools on the planet to create and manage web content. It is freely distributed as open source software licensed under [GNU GENERAL PUBLIC LICENSE Version 3](License.md).
+Older content management systems need significant modification and expertise to adapt to the cloud and perform well, while newer systems are offten difficult to use for administrators and content creators, or are proprietary and expensive to own--and often require a steep learning curve and training investment.
 
-Forks, pull requests, feature and code suggestions, and any type of help is welcomed and greatly appreciated!
+Cosmos solves these problems:
+
+* First of all, it is open source.
+* Next, it is cloud-native which means it is high performance "out of the box" not needing modification.
+* Its installation and operation are a "breeze."
+* No steep learning curve, or expensive expertise to develop.
+* Content creators and developers have called it "a dream to use."
+* Cosmos comes with the best content tools on the plantet: CKEditor, GrapesJS, VS Code, FileRobot.
+
+Here is a look at the content tools built-in to it:
 
 ## CKEditor 5
 
