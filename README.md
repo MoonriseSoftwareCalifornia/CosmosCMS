@@ -4,8 +4,7 @@
 [![CodeQL](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml)
 [![Publish Docker Images CI](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml)
 
-Older content management systems like WordPress need significant modification perform well in today's cloud, while newer systems perform far better--but at a steep price.  Newer systems are often difficult to use and maintain. 
-Often, they are proprietary and expensive to own--and come with a steep learning curve and training budget.
+Older web content management systems like WordPress need significant modification perform well and have well known security issues.  While newer systems perform far better--they often come at a steep price, and are often difficult to use and maintain. Moreover, many are proprietary and expensive to own--and come with a steep learning curve and training budget.
 
 Cosmos solves these problems:
 
