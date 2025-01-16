@@ -8,14 +8,15 @@ Older content management systems need significant modification and expertise to 
 
 Cosmos solves these problems:
 
-* First of all, it is open source.
+* First of all, it is open source. Free to install and use, and obtain the source code.
 * Next, it is cloud-native which means it is high performance "out of the box" not needing modification.
 * Its installation and operation are a "breeze."
 * No steep learning curve, or expensive expertise to develop.
-* Content creators and developers have called it "a dream to use."
+* Web developers need only be skilled in general HTML, CSS and JavaScript to build websites.
+* Developers can hand over content management to non-technical maintainers with little or no training.
 * Cosmos comes with the best content tools on the plantet: CKEditor, GrapesJS, VS Code, FileRobot.
 
-Here is a look at the content tools built-in to it:
+Content creators and developers have called Cosmos "a dream to use. "Here is a look at the content tools built-in to it:
 
 ## CKEditor 5
 
