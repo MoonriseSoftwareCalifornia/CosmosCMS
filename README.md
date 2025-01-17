@@ -4,19 +4,19 @@
 [![CodeQL](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml)
 [![Publish Docker Images CI](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml)
 
-While working at the California Dept. of Technology, we needed a high-performance web content management system. Initially, we tried SiteCore, but it was too expensive. Then we switched to WordPress, but it had security and performance issues that raised concerns.
+The late 2010's the California Dept. of Technology was using SiteCore as its web content management system.  The effort became to expensive and complex to continue. The department then turned to WordPress. Security and performance issues where a challenge. Mitigation involved making modifications to WordPress, installing numereous plugins, adding extra infrastructure and a new level of complexity.
 
-In 2019, we were forced to act quickly when department staff were asked to launch a website overnight to support wildfire response efforts. We did not feel comfortable using WordPress for a website like that.
+In 2019, we were forced to act quickly when department staff were asked to launch a website overnight to support wildfire response efforts. It would need to support tens of thousands, if not more simultaneous users. It could not fail, and we did not feel comfortable using WordPress.
 
-By the fall of 2019, we realized the need for a new solution, leading to the development of Cosmos.
+What was built was a static website with a CDN front-end. It was very fast, reliable, and it was a success.
 
-We decided to take lessons learned to come up with a CMS that met our needs.  Our design goals included:
+We realized that we needed a new content management system that would perform every bit as well as a static website.  And, we wanted it to be very easy to use.
 
-* Higher, better security.
-* High performance under load.
-* Easy to use for administrators and content editors.
+To be more specific, our design goals included the following:
+
+* High performance under load, perform as well as the static website.
+* Make it easy for non-technical staff to contribute content.
 * Low cost to administer and operate.
-* Content tools as good as what WordPress offers.
 
 Meeting these objectives meant taking a fresh look at CMS architecture. The design settled on a "decoupled" approach where content management is separated from content presentation. This greatly improves website performance and security posture.
 
