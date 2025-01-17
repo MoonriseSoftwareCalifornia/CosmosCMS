@@ -4,41 +4,45 @@
 [![CodeQL](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml)
 [![Publish Docker Images CI](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml)
 
-The origin of Cosmos comes from frustrations we had with WordPress. Don't get us wrong.  WordPress has its place. But we wanted to go to the next level--and it wasn't working out. Why do people switch?  Here are top three reasons (not just us saying):
+Cosmos was built as an alternative to WordPress in situations where high performance and security are a top priority. If you are a WordPress owner who uses lots of plugins and whose website is used for light-duty--Cosmos may not be for you.
 
-1. **Security Concerns**: WordPress is a popular target for hackers due to its widespread use, its older architecture, and outdated plugins and themes can introduce vulnerabilities, making sites susceptible to attacks.
+Otherwise, if you want raw performance, enhanced security, lightweight design, easy to use, and you want something open-source--then perhaps Cosmos might be right.
 
-2. **Performance Issues**: WordPress sites can become slow and bulky, especially when using multiple plugins, ad because of its older architecture. This can negatively impact user experience and search engine rankings.
+## Origins
 
-3. **Complexity and Maintenance**: Setting up and maintaining a WordPress site can be time-consuming and requires technical knowledge. Regular updates, backups, and troubleshooting can be overwhelming for some users. Best option for may be to offload this to someone else--and pay for it.
+As others are aware, WordPress has security and performance issues which require modifications to WordPress itself, such as installation of plugins, extra infrastructure, and special configuration. Along with all that comes ever increasing complexity and a growing list of points of failure.
 
-There are alternatives.  Drupal, SiteCore, DotNetNuke to name a few.  But people run into common problems:
+Paying for experts to host WordPress helps, but performance and security problems remain--many of which are rooted in WordPress' architecture.
 
-1. **Complexity and Learning Curve**: Alternatives often have a steep learning curve, making it difficult for new users to get up to speed. The platform requires significant training and expertise to use effectively.
+We had used SiteCore, tried Drupal and DotNetNuke, and read about what others were saying about WordPress alternatives. We found common complaints: increased complexity, steep learning curve, high cost due to proprietary licensing, and performance issues.
 
-2. **Cost**: Some, like SiteCore, can be quite expensive to use, especially for smaller businesses or agency. They are proprietary, initial setup difficult, licensing fees, and ongoing maintenance costs can add up quickly.
+## Design Goals
 
-3. **Performance Issues**: And performance issues may remain, particularly with older versions. This can include slow load times and difficulties with scalability as the amount of content and traffic increases. To overcome requires costly investment.
+What we wanted was a replacement that hit these objectives:
 
-Cosmos solves these problems:
+* Higher, better security.
+* High performance under load.
+* Easy to use for administrators and content editors.
+* Low cost to administer and operate.
+* Content tools as good as what WordPress offers.
 
-* Next, it is "out of the box" high performance and more secure. No mods needed.
-* Its installation and operation are a "breeze."
-* No steep learning curve, or expensive expertise to develop.
-* Web developers need only be skilled in general HTML, CSS and JavaScript to build websites.
-* Developers can hand over content management to non-technical maintainers with little or no training.
-* Cosmos comes with the best content tools on the planet: CKEditor, GrapesJS, VS Code, FileRobot.
-* Best of all, Cosmos is ***open source***. Free to install and use.
+Meeting these objectives meant taking a fresh look at CMS architecture. The design settled on a "decoupled" approach where content management is separated from content presentation. This greatly improves website performance and security posture.
 
-Content creators and developers have called Cosmos "a dream to use. "Here is a look at the content tools built-in to it:
+Cosmos architecture goes further by having a "hybrid" content presentation tier that combines a static website backed by file storage with a dynamic website that makes intelligent use of caching. The "static" rwebsite concept is strait out of the mid 1990's.  Separating things out this way at the presentation tier makes content perform even better.
 
-## CKEditor 5
+Lastly, Cosmos is cloud-native, which means many performance modifications required for WordPress and other systems, simply are not necessary with Cosmos.
+
+## Content Editing Tools
+
+We wated a system that was easy for web developers to work with, and, a system where non-technical content editors can create and maintain web page content with little or no training. To do this we assembled the best collection of web content tools we could find.  Here is our current list:
+
+### CKEditor 5
 
 ![CKEditor](ckeditor.webp)
 
 [CKEditor](https://ckeditor.com/) is a widely-used "no-code" or [WYSIWYG](https://en.wikipedia.org/wiki/WYSIWYG) (What You See Is What You Get) HTML text editor that allows users to create and edit web content with ease, without needing to write HTML code. It is highly popular due to its robust features, including rich text formatting options, a customizable interface, and extensive documentation [1](https://trends.builtwith.com/widgets/CKEditor). CKEditor supports a wide range of plugins, enabling users to extend its functionality to meet specific needs. Its frequent updates and large community also contribute to its reliability and versatility, making it a preferred choice for developers and content creators alike [2](https://dev.to/keganblumenthal/froala-vs-ckeditor-a-duel-between-the-two-most-popular-html-editors-3igg).
 
-## GrapesJS
+### GrapesJS
 
 ![GrapesJS](grapesjs.png)
 
@@ -46,7 +50,7 @@ Content creators and developers have called Cosmos "a dream to use. "Here is a l
 
 See our [YouTube video](https://www.youtube.com/watch?v=mVGPlbnbC5c) that shows GrapesJS at work with Cosmos.
 
-## Monaco/Visual Studio Code
+### Monaco/Visual Studio Code
 
 <image src="./CodeEditor.png" style="max-width: 380px;">
 
@@ -54,13 +58,13 @@ The [Monaco Editor](https://microsoft.github.io/monaco-editor/) is a powerful, o
 
 Our implementation of Monaco includes a DIFF tool and Emmet Notation.
 
-## Filerobot Image Editor
+### Filerobot Image Editor
 
 <image src="./Filerobot.png" style="max-width: 380px;">
 
 [Filerobot](https://scaleflex.github.io/filerobot-image-editor/) Image Editor is a versatile, easy-to-use image editing tool designed to be seamlessly integrated into web applications. It allows users to perform a variety of image transformations such as resizing, cropping, flipping, fine-tuning, annotating, and applying filters with just a few lines of code [7](https://github.com/scaleflex/filerobot-image-editor). Its popularity stems from its simplicity, extensive functionality, and the ability to enhance user experience by providing powerful editing capabilities directly within web platforms [7](https://github.com/scaleflex/filerobot-image-editor). Additionally, its open-source nature and active maintenance ensure it remains up-to-date and reliable for developers [8](https://socket.dev/npm/package/filerobot-image-editor).
 
-## Filepond File Uploader
+### Filepond File Uploader
 
 [FilePond](https://pqina.nl/filepond/) is a versatile file upload library designed for web applications, offering a sleek and customizable interface for handling file uploads. It supports features like image previews, drag-and-drop functionality, and file validation, making it user-friendly and efficient [9](https://npm-compare.com/filepond). FilePond's popularity stems from its ease of integration, extensive customization options, and the ability to handle various file types seamlessly [9](https://npm-compare.com/filepond). Its active community and continuous updates ensure it remains a reliable and up-to-date solution for developers looking to enhance their web applications with robust file upload capabilities [9](https://npm-compare.com/filepond).
 
