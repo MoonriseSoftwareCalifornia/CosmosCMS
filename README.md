@@ -4,13 +4,13 @@
 [![CodeQL](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml)
 [![Publish Docker Images CI](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml)
 
-The origin of Cosmos comes from frustrations we had with WordPress. Don't get us wrong.  WordPress has its place. But we wanted to go to the next level--and it wasn't working out.  Here are top three reasons people switch (includes why we did):
+The origin of Cosmos comes from frustrations we had with WordPress. Don't get us wrong.  WordPress has its place. But we wanted to go to the next level--and it wasn't working out. Why do people switch?  Here are top three reasons (not just us saying):
 
 1. **Security Concerns**: WordPress is a popular target for hackers due to its widespread use, its older architecture, and outdated plugins and themes can introduce vulnerabilities, making sites susceptible to attacks.
 
 2. **Performance Issues**: WordPress sites can become slow and bulky, especially when using multiple plugins, ad because of its older architecture. This can negatively impact user experience and search engine rankings.
 
-3. **Complexity and Maintenance**: Setting up and maintaining a WordPress site can be time-consuming and requires technical knowledge. Regular updates, backups, and troubleshooting can be overwhelming for some users.
+3. **Complexity and Maintenance**: Setting up and maintaining a WordPress site can be time-consuming and requires technical knowledge. Regular updates, backups, and troubleshooting can be overwhelming for some users. Best option for may be to offload this to someone else--and pay for it.
 
 There are alternatives.  Drupal, SiteCore, DotNetNuke to name a few.  But people run into common problems:
 
