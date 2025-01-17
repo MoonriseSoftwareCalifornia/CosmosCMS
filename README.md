@@ -4,21 +4,12 @@
 [![CodeQL](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml)
 [![Publish Docker Images CI](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml)
 
-Cosmos was built as an alternative to WordPress in situations where high performance and security are a top priority. If you are a WordPress owner who uses lots of plugins and/or whose website is used for light-duty--Cosmos may not be for you.
+Cosmos was built after trying SiteCore and WordPress at the California Dept. of Technology.  We had a need for a web platform that could handle high-bandwidth websites, where high performance and security are a top priority.  SiteCore was complex and very expensive so we switched to WordPress. That platform had security and performance issues that could be mitigated through the installation of plugins, extra infrastructure, and special configuration. But this came with ever increasing complexity and a growing list of points of failure.
 
-Otherwise, if you want raw performance, enhanced security, lightweight design, easy to use, and you want something open-source--then perhaps Cosmos might be right.
+Then 2019, the department was asked to build a website for the wildfire response that year, and we could not rely on WordPress. A static
+website was built, that had a CDN in front of it--a very old school approach but rock solid.
 
-## Origins
-
-As others are aware, WordPress has security and performance issues which require modifications to WordPress itself, such as installation of plugins, extra infrastructure, and special configuration. Along with all that comes ever increasing complexity and a growing list of points of failure.
-
-Paying for experts to host WordPress helps, but performance and security problems remain--many of which are rooted in WordPress' architecture.
-
-We had used SiteCore, tried Drupal and DotNetNuke, and read about what others were saying about WordPress alternatives. We found common complaints: increased complexity, steep learning curve, high cost due to proprietary licensing, and performance issues.
-
-## Design Goals
-
-What we wanted was a replacement that hit these objectives:
+We decided to take lessons learned from SiteCore, WordPress, and the 2019 static website effort, and inject some old and new thinking, to come up with a CMS that met our needs.  Our design goals included:
 
 * Higher, better security.
 * High performance under load.
