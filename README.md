@@ -4,7 +4,7 @@
 [![CodeQL](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml)
 [![Publish Docker Images CI](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml)
 
-Cosmos was built as an alternative to WordPress in situations where high performance and security are a top priority. If you are a WordPress owner who uses lots of plugins and whose website is used for light-duty--Cosmos may not be for you.
+Cosmos was built as an alternative to WordPress in situations where high performance and security are a top priority. If you are a WordPress owner who uses lots of plugins and/or whose website is used for light-duty--Cosmos may not be for you.
 
 Otherwise, if you want raw performance, enhanced security, lightweight design, easy to use, and you want something open-source--then perhaps Cosmos might be right.
 
