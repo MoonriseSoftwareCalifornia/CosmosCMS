@@ -4,7 +4,9 @@
 [![CodeQL](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml)
 [![Publish Docker Images CI](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml)
 
-Cosmos was built after trying SiteCore and WordPress at the California Dept. of Technology.  We had a need for a web platform that could handle high-bandwidth websites, where high performance and security are a top priority.  SiteCore was complex and very expensive so we switched to WordPress. That platform had security and performance issues that could be mitigated through the installation of plugins, extra infrastructure, and special configuration. But this came with ever increasing complexity and a growing list of points of failure.
+Cosmos was built after trying SiteCore and WordPress at the California Dept. of Technology. At the time we needed a web CMS platform that could handle high-bandwidth websites, where high performance and security were a top priority.
+
+We found SiteCore complex and very expensive, which led us to try WordPress. That platform had security and performance issues that could be mitigated through the installation of plugins, extra infrastructure, etc... . But this came with ever increasing complexity and a growing list of points of failure.
 
 Then 2019, the department was asked to build a website for the wildfire response that year, and we could not rely on WordPress. A static
 website was built, that had a CDN in front of it--a very old school approach but rock solid.
