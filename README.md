@@ -4,7 +4,7 @@
 [![CodeQL](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml)
 [![Publish Docker Images CI](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml)
 
-The late 2010's the California Dept. of Technology was using SiteCore as its web content management system, and the effort became to expensive and complex to continue. The department then turned to WordPress. Security and performance issues where a challenge. Mitigation involved making modifications to WordPress, installing numereous plugins, adding extra infrastructure and a new level of complexity.
+The late 2010's the California Dept. of Technology was using SiteCore as its web content management system, and the effort became to expensive and complex to continue. The department then turned to WordPress. Security and performance issues where a challenge. Mitigation involved making modifications to WordPress, installing numereous plugins, adding extra infrastructure and a taking on a new level of complexity.
 
 In 2019, we were forced to act quickly when department staff were asked to launch a website overnight to support wildfire response efforts. It would need to support tens of thousands, if not more simultaneous users. It could not fail, and we did not feel comfortable using WordPress.
 
