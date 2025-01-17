@@ -4,14 +4,13 @@
 [![CodeQL](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml)
 [![Publish Docker Images CI](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml)
 
-Cosmos was built after trying SiteCore and WordPress at the California Dept. of Technology. At the time we needed a web CMS platform that could handle high-bandwidth websites, where high performance and security were a top priority.
+While working at the California Dept. of Technology, we needed a high-performance web content management system. Initially, we tried SiteCore, but it was too expensive. Then we switched to WordPress, but it had security and performance issues that raised concerns.
 
-We found SiteCore complex and very expensive, which led us to try WordPress. That platform had security and performance issues that could be mitigated through the installation of plugins, extra infrastructure, etc... . But this came with ever increasing complexity and a growing list of points of failure.
+In 2019, we were forced to act quickly when department staff were asked to launch a website overnight to support wildfire response efforts. We did not feel comfortable using WordPress for a website like that.
 
-Then 2019, the department was asked to build a website for the wildfire response that year, and we could not rely on WordPress. A static
-website was built, that had a CDN in front of it--a very old school approach but rock solid.
+By the fall of 2019, we realized the need for a new solution, leading to the development of Cosmos.
 
-We decided to take lessons learned from SiteCore, WordPress, and the 2019 static website effort, and inject some old and new thinking, to come up with a CMS that met our needs.  Our design goals included:
+We decided to take lessons learned to come up with a CMS that met our needs.  Our design goals included:
 
 * Higher, better security.
 * High performance under load.
