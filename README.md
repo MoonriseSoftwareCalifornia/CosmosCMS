@@ -1,5 +1,5 @@
 # Cosmos CMS
-[Project Website](https://cosmos.moonrise.net) | [Documentation](https://cosmos.moonrise.net/Docs) | [Get Free Help](https://cosmos.moonrise.net/Support) | [YouTube Channel](https://www.youtube.com/@cosmos-cms) | [Install](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS?tab=readme-ov-file#installation)
+[Project Website](https://cosmos.moonrise.net) | [Documentation](https://cosmos.moonrise.net/Docs) | [Get Free Help](https://cosmos.moonrise.net/Support) | [YouTube Channel](https://www.youtube.com/@cosmos-cms) | [Install](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS?tab=readme-ov-file#installation) | [Slack Channel](https://cosmos-cms.slack.com/)
 
 [![CodeQL](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml)
 [![Publish Docker Images CI](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml)
@@ -21,6 +21,10 @@ Cosmos takes lessons learned from both and goes a bit further.  It is built with
 * Highly scalable, multi-region replication.
 * Systems administration keeped simple.
 * Great content editing tools built-in.
+
+Below we cover some of the highlights of Cosmos: content tools, code base, architecture and more.  See the [documentation](https://cosmos.moonrise.net/Docs)  website for information on how to use Cosmos.
+
+Have questions? Need help? [Contact us](https://cosmos.moonrise.net/Support) | [Post an issue](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/issues) | [Join a discussion](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/discussions) | [Slack Channel](https://cosmos-cms.slack.com/)
 
 ## Content Editing Tools
 
