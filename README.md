@@ -4,25 +4,23 @@
 [![CodeQL](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml)
 [![Publish Docker Images CI](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml)
 
-The late 2010's the California Dept. of Technology was using SiteCore as its web content management system, and the effort became to expensive and complex to continue. The department then turned to WordPress. Security and performance issues where a challenge. Mitigation involved making modifications to WordPress, installing numereous plugins, adding extra infrastructure and a taking on a new level of complexity.
+Cosmos was built after using both SiteCore and WordPress. SiteCore proved expensive and somewhat complicated while WordPress
+had poor performance and security vulnerabilities that could be mitigated through modification and additional infrastructure.
 
-In 2019, we were forced to act quickly when department staff were asked to launch a website overnight to support wildfire response efforts. It would need to support tens of thousands, if not more simultaneous users. It could not fail, and we did not feel comfortable using WordPress.
+On the plus side, SiteCore has good performance and a strong security posture. WordPress is open-source with a lower cost to own, and has a user friendly interface.
 
-What was built was a static website with a CDN front-end. It was very fast, reliable, and it was a success.
+For web developers, both systems have a learning curve with regards to customizing the design of a web site.  We wanted something more open,
+and did not impose a UI framework to work within.
 
-We realized that we needed a new content management system that would perform every bit as well as a static website.  And, we wanted it to be very easy to use.
+Cosmos takes lessons learned from both and goes a bit further.  It is built with the following design goals:
 
-To be more specific, our design goals included the following:
-
-* High performance under load, perform as well as the static website.
-* Make it easy for non-technical staff to contribute content.
-* Low cost to administer and operate.
-
-Meeting these objectives meant taking a fresh look at CMS architecture. The design settled on a "decoupled" approach where content management is separated from content presentation. This greatly improves website performance and security posture.
-
-Cosmos architecture goes further by having a "hybrid" content presentation tier that combines a static website backed by file storage with a dynamic website that makes intelligent use of caching. The "static" rwebsite concept is strait out of the mid 1990's.  Separating things out this way at the presentation tier makes content perform even better.
-
-Lastly, Cosmos is cloud-native, which means many performance modifications required for WordPress and other systems, simply are not necessary with Cosmos.
+* Open-source.
+* High performance, tight security posture.
+* Low (or no) learning curve for web developers and non-technical content creators.
+* Cosmos is a blank canvas--literally. No UI framework is imposed.  
+* Highly scalable, multi-region replication.
+* Systems administration keeped simple.
+* Great content editing tools built-in.
 
 ## Content Editing Tools
 
