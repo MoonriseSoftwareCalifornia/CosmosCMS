@@ -6,7 +6,7 @@
 
 Cosmos was built from lessons learned using SiteCore and WordPress to host high-traffic websites.
 
-SiteCore performed well but proved to be expensive and more complex than we wanted, while WordPress had security and performance chanllenges which required intervention--effectively making the cost to host prohibitive. Both systems had features we liked, but we wanted
+SiteCore performed well but proved to be expensive and more complex than we wanted, while WordPress had security and performance challenges which required intervention--effectively making the cost to host prohibitive. Both systems had features we liked, but we wanted
 something that was simpler, less costly host, and operate than either, and we wanted something open-source.
 
 ## Features
