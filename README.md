@@ -24,7 +24,8 @@ Here are some of the features that make Cosmos stand out:
 First of all, Cosmos **is not** a replacement for WordPress, Drupal, or other traditional websites where the
 convenience of easy mods like plugins and modules are important.
 
-Cosmos can be a complement to a hosting environment where a headless or decoupled CMS is **also needed**. Cosmos easily
+Cosmos can be a complement to a hosting environment where a headless or decoupled CMS is needed in addition to
+what is already in place. Cosmos easily
 fits in because it takes no special training or skills to administer or build websites with. Also, non technical
 content editors can get up and running with little or no training.
 
