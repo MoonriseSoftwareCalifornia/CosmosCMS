@@ -4,27 +4,31 @@
 [![CodeQL](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml)
 [![Publish Docker Images CI](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml)
 
-Cosmos was built after using both SiteCore and WordPress. SiteCore proved expensive and somewhat complicated while WordPress
-had poor performance and security vulnerabilities that could be mitigated through modification and additional infrastructure.
+Cosmos was built from lessons learned using SiteCore and WordPress to host high-traffic websites.
 
-On the plus side, SiteCore has good performance and a strong security posture. WordPress is open-source with a lower cost to own, and has a user friendly interface.
+SiteCore performed well but proved to be expensive and more complex than we wanted, while WordPress had security and performance chanllenges which required intervention--effectively making the cost to host prohibitive. Both systems had features we liked, but we wanted
+something that was simpler, less costly host, and operate than either, and we wanted something open-source.
 
-For web developers, both systems have a learning curve with regards to customizing the design of a web site.  We wanted something more open,
-and did not impose a UI framework to work within.
+## Features
 
-Cosmos takes lessons learned from both and goes a bit further.  It is built with the following design goals:
+Here are some of the features that make Cosmos stand out:
 
-* Open-source.
-* High performance, tight security posture.
-* Low (or no) learning curve for web developers and non-technical content creators.
-* Cosmos is a blank canvas--literally. No UI framework is imposed.  
-* Highly scalable, multi-region replication.
-* Systems administration keeped simple.
-* Great content editing tools built-in.
+* Cosmos is a cloud-native application, meaning systems administration is much easier.
+* It's decoupled design with a static/dynamic publishing tier provide excellent performance.
+* Uses a high performance, distributed, NoSQL database and blob storage for built-in regional redundancy.
+* Easy to use, intuitive content tools: CKEditor, GrapesJS, VS Code (Monaco), Filerobot all in one package.
+* Cosmos is open-source, licensed under [GNU GPL v.3](License.md).
 
-Below we cover some of the highlights of Cosmos: content tools, code base, architecture and more.  See the [documentation](https://cosmos.moonrise.net/Docs)  website for information on how to use Cosmos.
+## Use Cases
 
-Have questions? Need help? [Contact us](https://cosmos.moonrise.net/Support) | [Post an issue](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/issues) | [Join a discussion](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/discussions) | [Slack Channel](https://cosmos-cms.slack.com/)
+Cosmos is a good choice whenever a headless or decoupled CMS is needed.  Here are a few use cases:
+
+* Media and Publishing Sites: For organizations that produce a large volume of content, a headless CMS enables efficient content distribution to different platforms, such as websites, mobile apps, and social media.
+* Government Agency, Corporate Websites: Large enterprises where performance, both platform and content, is a high priority.
+* Educational Platforms: Universities and online learning platforms can benefit from a headless CMS by delivering course content, updates, and notifications across various devices and platforms.
+* Situations where web developers hand off content management to non-technical staff.
+
+For more see: [Cosmos - Headless Performance, Simpler to Use](CosmosVsHeadless.md).
 
 ## Content Editing Tools
 
