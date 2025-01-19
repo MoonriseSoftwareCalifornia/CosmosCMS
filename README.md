@@ -21,7 +21,7 @@ Here are some of the features that make Cosmos stand out:
 
 ## Use Cases
 
-First of all, Cosmos **is not** a replacement for WordPress, Drupal, or other traditional, light-duty websites where the
+First of all, Cosmos **is not** a replacement for WordPress, Drupal, or other traditional websites where the
 convenience of easy mods like plugins and modules are important.
 
 Cosmos can be a complement to a hosting environment where a headless or decoupled CMS is **also needed**. Cosmos easily
