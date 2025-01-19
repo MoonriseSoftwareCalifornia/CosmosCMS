@@ -21,7 +21,14 @@ Here are some of the features that make Cosmos stand out:
 
 ## Use Cases
 
-Cosmos is a good choice whenever a headless or decoupled CMS is needed.  Here are a few use cases:
+First of all, Cosmos **is not** a replacement for WordPress, Drupal, or other traditional, light-duty websites where the
+convenience of easy mods like plugins and modules are important.
+
+Cosmos can be a complement to a hosting environment where a headless or decoupled CMS is **also needed**. Cosmos easily
+fits in because it takes no special training or skills to administer or build websites with. Also, non technical
+content editors can get up and running with little or no training.
+
+Here are a few use cases:
 
 * Media and Publishing Sites: For organizations that produce a large volume of content, a headless CMS enables efficient content distribution to different platforms, such as websites, mobile apps, and social media.
 * Government Agency, Corporate Websites: Large enterprises where performance, both platform and content, is a high priority.
