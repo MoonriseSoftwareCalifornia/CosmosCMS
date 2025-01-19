@@ -21,21 +21,14 @@ Here are some of the features that make Cosmos stand out:
 
 ## Use Cases
 
-First of all, Cosmos **is not** a replacement for WordPress, Drupal, or other traditional, light-duty websites where the
-convenience of easy mods like plugins and modules are important.
+Cosmos is suitable for content-driven (HTML pages, images, videos, API "mashups") websites, especially where user-load the amount of content bytes is expected to be high. Example websites include: New York Times, National Geographic, Hulu, Condé Nast, TikTock, and Spotify for Artists.
 
-Cosmos can be a complement to a hosting environment where a headless or decoupled CMS is **also needed**. Cosmos easily
-fits in because it takes no special training or skills to administer or build websites with. Also, non technical
-content editors can get up and running with little or no training.
+Another use case is where content must be delivered highly efficiently, and sudden busts.
 
-Here are a few use cases:
+### Should I switch to Cosmos?
 
-* Media and Publishing Sites: For organizations that produce a large volume of content, a headless CMS enables efficient content distribution to different platforms, such as websites, mobile apps, and social media.
-* Government Agency, Corporate Websites: Large enterprises where performance, both platform and content, is a high priority.
-* Educational Platforms: Universities and online learning platforms can benefit from a headless CMS by delivering course content, updates, and notifications across various devices and platforms.
-* Situations where web developers hand off content management to non-technical staff.
-
-For more see: [Cosmos - Headless Performance, Simpler to Use](CosmosVsHeadless.md).
+First of all, Cosmos **is not** a replacement where the convenience of easy mods like plugins and modules are important--and
+performance is not a concern.
 
 ## Content Editing Tools
 
