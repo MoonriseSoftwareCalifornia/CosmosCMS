@@ -14,8 +14,8 @@ However, it was expensive to license.
 issues that made systems administration overly complicated and costly.
 
 We aimed to develop a solution that combined the performance of SiteCore with the simplicity of WordPress.
-Cosmos CMS is easy to host, simple to administer, and user-friendly enough for non-technical content
-creators to use with little or no experience.
+Cosmos CMS is easy to host, simple to administer, and user-friendly for web developers and non-technical content
+creators alike.
 
 ## Features
 
