@@ -26,11 +26,6 @@ Here are some of the features that make Cosmos stand out:
 * Multi-regional redundancy with minimal administrative effort.
 * Content-driven website where non-technical contributors require little training.
 
-### Should I switch to Cosmos?
-
-First of all, Cosmos **is not** a replacement where the convenience of easy mods like plugins and modules are important--and
-performance is not a concern.  But if you have web developer help, the includsion of API services and back-end customization with Cosmos is relatively easy.
-
 ## Content Editing Tools
 
 We wated a system that was easy for web developers to work with, and, a system where non-technical content editors can create and maintain web page content with little or no training. To do this we assembled the best collection of web content tools we could find.  Here is our current list:
