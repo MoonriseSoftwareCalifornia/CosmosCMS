@@ -22,7 +22,7 @@ Here are some of the features that make Cosmos stand out:
 ## Use Cases
 
 * Cosmos is suitable for content-driven (HTML pages, images, videos, API "mashups") websites, especially where user-load the amount of content bytes is expected to be high. Example websites include: New York Times, National Geographic, Hulu, Condé Nast, TikTock, and Spotify for Artists.
-* Content must be delivered highly efficiently (lean in terms of bytes), and sudden busts.
+* Content must be delivered highly efficiently (lean in terms of less bytes--the better), and sudden busts.
 * Multi-regional redundancy with minimal administrative effort.
 * Content-driven website where non-technical contributors require little training.
 
