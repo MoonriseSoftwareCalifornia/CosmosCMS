@@ -4,10 +4,10 @@
 [![CodeQL](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml)
 [![Publish Docker Images CI](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml)
 
-Cosmos was built from lessons learned using SiteCore and WordPress to host high-traffic websites.
+Cosmos was built from lessons learned using SiteCore and WordPress to host high-traffic websites while at the California Department of Technology.
 
-SiteCore performed well but proved to be expensive and more complex than we wanted, while WordPress had security and performance challenges which required intervention--effectively making the cost to host prohibitive. Both systems had features we liked, but we wanted
-something that was simpler, less costly host, and operate than either, and we wanted something open-source.
+SiteCore performed well but proved to be too expensive and complicated, while WordPress had security and performance challenges which required administrative intervention--effectively making the cost to host prohibitive. Both systems had features we liked, but we wanted
+something that was simpler to administer and use, less costly host, high performance and something open-source.
 
 ## Features
 
@@ -21,14 +21,15 @@ Here are some of the features that make Cosmos stand out:
 
 ## Use Cases
 
-Cosmos is suitable for content-driven (HTML pages, images, videos, API "mashups") websites, especially where user-load the amount of content bytes is expected to be high. Example websites include: New York Times, National Geographic, Hulu, Condé Nast, TikTock, and Spotify for Artists.
-
-Another use case is where content must be delivered highly efficiently, and sudden busts.
+* Cosmos is suitable for content-driven (HTML pages, images, videos, API "mashups") websites, especially where user-load the amount of content bytes is expected to be high. Example websites include: New York Times, National Geographic, Hulu, Condé Nast, TikTock, and Spotify for Artists.
+* Content must be delivered highly efficiently (lean in terms of bytes), and sudden busts.
+* Multi-regional redundancy with minimal administrative effort.
+* Content-driven website where non-technical contributors require little training.
 
 ### Should I switch to Cosmos?
 
 First of all, Cosmos **is not** a replacement where the convenience of easy mods like plugins and modules are important--and
-performance is not a concern.
+performance is not a concern.  But if you have web developer help, the includsion of API services and back-end customization with Cosmos is relatively easy.
 
 ## Content Editing Tools
 
