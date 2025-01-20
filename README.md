@@ -4,31 +4,39 @@
 [![CodeQL](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml)
 [![Publish Docker Images CI](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml)
 
-Cosmos was built from lessons learned using SiteCore and WordPress to host high-traffic websites while at the California Department of Technology.
+Cosmos CMS was created by drawing on the lessons learned from both SiteCore and WordPress.
+Each platform had its own strengths and challenges, which provided us with valuable insights.
 
-SiteCore performed well but proved to be too expensive and complicated, while WordPress had security and performance challenges which required administrative intervention--effectively making the cost to host prohibitive. Both systems had features we liked, but we wanted
-something that was simpler to administer and use, less costly host, high performance and something open-source.
+**SiteCore** offered a decoupled architecture, resulting in high performance and strong security.
+However, it was expensive to license.
+
+**WordPress** excelled in user experience and was open-source, but it had security and performance
+issues that made systems administration overly complicated and costly.
+
+We aimed to develop a solution that combined the performance of SiteCore with the simplicity of WordPress.
+Cosmos CMS is easy to host, simple to administer, and user-friendly enough for non-technical content
+creators to use with little or no experience.
 
 ## Features
 
 Here are some of the features that make Cosmos stand out:
 
-* Cosmos is a cloud-native application, meaning systems administration is much easier.
-* It's decoupled design with a static/dynamic publishing tier provide excellent performance.
-* Uses a high performance, distributed, NoSQL database and blob storage for built-in regional redundancy.
-* Easy to use, intuitive content tools: CKEditor, GrapesJS, VS Code (Monaco), Filerobot all in one package.
-* Cosmos is open-source, licensed under [GNU GPL v.3](License.md).
+* Cloud-native for easier systems administration.
+* Decoupled design with static/dynamic publishing for excellent performance.
+* High-performance, distributed NoSQL database and blob storage for regional redundancy.
+* Intuitive content tools: CKEditor, GrapesJS, VS Code (Monaco), Filerobot.
+* Open-source, licensed under GNU GPL v.3.
 
 ## Use Cases
 
-* Cosmos is suitable for content-driven (HTML pages, images, videos, API "mashups") websites, especially where user-load the amount of content bytes is expected to be high. Example websites include: New York Times, National Geographic, Hulu, Condé Nast, TikTock, and Spotify for Artists.
-* Content must be delivered highly efficiently (lean in terms of less bytes--the better), and sudden busts.
-* Multi-regional redundancy with minimal administrative effort.
-* Content-driven website where non-technical contributors require little training.
+* Ideal for content-heavy websites like: New York Times, National Geographic, Hulu, Condé Nast, TikTok, Spotify for Artists.
+* Efficient content delivery with minimal bytes and handling sudden bursts.
+* Multi-regional redundancy with minimal administration.
+* User-friendly for non-technical contributors with little training.
 
 ## Content Editing Tools
 
-We wated a system that was easy for web developers to work with, and, a system where non-technical content editors can create and maintain web page content with little or no training. To do this we assembled the best collection of web content tools we could find.  Here is our current list:
+We aimed to create a system that is user-friendly for both web developers and non-technical content editors. Our goal was to enable content editors to create and maintain web pages with minimal training. To achieve this, we assembled the best collection of web content tools available.
 
 ### CKEditor 5
 
@@ -70,7 +78,7 @@ The benefits of a decoupled CMS include greater flexibility and scalability. Sin
 
 ### The Editor App
 
-Content is created an managed using the "Editor," which includes the content editing tools menstioned above. The source code for the editor can be found in the [Editor](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/tree/main/Editor) folder of this repository.
+Content is created an managed using the "Editor," which includes the content editing tools mentioned above. The source code for the editor can be found in the [Editor](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/tree/main/Editor) folder of this repository.
 
 ### The Publisher
 
@@ -86,14 +94,14 @@ We built Cosmos CMS upon this database to leverage its high availability, low la
 
 Cosmos stores static assets uploaded as content to the website in a **blob storage** with a **static website**. This is key to how Cosmos can perform so well. Hosting website assets this way offers several benefits:
 
-* Using blob storage with a static website significantly improves performance, as content is served directly from the storage, reducing server load and latency.
-* Additionally, blob storage provides a cost-effective and scalable solution for storing large amounts of unstructured data, such as images, videos, and documents.
-* It ensures high availability and durability, meaning your assets are always accessible and protected against data loss.
-* This setup also simplifies deployment and maintenance, as there is no need for server-side processing, making it easier to manage and update your website.
+* Blob storage with a static website improves performance by reducing server load and latency.
+* Cost-effective and scalable for storing large amounts of unstructured data (images, videos, documents).
+* Ensures high availability and durability, protecting against data loss.
+* Simplifies deployment and maintenance by eliminating server-side processing.
 
 ## Code Base
 
-If you are a JavaScript developer you should feel right at home with Cosmos.  The bulk of the code (69%) is from CKEditor, GrapesJS, Monaco, Filerobot, and Filepond--all of which are JavaScript based. Back-end logic is written in ASP.NET Core (C#), and that accounts for only 9%. What remains is CSS, HTML, SCSS and TypeScript.
+Almost 70% of the code base is JavaScript, and much of that is from CKEditor, GrapesJS, Monaco, Filerobot, and Filepond. Back-end logic is written in ASP.NET Core (C#), and that accounts for only 9%. What remains is CSS, HTML, SCSS and TypeScript.
 
 ![Code Base Percentages](CosmosCodeBase.png)
 
