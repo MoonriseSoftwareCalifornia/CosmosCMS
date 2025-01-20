@@ -8,7 +8,7 @@ Cosmos CMS was created by drawing on the lessons learned from both SiteCore and 
 Each platform had its own strengths and challenges, which provided us with valuable insights.
 
 **SiteCore** offered a decoupled architecture, resulting in high performance and strong security.
-However, it was expensive to license.
+However, it was expensive to license for our purposes.
 
 **WordPress** excelled in user experience and was open-source, but it had security and performance
 issues that made systems administration overly complicated and costly.
