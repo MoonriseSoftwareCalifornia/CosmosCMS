@@ -74,7 +74,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Include="..\..\..\.editorconfig" Link=".editorconfig" />
 	  <None Include="Views\Templates\EditCode.cshtml" />
 	  <None Include="Views\Templates\Index.cshtml" />
 	</ItemGroup>

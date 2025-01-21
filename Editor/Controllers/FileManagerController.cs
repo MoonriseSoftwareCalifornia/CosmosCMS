@@ -51,6 +51,10 @@ namespace Cosmos.Cms.Controllers
         private readonly ArticleEditLogic articleLogic;
         private readonly Uri blobPublicAbsoluteUrl;
         private readonly IViewRenderService viewRenderService;
+        private readonly ILogger<FileManagerController> logger;
+        private readonly StorageContext storageContext;
+        private readonly IWebHostEnvironment hostEnvironment;
+        private readonly IOptions<CosmosConfig> options;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FileManagerController"/> class.
@@ -609,6 +613,7 @@ namespace Cosmos.Cms.Controllers
                 return BadRequest(ModelState);
             }
 
+            // Gets the file being uploaded.
             var file = Request.Form.Files.FirstOrDefault();
 
             if (file.Length > (1048576 * 25))
@@ -971,15 +976,6 @@ namespace Cosmos.Cms.Controllers
 
             return nodes;
         }
-
-        #region PRIVATE FIELDS AND METHODS
-
-        private readonly ILogger<FileManagerController> logger;
-        private readonly StorageContext storageContext;
-        private readonly IWebHostEnvironment hostEnvironment;
-        private readonly IOptions<CosmosConfig> options;
-
-        #endregion
 
         #region HELPER METHODS
 
