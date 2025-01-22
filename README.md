@@ -1,30 +1,50 @@
 # Cosmos CMS
-[Project Website](https://cosmos.moonrise.net) | [Documentation](https://cosmos.moonrise.net/Docs) | [Get Free Help](https://cosmos.moonrise.net/Support) | [YouTube Channel](https://www.youtube.com/@cosmos-cms) | [Install](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS?tab=readme-ov-file#installation)
+[Project Website](https://cosmos.moonrise.net) | [Documentation](https://cosmos.moonrise.net/Docs) | [Get Free Help](https://cosmos.moonrise.net/Support) | [YouTube Channel](https://www.youtube.com/@cosmos-cms) | [Install](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS?tab=readme-ov-file#installation) | [Slack Channel](https://cosmos-cms.slack.com/)
 
 [![CodeQL](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml)
 [![Publish Docker Images CI](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml)
 
-Older web content management systems like WordPress need significant modification perform reasonably well.  They also have well known security issues.  Newer systems can perform far better and be more secure--but they often come at a steep price because they are proprietary and can be difficult to use and maintain--and come with a steep learning curve.  Finally, some of the newer systems come with heavy, awkward, difficult UIs that take effort to learn.
+Cosmos CMS was created by drawing on the lessons learned from both SiteCore and WordPress.
+Each platform had its own strengths and challenges, which provided us with valuable insights.
 
-Cosmos solves these problems:
+**SiteCore** offered a decoupled architecture, resulting in high performance and strong security.
+However, it was expensive to license for our purposes.
 
-* First of all, it is ***open source***. Free to install and use.
-* Next, it is "out of the box" high performance and more secure. No mods needed.
-* Its installation and operation are a "breeze."
-* No steep learning curve, or expensive expertise to develop.
-* Web developers need only be skilled in general HTML, CSS and JavaScript to build websites.
-* Developers can hand over content management to non-technical maintainers with little or no training.
-* Cosmos comes with the best content tools on the planet: CKEditor, GrapesJS, VS Code, FileRobot.
+**WordPress** excelled in user experience and was open-source, but it had security and performance
+issues that made systems administration overly complicated and costly.
 
-Content creators and developers have called Cosmos "a dream to use. "Here is a look at the content tools built-in to it:
+We aimed to develop a solution that combined the performance of SiteCore with the simplicity of WordPress.
+Cosmos CMS is easy to host, simple to administer, and user-friendly for web developers and non-technical content
+creators alike.
 
-## CKEditor 5
+## Features
+
+Here are some of the features that make Cosmos stand out:
+
+* Cloud-native for easier systems administration.
+* Decoupled design with static/dynamic publishing for excellent performance.
+* High-performance, distributed NoSQL database and blob storage for regional redundancy.
+* Intuitive content tools: CKEditor, GrapesJS, VS Code (Monaco), Filerobot.
+* Open-source, licensed under GNU GPL v.3.
+
+## Use Cases
+
+* Ideal for content-heavy websites like: New York Times, National Geographic, Hulu, Condé Nast, TikTok, Spotify for Artists.
+* Efficient content delivery with minimal bytes and handling sudden bursts.
+* Multi-regional redundancy with minimal administration.
+* User-friendly for non-technical contributors with little training.
+
+## Content Editing Tools
+
+We aimed to create a system that is user-friendly for both web developers and non-technical content editors. Our goal was to enable content editors to create and maintain web pages with minimal training. To achieve this, we assembled the best collection of web content tools available.
+
+### CKEditor 5
 
 ![CKEditor](ckeditor.webp)
 
 [CKEditor](https://ckeditor.com/) is a widely-used "no-code" or [WYSIWYG](https://en.wikipedia.org/wiki/WYSIWYG) (What You See Is What You Get) HTML text editor that allows users to create and edit web content with ease, without needing to write HTML code. It is highly popular due to its robust features, including rich text formatting options, a customizable interface, and extensive documentation [1](https://trends.builtwith.com/widgets/CKEditor). CKEditor supports a wide range of plugins, enabling users to extend its functionality to meet specific needs. Its frequent updates and large community also contribute to its reliability and versatility, making it a preferred choice for developers and content creators alike [2](https://dev.to/keganblumenthal/froala-vs-ckeditor-a-duel-between-the-two-most-popular-html-editors-3igg).
 
-## GrapesJS
+### GrapesJS
 
 ![GrapesJS](grapesjs.png)
 
@@ -32,7 +52,7 @@ Content creators and developers have called Cosmos "a dream to use. "Here is a l
 
 See our [YouTube video](https://www.youtube.com/watch?v=mVGPlbnbC5c) that shows GrapesJS at work with Cosmos.
 
-## Monaco/Visual Studio Code
+### Monaco/Visual Studio Code
 
 <image src="./CodeEditor.png" style="max-width: 380px;">
 
@@ -40,13 +60,13 @@ The [Monaco Editor](https://microsoft.github.io/monaco-editor/) is a powerful, o
 
 Our implementation of Monaco includes a DIFF tool and Emmet Notation.
 
-## Filerobot Image Editor
+### Filerobot Image Editor
 
 <image src="./Filerobot.png" style="max-width: 380px;">
 
 [Filerobot](https://scaleflex.github.io/filerobot-image-editor/) Image Editor is a versatile, easy-to-use image editing tool designed to be seamlessly integrated into web applications. It allows users to perform a variety of image transformations such as resizing, cropping, flipping, fine-tuning, annotating, and applying filters with just a few lines of code [7](https://github.com/scaleflex/filerobot-image-editor). Its popularity stems from its simplicity, extensive functionality, and the ability to enhance user experience by providing powerful editing capabilities directly within web platforms [7](https://github.com/scaleflex/filerobot-image-editor). Additionally, its open-source nature and active maintenance ensure it remains up-to-date and reliable for developers [8](https://socket.dev/npm/package/filerobot-image-editor).
 
-## Filepond File Uploader
+### Filepond File Uploader
 
 [FilePond](https://pqina.nl/filepond/) is a versatile file upload library designed for web applications, offering a sleek and customizable interface for handling file uploads. It supports features like image previews, drag-and-drop functionality, and file validation, making it user-friendly and efficient [9](https://npm-compare.com/filepond). FilePond's popularity stems from its ease of integration, extensive customization options, and the ability to handle various file types seamlessly [9](https://npm-compare.com/filepond). Its active community and continuous updates ensure it remains a reliable and up-to-date solution for developers looking to enhance their web applications with robust file upload capabilities [9](https://npm-compare.com/filepond).
 
@@ -58,7 +78,7 @@ The benefits of a decoupled CMS include greater flexibility and scalability. Sin
 
 ### The Editor App
 
-Content is created an managed using the "Editor," which includes the content editing tools menstioned above. The source code for the editor can be found in the [Editor](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/tree/main/Editor) folder of this repository.
+Content is created an managed using the "Editor," which includes the content editing tools mentioned above. The source code for the editor can be found in the [Editor](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/tree/main/Editor) folder of this repository.
 
 ### The Publisher
 
@@ -74,14 +94,14 @@ We built Cosmos CMS upon this database to leverage its high availability, low la
 
 Cosmos stores static assets uploaded as content to the website in a **blob storage** with a **static website**. This is key to how Cosmos can perform so well. Hosting website assets this way offers several benefits:
 
-* Using blob storage with a static website significantly improves performance, as content is served directly from the storage, reducing server load and latency.
-* Additionally, blob storage provides a cost-effective and scalable solution for storing large amounts of unstructured data, such as images, videos, and documents.
-* It ensures high availability and durability, meaning your assets are always accessible and protected against data loss.
-* This setup also simplifies deployment and maintenance, as there is no need for server-side processing, making it easier to manage and update your website.
+* Blob storage with a static website improves performance by reducing server load and latency.
+* Cost-effective and scalable for storing large amounts of unstructured data (images, videos, documents).
+* Ensures high availability and durability, protecting against data loss.
+* Simplifies deployment and maintenance by eliminating server-side processing.
 
 ## Code Base
 
-If you are a JavaScript developer you should feel right at home with Cosmos.  The bulk of the code (69%) is from CKEditor, GrapesJS, Monaco, Filerobot, and Filepond--all of which are JavaScript based. Back-end logic is written in ASP.NET Core (C#), and that accounts for only 9%. What remains is CSS, HTML, SCSS and TypeScript.
+Almost 70% of the code base is JavaScript, and much of that is from CKEditor, GrapesJS, Monaco, Filerobot, and Filepond. Back-end logic is written in ASP.NET Core (C#), and that accounts for only 9%. What remains is CSS, HTML, SCSS and TypeScript.
 
 ![Code Base Percentages](CosmosCodeBase.png)
 
