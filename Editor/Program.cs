@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.RateLimiting;
 using System.Threading.Tasks;
 using System.Web;
@@ -182,6 +183,9 @@ if (entraIdOAuth != null && entraIdOAuth.IsConfigured())
 {
     builder.Services.AddAuthentication().AddMicrosoftAccount(options =>
     {
+        options.ClientId = entraIdOAuth.ClientId;
+        options.ClientSecret = entraIdOAuth.ClientSecret;
+
         if (!string.IsNullOrEmpty(entraIdOAuth.TenantId))
         {
             // This is for registered apps in the Azure portal that are single tenant.
@@ -189,10 +193,14 @@ if (entraIdOAuth != null && entraIdOAuth.IsConfigured())
             options.TokenEndpoint = $"https://login.microsoftonline.com/{entraIdOAuth.TenantId}/oauth2/v2.0/token";
         }
 
-        options.ClientId = entraIdOAuth.ClientId;
-        if (!string.IsNullOrEmpty(entraIdOAuth.ClientSecret))
+        if (!string.IsNullOrEmpty(entraIdOAuth.CallbackDomain))
         {
-            options.ClientSecret = entraIdOAuth.ClientSecret;
+            options.Events.OnRedirectToAuthorizationEndpoint = context =>
+            {
+                var redirectUrl = Regex.Replace(context.RedirectUri, "redirect_uri=(.)+%2Fsignin-", $"redirect_uri=https%3A%2F%2F{entraIdOAuth.CallbackDomain}%2Fsignin-");
+                context.Response.Redirect(redirectUrl);
+                return Task.CompletedTask;
+            };
         }
     });
 }

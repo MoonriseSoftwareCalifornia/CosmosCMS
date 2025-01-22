@@ -2,15 +2,15 @@
 
 	<PropertyGroup>
 		<TargetFramework>net9.0</TargetFramework>
-		<AssemblyVersion>9.0.0.6</AssemblyVersion>
-		<FileVersion>9.0.0.6</FileVersion>
+		<AssemblyVersion>9.0.1.7</AssemblyVersion>
+		<FileVersion>9.0.1.7</FileVersion>
 		<Nullable>disable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<UserSecretsId>aspnet-Cosmos.Cms.Publisher-F1D91233-1093-41F8-B23F-43E81E1454FF</UserSecretsId>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 		<EnableSdkContainerSupport>true</EnableSdkContainerSupport>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
-		<Version>9.0.0.6</Version>
+		<Version>9.0.1.7</Version>
 		<DockerfileContext>..\..\..</DockerfileContext>
 	</PropertyGroup>
 
@@ -50,18 +50,19 @@
 	<ItemGroup>
 		<PackageReference Include="Azure.Extensions.AspNetCore.DataProtection.Blobs" Version="1.4.0" />
 		<PackageReference Include="Cosmos.MicrosoftGraph" Version="9.0.0.5" />
+		<PackageReference Include="MailChimp.Net.V3" Version="5.5.0" />
 		<PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="9.0.0" />
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.MicrosoftAccount" Version="9.0.0" />
-		<PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.0" />
-		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="9.0.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="9.0.1" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.MicrosoftAccount" Version="9.0.1" />
+		<PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.1" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="9.0.1" />
 		<PackageReference Include="Microsoft.Extensions.Caching.Cosmos" Version="1.7.0" />
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
 		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="System.Formats.Asn1" Version="9.0.0" />
+		<PackageReference Include="System.Formats.Asn1" Version="9.0.1" />
 	</ItemGroup>
 
 	<ItemGroup>
