@@ -18,10 +18,10 @@ jobs:
     - name: Docker Login
       run: docker login -u="${{ secrets.DOCKERLOGIN}}" -p="${{ secrets.DOCKERPASSWORD }}"
     - name: Build Editor Docker Image
-      run: docker build . --file WebApps/Editor/Cosmos.Editor/Dockerfile --tag ${{ secrets.DOCKERLOGIN}}/cosmos-editor:9.0.0
+      run: docker build . --file Editor/Cosmos.Editor/Dockerfile --tag ${{ secrets.DOCKERLOGIN}}/cosmos-editor:9.0.0
     - name: Push Editor container to Docker Hub
       run: docker push ${{ secrets.DOCKERLOGIN}}/cosmos-editor:9.0.0
     - name: Build Publisher Docker Image
-      run: docker build . --file WebApps/Publisher/Cosmos.Publisher/Dockerfile --tag ${{ secrets.DOCKERLOGIN}}/cosmos-publisher:9.0.0
+      run: docker build . --file Publisher/Cosmos.Publisher/Dockerfile --tag ${{ secrets.DOCKERLOGIN}}/cosmos-publisher:9.0.0
     - name: Push Publisher container to Docker Hub
       run: docker push ${{ secrets.DOCKERLOGIN}}/cosmos-publisher:9.0.0
