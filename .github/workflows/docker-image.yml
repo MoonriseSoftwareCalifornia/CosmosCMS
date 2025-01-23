@@ -17,6 +17,8 @@ jobs:
     - uses: actions/checkout@v4
     - name: Docker Login
       run: docker login -u="${{ secrets.DOCKERLOGIN}}" -p="${{ secrets.DOCKERPASSWORD }}"
+    - name: List Directory
+      run: ls -alg
     - name: Build Editor Docker Image
       run: docker build . --file CosmosCMS/Editor/Cosmos.Editor/Dockerfile --tag ${{ secrets.DOCKERLOGIN}}/cosmos-editor:latest
     - name: Push Editor container to Docker Hub
