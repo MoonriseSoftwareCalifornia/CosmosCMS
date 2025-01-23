@@ -25,6 +25,9 @@
 
 	<PropertyGroup>
 		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+		<RuntimeIdentifiers>linux-x64</RuntimeIdentifiers>
+		<EnableSdkContainerDebugging>True</EnableSdkContainerDebugging>
+		<ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:9.0</ContainerBaseImage>
 	</PropertyGroup>
 	
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -124,6 +127,10 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\Common\Cosmos.Common.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ContainerPort Include="8081" />
 	</ItemGroup>
 
 	<ProjectExtensions>
