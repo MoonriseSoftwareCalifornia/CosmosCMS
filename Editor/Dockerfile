@@ -9,11 +9,8 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["WebApps/Editor/Cosmos.Editor/Cosmos.Editor.csproj", "WebApps/Editor/Cosmos.Editor/"]
-COPY ["Libraries/Cosmos.BlobService/Cosmos.BlobService/Cosmos.BlobService.csproj", "Libraries/Cosmos.BlobService/Cosmos.BlobService/"]
-COPY ["Libraries/Cosmos.Common/Cosmos.Common/Cosmos.Common.csproj", "Libraries/Cosmos.Common/Cosmos.Common/"]
-COPY ["Libraries/Cosmos.EmailServices/Cosmos.EmailServices.csproj", "Libraries/Cosmos.EmailServices/"]
-RUN dotnet restore "./WebApps/Editor/Cosmos.Editor/Cosmos.Editor.csproj"
+COPY ["Editor/Cosmos.Editor/Cosmos.Editor.csproj", "Editor/Cosmos.Editor/"]
+RUN dotnet restore "./Editor/Cosmos.Editor/Cosmos.Editor.csproj"
 COPY . .
 WORKDIR "/src/WebApps/Editor/Cosmos.Editor"
 RUN dotnet build "./Cosmos.Editor.csproj" -c $BUILD_CONFIGURATION -o /app/build

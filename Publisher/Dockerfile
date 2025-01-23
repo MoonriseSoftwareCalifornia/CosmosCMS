@@ -9,13 +9,10 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["WebApps/Publisher/Cosmos.Publisher/Cosmos.Publisher.csproj", "WebApps/Publisher/Cosmos.Publisher/"]
-COPY ["Libraries/Cosmos.BlobService/Cosmos.BlobService/Cosmos.BlobService.csproj", "Libraries/Cosmos.BlobService/Cosmos.BlobService/"]
-COPY ["Libraries/Cosmos.Common/Cosmos.Common/Cosmos.Common.csproj", "Libraries/Cosmos.Common/Cosmos.Common/"]
-COPY ["Libraries/Cosmos.EmailServices/Cosmos.EmailServices.csproj", "Libraries/Cosmos.EmailServices/"]
-RUN dotnet restore "./WebApps/Publisher/Cosmos.Publisher/Cosmos.Publisher.csproj"
+COPY ["Publisher/Cosmos.Publisher/Cosmos.Publisher.csproj", "Publisher/Cosmos.Publisher/"]
+RUN dotnet restore "./Publisher/Cosmos.Publisher/Cosmos.Publisher.csproj"
 COPY . .
-WORKDIR "/src/WebApps/Publisher/Cosmos.Publisher"
+WORKDIR "/src/Publisher/Cosmos.Publisher"
 RUN dotnet build "./Cosmos.Publisher.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
