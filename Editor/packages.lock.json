@@ -131,12 +131,12 @@
       },
       "Microsoft.Azure.SignalR": {
         "type": "Direct",
-        "requested": "[1.29.0, )",
-        "resolved": "1.29.0",
-        "contentHash": "Nv2Z6e5pU4vRGjoZc/HAFvR+b5QxfToVIrpfH7ccUX237a1dGJ3Z9z1xrjkvD4KDeaF4A6us+cgAhb9e8KVa1Q==",
+        "requested": "[1.30.0, )",
+        "resolved": "1.30.0",
+        "contentHash": "UsxG38lnS51QM0qd3psF5Q6wOjqc9ndBasE2VCabmNMTSHB2R+KCp34S8eQsvE2Cah7oOhPd4hET1zZxV1Mhuw==",
         "dependencies": {
           "Azure.Identity": "1.11.4",
-          "Microsoft.Azure.SignalR.Protocols": "1.29.0",
+          "Microsoft.Azure.SignalR.Protocols": "1.30.0",
           "Microsoft.Extensions.Http": "2.1.0",
           "Newtonsoft.Json": "13.0.3"
         }
@@ -1071,12 +1071,12 @@
       },
       "Microsoft.Azure.SignalR.Protocols": {
         "type": "Transitive",
-        "resolved": "1.29.0",
-        "contentHash": "54j531KO1GffnsbHSZCebtd96QoXnc67r0oUXoO7lsxfhvRAVsiMw77wSehQFOo1JF1yF98dvRoVc+kMDilbPw==",
+        "resolved": "1.30.0",
+        "contentHash": "BQMQ8ecesc/iya5sxxaat/5i9oHfn5IPeum2c+coAnLfaJyyZhly4tAIvmZWRu0AsB2vThStH23v6JMV4w8L1g==",
         "dependencies": {
           "Microsoft.Extensions.Primitives": "2.1.1",
           "System.Buffers": "4.5.1",
-          "System.Memory": "4.5.4",
+          "System.Memory": "4.5.5",
           "System.Runtime.CompilerServices.Unsafe": "6.0.0"
         }
       },

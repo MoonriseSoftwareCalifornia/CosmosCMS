@@ -92,7 +92,7 @@
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.MicrosoftAccount" Version="9.0.1" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.1" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="9.0.1" />
-		<PackageReference Include="Microsoft.Azure.SignalR" Version="1.29.0" />
+		<PackageReference Include="Microsoft.Azure.SignalR" Version="1.30.0" />
 		<PackageReference Include="Microsoft.Extensions.Azure" Version="1.9.0" />
 		<PackageReference Include="Microsoft.Extensions.Caching.Cosmos" Version="1.7.0" />
 		
