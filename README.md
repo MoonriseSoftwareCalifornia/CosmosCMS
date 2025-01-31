@@ -17,7 +17,7 @@ We aimed to develop a solution that combined the performance of SiteCore with th
 Cosmos CMS is easy to host, simple to administer, and user-friendly for web developers and non-technical content
 creators alike.
 
-### When to choose Cosmos over WordPress?
+### Why choose Cosmos over WordPress?
 
 This is a common question. When might I choose Cosmos over a system like WordPress? Here are some reasons:
 
