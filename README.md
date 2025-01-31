@@ -17,9 +17,9 @@ We aimed to develop a solution that combined the performance of SiteCore with th
 Cosmos CMS is easy to host, simple to administer, and user-friendly for web developers and non-technical content
 creators alike.
 
-### Why Choose Cosmos?
+### When to choose Cosmos over WordPress?
 
-Here are some scenarios where you might choose Cosmos over a system like WordPress:
+This is a common question. When might I choose Cosmos over a system like WordPress? Here are some reasons:
 
 * **Omnichannel Content Delivery:** If you need to deliver content across multiple platforms (web, mobile, IoT, etc.), a headless CMS allows you to manage content centrally and distribute it via APIs.
 * **Flexibility and Customization:** When you require a highly customized front-end experience, a headless CMS provides the flexibility to use any front-end technology or framework.
