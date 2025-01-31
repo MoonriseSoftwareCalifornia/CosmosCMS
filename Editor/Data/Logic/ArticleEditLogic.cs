@@ -584,7 +584,7 @@ namespace Cosmos.Cms.Data.Logic
             var htmlDoc = new HtmlAgilityPack.HtmlDocument();
             htmlDoc.LoadHtml(content);
 
-            var elements = htmlDoc.DocumentNode.SelectNodes("//*[@contenteditable]|//*[@crx]|//*[@data-ccms-ceid]");
+            var elements = htmlDoc.DocumentNode.SelectNodes("//*[@contenteditable='true']|//*[@contenteditable='']|//*[@crx]|//*[@data-ccms-ceid]");
 
             if (elements == null)
             {
@@ -687,8 +687,15 @@ namespace Cosmos.Cms.Data.Logic
             }
 
             // Detect duplicate editable 
-            if (elements.Count > 0 && htmlDoc.DocumentNode.SelectNodes("//*[@data-ccms-ceid]").Any())
+            if (elements.Count > 0)
             {
+                var groups = elements.GroupBy(x => x.Attributes["data-ccms-ceid"].Value).Where(g => g.Count() > 1).ToList();
+
+                if (!groups.Any())
+                {
+                    return htmlDoc.DocumentNode.OuterHtml;
+                }
+
                 var dups = elements.GroupBy(x => x.Attributes["data-ccms-ceid"].Value).Where(g => g.Count() > 1).Select(y => new { id = y.Key, Counter = y.Count() })
                   .ToList();
 

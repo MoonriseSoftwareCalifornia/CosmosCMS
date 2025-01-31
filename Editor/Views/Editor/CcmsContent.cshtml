@@ -1,7 +1,32 @@
-﻿@model Cosmos.Common.Models.ArticleViewModel
+﻿@using Microsoft.AspNetCore.Components
+@model Cosmos.Common.Models.ArticleViewModel
 @{
     Layout = null;
     ViewData["Title"] = Model.Title;
+
+    var data = new ImportMapDefinition(
+        new Dictionary<string, string>()
+                {
+            { "ckeditor5", "/lib/ckeditor/ckeditor5.js" },
+            { "ckeditor5/", "/lib/ckeditor/" },
+
+            { "filelink", "/lib/cosmos/ckeditor/filelink/filelink.js" },
+            { "filelink/", "/lib/cosmos/ckeditor/filelink/" },
+
+            { "insertimage", "/lib/cosmos/ckeditor/insertimage/insertimage.js" },
+            { "insertimage/", "/lib/cosmos/ckeditor/insertimage/" },
+
+            { "pagelink", "/lib/cosmos/ckeditor/pagelink/pagelink.js" },
+            { "pagelink/", "/lib/cosmos/ckeditor/pagelink/" },
+
+            { "signalr", "/lib/cosmos/ckeditor/signalr/signalr.js" },
+            { "signalr/", "/lib/cosmos/ckeditor/signalr/" },
+
+            { "vscodeeditor", "/lib/cosmos/ckeditor/vscodeeditor/vscodeeditor.js" },
+            { "vscodeeditor/", "/lib/cosmos/ckeditor/vscodeeditor/" },
+                },
+        null,
+        null);
 }
 <!DOCTYPE HTML>
 <html lang="@Model.LanguageCode">
@@ -22,6 +47,7 @@
         }
 
     </style>
+    <link href="~/lib/ckeditor/ckeditor5-editor.css" rel="stylesheet" asp-append-version="true" />
     @Html.Raw(Model.Layout.Head)
     @Html.Raw(Model.HeadJavaScript)
     @Html.Raw(JavaScriptSnippet.FullScript)
@@ -34,10 +60,10 @@
     @Html.Raw(Model.Layout.FooterHtmlContent)
     @Html.Raw(Model.FooterJavaScript)
     @Html.AntiForgeryToken()
-    <script src="/lib/ckeditor/build_20231218.01/ckeditor.js"></script>
-
-    <link href="~/lib/cropperjs/cropper.min.css" rel="stylesheet" />
-    <script src="~/lib/cropperjs/cropper.min.js"></script>
+    <script type="importmap" asp-importmap="@data">
+    </script>
+    <link href="~/lib/cropperjs/cropper.min.css" rel="stylesheet" asp-append-version="true" />
+    <script src="~/lib/cropperjs/cropper.min.js" asp-append-version="true"></script>
 
     <script>
 
@@ -46,231 +72,8 @@
         var ccms_editorIds = [];
         var focusedEditor;
         var unmoutCkBox;
-        const { BalloonEditor: Editor, EditorWatchdog } = BalloonEditor;
-        const watchdog = new EditorWatchdog(Editor); // Utility that restores crashed editors
+        var articleNumber = @Model.ArticleNumber;
         let autosaveTimeout = null;
-
-        document.addEventListener("DOMContentLoaded", function (event) {
-            ccms_createEditors();
-        });
-
-        document.addEventListener('progress', (event) => {
-            var debugval = event;
-        });
-
-        function ccms_createEditors() {
-
-            // Editor instances
-            const inlineInjectElements = document.querySelectorAll('[data-ccms-ceid]');
-
-            Array.from(inlineInjectElements).forEach(inlineElement => {
-
-                // Define a callback that will create an editor instance and return it.
-                watchdog.setCreator((elementOrData, editorConfig) => {
-                    return Editor
-                        .create(elementOrData, editorConfig)
-                        .then(editor => {
-
-                            const imageUploadEditing = editor.plugins.get('ImageUploadEditing');
-                            imageUploadEditing.on('uploadComplete', (evt, { data, imageElement }) => {
-                                parent.ccms_setBannerImage(data.url);
-                            });
-                            window.editor = editor;
-
-                            editor.editing.view.document.on('change:isFocused', (evt, data, isFocused) => {
-                                console.log(`View document is focused: ${isFocused}.`);
-                                if (isFocused) {
-                                    focusedEditor = editor;
-                                    parent.cosmosSignalOthers(editor, "join");
-                                } else {
-                                    focusedEditor = null;
-                                }
-                            });
-
-                            ccms_editors.push(editor);
-                        })
-                });
-
-
-                watchdog.create(inlineElement, {
-                    initialData: inlineElement.innerHTML,
-                    autosave: {
-                        waitingTime: 2800, // in ms
-                        save(editor) {
-                            if (parent.enableAutoSave === true) {
-                                return parent.cosmosSignalOthers(editor, "save");
-                            }
-                        }
-                    },
-                    blockToolbar: [
-                        'pageLink',
-                        'fileLink',
-                        'link',
-                        '|',
-                        'insertImage',
-                        'imageInsert',
-                        'mediaEmbed',
-                        '|',
-                        'vsCodeEditor',
-                        'codeBlock',
-                        '|',
-                        'heading',
-                        'fontSize',
-                        '|',
-                        'fontColor',
-                        'bold',
-                        'italic',
-                        'underline',
-                        '|',
-                        'bulletedList',
-                        'numberedList',
-                        '|',
-                        'outdent',
-                        'indent',
-                        'alignment',
-                        '|',
-                        'blockQuote',
-                        '|',
-                        'insertTable',
-                        'removeFormat'
-                    ],
-                    toolbar: {
-                        items: [
-                            'bold',
-                            'italic',
-                            'link'
-                        ]
-                    },
-                    simpleUpload: {
-                        // The URL that the images are uploaded to.
-                        uploadUrl: '/FileManager/SimpleUpload/@Model.ArticleNumber',
-                        // Enable the XMLHttpRequest.withCredentials property.
-                        withCredentials: true
-                    },
-                    image: {
-                        resizeUnit: "%",
-                        resizeOptions: [{
-                            name: 'resizeImage:original',
-                            value: null
-                        },
-                        {
-                            name: 'resizeImage:66',
-                            value: '6'
-                        },
-                        {
-                            name: 'resizeImage:15',
-                            value: '15'
-                        },
-                        {
-                            name: 'resizeImage:25',
-                            value: '25'
-                        },
-                        {
-                            name: 'resizeImage:33',
-                            value: '33'
-                        },
-                        {
-                            name: 'resizeImage:50',
-                            value: '50'
-                        },
-                        {
-                            name: 'resizeImage:75',
-                            value: '75'
-                        }],
-                        toolbar: [
-                            'resizeImage',
-                            'imageTextAlternative',
-                            'imageStyle:inline',
-                            'imageStyle:block',
-                            'imageStyle:side',
-                            'linkImage',
-                            'toggleImageCaption'
-                        ]
-                    },
-                    table: {
-                        contentToolbar: [
-                            'tableColumn',
-                            'tableRow',
-                            'mergeTableCells',
-                            'tableCellProperties',
-                            'tableProperties'
-                        ]
-                    },
-                    // This value must be kept in sync with the language defined in webpack.config.js.
-                    language: 'en',
-                    heading: {
-                        options: [
-                            { model: 'paragraph', title: 'Paragraph' },
-                            { model: 'heading1', view: 'h1', title: 'Page Title' },
-                            { model: 'heading2', view: 'h2', title: 'Heading 1' },
-                            { model: 'heading3', view: 'h3', title: 'Heading 2' },
-                            { model: 'heading4', view: 'h4', title: 'Heading 3' },
-                            { model: 'heading5', view: 'h5', title: 'Heading 4' },
-                            { model: 'heading6', view: 'h6', title: 'Heading 5' }
-                        ]
-                    },
-                    link: {
-                        decorators: {
-                            toggleDownloadable: {
-                                mode: 'manual',
-                                label: 'Downloadable',
-                                attributes: {
-                                    download: 'file'
-                                }
-                            },
-                            openInNewTab: {
-                                mode: 'manual',
-                                label: 'Open in a new tab',
-                                defaultValue: '_self',
-                                attributes: {
-                                    target: '_self'
-                                }
-                            },
-                            btnClass: {
-                                model: 'manual',
-                                label: 'CSS class',
-                                attributes: {
-                                    class: ''
-                                }
-                            }
-                        }
-                    },
-                    htmlSupport: {
-                        allow: [
-                            {
-                                name: "div",
-                                attributes: true,
-                                classes: true,
-                                styles: true
-                            },
-                            {
-                                name: "span",
-                                attributes: true,
-                                classes: true,
-                                styles: true
-                            },
-                            {
-                                name: "a",
-                                attributes: true,
-                                classes: true,
-                                styles: true
-                            },
-                            {
-                                name: "hr",
-                                attributes: true,
-                                classes: true,
-                                styles: true
-                            }
-                        ]
-                    },
-                    mediaEmbed: {
-                    }
-                });
-
-            });
-
-
-        }// End createEditors
 
         window.addEventListener("click", function () {
             parent.closeDropDowns();
@@ -301,8 +104,12 @@
 
 
     </script>
+
     <script src="@Html.Raw("https://unpkg.com/@popperjs/core@2")"></script>
     <script src="@Html.Raw("https://unpkg.com/tippy.js@6")"></script>
+
+    <script type="module" src="~/lib/cosmos/ckeditor/main.js" asp-append-version="true"></script>
+    
     <script>
         const elements = document.querySelectorAll('[data-ccms-ceid]');
         elements.forEach(function (el, index) {
@@ -310,7 +117,7 @@
         });
 
         // NodeList
-        var __cwps__toolTips = tippy(elements, {
+        let __cwps__toolTips = tippy(elements, {
             placement: "right-start",
             inlinePositioning: true,
         }); //data-ccms-ceid

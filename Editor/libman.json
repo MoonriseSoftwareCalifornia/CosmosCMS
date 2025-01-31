@@ -11,6 +11,13 @@
       "destination": "/wwwroot/lib/cropperjs"
     },
     {
+      "library": "filepond@4.25.1",
+      "destination": "/wwwroot/lib/filepond"
+    },
+    {
+      "library": "filepond-plugin-file-metadata@"
+    },
+    {
       "library": "grapesjs@0.22.3",
       "destination": "wwwroot/lib/grapesjs/"
     },
