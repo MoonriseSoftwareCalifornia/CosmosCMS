@@ -25,7 +25,7 @@ This is a common question. When might I choose Cosmos over a system like WordPre
 * **Flexibility and Customization:** When you require a highly customized front-end experience, a headless CMS provides the flexibility to use any front-end technology or framework.
 * **Performance:** For faster load times and better performance, a headless CMS can serve content more efficiently by decoupling the front-end from the back-end.
 * **Scalability:** If your project demands high scalability, a headless CMS can handle large volumes of content and traffic more effectively.
-* **Developer Experience:** When your development team prefers modern development practices and tools, a headless CMS offers a more streamlined and flexible workflow.
+* **Developer Experience:** When your development team prefers modern development practices and tools, a headless CMS offers a more streamlined and flexible workflow, and you can customize with NodeJS, .Net, Java and other languages--not just PHP.
 * **Ease of use:** Cosmos easier to administer and easier to create content than older systems.
 
 ## Features
