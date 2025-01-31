@@ -45,7 +45,7 @@ namespace Cosmos.Common.Models
         public string AuthorInfo { get; set; }
 
         /// <summary>
-        /// Get or set page content.
+        /// Gets or sets page content.
         /// </summary>
         /// <remarks>Not stored in the database.</remarks>
         public string Content { get; set; }

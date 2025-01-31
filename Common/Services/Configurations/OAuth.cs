@@ -29,6 +29,14 @@ namespace Cosmos.Common.Services.Configurations
         public string TenantId { get; set; } = string.Empty;
 
         /// <summary>
+        /// Gets or sets the Callback Domain.
+        /// </summary>
+        /// <remarks>
+        /// If you are using a proxy or firewall, such as Front Door, you may need to set this to the return domain.
+        /// </remarks>
+        public string CallbackDomain { get; set; } = string.Empty;
+
+        /// <summary>
         /// Indicates if this is configured or not.
         /// </summary>
         /// <returns>True means configuration is present.</returns>

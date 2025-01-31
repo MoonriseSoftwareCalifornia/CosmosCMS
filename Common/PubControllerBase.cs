@@ -76,9 +76,21 @@ namespace Cosmos.Publisher.Controllers
             }
 
             var client = storageContext.GetAppendBlobClient(HttpContext.Request.Path);
-            var properties = await client.GetPropertiesAsync();
 
-            return File(fileStream: await client.OpenReadAsync(), contentType: properties.Value.ContentType, lastModified: properties.Value.LastModified, entityTag: new EntityTagHeaderValue(properties.Value.ETag.ToString()));
+            if (client != null || await client.ExistsAsync())
+            {
+                try
+                {
+                    var properties = await client.GetPropertiesAsync();
+                    return File(fileStream: await client.OpenReadAsync(), contentType: properties.Value.ContentType, lastModified: properties.Value.LastModified, entityTag: new EntityTagHeaderValue(properties.Value.ETag.ToString()));
+                }
+                catch (Exception)
+                {
+                    return NotFound();
+                }
+            }
+
+            return NotFound();
         }
     }
 }
