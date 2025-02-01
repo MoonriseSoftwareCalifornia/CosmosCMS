@@ -190,6 +190,7 @@ namespace Cosmos.Common.Data.Logic
         /// <param name="cacheSpan">Length of time for cache to exist.</param>
         /// <param name="layoutCache">Layout cache duration.</param>
         /// <param name="headRequest">Is this a head request?.</param>
+        /// <param name="includeLayout">Include layout with request.</param>
         /// <returns>
         ///     <see cref="ArticleViewModel" />.
         /// </returns>
@@ -206,7 +207,7 @@ namespace Cosmos.Common.Data.Logic
         ///     </para>
         ///     <para>NOTE: Cannot access articles that have been deleted.</para>
         /// </remarks>
-        public virtual async Task<ArticleViewModel> GetPublishedPageByUrl(string urlPath, string lang = "", TimeSpan? cacheSpan = null, TimeSpan? layoutCache = null, bool headRequest = false)
+        public virtual async Task<ArticleViewModel> GetPublishedPageByUrl(string urlPath, string lang = "", TimeSpan? cacheSpan = null, TimeSpan? layoutCache = null, bool headRequest = false, bool includeLayout = true)
         {
             urlPath = urlPath?.ToLower().Trim(new char[] { ' ', '/' });
             if (string.IsNullOrEmpty(urlPath) || urlPath.Trim() == "/")
@@ -264,9 +265,29 @@ namespace Cosmos.Common.Data.Logic
                     return null;
                 }
 
-                model = await BuildArticleViewModel(data, lang, layoutCache);
+                model = includeLayout ? (await BuildArticleViewModel(data, lang, layoutCache)) : new ArticleViewModel()
+                {
+                    ArticleNumber = data.ArticleNumber,
+                    LanguageCode = lang,
+                    LanguageName = string.Empty,
+                    CacheDuration = 10,
+                    Content = data.Content,
+                    StatusCode = (StatusCodeEnum)data.StatusCode,
+                    Id = data.Id,
+                    Published = data.Published ?? null,
+                    Title = data.Title,
+                    UrlPath = data.UrlPath,
+                    Updated = data.Updated,
+                    VersionNumber = data.VersionNumber,
+                    HeadJavaScript = data.HeaderJavaScript,
+                    FooterJavaScript = data.FooterJavaScript,
+                    ReadWriteMode = isEditor,
+                    Expires = data.Expires ?? null,
+                    BannerImage = data.BannerImage,
+                    AuthorInfo = data.AuthorInfo
+                };
 
-                memoryCache.Set($"{urlPath}-{lang}", model, cacheSpan.Value);
+                memoryCache.Set($"{urlPath}-{lang}-{includeLayout}", model, cacheSpan.Value);
             }
 
             return model;

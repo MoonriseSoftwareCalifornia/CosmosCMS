@@ -174,7 +174,6 @@ if (entraIdOAuth != null && entraIdOAuth.IsConfigured())
             };
         }
     });
-
 }
 
 // Add Power BI Token Service.
