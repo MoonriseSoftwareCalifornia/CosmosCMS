@@ -13,6 +13,7 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["Cosmos.Api/Cosmos.Api.csproj", "Cosmos.Api/"]
+COPY ["Common/Cosmos.Common.csproj", "Common/"]
 RUN dotnet restore "./Cosmos.Api/Cosmos.Api.csproj"
 COPY . .
 WORKDIR "/src/Cosmos.Api"
