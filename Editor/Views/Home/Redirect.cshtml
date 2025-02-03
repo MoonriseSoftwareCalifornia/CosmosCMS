@@ -1,0 +1,12 @@
+﻿@model RedirectItemViewModel
+@{
+    ViewData["Title"] = "View";
+}
+
+<h1>Redirect</h1>
+
+<p>Page not found. Redirecting to: <a href="@Model.ToUrl">@Model.ToUrl</a>.</p>
+
+<script>
+    window.location.href = "@Model.ToUrl";
+</script>

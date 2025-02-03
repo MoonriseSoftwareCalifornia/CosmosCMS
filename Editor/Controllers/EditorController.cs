@@ -1703,7 +1703,7 @@ namespace Cosmos.Cms.Controllers
             ViewData["LastPubDateTime"] = null;
 
             var catalogEntry = await articleLogic.GetCatalogEntry(id);
-            
+
             return View(new EditCodePostModel
             {
                 Id = article.Id,
@@ -1950,6 +1950,23 @@ namespace Cosmos.Cms.Controllers
         }
 
         /// <summary>
+        /// Publish list of web pages to static website.
+        /// </summary>
+        /// <returns>IActionResult</returns>
+        [HttpGet]
+        [Authorize(Roles = "Editors,Administrators")]
+        public async Task<IActionResult> PublishStaticPages()
+        {
+            var pages = await dbContext.Pages.ToListAsync();
+            foreach (var page in pages)
+            {
+                await articleLogic.PublishStaticWebpage(page);
+            }
+
+            return Json(new { pages.Count });
+        }
+
+        /// <summary>
         /// Pre-load the website (useful if CDN configured).
         /// </summary>
         /// <returns>IAction result.</returns>
@@ -2026,6 +2043,23 @@ namespace Cosmos.Cms.Controllers
             }
 
             return Json(data);
+        }
+
+        /// <summary>
+        /// Gets a list of published pages.
+        /// </summary>
+        /// <returns>List of published pages.</returns>
+        [HttpGet]
+        public async Task<IActionResult> GetPublishedPageList()
+        {
+            var pages = await dbContext.Pages.Select(s =>
+            new
+            {
+                s.Id,
+                s.ArticleNumber
+            }).ToListAsync();
+
+            return Json(pages);
         }
 
         /// <summary>

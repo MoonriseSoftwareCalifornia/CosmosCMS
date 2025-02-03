@@ -9,13 +9,17 @@ namespace Cosmos.Cms.Data.Logic
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
+    using System.Text;
     using System.Threading.Tasks;
     using System.Web;
     using Azure.ResourceManager;
+    using Cosmos.BlobService;
     using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Cms.Controllers;
     using Cosmos.Cms.Models;
+    using Cosmos.Cms.Services;
     using Cosmos.Common.Data;
     using Cosmos.Common.Data.Logic;
     using Cosmos.Common.Models;
@@ -36,6 +40,9 @@ namespace Cosmos.Cms.Data.Logic
     /// </remarks>
     public class ArticleEditLogic : ArticleLogic
     {
+        private readonly IViewRenderService viewRenderService;
+        private readonly StorageContext storageContext;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ArticleEditLogic"/> class.
         ///     Constructor.
@@ -43,16 +50,22 @@ namespace Cosmos.Cms.Data.Logic
         /// <param name="dbContext">Database context.</param>
         /// <param name="memoryCache">Memory cache.</param>
         /// <param name="config">Cosmos configuration.</param>
+        /// <param name="viewRenderService">View rendering service used to save static web pages.</param>
+        /// <param name="storageContext">Storage service used to manage static website blobs.</param>
         public ArticleEditLogic(
             ApplicationDbContext dbContext,
             IMemoryCache memoryCache,
-            IOptions<CosmosConfig> config)
+            IOptions<CosmosConfig> config,
+            IViewRenderService viewRenderService,
+            StorageContext storageContext)
             : base(
                 dbContext,
                 config,
                 memoryCache,
                 true)
         {
+            this.viewRenderService = viewRenderService;
+            this.storageContext = storageContext;
         }
 
         /// <summary>
@@ -749,6 +762,8 @@ namespace Cosmos.Cms.Data.Logic
             var pages = await DbContext.Pages.Where(w => w.ArticleNumber == articleNumber).ToListAsync();
             DbContext.Pages.RemoveRange(pages);
 
+            RemoveStaticWebpage(pages.FirstOrDefault().UrlPath);
+
             await DbContext.SaveChangesAsync();
         }
 
@@ -1195,6 +1210,42 @@ namespace Cosmos.Cms.Data.Logic
             await DbContext.SaveChangesAsync();
         }
 
+
+
+        /// <summary>
+        /// Publishes a static webpage to the blob storage if enabled.
+        /// </summary>
+        /// <param name="page">PublishedPage</param>
+        public async Task PublishStaticWebpage(PublishedPage page)
+        {
+            if (this.CosmosOptions.Value.SiteSettings.StaticWebPages)
+            {
+                if (page.UrlPath.StartsWith("/pub", StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new Exception("Cannot publish web page to path /pub.");
+                }
+
+                var data = await BuildArticleViewModel(page, string.Empty);
+                var html = await viewRenderService.RenderToStringAsync("~/Views/Home/Export.cshtml", data);
+                using var stream = new MemoryStream(Encoding.UTF8.GetBytes(html));
+
+                var filePath = data.UrlPath.Equals("root", StringComparison.OrdinalIgnoreCase) ? "/index.html" : data.UrlPath;
+
+                storageContext.AppendBlob(stream, new BlobService.Models.FileUploadMetaData()
+                {
+                    ChunkIndex = 0,
+                    ContentType = "text/html",
+                    FileName = Path.GetFileName(filePath).ToLower(),
+                    ImageHeight = string.Empty,
+                    ImageWidth = string.Empty,
+                    RelativePath = filePath.ToLower(),
+                    TotalChunks = 1,
+                    TotalFileSize = stream.Length,
+                    UploadUid = Guid.NewGuid().ToString(),
+                });
+            }
+        }
+
         /// <summary>
         /// Removes a reserved path.
         /// </summary>
@@ -1367,6 +1418,60 @@ namespace Cosmos.Cms.Data.Logic
         }
 
         /// <summary>
+        /// Removes a static webpage from the blob storage if enabled.
+        /// </summary>
+        /// <param name="filePath">Path to page to remove.</param>
+        private void RemoveStaticWebpage(string filePath)
+        {
+            if (this.CosmosOptions.Value.SiteSettings.StaticWebPages)
+            {
+                if (filePath.StartsWith("/pub", StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new Exception("Cannot remove web page from path /pub.");
+                }
+
+                filePath = filePath.Equals("root", StringComparison.OrdinalIgnoreCase) ? "/index.html" : filePath;
+                storageContext.DeleteFile(filePath);
+            }
+        }
+
+        private async Task CreateStaticRedirectPage(string fromUrl, string toUrl)
+        {
+            if (this.CosmosOptions.Value.SiteSettings.StaticWebPages)
+            {
+                if (fromUrl.Equals(toUrl, StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+
+                fromUrl = fromUrl.Equals("root", StringComparison.OrdinalIgnoreCase) ? "/index.html" : fromUrl;
+                toUrl = toUrl.Equals("root", StringComparison.OrdinalIgnoreCase) ? "/index.html" : toUrl;
+
+                var model = new RedirectItemViewModel()
+                {
+                    FromUrl = fromUrl,
+                    ToUrl = toUrl
+                };
+
+                var html = await viewRenderService.RenderToStringAsync("~/Views/Home/Export.cshtml", model);
+                using var stream = new MemoryStream(Encoding.UTF8.GetBytes(html));
+
+                storageContext.AppendBlob(stream, new BlobService.Models.FileUploadMetaData()
+                {
+                    ChunkIndex = 0,
+                    ContentType = "text/html",
+                    FileName = Path.GetFileName(fromUrl),
+                    ImageHeight = string.Empty,
+                    ImageWidth = string.Empty,
+                    RelativePath = fromUrl,
+                    TotalChunks = 1,
+                    TotalFileSize = stream.Length,
+                    UploadUid = Guid.NewGuid().ToString(),
+                });
+            }
+        }
+
+        /// <summary>
         ///     Gets a template represented as an <see cref="ArticleViewModel" />.
         /// </summary>
         /// <param name="template">Page template model.</param>
@@ -1444,6 +1549,11 @@ namespace Cosmos.Cms.Data.Logic
                 DbContext.Pages.RemoveRange(itemsToRemove);
                 await DbContext.SaveChangesAsync();
                 purgePaths.AddRange(itemsToRemove.Select(s => s.UrlPath).Distinct().ToArray());
+
+                foreach (var path in purgePaths)
+                {
+                    RemoveStaticWebpage(path);
+                }
             }
 
             if (itemsToPublish.Any())
@@ -1488,6 +1598,9 @@ namespace Cosmos.Cms.Data.Logic
                     {
                         purgePaths.Add($"/pub/articles/{item.ArticleNumber}/");
                     }
+
+                    // Publish the static webpage
+                    await PublishStaticWebpage(newPage);
 
                     await UpdateCatalogEntry(item.ArticleNumber, (StatusCodeEnum)item.StatusCode);
                 }
@@ -1598,6 +1711,9 @@ namespace Cosmos.Cms.Data.Logic
                     HeaderJavaScript = null,
                     FooterJavaScript = null
                 };
+
+                // Create a static redirect page.
+                await CreateStaticRedirectPage(oldUrl, newUrl);
 
                 // Add redirect here
                 DbContext.Pages.Add(entity);

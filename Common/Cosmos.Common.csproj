@@ -95,7 +95,7 @@
 		<PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.3.2" />
 		<PackageReference Include="Azure.Identity" Version="1.13.2" />
 		<PackageReference Include="MailChimp.Net.V3" Version="5.5.0" />
-		<PackageReference Include="Cosmos.BlobService" Version="9.0.1" />
+		<PackageReference Include="Cosmos.BlobService" Version="9.0.2" />
 		<PackageReference Include="Cosmos.EmailServices" Version="9.0.1" />
 		<PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="9.0.1" />
 		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.1" />

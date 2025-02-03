@@ -43,9 +43,9 @@
       },
       "Cosmos.BlobService": {
         "type": "Direct",
-        "requested": "[9.0.1, )",
-        "resolved": "9.0.1",
-        "contentHash": "bezC9XdFeNhTuWlUbwqlz8gwFMrGtS1XDMHfSZ1U/lIts2N/1aF2PxXaaTaQnViMQgRPb7ZT8fnxkCw5yuMOTQ==",
+        "requested": "[9.0.2, )",
+        "resolved": "9.0.2",
+        "contentHash": "LVVftcA2hJhrzr6jmjDubm3AMbuqtE/x0KUQQfZs2wKdXbli8a+8+aY6Moaaire0k79l1d+V2/NDDu+sGTuSMg==",
         "dependencies": {
           "Azure.Identity": "1.13.2",
           "Azure.Storage.Blobs": "12.23.0",

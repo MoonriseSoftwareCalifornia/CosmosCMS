@@ -4,23 +4,25 @@
     ViewData["Title"] = "Publish Website";
 }
 <div class="cwps-editor-container pt-3">
-<div class="container pt-2">
-    <div class="row">
-            <div class="col">
-                <h3>Website Publisher</h3>
+    <div class="container pt-2">
+        <div class="row">
+            <div class="col bg-light">
+                <h3>Publish Website</h3>
                 <hr />
                 <p>
-                    Normally web page changes will become public automatically in a couple minutes as
-                    various caching mechanisms check for new content. This is true even for scheduled
-                    publishing of individual web pages.
+                    Clicking the button below does two things:
                 </p>
-                <p>
-                    Allowing this process to happen naturally ensures new content is displayed in a timely manner and overall website
-                    performance is maintained. However there are times when you may want to trigger a site-wide &quot;publish.&quot;
-                </p>
+                <ul>
+                    <li>If static web pages are enabled, publishes a fresh copy of all of them.</li>
+                    <li>If a CDN is configured, refreshes the Content Delivery Network (CDN) cache.</li>
+                </ul>
+                <p>Please note: Publishing can take several minutes to complete.</p>
                 <br />
                 <button id="btnPublish" class="btn btn-sm btn-success" onclick="publish()">Publish Website</button>
-           
+                <div id="statusMsg">
+
+                </div>
+
                 <div style="padding-bottom: 30px; padding-top: 30px;">
                     <p>
                         <span class="badge badge-warning">WARNING: </span>
@@ -39,7 +41,6 @@
                                     Updaing the &quot;last changed&quot; date and time of when each web page is the primary way caching mechanisms know that a page is updated.
                                 </div>
                                 <div id="spinner1" style="display: none">
-                                    
                                 </div>
                             </div>
                         </div>
@@ -52,7 +53,7 @@
                                     C/CMS can integrate with Content Delivery Networks (CDN) to speed up delivery of web content to users.
                                 </div>
                                 <div id="spinner3" style="display: none">
-                                   Working...
+                                    Working...
                                 </div>
                             </div>
                         </div>
@@ -61,13 +62,14 @@
                 </div>
             </div>
         </div>
-</div>
+    </div>
 </div>
 <script>
 
-    var counter;
-    var count = 61;
-    var second = 1;
+    let counter;
+    let count = 61;
+    let second = 1;
+    let publishedPages = [];
 
     $("#btnStartCountDown").click(function(e) {
         e.preventDefault();
@@ -81,11 +83,16 @@
         $("#gauge").data("kendoRadialGauge").value($("#gauge-value").val());
     }
 
-    function publish(e) {
+    async function publish(e) {
 
         $("#card1header").attr("class", "card-header text-white bg-primary");
-        //e.preventDefault();
         $("#btnPublish").hide();
+
+        $("#statusMsg").html("<p>Publishing static pages, please wait, this may take a while ...</p>");
+        const response = await fetch('@Url.Action("PublishStaticPages")');
+        $("#statusMsg").html("<p>Done</p>.");
+
+        //e.preventDefault();
         //$("#msgBox").html("<p>Working, please wait .... </p><ul><li>Beginning publishing process...</li></ul>");
 
         // Start with updating the time stamps of all published articles
@@ -128,6 +135,7 @@
             }
         });
     }
+
 
 </script>
 

@@ -133,6 +133,10 @@ namespace Cosmos.Cms.Common.Services.Configurations
             cosmosConfig.SiteSettings.PublisherUrl = GetValue<string>("CosmosPublisherUrl");
             cosmosConfig.SiteSettings.BlobPublicUrl = GetValue<string>("AzureBlobStorageEndPoint");
             cosmosConfig.SiteSettings.BlobPublicUrl = cosmosConfig.SiteSettings.BlobPublicUrl?.TrimEnd('/');
+
+            // Publish static web pages?
+            cosmosConfig.SiteSettings.StaticWebPages = GetValue<bool>("CosmosStaticWebPages");
+
             var editorUrl = GetValue<string>("CosmosEditorUrl");
             if (!string.IsNullOrEmpty(editorUrl))
             {

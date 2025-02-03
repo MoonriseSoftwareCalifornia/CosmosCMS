@@ -74,6 +74,11 @@ namespace Cosmos.Cms.Common.Services.Configurations
         public string PublisherUrl { get; set; } = string.Empty;
 
         /// <summary>
+        ///    Gets or sets a value indicating whether publish to static website.
+        /// </summary>
+        public bool StaticWebPages { get; set; } = false;
+
+        /// <summary>
         /// Gets or sets content Security Policy (CSP).
         /// </summary>
         /// <remarks>
