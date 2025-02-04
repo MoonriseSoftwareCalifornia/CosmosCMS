@@ -40,7 +40,6 @@ import {
     List,
     ListProperties,
     MediaEmbed,
-    Mention,
     Paragraph,
     PasteFromOffice,
     RemoveFormat,
@@ -92,6 +91,80 @@ function getDistanceFromTop() {
 const LICENSE_KEY = 'GPL'; // or <YOUR_LICENSE_KEY>.
 
 const EditorConfig = {
+    plugins: [
+        Alignment,
+        Autoformat,
+        AutoImage,
+        Autosave,
+        BlockQuote,
+        Bold,
+        Bookmark,
+        Code,
+        CodeBlock,
+        Essentials,
+        FindAndReplace,
+        FontBackgroundColor,
+        FontColor,
+        FontFamily,
+        FontSize,
+        GeneralHtmlSupport,
+        Heading,
+        Highlight,
+        HorizontalLine,
+        HtmlComment,
+        HtmlEmbed,
+        ImageBlock,
+        ImageCaption,
+        ImageInline,
+        ImageInsert,
+        ImageInsertViaUrl,
+        ImageResize,
+        ImageStyle,
+        ImageTextAlternative,
+        ImageToolbar,
+        ImageUpload,
+        Indent,
+        IndentBlock,
+        Italic,
+        Link,
+        LinkImage,
+        List,
+        ListProperties,
+        MediaEmbed,
+        Paragraph,
+        PasteFromOffice,
+        RemoveFormat,
+        ShowBlocks,
+        SimpleUploadAdapter,
+        SpecialCharacters,
+        SpecialCharactersArrows,
+        SpecialCharactersCurrency,
+        SpecialCharactersEssentials,
+        SpecialCharactersLatin,
+        SpecialCharactersMathematical,
+        SpecialCharactersText,
+        Strikethrough,
+        Style,
+        Subscript,
+        Superscript,
+        Table,
+        TableCaption,
+        TableCellProperties,
+        TableColumnResize,
+        TableProperties,
+        TableToolbar,
+        TextTransformation,
+        Title,
+        TodoList,
+        Underline,
+        WordCount,
+
+        FileLink,
+        InsertImage,
+        PageLinkUI,
+        VsCodeEditor,
+        SignalR,
+    ],
     toolbar: {
         items: [
 
@@ -149,84 +222,15 @@ const EditorConfig = {
             }
         }
     },
+    simpleUpload: {
+        // The URL that the images are uploaded to.
+        uploadUrl: '/FileManager/SimpleUpload/' + articleNumber,
+            // Enable the XMLHttpRequest.withCredentials property.
+            withCredentials: true
+        },
     menuBar: {
         isVisible: true
     },
-    plugins: [
-        Alignment,
-        Autoformat,
-        AutoImage,
-        Autosave,
-        BlockQuote,
-        Bold,
-        Bookmark,
-        Code,
-        CodeBlock,
-        Essentials,
-        FindAndReplace,
-        FontBackgroundColor,
-        FontColor,
-        FontFamily,
-        FontSize,
-        GeneralHtmlSupport,
-        Heading,
-        Highlight,
-        HorizontalLine,
-        HtmlComment,
-        HtmlEmbed,
-        ImageBlock,
-        ImageCaption,
-        ImageInline,
-        ImageInsert,
-        ImageInsertViaUrl,
-        ImageResize,
-        ImageStyle,
-        ImageTextAlternative,
-        ImageToolbar,
-        ImageUpload,
-        Indent,
-        IndentBlock,
-        Italic,
-        Link,
-        LinkImage,
-        List,
-        ListProperties,
-        MediaEmbed,
-        Mention,
-        Paragraph,
-        PasteFromOffice,
-        RemoveFormat,
-        ShowBlocks,
-        SimpleUploadAdapter,
-        SpecialCharacters,
-        SpecialCharactersArrows,
-        SpecialCharactersCurrency,
-        SpecialCharactersEssentials,
-        SpecialCharactersLatin,
-        SpecialCharactersMathematical,
-        SpecialCharactersText,
-        Strikethrough,
-        Style,
-        Subscript,
-        Superscript,
-        Table,
-        TableCaption,
-        TableCellProperties,
-        TableColumnResize,
-        TableProperties,
-        TableToolbar,
-        TextTransformation,
-        Title,
-        TodoList,
-        Underline,
-        WordCount,
-
-        FileLink,
-        InsertImage,
-        PageLinkUI,
-        VsCodeEditor,
-        SignalR,
-    ],
     fontFamily: {
         supportAllValues: true
     },
@@ -322,66 +326,7 @@ const EditorConfig = {
                 reversed: true
             }
         },
-        mention: {
-            feeds: [
-                {
-                    marker: '@Html.Raw("@")', // Excaped at symbol (Razor).
-                    feed: [
-                        /* See: https://ckeditor.com/docs/ckeditor5/latest/features/mentions.html */
-                    ]
-                }
-            ]
-        },
         placeholder: 'Type or paste your content here!',
-        style: {
-            definitions: [
-                {
-                    name: 'Article category',
-                    element: 'h3',
-                    classes: ['category']
-                },
-                {
-                    name: 'Title',
-                    element: 'h2',
-                    classes: ['document-title']
-                },
-                {
-                    name: 'Subtitle',
-                    element: 'h3',
-                    classes: ['document-subtitle']
-                },
-                {
-                    name: 'Info box',
-                    element: 'p',
-                    classes: ['info-box']
-                },
-                {
-                    name: 'Side quote',
-                    element: 'blockquote',
-                    classes: ['side-quote']
-                },
-                {
-                    name: 'Marker',
-                    element: 'span',
-                    classes: ['marker']
-                },
-                {
-                    name: 'Spoiler',
-                    element: 'span',
-                    classes: ['spoiler']
-                },
-                {
-                    name: 'Code (dark)',
-                    element: 'pre',
-                    classes: ['fancy-code', 'fancy-code-dark']
-                },
-                {
-                    name: 'Code (bright)',
-                    element: 'pre',
-                    classes: ['fancy-code', 'fancy-code-bright']
-                }
-            ]
-        },
         ui: {
             viewportOffset: {
                 top: getDistanceFromTop(),
@@ -389,13 +334,7 @@ const EditorConfig = {
         },
         table: {
             contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells', 'tableProperties', 'tableCellProperties']
-        },
-        simpleUpload: {
-            // The URL that the images are uploaded to.
-            uploadUrl: '/FileManager/SimpleUpload/' + articleNumber,
-            // Enable the XMLHttpRequest.withCredentials property.
-            withCredentials: true
-        },
+        }
     }
 };
 
