@@ -21,6 +21,7 @@ namespace Cosmos.Cms.Controllers
     using Cosmos.Common.Data;
     using Cosmos.Common.Data.Logic;
     using Cosmos.Common.Models;
+    using Cosmos.Editor.Controllers;
     using Cosmos.Editor.Data;
     using Cosmos.Editor.Data.Logic;
     using Cosmos.Editor.Models;
@@ -1950,23 +1951,6 @@ namespace Cosmos.Cms.Controllers
         }
 
         /// <summary>
-        /// Publish list of web pages to static website.
-        /// </summary>
-        /// <returns>IActionResult</returns>
-        [HttpGet]
-        [Authorize(Roles = "Editors,Administrators")]
-        public async Task<IActionResult> PublishStaticPages()
-        {
-            var pages = await dbContext.Pages.ToListAsync();
-            foreach (var page in pages)
-            {
-                await articleLogic.PublishStaticWebpage(page);
-            }
-
-            return Json(new { pages.Count });
-        }
-
-        /// <summary>
         /// Pre-load the website (useful if CDN configured).
         /// </summary>
         /// <returns>IAction result.</returns>
@@ -2060,6 +2044,24 @@ namespace Cosmos.Cms.Controllers
             }).ToListAsync();
 
             return Json(pages);
+        }
+
+        /// <summary>
+        /// Publish list of web pages to static website.
+        /// </summary>
+        /// <param name="guids">List of page IDs.</param>
+        /// <returns>IActionResult</returns>
+        [HttpPost]
+        [Authorize(Roles = "Editors,Administrators")]
+        public async Task<IActionResult> PublishStaticPages([FromBody] List<Guid> guids)
+        {
+            var pages = await dbContext.Pages.Where(w => guids.Contains(w.Id)).ToListAsync();
+            foreach (var page in pages)
+            {
+                await articleLogic.PublishStaticWebpage(page);
+            }
+
+            return Json(new { pages.Count });
         }
 
         /// <summary>
@@ -2252,6 +2254,47 @@ namespace Cosmos.Cms.Controllers
             await dbContext.SaveChangesAsync();
 
             return RedirectToAction("Redirects");
+        }
+
+        /// <summary>
+        /// Updates the time stamps for all published pages.
+        /// </summary>
+        /// <returns>IActionResult.</returns>
+        [HttpGet]
+        [Authorize(Roles = "Administrators, Editors")]
+        public async Task<IActionResult> UpdateTimeStamps()
+        {
+            var pages = await dbContext.Pages.ToListAsync();
+            var c = 0;
+            foreach (var page in pages)
+            {
+                c++;
+                page.Updated = DateTime.UtcNow;
+
+                if (c >= 20)
+                {
+                    await dbContext.SaveChangesAsync();
+                    c = 0;
+                }
+            }
+
+            await dbContext.SaveChangesAsync();
+
+            return Json("Ok");
+        }
+
+        /// <summary>
+        /// Flush the CDN if configured.
+        /// </summary>
+        /// <returns>IActionResult</returns>
+        [HttpGet]
+        [Authorize(Roles = "Administrators, Editors")]
+        public async Task<IActionResult> RefreshCdn()
+        {
+            var settings = await Cosmos___CdnController.GetCdnConfiguration(dbContext);
+            var cdnService = new Editor.Services.CdnService(settings);
+            var result = await cdnService.PurgeCdn(new List<string>() { "/" });
+            return Json(result);
         }
 
         /// <summary>

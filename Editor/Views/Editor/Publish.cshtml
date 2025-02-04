@@ -1,12 +1,14 @@
-﻿@model ArticleViewModel
-
+﻿@using Cosmos.Cms.Common.Services.Configurations
+@using Microsoft.Extensions.Options
+@model ArticleViewModel
+@inject IOptions<CosmosConfig> options
 @{
     ViewData["Title"] = "Publish Website";
 }
 <div class="cwps-editor-container pt-3">
     <div class="container pt-2">
         <div class="row">
-            <div class="col bg-light">
+            <div class="col text-light">
                 <h3>Publish Website</h3>
                 <hr />
                 <p>
@@ -19,8 +21,7 @@
                 <p>Please note: Publishing can take several minutes to complete.</p>
                 <br />
                 <button id="btnPublish" class="btn btn-sm btn-success" onclick="publish()">Publish Website</button>
-                <div id="statusMsg">
-
+                <div id="statusMsg" class="mt-4">
                 </div>
 
                 <div style="padding-bottom: 30px; padding-top: 30px;">
@@ -70,6 +71,7 @@
     let count = 61;
     let second = 1;
     let publishedPages = [];
+    const staticWebsite = @options.Value.SiteSettings.StaticWebPages.ToString().ToLower();
 
     $("#btnStartCountDown").click(function(e) {
         e.preventDefault();
@@ -85,55 +87,58 @@
 
     async function publish(e) {
 
+        $("#statusMsg").html("Getting list of web pages to publish...");
+
+        const response1 = await fetch('@Url.Action("GetPublishedPageList")');
+        const pageList = await response1.json();
+
         $("#card1header").attr("class", "card-header text-white bg-primary");
         $("#btnPublish").hide();
 
-        $("#statusMsg").html("<p>Publishing static pages, please wait, this may take a while ...</p>");
-        const response = await fetch('@Url.Action("PublishStaticPages")');
-        $("#statusMsg").html("<p>Done</p>.");
-
         //e.preventDefault();
         //$("#msgBox").html("<p>Working, please wait .... </p><ul><li>Beginning publishing process...</li></ul>");
+        $("#statusMsg").html("<p>Updating time stamps on " + pageList.length + " published pages. Please wait, this may take a while ...</p>");
 
         // Start with updating the time stamps of all published articles
-        $.ajax({
-            type: "POST",
-            url: "@Url.Action("UpdateTimeStamps")",
-            success: function(json0) {
-                $("#spinner1").show();
-                $("#spinner2").show();
-                $("#spinner3").show();
-                $("#card1header").attr("class", "card-header text-white bg-secondary");
-                $("#card2header").attr("class", "card-header text-white bg-primary");
-                $("#card1body").html(
-                    "<p>Time stamps for " +
-                    json0 +
-                    " pages updated.</p><br />" +
-                    "<div class='btn btn-large btn-success'><i class='fa fa-check-square-o' aria-hidden='true'></i></div>"
-                );
-                // Now handle CDN
-                $.ajax({
-                    type: "POST",
-                    url: "@Url.Action("FlushCdn")",
-                    success: function(json2) {
-                        //$("#msgBox").html("<p>Finished publishing.</p><ul><li>REDIS Refreshed</li><li>" + json1.Keys.length + " item(s) flushed.</li><li>CDN Result: " + json2.Detail + "</li></ul>");
+        const response2 = await fetch('@Url.Action("UpdateTimeStamps")');
+        const result2 = response2.json(); // await response.
 
-                        $("#card3header").attr("class", "card-header text-white bg-secondary");
-                        //$("#msgBox").html("<p>Working, please wait .... </p><ul><li>Redis refreshed</li><li>" + json1.Keys.length + " item(s) flushed.</li><li>Refreshing CDN...</li></ul>");
-                        $("#card3body").html(
-                            "<p>" +
-                            " CDN purge will complete in about " +
-                            json2.EstimatedSeconds +
-                            " seconds.</p>" +
-                            "<div class='btn btn-large btn-success'><i class='fa fa-check-square-o' aria-hidden='true'></i></div>"
-                        );
-                        $("#purgeDetails").html("<p>" + json2.Detail + ".</p>")
-                        $("#btnPublish").show();
-                    },
-                    dataType: "json"
-                });
+        // Now handle static web pages.
+        if (staticWebsite) {
+            $("#statusMsg").html("<p>Publishing " + pageList.length + " static pages, please wait, this may take a while ...</p>");
+            let idlist = [];
+            let c = 0;
+            for (let i = 0; i < pageList.length; i++) {
+
+                idlist.push(pageList[i].Id);
+                c++;
+
+                if (c === 10) {
+                    const response = await fetch('@Url.Action("PublishStaticPages")', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(idlist)
+                    });
+                    const result = await response.json();
+                    $("#statusMsg").html("<p>Published " + i + " out of " + pageList.length + "static pages. Working ...</p>");
+                    c = 0;
+                    idlist = [];
+                }
             }
-        });
+
+            $("#statusMsg").html("<p>Done with static pages.</p>.");
+        }
+
+        // Now handle CDN
+        $("#statusMsg").html("Refreshing CDN (if configured)...");
+
+        const response3 = await fetch('@Url.Action("RefreshCdn")');
+        const result3 = response3.json(); // await response.
+
+        $("#statusMsg").html("Done.");
+        $("#btnPublish").show();
     }
 
 

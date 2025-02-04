@@ -66,10 +66,10 @@
                                 <li>
                                     <a class="dropdown-item" title="Manage layouts" href="/Layouts/Index">Site Design</a>
                                 </li>
+                                <li>
+                                    <a class="dropdown-item" title="Publish entire website and refresh CDN." href="/Editor/Publish">Publish Website</a>
+                                </li>
                             }
-                            <li>
-                                <a id="btnPublicWebsite" class="dropdown-item" title="Open public (publisher) website" href="" target="_blank">Public Website</a>
-                            </li>
                             <li style="display:none">
                                 <a class="dropdown-item" title="Internal (non-public) file storage." href="/Code/Index">Internal Files</a>
                             </li>
@@ -84,6 +84,9 @@
                                 </li>
                                 <li>
                                     <a class="dropdown-item" title="CDN integration." asp-action="Index" asp-controller="Cosmos___Cdn">CDN Setup</a>
+                                </li>
+                                <li>
+                                    <a id="btnPublicWebsite" class="dropdown-item" title="Open public (publisher) website" href="" target="_blank">Public Website</a>
                                 </li>
                             }
                             <li><hr class="dropdown-divider"></li>

@@ -18,6 +18,8 @@ namespace Cosmos.Editor.Services
     using Azure.ResourceManager;
     using Azure.ResourceManager.Cdn;
     using Azure.ResourceManager.Cdn.Models;
+    using Azure.ResourceManager.FrontDoor;
+    using Azure.ResourceManager.FrontDoor.Models;
     using Cosmos.Common.Data;
     using Cosmos.Editor.Controllers;
 
