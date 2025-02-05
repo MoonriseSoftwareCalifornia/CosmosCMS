@@ -10,6 +10,7 @@ namespace Cosmos.Editor.Controllers
     using System;
     using System.Net;
     using Azure;
+    using Azure.ResourceManager;
 
     /// <summary>
     /// Cdn purge result.
@@ -55,6 +56,11 @@ namespace Cosmos.Editor.Controllers
         /// Gets or sets the message from the CDN service.
         /// </summary>
         public string Message { get; set; }
+
+        /// <summary>
+        /// Gets or sets the operation result.
+        /// </summary>
+        public ArmOperation Operation { get; set; }
 
         /// <summary>
         /// Returns the string representation of this Azure.Response.

@@ -134,6 +134,17 @@
 
                         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
+                        <div>
+
+                        @if (testResult != null)
+                        {
+                            <div class="mb-3">
+                                Message: @testResult.Message
+                                @testResult.Status
+                            </div>
+                        }
+                        </div>
+
                         <button id="btnSave" type="submit" class="btn btn-sm btn-primary">Save and test settings <i class="fa-solid fa-circle-arrow-right"></i></button>
                         <a asp-action="Index" class="btn btn-sm btn-secondary">Cancel <i class="fa-solid fa-circle-arrow-right"></i></a>
                         <a asp-action="Remove" asp-controller="Cosmos___Cdn" class="btn btn-primary">Remove <i class="fa-solid fa-circle-arrow-right"></i></a>

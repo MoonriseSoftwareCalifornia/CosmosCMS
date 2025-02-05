@@ -282,73 +282,16 @@ namespace Cosmos.Editor.Controllers
             return RedirectToAction("Index");
         }
 
-        private async Task<CdnResult> TestConnection(CdnService azureCdnConfig)
+        private async Task<CdnResult> TestConnection(CdnService cdnService)
         {
-            if (!azureCdnConfig.IsConfigured())
+            if (!cdnService.IsConfigured())
             {
                 throw new InvalidOperationException("CDN configuration is not complete.");
             }
 
-            if (azureCdnConfig.ConfiguredCdnTypes().Contains(CdnType.AzureFrontDoor))
-            {
-                ArmClient client = new ArmClient(new DefaultAzureCredential());
+            var result = await cdnService.PurgeCdn(new List<string> { "/" });
 
-                var frontendEndpointResourceId = FrontDoorEndpointResource.CreateResourceIdentifier(
-                    azureCdnConfig.SubscriptionId.ToString(),
-                    azureCdnConfig.ResourceGroup,
-                    azureCdnConfig.ProfileName,
-                    azureCdnConfig.EndPointName);
-
-                var frontDoor = client.GetFrontDoorEndpointResource(frontendEndpointResourceId);
-
-                var t = await frontDoor.GetAsync();
-
-                var purgeContent = new FrontDoorPurgeContent(new[] { "/" });
-                purgeContent.Domains.Add(t.Value.Data.HostName);
-
-                var operation = await frontDoor.PurgeContentAsync(WaitUntil.Started, purgeContent);
-
-                return new CdnResult()
-                {
-                    Id = operation.Id,
-                    IsSuccessStatusCode = operation.HasCompleted,
-                    Response = operation.GetRawResponse()
-                };
-            }
-            else if (azureCdnConfig.ConfiguredCdnTypes().Contains(CdnType.AzureCdn))
-            {
-                var cdnResource = CdnEndpointResource.CreateResourceIdentifier(
-                           azureCdnConfig.SubscriptionId.ToString(),
-                           azureCdnConfig.ResourceGroup,
-                           azureCdnConfig.ProfileName,
-                           azureCdnConfig.EndPointName);
-                ArmClient client = new ArmClient(new DefaultAzureCredential());
-                var cdnEndpoint = client.GetCdnEndpointResource(cdnResource);
-                var purgeContent = new PurgeContent(new[] { "/" });
-                var operation = await cdnEndpoint.PurgeContentAsync(WaitUntil.Started, purgeContent);
-                return new CdnResult()
-                {
-                    Id = operation.Id,
-                    IsSuccessStatusCode = operation.HasCompleted,
-                    Response = operation.GetRawResponse()
-                };
-            }
-
-            if (azureCdnConfig.ConfiguredCdnTypes().Contains(CdnType.Sucuri))
-            {
-                var sucuri = new SucuriCdnService(azureCdnConfig.SucuriApiKey, azureCdnConfig.SucuriApiSecret);
-
-                _ = await sucuri.PurgeContentAsync(new[] { "/" });
-
-                return new CdnResult()
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    IsSuccessStatusCode = true,
-                    Response = null
-                };
-            }
-
-            return null;
+            return result.FirstOrDefault();
         }
     }
 }

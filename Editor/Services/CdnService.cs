@@ -204,7 +204,8 @@ namespace Cosmos.Editor.Services
                     ClientRequestId = response.ClientRequestId,
                     Id = Guid.NewGuid().ToString(),
                     EstimatedFlushDateTime = DateTimeOffset.UtcNow.AddMinutes(10),
-                    Message = await ReadStream(response.ContentStream)
+                    Message = await ReadStream(response.ContentStream),
+                    Operation = result
                 };
 
                 results.Add(r);
@@ -217,6 +218,7 @@ namespace Cosmos.Editor.Services
             }
             else if (IsConfigured(CdnType.AzureCdn))
             {
+
                 var cdnResource = CdnEndpointResource.CreateResourceIdentifier(
                     SubscriptionId.ToString(),
                     ResourceGroup,
@@ -224,6 +226,8 @@ namespace Cosmos.Editor.Services
                     EndPointName);
 
                 var cdnEndpoint = client.GetCdnEndpointResource(cdnResource);
+
+                var domains = cdnEndpoint.GetCdnCustomDomains();
 
                 ArmOperation operation = null;
 
@@ -247,7 +251,8 @@ namespace Cosmos.Editor.Services
                     ClientRequestId = response.ClientRequestId,
                     Id = Guid.NewGuid().ToString(),
                     EstimatedFlushDateTime = DateTimeOffset.UtcNow.AddMinutes(10),
-                    Message = await ReadStream(response.ContentStream)
+                    Message = await ReadStream(response.ContentStream),
+                    Operation = operation
                 };
 
                 results.Add(r);
