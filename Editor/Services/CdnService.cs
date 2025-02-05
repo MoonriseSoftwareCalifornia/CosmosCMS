@@ -215,6 +215,7 @@ namespace Cosmos.Editor.Services
                     logger.LogError($"Error purging content from Azure Front Door: {r.ReasonPhrase}");
                     logger.LogError($"Error purging content from Azure Front Door: {r.Message}");
                 }
+
             }
             else if (IsConfigured(CdnType.AzureCdn))
             {

@@ -235,11 +235,14 @@ namespace Cosmos.Editor.Controllers
                 sucuriApiSecret.Value = config.SucuriApiSecret;
             }
 
+            // Save the changes to the database.
+            await dbContext.SaveChangesAsync();
+
             // Try making a connection to the CDN to validate the configuration.
             var message = string.Empty;
             try
             {
-                var operation = await TestConnection(config);
+                var operation = await TestConnection();
                 ViewData["Operation"] = operation;
 
                 using var streamReader = new StreamReader(operation.Response.ContentStream);
@@ -247,8 +250,6 @@ namespace Cosmos.Editor.Controllers
 
                 logger.LogInformation(message);
 
-                // Save the changes to the database.
-                await dbContext.SaveChangesAsync();
                 return View(config);
             }
             catch (RequestFailedException ex)
@@ -282,8 +283,11 @@ namespace Cosmos.Editor.Controllers
             return RedirectToAction("Index");
         }
 
-        private async Task<CdnResult> TestConnection(CdnService cdnService)
+        private async Task<CdnResult> TestConnection()
         {
+            var settings = await GetCdnConfiguration(dbContext);
+            var cdnService = new CdnService(settings, logger);
+
             if (!cdnService.IsConfigured())
             {
                 throw new InvalidOperationException("CDN configuration is not complete.");
