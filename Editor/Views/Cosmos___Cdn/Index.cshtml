@@ -43,13 +43,13 @@
                             <div class="accordion-item  bg-secondary text-light " data-bs-theme="dark">
                                 <h2 class="accordion-header bg-secondary text-light">
                                     <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                                        Edgio or Microsoft CDN
+                                        Microsoft CDN/Front Door
                                     </button>
                                 </h2>
                                 <div id="collapseOne" class="accordion-collapse collapse @openTop">
                                     <div class="accordion-body bg-secondary text-light ">
 
-                                        <div class="mb-3 form-check" style="display:none;">
+                                        <div class="mb-3 form-check">
                                             <input class="form-check-input" asp-for="IsFrontDoor" type="checkbox" class="form-check-input" />
                                             <label asp-for="IsFrontDoor" class="form-check-label"></label> (Check if this is Azure Front Door.)
                                             <span asp-validation-for="IsFrontDoor" class="text-danger"></span>
@@ -132,7 +132,9 @@
 
                         }
 
-                        <button id="btnSave" type="submit" class="btn btn-sm btn-primary">Test and Save Settings <i class="fa-solid fa-circle-arrow-right"></i></button>
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                        <button id="btnSave" type="submit" class="btn btn-sm btn-primary">Save and test settings <i class="fa-solid fa-circle-arrow-right"></i></button>
                         <a asp-action="Index" class="btn btn-sm btn-secondary">Cancel <i class="fa-solid fa-circle-arrow-right"></i></a>
                         <a asp-action="Remove" asp-controller="Cosmos___Cdn" class="btn btn-primary">Remove <i class="fa-solid fa-circle-arrow-right"></i></a>
                     </form>

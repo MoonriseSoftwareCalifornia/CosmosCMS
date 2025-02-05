@@ -30,7 +30,9 @@ namespace Cosmos.Cms.Controllers
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.ModelBinding;
+    using Microsoft.Build.Framework;
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
 
     /// <summary>
@@ -45,6 +47,7 @@ namespace Cosmos.Cms.Controllers
         private readonly Uri blobPublicAbsoluteUrl;
         private readonly IViewRenderService viewRenderService;
         private readonly StorageContext storageContext;
+        private readonly ILogger<LayoutsController> logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LayoutsController"/> class.
@@ -55,18 +58,21 @@ namespace Cosmos.Cms.Controllers
         /// <param name="options"><see cref="CosmosConfig">Cosmos configuration</see> options.</param>
         /// <param name="storageContext">Storage context.</param>
         /// <param name="viewRenderService">View rendering service.</param>
+        /// <param name="logger">Log service.</param>
         public LayoutsController(
             ApplicationDbContext dbContext,
             UserManager<IdentityUser> userManager,
             ArticleEditLogic articleLogic,
             IOptions<CosmosConfig> options,
             StorageContext storageContext,
-            IViewRenderService viewRenderService)
+            IViewRenderService viewRenderService,
+            ILogger<LayoutsController> logger)
             : base(dbContext, userManager)
         {
             this.dbContext = dbContext;
             this.articleLogic = articleLogic;
             this.storageContext = storageContext;
+            this.logger = logger;
 
             var htmlUtilities = new HtmlUtilities();
 
@@ -931,7 +937,7 @@ namespace Cosmos.Cms.Controllers
         private async Task PurgeCdn()
         {
             var settings = await Cosmos___CdnController.GetCdnConfiguration(dbContext);
-            var cdnService = new Editor.Services.CdnService(settings);
+            var cdnService = new Editor.Services.CdnService(settings,logger);
             await cdnService.PurgeCdn(new List<string>() { "/" });
         }
     }

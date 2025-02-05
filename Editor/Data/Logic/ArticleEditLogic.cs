@@ -25,8 +25,10 @@ namespace Cosmos.Cms.Data.Logic
     using Cosmos.Common.Models;
     using Cosmos.Editor.Controllers;
     using Cosmos.Editor.Services;
+    using Microsoft.Build.Framework;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Caching.Memory;
+    using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Newtonsoft.Json;
     using SendGrid.Helpers.Errors.Model;
@@ -42,6 +44,7 @@ namespace Cosmos.Cms.Data.Logic
     {
         private readonly IViewRenderService viewRenderService;
         private readonly StorageContext storageContext;
+        private readonly ILogger<ArticleEditLogic> logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ArticleEditLogic"/> class.
@@ -52,12 +55,14 @@ namespace Cosmos.Cms.Data.Logic
         /// <param name="config">Cosmos configuration.</param>
         /// <param name="viewRenderService">View rendering service used to save static web pages.</param>
         /// <param name="storageContext">Storage service used to manage static website blobs.</param>
+        /// <param name="logger">Log service.</param>
         public ArticleEditLogic(
             ApplicationDbContext dbContext,
             IMemoryCache memoryCache,
             IOptions<CosmosConfig> config,
             IViewRenderService viewRenderService,
-            StorageContext storageContext)
+            StorageContext storageContext,
+            ILogger<ArticleEditLogic> logger)
             : base(
                 dbContext,
                 config,
@@ -66,6 +71,7 @@ namespace Cosmos.Cms.Data.Logic
         {
             this.viewRenderService = viewRenderService;
             this.storageContext = storageContext;
+            this.logger = logger;
         }
 
         /// <summary>
@@ -1612,7 +1618,7 @@ namespace Cosmos.Cms.Data.Logic
             if (purgePaths.Any())
             {
                 var settings = await Cosmos___CdnController.GetCdnConfiguration(DbContext);
-                var cdnService = new CdnService(settings);
+                var cdnService = new CdnService(settings, logger);
                 return await cdnService.PurgeCdn(purgePaths.Select(s => "/" + s.Trim('/')).Distinct().ToList());
             }
 

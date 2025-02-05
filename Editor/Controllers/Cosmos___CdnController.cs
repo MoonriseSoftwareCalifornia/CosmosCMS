@@ -9,6 +9,7 @@ namespace Cosmos.Editor.Controllers
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
     using Azure;
@@ -21,6 +22,7 @@ namespace Cosmos.Editor.Controllers
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Logging;
 
     /// <summary>
     /// The CDN controller.
@@ -35,14 +37,17 @@ namespace Cosmos.Editor.Controllers
         public static readonly string GROUPNAME = "CDN";
 
         private readonly ApplicationDbContext dbContext;
+        private readonly ILogger<Cosmos___CdnController> logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Cosmos___CdnController"/> class.
         /// </summary>
         /// <param name="dbContext">Sets the database context.</param>
-        public Cosmos___CdnController(ApplicationDbContext dbContext)
+        /// <param name="logger">Log service.</param>
+        public Cosmos___CdnController(ApplicationDbContext dbContext, ILogger<Cosmos___CdnController> logger)
         {
             this.dbContext = dbContext;
+            this.logger = logger;
         }
 
         /// <summary>
@@ -72,7 +77,7 @@ namespace Cosmos.Editor.Controllers
 
             var settings = await GetCdnConfiguration(dbContext);
 
-            var model = new CdnService(settings);
+            var model = new CdnService(settings, logger);
 
             return View(model);
         }
@@ -231,10 +236,16 @@ namespace Cosmos.Editor.Controllers
             }
 
             // Try making a connection to the CDN to validate the configuration.
+            var message = string.Empty;
             try
             {
                 var operation = await TestConnection(config);
                 ViewData["Operation"] = operation;
+
+                using var streamReader = new StreamReader(operation.Response.ContentStream);
+                message = await streamReader.ReadToEndAsync();
+
+                logger.LogInformation(message);
 
                 // Save the changes to the database.
                 await dbContext.SaveChangesAsync();
@@ -242,12 +253,14 @@ namespace Cosmos.Editor.Controllers
             }
             catch (RequestFailedException ex)
             {
-                ModelState.AddModelError(string.Empty, $"ERROR: {ex.ErrorCode}");
+                ModelState.AddModelError(string.Empty, $"ERROR: {ex.Message}");
+                ViewData["Exception"] = ex;
                 return View(config);
             }
             catch (Exception ex)
             {
                 ModelState.AddModelError(string.Empty, $"ERROR: {ex.Message}");
+                ViewData["Exception"] = ex;
                 return View(config);
             }
         }
@@ -298,7 +311,8 @@ namespace Cosmos.Editor.Controllers
                 return new CdnResult()
                 {
                     Id = operation.Id,
-                    IsSuccessStatusCode = operation.HasCompleted
+                    IsSuccessStatusCode = operation.HasCompleted,
+                    Response = operation.GetRawResponse()
                 };
             }
             else if (azureCdnConfig.ConfiguredCdnTypes().Contains(CdnType.AzureCdn))
@@ -315,7 +329,8 @@ namespace Cosmos.Editor.Controllers
                 return new CdnResult()
                 {
                     Id = operation.Id,
-                    IsSuccessStatusCode = operation.HasCompleted
+                    IsSuccessStatusCode = operation.HasCompleted,
+                    Response = operation.GetRawResponse()
                 };
             }
 
@@ -328,7 +343,8 @@ namespace Cosmos.Editor.Controllers
                 return new CdnResult()
                 {
                     Id = Guid.NewGuid().ToString(),
-                    IsSuccessStatusCode = true
+                    IsSuccessStatusCode = true,
+                    Response = null
                 };
             }
 

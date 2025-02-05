@@ -867,7 +867,7 @@ namespace Cosmos.Cms.Controllers
                 };
 
                 var settings = await Cosmos___CdnController.GetCdnConfiguration(dbContext);
-                var cdnService = new CdnService(settings);
+                var cdnService = new CdnService(settings, logger);
                 _ = await cdnService.PurgeCdn(purgeUrls);
             }
         }

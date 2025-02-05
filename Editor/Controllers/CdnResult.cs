@@ -9,6 +9,7 @@ namespace Cosmos.Editor.Controllers
 {
     using System;
     using System.Net;
+    using Azure;
 
     /// <summary>
     /// Cdn purge result.
@@ -44,6 +45,16 @@ namespace Cosmos.Editor.Controllers
         /// Gets or sets estimated content refresh date time.
         /// </summary>
         public DateTimeOffset EstimatedFlushDateTime { get; set; } = DateTimeOffset.UtcNow;
+
+        /// <summary>
+        /// Gets or sets the response object from the Azure CDN operation.
+        /// </summary>
+        public Response Response { get; set; }
+
+        /// <summary>
+        /// Gets or sets the message from the CDN service.
+        /// </summary>
+        public string Message { get; set; }
 
         /// <summary>
         /// Returns the string representation of this Azure.Response.

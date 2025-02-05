@@ -10,6 +10,7 @@ namespace Cosmos.Editor.Services
     using System;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
+    using System.IO;
     using System.Linq;
     using System.Net;
     using System.Threading.Tasks;
@@ -18,16 +19,17 @@ namespace Cosmos.Editor.Services
     using Azure.ResourceManager;
     using Azure.ResourceManager.Cdn;
     using Azure.ResourceManager.Cdn.Models;
-    using Azure.ResourceManager.FrontDoor;
-    using Azure.ResourceManager.FrontDoor.Models;
     using Cosmos.Common.Data;
     using Cosmos.Editor.Controllers;
+    using Microsoft.Extensions.Logging;
 
     /// <summary>
     ///     Configuration for Azure Front Door, Edgio or Microsoft CDN.
     /// </summary>
     public class CdnService
     {
+        private readonly ILogger logger;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="CdnService"/> class.
         /// </summary>
@@ -39,7 +41,8 @@ namespace Cosmos.Editor.Services
         /// Initializes a new instance of the <see cref="CdnService"/> class.
         /// </summary>
         /// <param name="settings">CDN Settings.</param>
-        public CdnService(List<Setting> settings)
+        /// <param name="logger">Log service.</param>
+        public CdnService(List<Setting> settings, ILogger logger)
         {
             var guidValue = settings.Find(f => f.Name == "SubscriptionId");
 
@@ -63,6 +66,7 @@ namespace Cosmos.Editor.Services
             EndPointName = settings.Find(f => f.Name == "EndPointName")?.Value;
             SucuriApiKey = settings.Find(f => f.Name == "SucuriApiKey")?.Value;
             SucuriApiSecret = settings.Find(f => f.Name == "SucuriApiSecret")?.Value;
+            this.logger = logger;
         }
 
         /// <summary>
@@ -171,11 +175,13 @@ namespace Cosmos.Editor.Services
 
             purgeUrls = purgeUrls.Distinct().Select(s => s.Trim('/')).Select(s => s.Equals("root") ? "/" : "/" + s).ToList();
 
+            logger.LogInformation($"Purge requested for: { string.Join(",", purgeUrls.Select(s => s))} URLs from CDN.");
+
+            ArmClient client = new ArmClient(new DefaultAzureCredential());
+
             // Check for Azure Frontdoor, if available use that.
             if (IsConfigured(CdnType.AzureFrontDoor))
             {
-                ArmClient client = new ArmClient(new DefaultAzureCredential());
-
                 var frontendEndpointResourceId = FrontDoorEndpointResource.CreateResourceIdentifier(
                     SubscriptionId.ToString(),
                     ResourceGroup,
@@ -189,20 +195,28 @@ namespace Cosmos.Editor.Services
                 var result = await frontDoor.PurgeContentAsync(WaitUntil.Started, purgeContent);
 
                 var response = result.GetRawResponse();
-                results.Add(new CdnResult
+
+                var r = new CdnResult
                 {
                     Status = (HttpStatusCode)response.Status,
                     ReasonPhrase = response.ReasonPhrase,
                     IsSuccessStatusCode = !response.IsError,
                     ClientRequestId = response.ClientRequestId,
                     Id = Guid.NewGuid().ToString(),
-                    EstimatedFlushDateTime = DateTimeOffset.UtcNow.AddMinutes(10)
-                });
+                    EstimatedFlushDateTime = DateTimeOffset.UtcNow.AddMinutes(10),
+                    Message = await ReadStream(response.ContentStream)
+                };
+
+                results.Add(r);
+
+                if (response.IsError)
+                {
+                    logger.LogError($"Error purging content from Azure Front Door: {r.ReasonPhrase}");
+                    logger.LogError($"Error purging content from Azure Front Door: {r.Message}");
+                }
             }
             else if (IsConfigured(CdnType.AzureCdn))
             {
-                ArmClient client = new ArmClient(new DefaultAzureCredential());
-
                 var cdnResource = CdnEndpointResource.CreateResourceIdentifier(
                     SubscriptionId.ToString(),
                     ResourceGroup,
@@ -225,15 +239,24 @@ namespace Cosmos.Editor.Services
                 }
 
                 var response = operation.GetRawResponse();
-                results.Add(new CdnResult
+                var r = new CdnResult
                 {
                     Status = (HttpStatusCode)response.Status,
                     ReasonPhrase = response.ReasonPhrase,
                     IsSuccessStatusCode = !response.IsError,
                     ClientRequestId = response.ClientRequestId,
                     Id = Guid.NewGuid().ToString(),
-                    EstimatedFlushDateTime = ProfileName == "Standard_Microsoft" ? DateTimeOffset.UtcNow.AddMinutes(10) : DateTimeOffset.UtcNow.AddMinutes(2)
-                });
+                    EstimatedFlushDateTime = DateTimeOffset.UtcNow.AddMinutes(10),
+                    Message = await ReadStream(response.ContentStream)
+                };
+
+                results.Add(r);
+
+                if (response.IsError)
+                {
+                    logger.LogError($"Error purging content from Azure CDN: {r.ReasonPhrase}");
+                    logger.LogError($"Error purging content from Azure CDN: {r.Message}");
+                }
             }
 
             if (IsConfigured(CdnType.Sucuri))
@@ -242,7 +265,14 @@ namespace Cosmos.Editor.Services
                 results.AddRange(await sucuriService.PurgeContentAsync(purgeUrls.ToArray()));
             }
 
+
             return results;
+        }
+
+        private async Task<string> ReadStream(Stream stream)
+        {
+            using var streamReader = new StreamReader(stream);
+            return await streamReader.ReadToEndAsync();
         }
     }
 

@@ -2050,7 +2050,7 @@ namespace Cosmos.Cms.Controllers
         /// Publish list of web pages to static website.
         /// </summary>
         /// <param name="guids">List of page IDs.</param>
-        /// <returns>IActionResult</returns>
+        /// <returns>IActionResult.</returns>
         [HttpPost]
         [Authorize(Roles = "Editors,Administrators")]
         public async Task<IActionResult> PublishStaticPages([FromBody] List<Guid> guids)
@@ -2292,7 +2292,7 @@ namespace Cosmos.Cms.Controllers
         public async Task<IActionResult> RefreshCdn()
         {
             var settings = await Cosmos___CdnController.GetCdnConfiguration(dbContext);
-            var cdnService = new Editor.Services.CdnService(settings);
+            var cdnService = new Editor.Services.CdnService(settings, logger);
             var result = await cdnService.PurgeCdn(new List<string>() { "/" });
             return Json(result);
         }
