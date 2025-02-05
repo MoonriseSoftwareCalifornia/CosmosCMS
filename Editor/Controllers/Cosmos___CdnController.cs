@@ -244,8 +244,11 @@ namespace Cosmos.Editor.Controllers
             var operation = await TestConnection();
             ViewData["Operation"] = operation;
 
-            using var streamReader = new StreamReader(operation.Response.ContentStream);
-            message = await streamReader.ReadToEndAsync();
+            if (operation.Response.ContentStream != null)
+            {
+                using var streamReader = new StreamReader(operation.Response.ContentStream);
+                message = await streamReader.ReadToEndAsync();
+            }
 
             logger.LogInformation(message);
 

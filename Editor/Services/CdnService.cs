@@ -195,6 +195,11 @@ namespace Cosmos.Editor.Services
                 var result = await frontDoor.PurgeContentAsync(WaitUntil.Started, purgeContent);
 
                 var response = result.GetRawResponse();
+                var msg = string.Empty;
+                if (response.ContentStream != null)
+                {
+                    msg = await ReadStream(response.ContentStream);
+                }
 
                 var r = new CdnResult
                 {
@@ -204,7 +209,7 @@ namespace Cosmos.Editor.Services
                     ClientRequestId = response.ClientRequestId,
                     Id = Guid.NewGuid().ToString(),
                     EstimatedFlushDateTime = DateTimeOffset.UtcNow.AddMinutes(10),
-                    Message = await ReadStream(response.ContentStream),
+                    Message = msg,
                     Operation = result
                 };
 
@@ -244,6 +249,12 @@ namespace Cosmos.Editor.Services
                 }
 
                 var response = operation.GetRawResponse();
+                var msg = string.Empty;
+                if (response.ContentStream != null)
+                {
+                    msg = await ReadStream(response.ContentStream);
+                }
+
                 var r = new CdnResult
                 {
                     Status = (HttpStatusCode)response.Status,
@@ -252,7 +263,7 @@ namespace Cosmos.Editor.Services
                     ClientRequestId = response.ClientRequestId,
                     Id = Guid.NewGuid().ToString(),
                     EstimatedFlushDateTime = DateTimeOffset.UtcNow.AddMinutes(10),
-                    Message = await ReadStream(response.ContentStream),
+                    Message = msg,
                     Operation = operation
                 };
 
