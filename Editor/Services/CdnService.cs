@@ -277,6 +277,11 @@ namespace Cosmos.Editor.Services
 
         private async Task<string> ReadStream(Stream stream)
         {
+            if (stream == null)
+            {
+                return string.Empty;
+            }
+
             using var streamReader = new StreamReader(stream);
             return await streamReader.ReadToEndAsync();
         }

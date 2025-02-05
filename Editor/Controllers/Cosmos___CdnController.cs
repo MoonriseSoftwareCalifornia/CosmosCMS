@@ -240,30 +240,16 @@ namespace Cosmos.Editor.Controllers
 
             // Try making a connection to the CDN to validate the configuration.
             var message = string.Empty;
-            try
-            {
-                var operation = await TestConnection();
-                ViewData["Operation"] = operation;
 
-                using var streamReader = new StreamReader(operation.Response.ContentStream);
-                message = await streamReader.ReadToEndAsync();
+            var operation = await TestConnection();
+            ViewData["Operation"] = operation;
 
-                logger.LogInformation(message);
+            using var streamReader = new StreamReader(operation.Response.ContentStream);
+            message = await streamReader.ReadToEndAsync();
 
-                return View(config);
-            }
-            catch (RequestFailedException ex)
-            {
-                ModelState.AddModelError(string.Empty, $"ERROR: {ex.Message}");
-                ViewData["Exception"] = ex;
-                return View(config);
-            }
-            catch (Exception ex)
-            {
-                ModelState.AddModelError(string.Empty, $"ERROR: {ex.Message}");
-                ViewData["Exception"] = ex;
-                return View(config);
-            }
+            logger.LogInformation(message);
+
+            return View(config);
         }
 
         /// <summary>
