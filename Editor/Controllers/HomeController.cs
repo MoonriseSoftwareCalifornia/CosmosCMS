@@ -64,7 +64,7 @@ namespace Cosmos.Cms.Controllers
             StorageContext storageContext,
             PowerBiTokenService powerBiTokenService,
             IEmailSender emailSender)
-            : base(articleLogic, dbContext, storageContext, logger, powerBiTokenService, emailSender)
+            : base(articleLogic, dbContext, storageContext, logger, powerBiTokenService, emailSender, options)
         {
             this.logger = logger;
             this.options = options;

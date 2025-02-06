@@ -11,6 +11,7 @@ namespace Cosmos.Common
     using System.Linq;
     using System.Threading.Tasks;
     using Cosmos.BlobService;
+    using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Common.Data;
     using Cosmos.Common.Data.Logic;
     using Cosmos.Common.Models;
@@ -25,6 +26,7 @@ namespace Cosmos.Common
     using Microsoft.AspNetCore.RateLimiting;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using Microsoft.PowerBI.Api.Models;
 
     /// <summary>
@@ -38,6 +40,7 @@ namespace Cosmos.Common
         private readonly ILogger logger;
         private readonly PowerBiTokenService powerBiTokenService;
         private readonly IEmailSender emailSender;
+        private readonly IOptions<CosmosConfig> options;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HomeControllerBase"/> class.
@@ -48,13 +51,15 @@ namespace Cosmos.Common
         /// <param name="logger">Logger service.</param>
         /// <param name="powerBiTokenService">Power BI Token Service.</param>
         /// <param name="emailSender">Email sender service.</param>
+        /// <param name="options">Cosmos startup options.</param>
         public HomeControllerBase(
             ArticleLogic articleLogic,
             ApplicationDbContext dbContext,
             StorageContext storageContext,
             ILogger logger,
             PowerBiTokenService powerBiTokenService,
-            IEmailSender emailSender)
+            IEmailSender emailSender,
+            IOptions<CosmosConfig> options)
         {
             this.articleLogic = articleLogic;
             this.dbContext = dbContext;
@@ -62,6 +67,7 @@ namespace Cosmos.Common
             this.logger = logger;
             this.powerBiTokenService = powerBiTokenService;
             this.emailSender = emailSender;
+            this.options = options;
         }
 
         /// <summary>
@@ -183,7 +189,7 @@ namespace Cosmos.Common
 
                     var subject = "New Contact Information";
                     var body = $"<p>New contact information received from {model.FirstName} {model.LastName} at {model.Email} on website '{HttpContext.Request.Host}.'</p>";
-                    body += $"<p><a title='Download contacts list.' href='https://{HttpContext.Request.Host}/Cosmos___Contacts'>Click here</a> to open your contact list. You can download the list from there.</p>";
+                    body += $"<p><a title='Download contacts list.' href='{options.Value.EditorUrls.FirstOrDefault().Url}/Cosmos___Contacts'>Click here</a> to open your contact list. You can download the list from there.</p>";
 
                     foreach (var e in admins)
                     {
