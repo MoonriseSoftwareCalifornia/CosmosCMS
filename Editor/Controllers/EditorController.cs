@@ -9,6 +9,7 @@ namespace Cosmos.Cms.Controllers
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
@@ -29,6 +30,7 @@ namespace Cosmos.Cms.Controllers
     using Cosmos.Editor.Services;
     using HtmlAgilityPack;
     using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
@@ -67,6 +69,7 @@ namespace Cosmos.Cms.Controllers
         /// <param name="options">Cosmos options.</param>
         /// <param name="viewRenderService">View rendering service.</param>
         /// <param name="storageContext">Storage context.</param>
+        /// <param name="env">Web host environment service.</param>
         public EditorController(
             ILogger<EditorController> logger,
             ApplicationDbContext dbContext,
@@ -75,7 +78,8 @@ namespace Cosmos.Cms.Controllers
             ArticleEditLogic articleLogic,
             IOptions<CosmosConfig> options,
             IViewRenderService viewRenderService,
-            StorageContext storageContext)
+            StorageContext storageContext,
+            IWebHostEnvironment env)
             : base(dbContext, userManager)
         {
             this.logger = logger;
@@ -101,6 +105,18 @@ namespace Cosmos.Cms.Controllers
 
             // Ensure the required roles exist.
             SetupNewAdministrator.Ensure_Roles_Exists(roleManager).Wait();
+
+            if (options.Value.SiteSettings.StaticWebPages)
+            {
+                // Get the static files copied over to blob storage as needed.
+
+                // Copy the required static pages to the blob storage.
+                var ckeditorFile = "lib/ckeditor/ckeditor5-content.css";
+                using var memStream = new MemoryStream();
+                var path = Path.Combine(env.WebRootPath, ckeditorFile);
+                using var r = new StreamReader(path);
+                memStream.Write(Encoding.UTF8.GetBytes(r.ReadToEndAsync().Result));
+            }
         }
 
         /// <summary>
