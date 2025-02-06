@@ -360,6 +360,31 @@ builder.Services.AddRateLimiter(_ => _
 
 var app = builder.Build();
 
+if (option.Value.SiteSettings.StaticWebPages)
+{
+    // Get the static files copied over to blob storage as needed.
+    var env = app.Services.GetRequiredService<IWebHostEnvironment>();
+    var storageContext = app.Services.GetRequiredService<StorageContext>();
+
+    // Copy the required static pages to the blob storage.
+    var ckeditorFile = "lib/ckeditor/ckeditor5-content.css";
+    
+    var path = Path.Combine(env.WebRootPath, ckeditorFile);
+    using var r = new StreamReader(path);
+    using var memStream = new MemoryStream(Encoding.UTF8.GetBytes(await r.ReadToEndAsync()));
+
+    storageContext.AppendBlob(memStream, new Cosmos.BlobService.Models.FileUploadMetaData()
+    {
+        ContentType = "text/css",
+        FileName = "ckeditor5-content.css",
+        ChunkIndex = 0,
+        TotalChunks = 1,
+        TotalFileSize = memStream.Length,
+        UploadUid = Guid.NewGuid().ToString(),
+        RelativePath = "lib/ckeditor/ckeditor5-content.css"
+    });
+}
+
 // https://seankilleen.com/2020/06/solved-net-core-azure-ad-in-docker-container-incorrectly-uses-an-non-https-redirect-uri/
 app.UseForwardedHeaders();
 
