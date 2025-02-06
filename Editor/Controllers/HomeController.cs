@@ -153,8 +153,6 @@ namespace Cosmos.Cms.Controllers
                 return BadRequest(ModelState);
             }
 
-            var t = Request.Query;
-
             if (User.Identity?.IsAuthenticated == false)
             {
                 // See if we need to register a new user.
