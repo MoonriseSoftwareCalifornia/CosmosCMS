@@ -1216,12 +1216,11 @@ namespace Cosmos.Cms.Data.Logic
             await DbContext.SaveChangesAsync();
         }
 
-
-
         /// <summary>
         /// Publishes a static webpage to the blob storage if enabled.
         /// </summary>
         /// <param name="page">PublishedPage</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task PublishStaticWebpage(PublishedPage page)
         {
             if (this.CosmosOptions.Value.SiteSettings.StaticWebPages)
@@ -1249,6 +1248,7 @@ namespace Cosmos.Cms.Data.Logic
                     TotalFileSize = stream.Length,
                     UploadUid = Guid.NewGuid().ToString(),
                 });
+
             }
         }
 
@@ -1279,6 +1279,31 @@ namespace Cosmos.Cms.Data.Logic
             var setting = await DbContext.Settings.FirstOrDefaultAsync(f => f.Name == "ReservedPaths");
             setting.Value = JsonConvert.SerializeObject(paths);
             await DbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Publishes the table of contents starting at the root.
+        /// </summary>
+        /// <param name="path">Path to start from.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        public async Task PublishTOC(string path)
+        {
+            var result = await GetTOC(path, 0, 20, true);
+            var json = JsonConvert.SerializeObject(result);
+            using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
+            var storagePath = "pub/js/toc.json";
+            storageContext.AppendBlob(stream, new BlobService.Models.FileUploadMetaData()
+            {
+                ChunkIndex = 0,
+                ContentType = "application/json",
+                FileName = Path.GetFileName(storagePath).ToLower(),
+                ImageHeight = string.Empty,
+                ImageWidth = string.Empty,
+                RelativePath = storagePath.ToLower(),
+                TotalChunks = 1,
+                TotalFileSize = stream.Length,
+                UploadUid = Guid.NewGuid().ToString(),
+            });
         }
 
         /// <summary>
@@ -1619,7 +1644,14 @@ namespace Cosmos.Cms.Data.Logic
             {
                 var settings = await Cosmos___CdnController.GetCdnConfiguration(DbContext);
                 var cdnService = new CdnService(settings, logger);
-                return await cdnService.PurgeCdn(purgePaths.Select(s => "/" + s.Trim('/')).Distinct().ToList());
+                try
+                {
+                    return await cdnService.PurgeCdn(purgePaths.Select(s => "/" + s.Trim('/')).Distinct().ToList());
+                }
+                catch (Exception ex)
+                {
+                    var d = ex.Message; // debugging purposes
+                }
             }
 
             return null;

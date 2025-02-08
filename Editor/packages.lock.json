@@ -4,12 +4,12 @@
     "net9.0": {
       "Azure.Extensions.AspNetCore.DataProtection.Blobs": {
         "type": "Direct",
-        "requested": "[1.4.0, )",
-        "resolved": "1.4.0",
-        "contentHash": "3lUVu/N4YWAvRmkxdZIjeOEylWjXwErTV3fpeyqnfK6UuCTOs04chK1al7PmtaVyn7Jt51Eod+LdtvwyIfCJSw==",
+        "requested": "[1.5.0, )",
+        "resolved": "1.5.0",
+        "contentHash": "vIB/xacKjW6p+FRb8yixHCDpSbHXzkywFq1nf+5ZpIcla+wXCU+/l3TKVa6KkwzJ7I10AKAZqEbsbd06cqyYeQ==",
         "dependencies": {
           "Azure.Core": "1.44.1",
-          "Azure.Storage.Blobs": "12.21.1",
+          "Azure.Storage.Blobs": "12.23.0",
           "Microsoft.AspNetCore.DataProtection": "8.0.11",
           "Microsoft.Bcl.AsyncInterfaces": "8.0.0"
         }
@@ -308,10 +308,10 @@
       },
       "Azure.Extensions.AspNetCore.Configuration.Secrets": {
         "type": "Transitive",
-        "resolved": "1.3.2",
-        "contentHash": "uMIU++B4XV4lW8+59rKi2Qph6tj2V7tHyLcwVR7OQRmA8cX0VVFhj2DyMahhoF9j4Jk99WA08Nsznd5RwC5Zfw==",
+        "resolved": "1.4.0",
+        "contentHash": "cy8kazCYnG/IUHQ9048UUmObgbPsqkQbcdrCAPxl1JA6ylLBV+v+8586bOWpuSF6GZaxpulLGFDBBm3PR5t1gA==",
         "dependencies": {
-          "Azure.Core": "1.42.0",
+          "Azure.Core": "1.44.1",
           "Azure.Security.KeyVault.Secrets": "4.6.0",
           "Microsoft.Extensions.Configuration": "2.1.0"
         }
@@ -2732,7 +2732,7 @@
         "type": "Project",
         "dependencies": {
           "AspNetCore.Identity.CosmosDb": "[9.0.1, )",
-          "Azure.Extensions.AspNetCore.Configuration.Secrets": "[1.3.2, )",
+          "Azure.Extensions.AspNetCore.Configuration.Secrets": "[1.4.0, )",
           "Azure.Identity": "[1.13.2, )",
           "Cosmos.BlobService": "[9.0.2, )",
           "Cosmos.EmailServices": "[9.0.1, )",

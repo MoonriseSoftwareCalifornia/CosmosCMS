@@ -102,7 +102,7 @@ namespace Cosmos.Common.Data.Logic
         /// <param name="prefix">Page url.</param>
         /// <param name="pageNo">Zero based index (page 1 is index 0).</param>
         /// <param name="pageSize">Number of records in a page.</param>
-        /// <param name="orderByPublishedDate">Order by when was published (most recent on top).</param>
+        /// <param name="orderByPublishedDate">Order by decending order when was published (most recent on top).</param>
         /// <returns>Returns a <see cref="TableOfContents"/>.</returns>
         public async Task<TableOfContents> GetTOC(string prefix, int pageNo = 0, int pageSize = 10, bool orderByPublishedDate = false)
         {

@@ -579,6 +579,11 @@ namespace Cosmos.Cms.Controllers
             // Save changes back to the database
             var result = await articleLogic.Save(article, model.UserId);
 
+            if (options.Value.SiteSettings.StaticWebPages && article.Published.HasValue)
+            {
+                await articleLogic.PublishTOC("/");
+            }
+
             return Json(result);
         }
 
@@ -1824,6 +1829,12 @@ namespace Cosmos.Cms.Controllers
                             Updated = model.Updated.Value
                         }, await GetUserEmail());
 
+
+                    if (options.Value.SiteSettings.StaticWebPages && model.Published.HasValue)
+                    {
+                        await articleLogic.PublishTOC("/");
+                    }
+
                     jsonModel.Model = new EditCodePostModel()
                     {
                         Id = result.Model.Id,
@@ -2061,7 +2072,24 @@ namespace Cosmos.Cms.Controllers
                 await articleLogic.PublishStaticWebpage(page);
             }
 
+
+            // publish table of contents.
+            await articleLogic.PublishTOC("/");
+
             return Json(new { pages.Count });
+        }
+
+        /// <summary>
+        /// Publishes a table of contents.
+        /// </summary>
+        /// <param name="path">TOC root path.</param>
+        /// <returns>IActionResult.</returns>
+        [HttpGet]
+        [Authorize(Roles = "Editors,Administrators")]
+        public async Task<IActionResult> PublishTOC(string path = "/")
+        {
+            await articleLogic.PublishTOC(path);
+            return Ok();
         }
 
         /// <summary>

@@ -140,6 +140,9 @@
             }
 
 
+            $("#statusMsg").html("Regenerating the TOC for the home page...");
+            const response2b = await fetch('@Url.Action("PublishTOC")');
+
             $("#statusMsg").html("<p>Done with static pages.</p>.");
         }
 
