@@ -102,11 +102,11 @@ namespace Cosmos.Cms.Controllers
 
             if (articleNumber == null)
             {
-                article = await articleLogic.GetByUrl(target);
+                article = await articleLogic.GetArticleByUrl(target);
             }
             else
             {
-                article = await articleLogic.Get(articleNumber.Value, versionNumber.Value);
+                article = await articleLogic.GetArticleByArticleNumber(articleNumber.Value, versionNumber.Value);
             }
 
             return View(article);
@@ -124,7 +124,7 @@ namespace Cosmos.Cms.Controllers
                 return BadRequest(ModelState);
             }
 
-            var article = await articleLogic.GetByUrl(target);
+            var article = await articleLogic.GetArticleByUrl(target);
 
             var data = await dbContext.Articles.OrderByDescending(o => o.VersionNumber)
                 .Where(a => a.ArticleNumber == article.ArticleNumber).Select(s => new ArticleEditMenuItem
@@ -215,14 +215,14 @@ namespace Cosmos.Cms.Controllers
             Response.Headers[HeaderNames.CacheControl] = "no-store";
 
             // Response.Headers[HeaderNames.Pragma] = "no-cache"; This conflicts with Azure Frontdoor premium with private links and affinity set.
-            var article = await articleLogic.GetByUrl(HttpContext.Request.Path, lang);
+            var article = await articleLogic.GetArticleByUrl(HttpContext.Request.Path, lang);
 
             // Article not found?
             // try getting a version not published.
             if (article == null)
             {
                 // See if a page is un-published, but does exist, let us edit it.
-                article = await articleLogic.GetByUrl(HttpContext.Request.Path, lang, false);
+                article = await articleLogic.GetArticleByUrl(HttpContext.Request.Path, lang, false);
 
                 if (article != null)
                 {
@@ -236,7 +236,7 @@ namespace Cosmos.Cms.Controllers
                 }
 
                 // Create your own not found page for a graceful page for users.
-                article = await articleLogic.GetByUrl("/not_found", lang);
+                article = await articleLogic.GetArticleByUrl("/not_found", lang);
 
                 HttpContext.Response.StatusCode = 404;
 
@@ -266,7 +266,7 @@ namespace Cosmos.Cms.Controllers
             }
 
             ViewData["EditModeOn"] = false;
-            var article = await articleLogic.Get(articleNumber, versionNumber);
+            var article = await articleLogic.GetArticleByArticleNumber(articleNumber, versionNumber);
 
             // Home/Preview/154
             if (article != null)

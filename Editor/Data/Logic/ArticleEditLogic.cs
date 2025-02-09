@@ -25,14 +25,12 @@ namespace Cosmos.Cms.Data.Logic
     using Cosmos.Common.Models;
     using Cosmos.Editor.Controllers;
     using Cosmos.Editor.Services;
-    using Microsoft.Build.Framework;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Newtonsoft.Json;
     using SendGrid.Helpers.Errors.Model;
-    using static System.Runtime.InteropServices.JavaScript.JSType;
 
     /// <summary>
     ///     Article Editor Logic.
@@ -155,7 +153,7 @@ namespace Cosmos.Cms.Data.Logic
         ///         If this is the first article, it is saved as root and published immediately.
         ///     </para>
         /// </remarks>
-        public async Task<ArticleViewModel> Create(string title, string userId, Guid? templateId = null)
+        public async Task<ArticleViewModel> CreateArticle(string title, string userId, Guid? templateId = null)
         {
             // Is this the first article? If so, make it the root and publish it.
             var isFirstArticle = !await DbContext.Articles.CosmosAnyAsync();
@@ -235,11 +233,11 @@ namespace Cosmos.Cms.Data.Logic
 
             if (isFirstArticle)
             {
-                await HandlePublishing(article);
+                await PublishArticle(article);
             }
 
             // Finally update the catalog entry
-            await UpdateCatalogEntry(article.ArticleNumber, (StatusCodeEnum)article.StatusCode);
+            await SaveCatalogEntry(article.ArticleNumber, (StatusCodeEnum)article.StatusCode);
 
             return await BuildArticleViewModel(article, "en-US");
         }
@@ -255,7 +253,7 @@ namespace Cosmos.Cms.Data.Logic
 
             if (catalogEntry == null)
             {
-                var article = await Get(articleNumber, null);
+                var article = await GetArticleByArticleNumber(articleNumber, null);
                 var template = await DbContext.Articles.Select(s => new { s.TemplateId, s.Id }).FirstOrDefaultAsync(f => f.Id == article.Id);
 
                 catalogEntry = new CatalogEntry()
@@ -283,7 +281,7 @@ namespace Cosmos.Cms.Data.Logic
         /// <param name="model">New home page post model.</param>
         /// <param name="userId">ID of user creating the page.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task NewHomePage(NewHomeViewModel model, string userId)
+        public async Task CreateHomePage(NewHomeViewModel model, string userId)
         {
             // Remove the old page from home
             var oldHomeArticle = await DbContext.Articles.Where(w => w.UrlPath.ToLower() == "root").ToListAsync();
@@ -319,7 +317,7 @@ namespace Cosmos.Cms.Data.Logic
 
             await DbContext.SaveChangesAsync();
 
-            await HandlePublishing(oldHomeArticle.OrderBy(o => o.VersionNumber).LastOrDefault(f => f.Published.HasValue));
+            await PublishArticle(oldHomeArticle.OrderBy(o => o.VersionNumber).LastOrDefault(f => f.Published.HasValue));
 
             foreach (var article in newHomeArticle)
             {
@@ -337,7 +335,7 @@ namespace Cosmos.Cms.Data.Logic
 
             var published = newHomeArticle.OrderBy(o => o.VersionNumber).LastOrDefault(f => f.Published.HasValue);
 
-            await HandlePublishing(published);
+            await PublishArticle(published);
         }
 
         /// <summary>
@@ -346,13 +344,14 @@ namespace Cosmos.Cms.Data.Logic
         /// <param name="articleNumber">Article number.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         /// <remarks>
-        ///     <para>This method puts an article into trash. Use <see cref="RetrieveFromTrash" /> to restore an article. </para>
+        ///     <para>This method puts an article into trash. Use <see cref="RestoreArticle" /> to restore an article. </para>
         ///     <para>It also removes it from the page catalog and any published pages..</para>
         ///     <para>WARNING: Make sure the menu MenuController.Index does not reference deleted files.</para>
         /// </remarks>
-        public async Task TrashArticle(int articleNumber)
+        public async Task DeleteArticle(int articleNumber)
         {
             var doomed = await DbContext.Articles.Where(w => w.ArticleNumber == articleNumber).ToListAsync();
+            var url = doomed.FirstOrDefault()?.UrlPath;
 
             if (doomed == null)
             {
@@ -375,6 +374,8 @@ namespace Cosmos.Cms.Data.Logic
 
             await DbContext.SaveChangesAsync();
             await DeleteCatalogEntry(articleNumber);
+            DeleteStaticWebpage(url);
+            await CreateStaticTableOfContentsJsonFile();
         }
 
         /// <summary>
@@ -398,7 +399,7 @@ namespace Cosmos.Cms.Data.Logic
         ///         <item>Article is added back to the article catalog.</item>
         ///     </list>
         /// </remarks>
-        public async Task RetrieveFromTrash(int articleNumber, string userId)
+        public async Task RestoreArticle(int articleNumber, string userId)
         {
             var redeemed = await DbContext.Articles.Where(w => w.ArticleNumber == articleNumber).ToListAsync();
 
@@ -477,7 +478,7 @@ namespace Cosmos.Cms.Data.Logic
         ///     </list>
         /// </remarks>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task<ArticleUpdateResult> Save(ArticleViewModel model, string userId)
+        public async Task<ArticleUpdateResult> SaveArticle(ArticleViewModel model, string userId)
         {
             // Retrieve the article that we will be using.
             // This will either be used to create a new version (detached then added as new),
@@ -555,14 +556,14 @@ namespace Cosmos.Cms.Data.Logic
 
             // IMPORTANT!
             // Handle title (and URL) changes for existing 
-            await HandleTitleChange(article, oldTitle);
+            await SaveTitleChange(article, oldTitle);
 
             // HANDLE PUBLISHING OF AN ARTICLE
             // This can be a new or existing article.
-            var results = await HandlePublishing(article);
+            var results = await PublishArticle(article);
 
             // Finally update the catalog entry
-            await UpdateCatalogEntry(article.ArticleNumber, (StatusCodeEnum)article.StatusCode);
+            await SaveCatalogEntry(article.ArticleNumber, (StatusCodeEnum)article.StatusCode);
 
             var result = new ArticleUpdateResult
             {
@@ -740,7 +741,7 @@ namespace Cosmos.Cms.Data.Logic
         /// </summary>
         /// <param name="articleNumber">Article nymber.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task Unpublish(int articleNumber)
+        public async Task UnpublishArticle(int articleNumber)
         {
             var versions = await DbContext.Articles.Where(w => w.ArticleNumber == articleNumber && w.Published != null).ToListAsync();
 
@@ -768,7 +769,8 @@ namespace Cosmos.Cms.Data.Logic
             var pages = await DbContext.Pages.Where(w => w.ArticleNumber == articleNumber).ToListAsync();
             DbContext.Pages.RemoveRange(pages);
 
-            RemoveStaticWebpage(pages.FirstOrDefault().UrlPath);
+            DeleteStaticWebpage(pages.FirstOrDefault().UrlPath);
+            await CreateStaticTableOfContentsJsonFile();
 
             await DbContext.SaveChangesAsync();
         }
@@ -820,7 +822,7 @@ namespace Cosmos.Cms.Data.Logic
         ///     </para>
         ///     <para>NOTE: Cannot access articles that have been deleted.</para>
         /// </remarks>
-        public async Task<ArticleViewModel> Get(int articleNumber, int? versionNumber)
+        public async Task<ArticleViewModel> GetArticleByArticleNumber(int articleNumber, int? versionNumber)
         {
             Article article;
 
@@ -858,14 +860,14 @@ namespace Cosmos.Cms.Data.Logic
         /// <param name="userId">User ID.</param>
         /// <remarks>
         ///     <para>
-        ///         For new articles, uses <see cref="Create" /> and the method
+        ///         For new articles, uses <see cref="CreateArticle" /> and the method
         ///         <see cref="ArticleLogic.BuildArticleViewModel(Article, string)" /> to
         ///         generate the <see cref="ArticleViewModel" /> .
         ///     </para>
         ///     <para>
         ///         Retrieves <see cref="Article" /> and builds an <see cref="ArticleViewModel" /> using the method
         ///         <see cref="ArticleLogic.BuildArticleViewModel(Article, string)" />,
-        ///         or in the case of a template, uses method <see cref="BuildTemplateViewModel" />.
+        ///         or in the case of a template, uses method <see cref="CreateTemplateViewModel" />.
         ///     </para>
         ///     <para>
         ///         Makes sure editable areas are properly marked with <see cref="Ensure_ContentEditable_IsMarked(string)"/>.
@@ -875,11 +877,11 @@ namespace Cosmos.Cms.Data.Logic
         /// <remarks>
         ///     <para>
         ///         Returns <see cref="ArticleViewModel" />. For more details on what is returned, see
-        ///         <see cref="ArticleLogic.BuildArticleViewModel(Article, string)" /> or <see cref="BuildTemplateViewModel" />.
+        ///         <see cref="ArticleLogic.BuildArticleViewModel(Article, string)" /> or <see cref="CreateTemplateViewModel" />.
         ///     </para>
         ///     <para>NOTE: Cannot access articles that have been deleted.</para>
         /// </remarks>
-        public async Task<ArticleViewModel> Get(Guid? id, EnumControllerName controllerName, string userId)
+        public async Task<ArticleViewModel> GetArticleById(Guid? id, EnumControllerName controllerName, string userId)
         {
             if (controllerName == EnumControllerName.Template)
             {
@@ -896,14 +898,14 @@ namespace Cosmos.Cms.Data.Logic
                     throw new ArgumentException($"Template ID:{id} not found.");
                 }
 
-                return BuildTemplateViewModel(template);
+                return CreateTemplateViewModel(template);
             }
 
             // This is used to create a "blank" page just so we have something to get started with.
             if (id == null)
             {
                 var count = await DbContext.Articles.CountAsync();
-                return await Create("Page " + count, userId);
+                return await CreateArticle("Page " + count, userId);
             }
 
             var article = await DbContext.Articles
@@ -927,7 +929,7 @@ namespace Cosmos.Cms.Data.Logic
         /// <param name="publishedOnly">Only published articles.</param>
         /// <param name="onlyActive">Only active articles.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task<ArticleViewModel> GetByUrl(string urlPath, string lang = "", bool publishedOnly = true, bool onlyActive = true)
+        public async Task<ArticleViewModel> GetArticleByUrl(string urlPath, string lang = "", bool publishedOnly = true, bool onlyActive = true)
         {
             if (publishedOnly && onlyActive)
             {
@@ -1177,7 +1179,7 @@ namespace Cosmos.Cms.Data.Logic
         /// <param name="model">Reserved path model.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         /// <exception cref="Exception">Cannot add path because it is already reserved.</exception>
-        public async Task AddOrUpdateReservedPath(ReservedPath model)
+        public async Task SaveReservedPath(ReservedPath model)
         {
             if (model.CosmosRequired)
             {
@@ -1217,11 +1219,12 @@ namespace Cosmos.Cms.Data.Logic
         }
 
         /// <summary>
-        /// Publishes a static webpage to the blob storage if enabled.
+        /// Creates a pre-rendered static web page and saves it in blob storage.
         /// </summary>
         /// <param name="page">PublishedPage</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task PublishStaticWebpage(PublishedPage page)
+        /// <remarks>Only works if the environment variable 'CosmosStaticWebPages' is set to 'true'.</remarks>
+        public async Task CreateStaticWebpage(PublishedPage page)
         {
             if (this.CosmosOptions.Value.SiteSettings.StaticWebPages)
             {
@@ -1258,7 +1261,7 @@ namespace Cosmos.Cms.Data.Logic
         /// <param name="id">Path ID.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         /// <exception cref="Exception">Path not found.</exception>
-        public async Task RemoveReservedPath(Guid id)
+        public async Task DeleteReservedPath(Guid id)
         {
             var paths = await GetReservedPaths();
 
@@ -1286,7 +1289,7 @@ namespace Cosmos.Cms.Data.Logic
         /// </summary>
         /// <param name="path">Path to start from.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task PublishTOC(string path)
+        public async Task CreateStaticTableOfContentsJsonFile(string path = "/")
         {
             var result = await GetTOC(path, 0, 20, true);
             var json = JsonConvert.SerializeObject(result);
@@ -1303,6 +1306,7 @@ namespace Cosmos.Cms.Data.Logic
                 TotalChunks = 1,
                 TotalFileSize = stream.Length,
                 UploadUid = Guid.NewGuid().ToString(),
+                CacheControl = "max-age=300;must-revalidate"
             });
         }
 
@@ -1396,7 +1400,7 @@ namespace Cosmos.Cms.Data.Logic
         /// If article is published, it adds the correct versions to the public pages collection. If not, 
         /// the article is removed from the public pages collection.
         /// </remarks>
-        private async Task<List<CdnResult>> HandlePublishing(Article article)
+        private async Task<List<CdnResult>> PublishArticle(Article article)
         {
             if (article.Published.HasValue)
             {
@@ -1439,7 +1443,7 @@ namespace Cosmos.Cms.Data.Logic
                 await DbContext.SaveChangesAsync();
 
                 // Resets the expiration dates, based on the last published article
-                await ResetVersionExpirations(article.ArticleNumber);
+                await UpdateVersionExpirations(article.ArticleNumber);
 
                 // Update the published pages collection
                 return await UpdatePublishedPages(article.ArticleNumber);
@@ -1452,7 +1456,7 @@ namespace Cosmos.Cms.Data.Logic
         /// Removes a static webpage from the blob storage if enabled.
         /// </summary>
         /// <param name="filePath">Path to page to remove.</param>
-        private void RemoveStaticWebpage(string filePath)
+        private void DeleteStaticWebpage(string filePath)
         {
             if (this.CosmosOptions.Value.SiteSettings.StaticWebPages)
             {
@@ -1507,11 +1511,11 @@ namespace Cosmos.Cms.Data.Logic
         /// </summary>
         /// <param name="template">Page template model.</param>
         /// <returns>ArticleViewModel.</returns>
-        private ArticleViewModel BuildTemplateViewModel(Template template)
+        private ArticleViewModel CreateTemplateViewModel(Template template)
         {
             var articleNumber = DbContext.Articles.Max(m => m.ArticleNumber) + 1;
 
-            return new ()
+            return new()
             {
                 Id = template.Id,
                 ArticleNumber = articleNumber,
@@ -1532,7 +1536,7 @@ namespace Cosmos.Cms.Data.Logic
         /// </summary>
         /// <param name="articleNumber">Article number.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        private async Task ResetVersionExpirations(int articleNumber)
+        private async Task UpdateVersionExpirations(int articleNumber)
         {
             var list = await DbContext.Articles.Where(a => a.ArticleNumber == articleNumber).ToListAsync();
 
@@ -1583,7 +1587,7 @@ namespace Cosmos.Cms.Data.Logic
 
                 foreach (var path in purgePaths)
                 {
-                    RemoveStaticWebpage(path);
+                    DeleteStaticWebpage(path);
                 }
             }
 
@@ -1631,9 +1635,9 @@ namespace Cosmos.Cms.Data.Logic
                     }
 
                     // Publish the static webpage
-                    await PublishStaticWebpage(newPage);
+                    await CreateStaticWebpage(newPage);
 
-                    await UpdateCatalogEntry(item.ArticleNumber, (StatusCodeEnum)item.StatusCode);
+                    await SaveCatalogEntry(item.ArticleNumber, (StatusCodeEnum)item.StatusCode);
                 }
 
                 // Update the pages collection
@@ -1674,7 +1678,7 @@ namespace Cosmos.Cms.Data.Logic
         /// <item>Saves changes to the database</item>
         /// </list>
         /// </remarks>
-        private async Task HandleTitleChange(Article article, string oldTitle)
+        private async Task SaveTitleChange(Article article, string oldTitle)
         {
             if (string.Equals(article.Title, oldTitle, StringComparison.CurrentCultureIgnoreCase) && !string.IsNullOrEmpty(article.UrlPath))
             {
@@ -1900,7 +1904,7 @@ namespace Cosmos.Cms.Data.Logic
         /// <param name="articleNumber">Article number.</param>
         /// <param name="code">Article status code.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        private async Task UpdateCatalogEntry(int articleNumber, StatusCodeEnum code)
+        private async Task SaveCatalogEntry(int articleNumber, StatusCodeEnum code)
         {
             var data = await DbContext.Articles.Where(w => w.ArticleNumber == articleNumber).OrderBy(o => o.VersionNumber).LastOrDefaultAsync();
 

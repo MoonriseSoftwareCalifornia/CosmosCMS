@@ -745,7 +745,7 @@ namespace Cosmos.Cms.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    var article = await articleLogic.Get(Id, EnumControllerName.Edit, User.Identity.Name);
+                    var article = await articleLogic.GetArticleById(Id, EnumControllerName.Edit, User.Identity.Name);
 
                     var originalHtml = await articleLogic.ExportArticle(article, blobPublicAbsoluteUrl, viewRenderService);
                     var originalHtmlDoc = new HtmlAgilityPack.HtmlDocument();
@@ -839,7 +839,7 @@ namespace Cosmos.Cms.Controllers
                     // Get the user's ID for logging.
                     var user = await userManager.GetUserAsync(User);
 
-                    await articleLogic.Save(article, user.Id);
+                    await articleLogic.SaveArticle(article, user.Id);
                 }
                 else
                 {

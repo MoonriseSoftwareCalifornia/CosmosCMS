@@ -703,7 +703,7 @@ namespace Cosmos.Cms.Controllers
                 return NotFound();
             }
 
-            var model = await articleLogic.GetByUrl(string.Empty);
+            var model = await articleLogic.GetArticleByUrl(string.Empty);
             model.Layout = new LayoutViewModel(layout);
             model.EditModeOn = false;
             model.ReadWriteMode = false;
@@ -725,7 +725,7 @@ namespace Cosmos.Cms.Controllers
             }
 
             var layout = await dbContext.Layouts.FindAsync(id);
-            var model = await articleLogic.GetByUrl(string.Empty);
+            var model = await articleLogic.GetArticleByUrl(string.Empty);
             model.Layout = new LayoutViewModel(layout);
             model.EditModeOn = true;
             model.ReadWriteMode = true;
@@ -746,7 +746,7 @@ namespace Cosmos.Cms.Controllers
                 return BadRequest();
             }
 
-            var article = await articleLogic.GetByUrl(string.Empty);
+            var article = await articleLogic.GetArticleByUrl(string.Empty);
 
             var layout = await dbContext.Layouts.FirstOrDefaultAsync(f => f.Id == id);
             article.Layout = new LayoutViewModel(layout);
@@ -913,7 +913,7 @@ namespace Cosmos.Cms.Controllers
             }
 
             // Get the home page
-            var model = await articleLogic.GetByUrl(string.Empty);
+            var model = await articleLogic.GetArticleByUrl(string.Empty);
 
             // Specify layout if given.
             if (id.HasValue)

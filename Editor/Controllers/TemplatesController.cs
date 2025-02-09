@@ -710,7 +710,7 @@ namespace Cosmos.Cms.Controllers
         /// <param name="templateContent">Latest template to be applied.</param>
         private async Task ApplyTemplateChanges(int articleNumber, string templateContent)
         {
-            var article = await articleLogic.Get(articleNumber, null);
+            var article = await articleLogic.GetArticleByArticleNumber(articleNumber, null);
 
             // Pull out the editable DIVs.
             var articleHtmlDoc = new HtmlDocument();
@@ -736,7 +736,7 @@ namespace Cosmos.Cms.Controllers
             article.VersionNumber = 0;
             article.Content = templateHtmlDoc.DocumentNode.OuterHtml;
 
-            await articleLogic.Save(article, await GetUserEmail());
+            await articleLogic.SaveArticle(article, await GetUserEmail());
             Console.WriteLine($"Template applied to article {articleNumber}");
         }
     }
