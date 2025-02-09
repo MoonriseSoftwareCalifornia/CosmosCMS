@@ -23,13 +23,8 @@
     <meta name="cwps-meta-af-value" content="@Antiforgery.GetAndStoreTokens(Context).RequestToken" />
 
     @Html.Raw(Model.Layout.Head)
-    @*
-Page specific header
-*@
+    <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/44.1.0/ckeditor5-content.css" />
     @Html.Raw(Model.HeadJavaScript)
-    @*
-Application Insights Scripts
-*@
     @Html.Raw(JavaScriptSnippet.FullScript)
     <script async src="//cdn.embedly.com/widgets/platform.js" charset="UTF-8"></script>
 </head>
