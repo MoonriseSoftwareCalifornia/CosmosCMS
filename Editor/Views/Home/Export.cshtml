@@ -20,8 +20,8 @@
     <meta name="cwps-meta-author-info" content="@Model.AuthorInfo" />
     <meta name="cwps-meta-user-is-authenticated" content="@User.Identity.IsAuthenticated.ToString().ToLower()" />
     <meta name="cwps-meta-af-value" content="@Antiforgery.GetAndStoreTokens(Context).RequestToken" />
-    <link href="~/lib/ckeditor/ckeditor5-content.css" rel="stylesheet" asp-append-version="true" />
     @Html.Raw(Model.Layout.Head)
+    <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/44.1.0/ckeditor5.css" />
     @*
     Page specific header
     *@

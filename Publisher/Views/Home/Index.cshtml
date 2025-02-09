@@ -19,12 +19,11 @@
     <meta name="cwps-meta-path-updated" content="@Model.Updated" />
     <meta name="cwps-meta-author-info" content="@Model.AuthorInfo" />
     <meta name="cwps-meta-user-is-authenticated" content="@User.Identity.IsAuthenticated.ToString().ToLower()" />
-    <link href="~/lib/ckeditor/ckeditor5-content.css" rel="stylesheet" asp-append-version="true" />
-
     @*
         Layout "head" injection location
     *@
     @Html.Raw(Model.Layout.Head)
+    <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/44.1.0/ckeditor5.css" />
     @*
         Page specific "head" inject location
     *@
