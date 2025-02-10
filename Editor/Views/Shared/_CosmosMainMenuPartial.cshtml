@@ -234,7 +234,11 @@
 
         if (typeof iframe !== "undefined" && iframe !== null) {
             var url = new URL(iframe.src);
-            publicBaseUrl += url.pathname + url.search + url.hash;
+            var urlPath = url.pathname;
+            if (urlPath === "/root") {
+                urlPath = "/";
+            }
+            publicBaseUrl += urlPath + url.search + url.hash;
         }
 
         $("#btnPublicWebsite").attr("href", publicBaseUrl);
