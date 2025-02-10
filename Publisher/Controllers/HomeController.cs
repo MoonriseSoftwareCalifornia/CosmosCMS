@@ -182,6 +182,16 @@ namespace Cosmos.Cms.Publisher.Controllers
                     return Json(article);
                 }
 
+                if (article.StatusCode == StatusCodeEnum.Redirect)
+                {
+                    return View("~/Views/Home/Redirect.cshtml", new RedirectItemViewModel()
+                    {
+                         FromUrl = article.UrlPath,
+                         ToUrl = article.Content,
+                         Id = article.Id
+                    });
+                }
+
                 return View(article);
             }
             catch (Microsoft.Azure.Cosmos.CosmosException e)

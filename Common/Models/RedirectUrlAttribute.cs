@@ -5,7 +5,7 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
-namespace Cosmos.Cms.Models
+namespace Cosmos.Common.Models
 {
     using System.ComponentModel.DataAnnotations;
 
@@ -17,9 +17,9 @@ namespace Cosmos.Cms.Models
         /// <summary>
         ///     Determines if value is valid.
         /// </summary>
-        /// <param name="value"></param>
-        /// <param name="validationContext"></param>
-        /// <returns></returns>
+        /// <param name="value">Value to check.</param>
+        /// <param name="validationContext">Validation context.</param>
+        /// <returns>ValidationResult.</returns>
         protected override ValidationResult IsValid(object value, ValidationContext validationContext)
         {
             var url = (string)value;

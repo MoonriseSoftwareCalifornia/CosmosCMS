@@ -1233,11 +1233,30 @@ namespace Cosmos.Cms.Data.Logic
                     throw new Exception("Cannot publish web page to path /pub.");
                 }
 
-                var data = await BuildArticleViewModel(page, string.Empty);
-                var html = await viewRenderService.RenderToStringAsync("~/Views/Home/Export.cshtml", data);
+                string html = string.Empty;
+                if (page.StatusCode == (int)StatusCodeEnum.Redirect)
+                {
+                    var model = new RedirectItemViewModel()
+                    {
+                        FromUrl = page.UrlPath,
+                        ToUrl = page.Content
+                    };
+                    html = await viewRenderService.RenderToStringAsync("~/Views/Home/Redirect.cshtml", model);
+                }
+                else
+                {
+                    var model = await BuildArticleViewModel(page, string.Empty);
+                    html = await viewRenderService.RenderToStringAsync("~/Views/Home/Export.cshtml", model);
+                }
+
                 using var stream = new MemoryStream(Encoding.UTF8.GetBytes(html));
 
-                var filePath = data.UrlPath.Equals("root", StringComparison.OrdinalIgnoreCase) ? "/index.html" : data.UrlPath;
+                if (string.IsNullOrEmpty(page.UrlPath))
+                {
+                    page.UrlPath = "root";
+                }
+
+                var filePath = page.UrlPath.Equals("root", StringComparison.OrdinalIgnoreCase) ? "/index.html" : page.UrlPath;
 
                 storageContext.AppendBlob(stream, new BlobService.Models.FileUploadMetaData()
                 {
@@ -1289,7 +1308,7 @@ namespace Cosmos.Cms.Data.Logic
         /// </summary>
         /// <param name="path">Path to start from.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task CreateStaticTableOfContentsJsonFile(string path = "/")
+        public async Task CreateStaticTableOfContentsJsonFile(string path = "")
         {
             var result = await GetTOC(path, 0, 20, true);
             var json = JsonConvert.SerializeObject(result);
@@ -1402,6 +1421,15 @@ namespace Cosmos.Cms.Data.Logic
         /// </remarks>
         private async Task<List<CdnResult>> PublishArticle(Article article)
         {
+            // Clean things up a bit.
+            var doomed = await DbContext.Pages.Where(w => w.Content == "" || w.Title == "").ToListAsync();
+
+            if (doomed.Any())
+            {
+                DbContext.Pages.RemoveRange(doomed);
+                await DbContext.SaveChangesAsync();
+            }
+
             if (article.Published.HasValue)
             {
                 var others = await DbContext.Articles.Where(w => w.ArticleNumber == article.ArticleNumber && w.Published != null && w.Id != article.Id).ToListAsync();
@@ -1446,7 +1474,7 @@ namespace Cosmos.Cms.Data.Logic
                 await UpdateVersionExpirations(article.ArticleNumber);
 
                 // Update the published pages collection
-                return await UpdatePublishedPages(article.ArticleNumber);
+                return await CreatePublishedPage(article.ArticleNumber);
             }
 
             return null;
@@ -1485,10 +1513,11 @@ namespace Cosmos.Cms.Data.Logic
                 var model = new RedirectItemViewModel()
                 {
                     FromUrl = fromUrl,
-                    ToUrl = toUrl
+                    ToUrl = toUrl,
+                    Id = Guid.NewGuid()
                 };
 
-                var html = await viewRenderService.RenderToStringAsync("~/Views/Home/Export.cshtml", model);
+                var html = await viewRenderService.RenderToStringAsync("~/Views/Home/Redirect.cshtml", model);
                 using var stream = new MemoryStream(Encoding.UTF8.GetBytes(html));
 
                 storageContext.AppendBlob(stream, new BlobService.Models.FileUploadMetaData()
@@ -1560,15 +1589,20 @@ namespace Cosmos.Cms.Data.Logic
         }
 
         /// <summary>
-        /// Updates the published pages collection by article number.
+        /// Creates a published page for a given article number, both in the database and in the blob storage (if enabled).
         /// </summary>
         /// <param name="articleNumber">Article number to publish.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        private async Task<List<CdnResult>> UpdatePublishedPages(int articleNumber)
+        private async Task<List<CdnResult>> CreatePublishedPage(int articleNumber)
         {
             // Now we are going to update the Pages table
-            var itemsToPublish = await DbContext.Articles.Where(w => w.ArticleNumber == articleNumber && w.Published != null)
+            var itemsToPublish = await DbContext.Articles.Where(
+                w => w.ArticleNumber == articleNumber
+                && w.Published != null
+                && w.Content != ""
+                && w.Title != "")
                 .OrderByDescending(o => o.Published).AsNoTracking().ToListAsync();
+
 
             var paths = itemsToPublish.Select(s => s.UrlPath).Distinct().ToList();
 
@@ -1739,26 +1773,31 @@ namespace Cosmos.Cms.Data.Logic
                 // Update base href
                 UpdateHeadBaseTag(article);
 
-                // Create a redirect
-                var entity = new PublishedPage
+                // Add redirects if published
+                if (article.Published.HasValue)
                 {
-                    ArticleNumber = 0,
-                    StatusCode = (int)StatusCodeEnum.Redirect,
-                    UrlPath = oldUrl, // Old URL
-                    VersionNumber = 0,
-                    Published = DateTime.Now.ToUniversalTime().AddDays(-1), // Make sure this sticks!
-                    Title = "Redirect",
-                    Content = newUrl, // New URL
-                    Updated = DateTime.Now.ToUniversalTime(),
-                    HeaderJavaScript = null,
-                    FooterJavaScript = null
-                };
+                    // Create a redirect
+                    var entity = new PublishedPage
+                    {
+                        ArticleNumber = 0,
+                        StatusCode = (int)StatusCodeEnum.Redirect,
+                        UrlPath = oldUrl, // Old URL
+                        VersionNumber = 0,
+                        Published = DateTime.Now.ToUniversalTime().AddDays(-1), // Make sure this sticks!
+                        Title = "Redirect",
+                        Content = newUrl, // New URL
+                        Updated = DateTime.Now.ToUniversalTime(),
+                        HeaderJavaScript = null,
+                        FooterJavaScript = null
+                    };
 
-                // Create a static redirect page.
-                await CreateStaticRedirectPage(oldUrl, newUrl);
+                    // Create a static redirect page.
+                    await CreateStaticRedirectPage(oldUrl, newUrl);
 
-                // Add redirect here
-                DbContext.Pages.Add(entity);
+                    // Add redirect here
+                    DbContext.Pages.Add(entity);
+                }
+
                 await DbContext.SaveChangesAsync();
             }
 
@@ -1799,7 +1838,7 @@ namespace Cosmos.Cms.Data.Logic
             // Now update the published pages
             foreach (var num in articleNumbersToUpdate)
             {
-                await UpdatePublishedPages(num);
+                await CreatePublishedPage(num);
             }
         }
 

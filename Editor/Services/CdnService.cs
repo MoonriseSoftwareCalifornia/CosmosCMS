@@ -239,7 +239,14 @@ namespace Cosmos.Editor.Services
 
                 if (purgeUrls.Count > 100 || purgeUrls.Any(p => p.Equals("/") || p.Equals("/*")))
                 {
-                    operation = await cdnEndpoint.PurgeContentAsync(Azure.WaitUntil.Started, new PurgeContent(new string[] { "/*" }));
+                    try
+                    {
+                        operation = await cdnEndpoint.PurgeContentAsync(Azure.WaitUntil.Started, new PurgeContent(new string[] { "/*" }));
+                    }
+                    catch (Exception e)
+                    {
+                        logger.LogError(e.Message, e);
+                    }
                 }
                 else
                 {

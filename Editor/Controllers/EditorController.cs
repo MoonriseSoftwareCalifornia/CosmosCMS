@@ -2047,7 +2047,9 @@ namespace Cosmos.Cms.Controllers
         [HttpGet]
         public async Task<IActionResult> GetPublishedPageList()
         {
-            var pages = await dbContext.Pages.Select(s =>
+            var activeCode = (int)StatusCodeEnum.Active;
+            var redirectCode = (int)StatusCodeEnum.Redirect;
+            var pages = await dbContext.Pages.Where(w => w.Published.HasValue && (w.StatusCode == activeCode || w.StatusCode == redirectCode)).Select(s =>
             new
             {
                 s.Id,
@@ -2066,12 +2068,11 @@ namespace Cosmos.Cms.Controllers
         [Authorize(Roles = "Editors,Administrators")]
         public async Task<IActionResult> PublishStaticPages([FromBody] List<Guid> guids)
         {
-            var pages = await dbContext.Pages.Where(w => guids.Contains(w.Id)).ToListAsync();
+            var pages = await dbContext.Pages.Where(w => guids.Contains(w.Id) && w.Published.HasValue).ToListAsync();
             foreach (var page in pages)
             {
                 await articleLogic.CreateStaticWebpage(page);
             }
-
 
             // publish table of contents.
             await articleLogic.CreateStaticTableOfContentsJsonFile("/");

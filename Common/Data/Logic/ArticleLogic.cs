@@ -124,7 +124,7 @@ namespace Cosmos.Common.Data.Logic
                 query = from t in DbContext.Pages
                         where t.Published <= DateTimeOffset.UtcNow &&
                           t.StatusCode != (int)StatusCodeEnum.Redirect
-                        && t.UrlPath.Contains("/") == false && t.UrlPath != "root"
+                        && t.UrlPath != "root"
                         select new TableOfContentsItem
                         {
                             UrlPath = t.UrlPath,
@@ -219,7 +219,7 @@ namespace Cosmos.Common.Data.Logic
                 if (headRequest)
                 {
                     var header = await DbContext.Pages.WithPartitionKey(urlPath)
-                        .Where(a => a.Published <= DateTimeOffset.UtcNow)
+                        .Where(a => a.Published.HasValue && a.Published <= DateTimeOffset.UtcNow)
                         .Select(s => new
                         {
                             s.ArticleNumber,
@@ -256,7 +256,7 @@ namespace Cosmos.Common.Data.Logic
             if (model == null)
             {
                 var data = await DbContext.Pages.WithPartitionKey(urlPath)
-                   .Where(a => a.Published <= DateTimeOffset.UtcNow)
+                   .Where(a => a.Published.HasValue && a.Published <= DateTimeOffset.UtcNow)
                    .OrderByDescending(o => o.VersionNumber).AsNoTracking().FirstOrDefaultAsync();
 
                 if (data == null)

@@ -13,7 +13,7 @@ namespace Cosmos.Common.Data.Logic
     public enum StatusCodeEnum
     {
         /// <summary>
-        ///     Active, able to display if publish data given.
+        ///     Active, able to display if publish date given.
         /// </summary>
         Active = 0,
 
