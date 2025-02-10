@@ -54,7 +54,7 @@
                                         <div class="btn-group" role="group" aria-label="Actions for this template">
                                             <a class="btn btn-sm btn-secondary" href="@Url.Action("Designer", "Templates", new { Id = row.Id })" title="Design editor">Design</a>
                                             <a class="btn btn-sm btn-secondary" href="@Url.Action("EditCode", "Templates", new { Id = row.Id })" title="Code editor">Code</a>
-                                            <a class="btn btn-sm btn-secondary" asp-action="Pages" asp-route-id="@row.Id" title="View pages that use this template">HTML</a>
+                                            <a class="btn btn-sm btn-secondary" asp-action="Pages" asp-route-id="@row.Id" title="View pages that use this template">Pages</a>
                                         </div>
                                     </td>
                                     <td scope="row">

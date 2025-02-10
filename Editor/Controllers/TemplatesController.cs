@@ -195,7 +195,7 @@ namespace Cosmos.Cms.Controllers
             ViewData["pageNo"] = pageNo;
             ViewData["pageSize"] = pageSize;
 
-            var query = dbContext.ArticleCatalog.Where(w => w.TemplateId == template.Id).Select(s => new
+            var articles = await dbContext.ArticleCatalog.Where(w => w.TemplateId == template.Id).Select(s => new
             {
                 s.ArticleNumber,
                 s.Title,
@@ -204,9 +204,11 @@ namespace Cosmos.Cms.Controllers
                 s.Status,
                 s.Updated,
                 s.ArticlePermissions
-            }).AsQueryable();
+            }).AsNoTracking().ToListAsync();
 
-            ViewData["RowCount"] = await query.CountAsync();
+            var query = articles.AsQueryable();
+
+            ViewData["RowCount"] = query.Count();
 
             if (!string.IsNullOrEmpty(filter))
             {
@@ -277,7 +279,7 @@ namespace Cosmos.Cms.Controllers
             var users = await dbContext.Users.Select(s => new { s.Id, s.Email }).ToListAsync();
             var roles = await dbContext.Roles.Select(s => new { s.Id, s.Name }).ToListAsync();
 
-            var data = await query.Skip(pageNo * pageSize).Take(pageSize).AsNoTracking().ToListAsync();
+            var data = query.Skip(pageNo * pageSize).Take(pageSize).AsNoTracking().ToList();
 
             var model = new List<ArticleListItem>();
 

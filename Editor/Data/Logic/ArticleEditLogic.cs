@@ -1954,6 +1954,7 @@ namespace Cosmos.Cms.Data.Logic
             catalogEntry.Published = data.Published;
             catalogEntry.Title = data.Title;
             catalogEntry.UrlPath = data.UrlPath;
+            catalogEntry.TemplateId = data.TemplateId;
 
             await DbContext.SaveChangesAsync();
         }
