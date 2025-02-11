@@ -104,7 +104,7 @@ namespace Cosmos.Common.Data.Logic
         /// <param name="pageSize">Number of records in a page.</param>
         /// <param name="orderByPublishedDate">Order by decending order when was published (most recent on top).</param>
         /// <returns>Returns a <see cref="TableOfContents"/>.</returns>
-        public async Task<TableOfContents> GetTOC(string prefix, int pageNo = 0, int pageSize = 10, bool orderByPublishedDate = false)
+        public async Task<TableOfContents> GetTableOfContents(string prefix, int pageNo = 0, int pageSize = 10, bool orderByPublishedDate = false)
         {
             if (string.IsNullOrEmpty(prefix) || string.IsNullOrWhiteSpace(prefix) || prefix.Equals("/"))
             {
@@ -121,9 +121,8 @@ namespace Cosmos.Common.Data.Logic
 
             if (string.IsNullOrEmpty(prefix))
             {
-                query = from t in DbContext.Pages
-                        where t.Published <= DateTimeOffset.UtcNow &&
-                          t.StatusCode != (int)StatusCodeEnum.Redirect
+                query = from t in DbContext.ArticleCatalog
+                        where t.Published <= DateTimeOffset.UtcNow
                         && t.UrlPath != "root"
                         select new TableOfContentsItem
                         {
@@ -143,9 +142,8 @@ namespace Cosmos.Common.Data.Logic
                 var epath = prefix.TrimStart('/').Replace("/", "\\/");
                 var pattern = $"(?i)(^[{epath}]*)(\\/[^\\/]*){dcount}$";
 
-                query = from t in DbContext.Pages
-                        where t.Published <= DateTimeOffset.UtcNow &&
-                        t.StatusCode != (int)StatusCodeEnum.Redirect
+                query = from t in DbContext.ArticleCatalog
+                        where t.Published <= DateTimeOffset.UtcNow
                         && t.UrlPath != prefix
                         && t.UrlPath.StartsWith(prefix)
                         && Regex.IsMatch(t.UrlPath, pattern)

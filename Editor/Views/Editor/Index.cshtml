@@ -24,6 +24,11 @@
     var pagerModel = new GridPagerPartialViewModel(pageNumber, rowCount, pageSize, sortOrder, currentSort, "/Editor/Index", filter);
 }
 <script src="~/js/clipboard.min.js"></script>
+<style>
+    .fs-small {
+        font-size: 0.8em;
+    }
+</style>
 
 <div class="pt-3">
     <div class="container">
@@ -72,27 +77,19 @@
             <div class="col-md-12">
                 <div class="table-responsive custom-table-responsive">
                     <table class="table custom-table">
-                        <thead>
+                        <thead class="fs-small">
                             <tr>
-                                <th scope="col">
-                                    Select
-                                </th>
                                 <th scope="col"><i class="fa-solid fa-house"></i></th>
-                                <th scope="col">#</th>
-                                <th scope="col">Page</th>
+                                <th scope="col">URL/Title</th>
                                 <th scope="col">Last Updated</th>
+                                <th scope="col">Last Published</th>
                                 <th scope="col"></th>
-                                <th scope="col"></th>
-                                <th scope="col">Trash</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var row in Model)
                             {
                                 <tr scope="row">
-                                    <td scope="row" title="Click to select article '@row.Title.'" onclick="openArticleVersions(@row.ArticleNumber)">
-                                        <span class="fa-solid fa-circle-arrow-right"></span>
-                                    </td>
                                     <td>
                                         @if (row.UrlPath == "root")
                                         {
@@ -103,23 +100,8 @@
                                             <a href='/Editor/NewHome/@row.ArticleNumber' title='Make this the new home page.' class='btn btn-sm btn-secondary'><i class="fa-solid fa-house"></i></a>
                                         }
                                     </td>
-                                    <td title="Click to select article '@row.Title.'" onclick="openArticleVersions(@row.ArticleNumber)">
-                                        @row.ArticleNumber
-                                    </td>
-                                    <td title="Click to select article '@row.Title.'" onclick="openArticleVersions(@row.ArticleNumber)">
+                                    <td title="Click to select article '@row.Title.'" class="fs-small" onclick="openArticleVersions(@row.ArticleNumber)">
                                         /@row.Title
-                                        @if (row.LastPublished.HasValue)
-                                        {
-                                            <small class="d-block">
-                                                <span class="badge badge-primary"> Published: </span><span class='toLocalTimeZone'>@row.LastPublished.Value</span>
-                                            </small>
-                                        }
-                                        else
-                                        {
-                                            <small class="d-block">
-                                                <span class="badge badge-secondary">- DRAFT -</span>
-                                            </small>
-                                        }
                                         @if (options.Value.SiteSettings.CosmosRequiresAuthentication)
                                         {
                                             <small class="d-block">
@@ -136,22 +118,30 @@
                                         }
                                     </td>
                                     <td title="Click to select article '@row.Title.'" onclick="openArticleVersions(@row.ArticleNumber)">
-                                        <div class='toLocalTimeZone'>@row.Updated</div>
+                                        <div class='toLocalTimeZone fs-small'>@row.Updated</div>
                                     </td>
-                                    <td>
-                                        @if (row.LastPublished.HasValue && canEdit && row.IsDefault == false)
-                                        {
-                                            <button onclick="unpublish(@row.ArticleNumber)" title="Unpublishes a this item, and makes it no longer accessible except for editing." class="btn btn-sm btn-secondary">Unpublish</button>
-                                        }
+                                    <td title="Click to select article '@row.Title.'" onclick="openArticleVersions(@row.ArticleNumber)">
+                                        <div class='toLocalTimeZone fs-small'>@row.LastPublished</div>
                                     </td>
-                                    <td>
-                                        <a class="btn btn-sm btn-secondary" title="Create a clone of this page" asp-action="Clone" asp-route-id="@row.ArticleNumber"><i class="fa-solid fa-copy"></i> Clone</a>
-                                    </td>
-                                    <td>
-                                        @if (canEdit && row.UrlPath != "root")
-                                        {
-                                            <button type='button' onclick='selectArticle("@row.ArticleNumber", "@row.Title")' class='btn btn-sm btn-secondary' data-bs-toggle='modal' data-bs-target='#delConfModal'><i title='Send article to trash' class='fa-solid fa-trash'></i> Trash</button>
-                                        }
+                                    <td class="text-end">
+                                        <div class="btn-group" role="group" aria-label="Actions">
+                                            <a class="btn btn-sm btn-secondary" title="Create a clone of this page" asp-action="Clone" asp-route-id="@row.ArticleNumber"><i class="fa-solid fa-copy"></i> Clone</a>
+                                            @if (row.LastPublished.HasValue && canEdit && row.IsDefault == false)
+                                            {
+                                                <button onclick="unpublish(@row.ArticleNumber)" title="Unpublishes a this item, and makes it no longer accessible except for editing." class="btn btn-sm btn-secondary">Unpublish</button>
+                                            }
+                                            else
+                                            {
+                                                <button disabled title="Unpublishes a this item, and makes it no longer accessible except for editing." class="btn btn-sm btn-secondary">Unpublish</button>
+                                            }@if (canEdit && row.UrlPath != "root")
+                                            {
+                                                <button type='button' onclick='selectArticle("@row.ArticleNumber", "@row.Title")' class='btn btn-sm btn-secondary' data-bs-toggle='modal' data-bs-target='#delConfModal'><i title='Send article to trash' class='fa-solid fa-trash'></i> Trash</button>
+                                            }
+                                            else
+                                            {
+                                                <button disabled title='Send article to trash' class='btn btn-sm btn-secondary'><i class='fa-solid fa-trash'></i> Trash</button>
+                                            }
+                                        </div>
                                     </td>
                                 </tr>
                             }

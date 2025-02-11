@@ -35,6 +35,18 @@ namespace Cosmos.Common.Data
         public int ArticleNumber { get; set; }
 
         /// <summary>
+        ///    Gets or sets the author of the article.
+        /// </summary>
+        [Display(Name = "Author")]
+        public string AuthorInfo { get; set; }
+
+        /// <summary>
+        ///    Gets or sets the banner image for the article.
+        /// </summary>
+        [Display(Name = "Banner Image")]
+        public string BannerImage { get; set; }
+
+        /// <summary>
         ///     Gets or sets title of the page, also used as the basis for the URL.
         /// </summary>
         [Display(Name = "Title")]

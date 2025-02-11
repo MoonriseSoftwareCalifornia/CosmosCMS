@@ -213,7 +213,7 @@ namespace Cosmos.Cms.Data.Logic
             {
                 ArticleNumber = max,
                 Content = Ensure_ContentEditable_IsMarked(defaultTemplate),
-                StatusCode = 0,
+                StatusCode = (int) StatusCodeEnum.Active,
                 Title = title,
                 Updated = DateTimeOffset.Now,
                 UrlPath = isFirstArticle ? "root" : NormailizeArticleUrl(title),
@@ -237,7 +237,7 @@ namespace Cosmos.Cms.Data.Logic
             }
 
             // Finally update the catalog entry
-            await SaveCatalogEntry(article.ArticleNumber, (StatusCodeEnum)article.StatusCode);
+            await CreateCatalogEntry(article.ArticleNumber, (StatusCodeEnum)article.StatusCode);
 
             return await BuildArticleViewModel(article, "en-US");
         }
@@ -249,30 +249,14 @@ namespace Cosmos.Cms.Data.Logic
         /// <returns>CatalogEntry.</returns>
         public async Task<CatalogEntry> GetCatalogEntry(int articleNumber)
         {
-            var catalogEntry = await DbContext.ArticleCatalog.FirstOrDefaultAsync(f => f.ArticleNumber == articleNumber);
+            var entry = await DbContext.ArticleCatalog.FirstOrDefaultAsync(f => f.ArticleNumber == articleNumber);
 
-            if (catalogEntry == null)
+            if (entry == null)
             {
-                var article = await GetArticleByArticleNumber(articleNumber, null);
-                var template = await DbContext.Articles.Select(s => new { s.TemplateId, s.Id }).FirstOrDefaultAsync(f => f.Id == article.Id);
-
-                catalogEntry = new CatalogEntry()
-                {
-                    ArticleNumber = articleNumber,
-                    Updated = article.Updated,
-                    Status = article.StatusCode == StatusCodeEnum.Active ? "Active" : "Inactive",
-                    Published = article.Published,
-                    Title = article.Title,
-                    UrlPath = article.UrlPath,
-                    TemplateId = template.Id,
-                };
-
-                DbContext.ArticleCatalog.Add(catalogEntry);
-
-                await DbContext.SaveChangesAsync();
+                entry = await CreateCatalogEntry(articleNumber, StatusCodeEnum.Active);
             }
 
-            return catalogEntry;
+            return entry;
         }
 
         /// <summary>
@@ -299,8 +283,7 @@ namespace Cosmos.Cms.Data.Logic
                 throw new ArgumentException("New home page not found.");
             }
 
-            var oldCatalogEntry = await DbContext.ArticleCatalog.Where(w => w.UrlPath.ToLower() == "root").ToListAsync();
-
+            // Change the path of the old home page (no longer 'root').
             var newUrl = NormailizeArticleUrl(oldHomeArticle.FirstOrDefault()?.Title);
             foreach (var article in oldHomeArticle)
             {
@@ -309,14 +292,7 @@ namespace Cosmos.Cms.Data.Logic
 
             await DbContext.SaveChangesAsync();
 
-            foreach (var item in oldCatalogEntry)
-            {
-                item.UrlPath = newUrl;
-                item.Updated = DateTimeOffset.UtcNow;
-            }
-
-            await DbContext.SaveChangesAsync();
-
+            // Publish the old home page as a regular page (also update catalog entry).
             await PublishArticle(oldHomeArticle.OrderBy(o => o.VersionNumber).LastOrDefault(f => f.Published.HasValue));
 
             foreach (var article in newHomeArticle)
@@ -326,15 +302,9 @@ namespace Cosmos.Cms.Data.Logic
 
             await DbContext.SaveChangesAsync();
 
-            var newArticleNumber = newHomeArticle.FirstOrDefault().ArticleNumber;
-            var newCatalogEntry = await DbContext.ArticleCatalog.FirstOrDefaultAsync(f => f.ArticleNumber == newArticleNumber);
-            newCatalogEntry.UrlPath = "root";
-            newCatalogEntry.Updated = DateTimeOffset.UtcNow;
-
-            await DbContext.SaveChangesAsync();
-
             var published = newHomeArticle.OrderBy(o => o.VersionNumber).LastOrDefault(f => f.Published.HasValue);
 
+            // Publish the new home page as a regular page (also update catalog entry).
             await PublishArticle(published);
         }
 
@@ -563,7 +533,7 @@ namespace Cosmos.Cms.Data.Logic
             var results = await PublishArticle(article);
 
             // Finally update the catalog entry
-            await SaveCatalogEntry(article.ArticleNumber, (StatusCodeEnum)article.StatusCode);
+            await CreateCatalogEntry(article.ArticleNumber, (StatusCodeEnum)article.StatusCode);
 
             var result = new ArticleUpdateResult
             {
@@ -1310,7 +1280,7 @@ namespace Cosmos.Cms.Data.Logic
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task CreateStaticTableOfContentsJsonFile(string path = "")
         {
-            var result = await GetTOC(path, 0, 20, true);
+            var result = await GetTableOfContents(path, 0, 20, true);
             var json = JsonConvert.SerializeObject(result);
             using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
             var storagePath = "pub/js/toc.json";
@@ -1417,7 +1387,7 @@ namespace Cosmos.Cms.Data.Logic
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         /// <remarks>
         /// If article is published, it adds the correct versions to the public pages collection. If not, 
-        /// the article is removed from the public pages collection.
+        /// the article is removed from the public pages collection. Also updates the catalog entry.
         /// </remarks>
         private async Task<List<CdnResult>> PublishArticle(Article article)
         {
@@ -1671,7 +1641,7 @@ namespace Cosmos.Cms.Data.Logic
                     // Publish the static webpage
                     await CreateStaticWebpage(newPage);
 
-                    await SaveCatalogEntry(item.ArticleNumber, (StatusCodeEnum)item.StatusCode);
+                    await CreateCatalogEntry(item.ArticleNumber, (StatusCodeEnum)item.StatusCode);
                 }
 
                 // Update the pages collection
@@ -1943,20 +1913,43 @@ namespace Cosmos.Cms.Data.Logic
         /// <param name="articleNumber">Article number.</param>
         /// <param name="code">Article status code.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        private async Task SaveCatalogEntry(int articleNumber, StatusCodeEnum code)
+        private async Task<CatalogEntry> CreateCatalogEntry(int articleNumber, StatusCodeEnum code)
         {
-            var data = await DbContext.Articles.Where(w => w.ArticleNumber == articleNumber).OrderBy(o => o.VersionNumber).LastOrDefaultAsync();
+            var versions = await DbContext.Articles.Where(w => w.ArticleNumber == articleNumber && w.Published.HasValue).OrderBy(o => o.VersionNumber).ToListAsync();
 
-            var catalogEntry = await GetCatalogEntry(articleNumber);
+            if (versions.Count == 0)
+            {
+                throw new Exception("Cannot create catalog entry when no article versions were found.");
+            }
 
-            catalogEntry.Updated = data.Updated;
-            catalogEntry.Status = code == StatusCodeEnum.Active ? "Active" : "Inactive";
-            catalogEntry.Published = data.Published;
-            catalogEntry.Title = data.Title;
-            catalogEntry.UrlPath = data.UrlPath;
-            catalogEntry.TemplateId = data.TemplateId;
+            var oldEntry = await DbContext.ArticleCatalog.FirstOrDefaultAsync(f => f.ArticleNumber == articleNumber);
 
+            if (oldEntry != null)
+            {
+                DbContext.ArticleCatalog.Remove(oldEntry);
+                await DbContext.SaveChangesAsync();
+            }
+
+            var userId = versions.LastOrDefault().UserId;
+            var authorInfo = await DbContext.AuthorInfos.FirstOrDefaultAsync(f => f.UserId == userId && f.AuthorName != string.Empty);
+
+            var entry = new CatalogEntry()
+            {
+                ArticleNumber = articleNumber,
+                BannerImage = versions.LastOrDefault().BannerImage,
+                Published = versions.Max(m => m.Published),
+                Status = code == StatusCodeEnum.Active ? "Active" : "Inactive",
+                Title = versions.LastOrDefault().Title,
+                Updated = versions.Max(m => m.Updated),
+                UrlPath = versions.LastOrDefault().UrlPath,
+                TemplateId = versions.LastOrDefault().TemplateId,
+                AuthorInfo = JsonConvert.SerializeObject(authorInfo).Replace("\"", "'")
+            };
+
+            DbContext.ArticleCatalog.Add(entry);
             await DbContext.SaveChangesAsync();
+
+            return entry;
         }
     }
 }

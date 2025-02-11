@@ -168,7 +168,7 @@ namespace Cosmos.Cms.Controllers
                 s.Status,
                 s.Updated,
                 s.ArticlePermissions
-            }).AsQueryable();
+            }).AsNoTracking().AsQueryable();
 
             ViewData["RowCount"] = await query.CountAsync();
 
@@ -241,11 +241,11 @@ namespace Cosmos.Cms.Controllers
             var users = await dbContext.Users.Select(s => new { s.Id, s.Email }).ToListAsync();
             var roles = await dbContext.Roles.Select(s => new { s.Id, s.Name }).ToListAsync();
 
-            var data = await query.Skip(pageNo * pageSize).Take(pageSize).AsNoTracking().ToListAsync();
+            var pageList = query.Skip(pageNo * pageSize).Take(pageSize).AsNoTracking().ToList();
 
             var model = new List<ArticleListItem>();
 
-            foreach (var datum in data)
+            foreach (var datum in pageList)
             {
                 var item = new ArticleListItem()
                 {
@@ -568,6 +568,9 @@ namespace Cosmos.Cms.Controllers
 
             // Now carry over what's being updated to the original.
             article.Content = originalHtmlDoc.DocumentNode.OuterHtml;
+
+            // Banner image
+            article.BannerImage = model.BannerImage;
 
             // Make sure we are setting to the orignal updated date/time
             // This is validated to make sure that someone else hasn't already edited this
