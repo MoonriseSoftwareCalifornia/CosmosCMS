@@ -81,7 +81,7 @@ namespace Cosmos.Api.Controllers
                 return null;
             }
 
-            var result = await articleLogic.GetTOC(page, pageNo ?? 0, pageSize ?? 10, orderByPub ?? false);
+            var result = await articleLogic.GetTableOfContents(page, pageNo ?? 0, pageSize ?? 10, orderByPub ?? false);
             return result;
         }
     }

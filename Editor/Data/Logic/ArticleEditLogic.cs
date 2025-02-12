@@ -831,12 +831,12 @@ namespace Cosmos.Cms.Data.Logic
         /// <remarks>
         ///     <para>
         ///         For new articles, uses <see cref="CreateArticle" /> and the method
-        ///         <see cref="ArticleLogic.BuildArticleViewModel(Article, string)" /> to
+        ///         ArticleLogic.BuildArticleViewModel to
         ///         generate the <see cref="ArticleViewModel" /> .
         ///     </para>
         ///     <para>
         ///         Retrieves <see cref="Article" /> and builds an <see cref="ArticleViewModel" /> using the method
-        ///         <see cref="ArticleLogic.BuildArticleViewModel(Article, string)" />,
+        ///         ArticleLogic.BuildArticleViewModel,
         ///         or in the case of a template, uses method <see cref="CreateTemplateViewModel" />.
         ///     </para>
         ///     <para>
@@ -847,7 +847,7 @@ namespace Cosmos.Cms.Data.Logic
         /// <remarks>
         ///     <para>
         ///         Returns <see cref="ArticleViewModel" />. For more details on what is returned, see
-        ///         <see cref="ArticleLogic.BuildArticleViewModel(Article, string)" /> or <see cref="CreateTemplateViewModel" />.
+        ///         ArticleLogic.BuildArticleViewModel or <see cref="CreateTemplateViewModel" />.
         ///     </para>
         ///     <para>NOTE: Cannot access articles that have been deleted.</para>
         /// </remarks>
