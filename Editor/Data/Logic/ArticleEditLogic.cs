@@ -1228,6 +1228,9 @@ namespace Cosmos.Cms.Data.Logic
 
                 var filePath = page.UrlPath.Equals("root", StringComparison.OrdinalIgnoreCase) ? "/index.html" : page.UrlPath;
 
+                // Make sure the original is deleted first.
+                storageContext.DeleteFile(filePath);
+
                 storageContext.AppendBlob(stream, new BlobService.Models.FileUploadMetaData()
                 {
                     ChunkIndex = 0,
@@ -1284,6 +1287,9 @@ namespace Cosmos.Cms.Data.Logic
             var json = JsonConvert.SerializeObject(result);
             using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
             var storagePath = "pub/js/toc.json";
+
+            storageContext.DeleteFile(storagePath);
+
             storageContext.AppendBlob(stream, new BlobService.Models.FileUploadMetaData()
             {
                 ChunkIndex = 0,
@@ -1291,7 +1297,7 @@ namespace Cosmos.Cms.Data.Logic
                 FileName = Path.GetFileName(storagePath).ToLower(),
                 ImageHeight = string.Empty,
                 ImageWidth = string.Empty,
-                RelativePath = storagePath.ToLower(),
+                RelativePath = storagePath,
                 TotalChunks = 1,
                 TotalFileSize = stream.Length,
                 UploadUid = Guid.NewGuid().ToString(),

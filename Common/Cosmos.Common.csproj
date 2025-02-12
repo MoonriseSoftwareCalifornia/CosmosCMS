@@ -15,9 +15,9 @@
 		<SignAssembly>false</SignAssembly>
 		<AnalysisLevel>5.0</AnalysisLevel>
 		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-		<Version>9.0.3.30</Version>
-		<AssemblyVersion>9.0.3.30</AssemblyVersion>
-		<FileVersion>9.0.3.30</FileVersion>
+		<Version>9.0.3.31</Version>
+		<AssemblyVersion>9.0.3.31</AssemblyVersion>
+		<FileVersion>9.0.3.31</FileVersion>
 		<UserSecretsId>498e495c-d772-4d44-870d-92009f01de57</UserSecretsId>
 		<PackageProjectUrl>https://www.moonrise.net/cosmos</PackageProjectUrl>
 		<NeutralLanguage></NeutralLanguage>
@@ -97,16 +97,16 @@
 		<PackageReference Include="MailChimp.Net.V3" Version="5.5.0" />
 		<PackageReference Include="Cosmos.BlobService" Version="9.0.2.1" />
 		<PackageReference Include="Cosmos.EmailServices" Version="9.0.1" />
-		<PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="9.0.1" />
-		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.1" />
-		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.1" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.1" />
+		<PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="9.0.2" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.2" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.2" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.2" />
 		<PackageReference Include="Microsoft.PowerBI.Api" Version="4.22.0" />
 		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="System.Formats.Asn1" Version="9.0.1" />
+		<PackageReference Include="System.Formats.Asn1" Version="9.0.2" />
 	</ItemGroup>
 
 	<ItemGroup>

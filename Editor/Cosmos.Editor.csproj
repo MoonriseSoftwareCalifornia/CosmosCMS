@@ -7,9 +7,9 @@
 		<EnableNETAnalyzers>false</EnableNETAnalyzers>
 		<RepositoryUrl>https://github.com/CosmosSoftware/CosmosCms</RepositoryUrl>
 		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-		<Version>9.0.3.30</Version>
-		<AssemblyVersion>9.0.3.30</AssemblyVersion>
-		<FileVersion>9.0.3.30</FileVersion>
+		<Version>9.0.3.31</Version>
+		<AssemblyVersion>9.0.3.31</AssemblyVersion>
+		<FileVersion>9.0.3.31</FileVersion>
 		<RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
 		<Authors></Authors>
 		<ApplicationInsightsResourceId>/subscriptions/9bdb8e29-156f-4fc9-a1fe-1bb6a915a4f0/resourceGroups/CosmosCMS/providers/microsoft.insights/components/edit-cosmos-cms202107021426</ApplicationInsightsResourceId>
@@ -90,11 +90,11 @@
 		<PackageReference Include="CsvHelper" Version="33.0.1" />
 		<PackageReference Include="MailChimp.Net.V3" Version="5.5.0" />
 		<PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="9.0.1" />
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.1" />
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.MicrosoftAccount" Version="9.0.1" />
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.1" />
-		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="9.0.1" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="9.0.2" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.2" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.MicrosoftAccount" Version="9.0.2" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.2" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="9.0.2" />
 		<PackageReference Include="Microsoft.Azure.SignalR" Version="1.30.1" />
 		<PackageReference Include="Microsoft.Extensions.Azure" Version="1.10.0" />
 		<PackageReference Include="Microsoft.Extensions.Caching.Cosmos" Version="1.7.0" />
@@ -110,8 +110,8 @@
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="System.Drawing.Common" Version="9.0.1" />
-		<PackageReference Include="System.Formats.Asn1" Version="9.0.1" />
+		<PackageReference Include="System.Drawing.Common" Version="9.0.2" />
+		<PackageReference Include="System.Formats.Asn1" Version="9.0.2" />
 		<PackageReference Include="System.Private.Uri" Version="4.3.2" />
 	</ItemGroup>
 
