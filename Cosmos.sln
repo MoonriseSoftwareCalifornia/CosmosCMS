@@ -16,6 +16,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.Editor", "Editor\Cos
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.Publisher", "Publisher\Cosmos.Publisher.csproj", "{FA561356-EE78-4B23-B5B5-B6D6882803B5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.Api", "Cosmos.Api\Cosmos.Api.csproj", "{FC9AB050-4561-457B-981A-436588EE4DB3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -34,6 +36,10 @@ Global
 		{FA561356-EE78-4B23-B5B5-B6D6882803B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FA561356-EE78-4B23-B5B5-B6D6882803B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FA561356-EE78-4B23-B5B5-B6D6882803B5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FC9AB050-4561-457B-981A-436588EE4DB3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC9AB050-4561-457B-981A-436588EE4DB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC9AB050-4561-457B-981A-436588EE4DB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC9AB050-4561-457B-981A-436588EE4DB3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

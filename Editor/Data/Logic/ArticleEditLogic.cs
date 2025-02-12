@@ -145,7 +145,7 @@ namespace Cosmos.Cms.Data.Logic
         ///         Creates a new article, saves it to the database, and is ready to edit.  Uses <see cref="ArticleLogic.GetDefaultLayout" /> to get the
         ///         layout,
         ///         and builds the <see cref="ArticleViewModel" /> using method
-        ///         <seealso cref="ArticleLogic.BuildArticleViewModel(Article, string)" />. Creates a new article number.
+        ///         <seealso cref="ArticleLogic.BuildArticleViewModel(Article, string, bool)" />. Creates a new article number.
         ///     </para>
         ///     <para>
         ///         If a template ID is given, the contents of this article is loaded with content from the <see cref="Template" />.
@@ -426,7 +426,7 @@ namespace Cosmos.Cms.Data.Logic
         ///     <para>
         ///         If the article number is '0', a new article is inserted.  If a version number is '0', then
         ///         a new version is created. Recreates <see cref="ArticleViewModel" /> using method
-        ///         <see cref="ArticleLogic.BuildArticleViewModel(Article, string)" />.
+        ///         <see cref="ArticleLogic.BuildArticleViewModel(Article, string, bool)" />.
         ///     </para>
         ///     <list type="bullet">
         ///         <item>
@@ -438,7 +438,7 @@ namespace Cosmos.Cms.Data.Logic
         ///         </item>
         ///         <item>
         ///             The <see cref="ArticleViewModel" /> that is returned, is rebuilt using
-        ///             <see cref="ArticleLogic.BuildArticleViewModel(Article, string)" />.
+        ///             <see cref="ArticleLogic.BuildArticleViewModel(Article, string, bool)" />.
         ///         </item>
         ///         <item>
         ///            <see cref="Article.Updated"/> property is automatically updated with current UTC date and time.
@@ -788,7 +788,7 @@ namespace Cosmos.Cms.Data.Logic
         /// <remarks>
         ///     <para>
         ///         Returns <see cref="ArticleViewModel" />. For more details on what is returned, see
-        ///         <see cref="ArticleLogic.BuildArticleViewModel(Article, string)" />.
+        ///         <see cref="ArticleLogic.BuildArticleViewModel(Article, string, bool)" />.
         ///     </para>
         ///     <para>NOTE: Cannot access articles that have been deleted.</para>
         /// </remarks>

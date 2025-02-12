@@ -190,6 +190,7 @@ namespace Cosmos.Common.Data.Logic
         /// <param name="cacheSpan">Length of time for cache to exist.</param>
         /// <param name="layoutCache">Layout cache duration.</param>
         /// <param name="headRequest">Is this a head request?.</param>
+        /// <param name="includeLayout">Include layout with request.</param>
         /// <returns>
         ///     <see cref="ArticleViewModel" />.
         /// </returns>
@@ -206,7 +207,7 @@ namespace Cosmos.Common.Data.Logic
         ///     </para>
         ///     <para>NOTE: Cannot access articles that have been deleted.</para>
         /// </remarks>
-        public virtual async Task<ArticleViewModel> GetPublishedPageByUrl(string urlPath, string lang = "", TimeSpan? cacheSpan = null, TimeSpan? layoutCache = null, bool headRequest = false)
+        public virtual async Task<ArticleViewModel> GetPublishedPageByUrl(string urlPath, string lang = "", TimeSpan? cacheSpan = null, TimeSpan? layoutCache = null, bool headRequest = false, bool includeLayout = true)
         {
             urlPath = urlPath?.ToLower().Trim(new char[] { ' ', '/' });
             if (string.IsNullOrEmpty(urlPath) || urlPath.Trim() == "/")
@@ -248,10 +249,10 @@ namespace Cosmos.Common.Data.Logic
                     return null;
                 }
 
-                return await BuildArticleViewModel(entity, lang);
+                return await BuildArticleViewModel(entity, lang, includeLayout: includeLayout);
             }
 
-            memoryCache.TryGetValue($"{urlPath}-{lang}", out ArticleViewModel model);
+            memoryCache.TryGetValue($"{urlPath}-{lang}-{includeLayout}", out ArticleViewModel model);
 
             if (model == null)
             {
@@ -264,9 +265,9 @@ namespace Cosmos.Common.Data.Logic
                     return null;
                 }
 
-                model = await BuildArticleViewModel(data, lang, layoutCache);
+                model = await BuildArticleViewModel(data, lang, layoutCache, includeLayout);
 
-                memoryCache.Set($"{urlPath}-{lang}", model, cacheSpan.Value);
+                memoryCache.Set($"{urlPath}-{lang}-{includeLayout}", model, cacheSpan.Value);
             }
 
             return model;
@@ -358,6 +359,7 @@ namespace Cosmos.Common.Data.Logic
         /// </summary>
         /// <param name="article">Article entity.</param>
         /// <param name="lang">Language acronym.</param>
+        /// <param name="includeLayout">Include layout with request (default: true).</param>
         /// <returns>
         ///     <para>Returns <see cref="ArticleViewModel" /> that includes:</para>
         ///     <list type="bullet">
@@ -369,7 +371,7 @@ namespace Cosmos.Common.Data.Logic
         ///         </item>
         ///     </list>
         /// </returns>
-        protected async Task<ArticleViewModel> BuildArticleViewModel(Article article, string lang)
+        protected async Task<ArticleViewModel> BuildArticleViewModel(Article article, string lang, bool includeLayout = true)
         {
             var authorInfo = await DbContext.AuthorInfos.AsNoTracking().FirstOrDefaultAsync(f => f.UserId == article.UserId);
 
@@ -389,7 +391,7 @@ namespace Cosmos.Common.Data.Logic
                 VersionNumber = article.VersionNumber,
                 HeadJavaScript = article.HeaderJavaScript,
                 FooterJavaScript = article.FooterJavaScript,
-                Layout = await GetDefaultLayout(),
+                Layout = includeLayout ? await GetDefaultLayout() : null,
                 ReadWriteMode = isEditor,
                 Expires = article.Expires ?? null,
                 BannerImage = article.BannerImage,
@@ -403,6 +405,7 @@ namespace Cosmos.Common.Data.Logic
         /// <param name="article">Published page.</param>
         /// <param name="lang">Language code.</param>
         /// <param name="layoutCache">Layout cache duration.</param>
+        /// <param name="includeLayout">Include layout with request.</param>
         /// <returns>
         ///     <para>Returns <see cref="ArticleViewModel" /> that includes:</para>
         ///     <list type="bullet">
@@ -414,7 +417,7 @@ namespace Cosmos.Common.Data.Logic
         ///         </item>
         ///     </list>
         /// </returns>
-        protected async Task<ArticleViewModel> BuildArticleViewModel(PublishedPage article, string lang, TimeSpan? layoutCache = null)
+        protected async Task<ArticleViewModel> BuildArticleViewModel(PublishedPage article, string lang, TimeSpan? layoutCache = null, bool includeLayout = true)
         {
             return new ArticleViewModel
             {
@@ -433,7 +436,7 @@ namespace Cosmos.Common.Data.Logic
                 VersionNumber = article.VersionNumber,
                 HeadJavaScript = article.HeaderJavaScript,
                 FooterJavaScript = article.FooterJavaScript,
-                Layout = await GetDefaultLayout(layoutCache),
+                Layout = includeLayout ? await GetDefaultLayout(layoutCache) : null,
                 ReadWriteMode = isEditor,
                 Expires = article.Expires ?? null,
                 AuthorInfo = article.AuthorInfo

@@ -82,7 +82,12 @@ namespace Cosmos.Publisher.Controllers
                 try
                 {
                     var properties = await client.GetPropertiesAsync();
-                    return File(fileStream: await client.OpenReadAsync(), contentType: properties.Value.ContentType, lastModified: properties.Value.LastModified, entityTag: new EntityTagHeaderValue(properties.Value.ETag.ToString()));
+
+                    return File(
+                        fileStream: await client.OpenReadAsync(),
+                        contentType: properties.Value.ContentType,
+                        lastModified: properties.Value.LastModified,
+                        entityTag: new EntityTagHeaderValue(properties.Value.ETag.ToString()));
                 }
                 catch (Exception)
                 {
