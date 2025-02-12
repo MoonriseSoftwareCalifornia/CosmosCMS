@@ -30,6 +30,7 @@ namespace Cosmos.Cms.Data.Logic
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Newtonsoft.Json;
+    //using NUglify;
     using SendGrid.Helpers.Errors.Model;
 
     /// <summary>
@@ -213,7 +214,7 @@ namespace Cosmos.Cms.Data.Logic
             {
                 ArticleNumber = max,
                 Content = Ensure_ContentEditable_IsMarked(defaultTemplate),
-                StatusCode = (int) StatusCodeEnum.Active,
+                StatusCode = (int)StatusCodeEnum.Active,
                 Title = title,
                 Updated = DateTimeOffset.Now,
                 UrlPath = isFirstArticle ? "root" : NormailizeArticleUrl(title),
@@ -235,9 +236,6 @@ namespace Cosmos.Cms.Data.Logic
             {
                 await PublishArticle(article);
             }
-
-            // Finally update the catalog entry
-            await CreateCatalogEntry(article.ArticleNumber, (StatusCodeEnum)article.StatusCode);
 
             return await BuildArticleViewModel(article, "en-US");
         }
@@ -496,7 +494,9 @@ namespace Cosmos.Cms.Data.Logic
                 model.VersionNumber = article.VersionNumber;
             }
 
+            // Minify the HTML content.
             article.Content = model.Content;
+
             article.Published = model.Published;
             article.Title = model.Title;
             article.Updated = DateTimeOffset.UtcNow;
@@ -1919,7 +1919,18 @@ namespace Cosmos.Cms.Data.Logic
 
             if (versions.Count == 0)
             {
-                throw new Exception("Cannot create catalog entry when no article versions were found.");
+                return new CatalogEntry()
+                {
+                    ArticleNumber = articleNumber,
+                    BannerImage = string.Empty,
+                    Published = null,
+                    Status = "Active",
+                    Title = string.Empty,
+                    Updated = DateTimeOffset.UtcNow,
+                    UrlPath = string.Empty,
+                    TemplateId = null,
+                    AuthorInfo = string.Empty,
+                };
             }
 
             var oldEntry = await DbContext.ArticleCatalog.FirstOrDefaultAsync(f => f.ArticleNumber == articleNumber);
@@ -1930,20 +1941,42 @@ namespace Cosmos.Cms.Data.Logic
                 await DbContext.SaveChangesAsync();
             }
 
-            var userId = versions.LastOrDefault().UserId;
+            var lastVersion = versions.LastOrDefault();
+
+            var userId = lastVersion.UserId;
             var authorInfo = await DbContext.AuthorInfos.FirstOrDefaultAsync(f => f.UserId == userId && f.AuthorName != string.Empty);
+
+            //var htmlDoc = new HtmlAgilityPack.HtmlDocument();
+            //htmlDoc.LoadHtml(lastVersion.Content);
+            //var intro = string.Empty;
+            //var contentAreas = htmlDoc.DocumentNode.SelectNodes("//div[contains(@class, 'ck-content')]");
+
+            //foreach (var area in contentAreas)
+            //{
+            //    var ps = area.SelectNodes("//p").Select(s => Uglify.HtmlToText(s.InnerHtml).Code).ToList();
+
+            //    foreach (var p in ps)
+            //    {
+            //        if (!string.IsNullOrEmpty(p.Trim()))
+            //        {
+            //            intro = p;
+            //            break;
+            //        }
+            //    }
+            //}
 
             var entry = new CatalogEntry()
             {
                 ArticleNumber = articleNumber,
-                BannerImage = versions.LastOrDefault().BannerImage,
+                BannerImage = lastVersion.BannerImage,
                 Published = versions.Max(m => m.Published),
                 Status = code == StatusCodeEnum.Active ? "Active" : "Inactive",
-                Title = versions.LastOrDefault().Title,
+                Title = lastVersion.Title,
                 Updated = versions.Max(m => m.Updated),
-                UrlPath = versions.LastOrDefault().UrlPath,
-                TemplateId = versions.LastOrDefault().TemplateId,
-                AuthorInfo = JsonConvert.SerializeObject(authorInfo).Replace("\"", "'")
+                UrlPath = lastVersion.UrlPath,
+                TemplateId = lastVersion.TemplateId,
+                AuthorInfo = JsonConvert.SerializeObject(authorInfo).Replace("\"", "'"),
+                //Introduction = node?.InnerText ?? string.Empty,
             };
 
             DbContext.ArticleCatalog.Add(entry);
@@ -1953,3 +1986,4 @@ namespace Cosmos.Cms.Data.Logic
         }
     }
 }
+

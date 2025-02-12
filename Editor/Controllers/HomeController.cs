@@ -133,7 +133,7 @@ namespace Cosmos.Cms.Controllers
                     ArticleNumber = s.ArticleNumber,
                     Published = s.Published,
                     VersionNumber = s.VersionNumber,
-                    UsesHtmlEditor = s.Content.ToLower().Contains(" editable=") || s.Content.ToLower().Contains(" data-ccms-ceid=")
+                    UsesHtmlEditor = s.Content != null && (s.Content.ToLower().Contains(" editable=") || s.Content.ToLower().Contains(" data-ccms-ceid="))
                 }).OrderByDescending(o => o.VersionNumber).Take(1).ToListAsync();
 
             return Json(data);

@@ -255,31 +255,36 @@ namespace Cosmos.Editor.Services
                     operation = await cdnEndpoint.PurgeContentAsync(WaitUntil.Started, purgeContent);
                 }
 
-                var response = operation.GetRawResponse();
-                var msg = string.Empty;
-                if (response.ContentStream != null)
+                try
                 {
-                    msg = await ReadStream(response.ContentStream);
+                    var response = operation.GetRawResponse();
+                    var msg = string.Empty;
+                    if (response.ContentStream != null)
+                    {
+                        msg = await ReadStream(response.ContentStream);
+                    }
+
+                    var r = new CdnResult
+                    {
+                        Status = (HttpStatusCode)response.Status,
+                        ReasonPhrase = response.ReasonPhrase,
+                        IsSuccessStatusCode = !response.IsError,
+                        ClientRequestId = response.ClientRequestId,
+                        Id = Guid.NewGuid().ToString(),
+                        EstimatedFlushDateTime = DateTimeOffset.UtcNow.AddMinutes(10),
+                        Message = msg,
+                        Operation = operation
+                    };
+                    results.Add(r);
+                    if (response.IsError)
+                    {
+                        logger.LogError($"Error purging content from Azure CDN: {r.ReasonPhrase}");
+                        logger.LogError($"Error purging content from Azure CDN: {r.Message}");
+                    }
                 }
-
-                var r = new CdnResult
+                catch (Exception e)
                 {
-                    Status = (HttpStatusCode)response.Status,
-                    ReasonPhrase = response.ReasonPhrase,
-                    IsSuccessStatusCode = !response.IsError,
-                    ClientRequestId = response.ClientRequestId,
-                    Id = Guid.NewGuid().ToString(),
-                    EstimatedFlushDateTime = DateTimeOffset.UtcNow.AddMinutes(10),
-                    Message = msg,
-                    Operation = operation
-                };
-
-                results.Add(r);
-
-                if (response.IsError)
-                {
-                    logger.LogError($"Error purging content from Azure CDN: {r.ReasonPhrase}");
-                    logger.LogError($"Error purging content from Azure CDN: {r.Message}");
+                    var d = e; // Debugging.
                 }
             }
 

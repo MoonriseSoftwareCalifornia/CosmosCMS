@@ -34,6 +34,7 @@ namespace Cosmos.Cms.Controllers
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
+    using NUglify;
 
     /// <summary>
     /// Layouts controller.
@@ -666,7 +667,14 @@ namespace Cosmos.Cms.Controllers
                         .ToList());
                     jsonModel.ValidationState = ModelState.ValidationState;
 
-                    await PurgeCdn();
+                    try
+                    {
+                        await PurgeCdn();
+                    }
+                    catch (Exception e)
+                    {
+                        var d = e; // Debugging.
+                    }
 
                     return Json(jsonModel);
                 }
@@ -936,6 +944,11 @@ namespace Cosmos.Cms.Controllers
 
         private async Task PurgeCdn()
         {
+            if (Request.Host.Host.Contains("localhost"))
+            {
+                return;
+            }
+
             var settings = await Cosmos___CdnController.GetCdnConfiguration(dbContext);
             var cdnService = new Editor.Services.CdnService(settings,logger);
             await cdnService.PurgeCdn(new List<string>() { "/" });

@@ -1683,7 +1683,9 @@ namespace Cosmos.Cms.Controllers
                 return Unauthorized();
             }
 
-            return View(new HtmlEditorViewModel(model, await articleLogic.GetCatalogEntry(id)));
+            var entry = await articleLogic.GetCatalogEntry(id);
+
+            return View(new HtmlEditorViewModel(model, entry));
         }
 
         /// <summary>
@@ -2323,6 +2325,11 @@ namespace Cosmos.Cms.Controllers
         [Authorize(Roles = "Administrators, Editors")]
         public async Task<IActionResult> RefreshCdn()
         {
+            if (Request.Host.Host.Contains("localhost"))
+            {
+                return Ok();
+            }
+
             var settings = await Cosmos___CdnController.GetCdnConfiguration(dbContext);
             var cdnService = new Editor.Services.CdnService(settings, logger);
             var result = await cdnService.PurgeCdn(new List<string>() { "/" });

@@ -131,7 +131,8 @@ namespace Cosmos.Common.Data.Logic
                             Published = t.Published.Value,
                             Updated = t.Updated,
                             BannerImage = t.BannerImage,
-                            AuthorInfo = t.AuthorInfo
+                            AuthorInfo = t.AuthorInfo,
+                            Introduction = t.Introduction
                         };
             }
             else
@@ -154,7 +155,8 @@ namespace Cosmos.Common.Data.Logic
                             Published = t.Published.Value,
                             Updated = t.Updated,
                             BannerImage = t.BannerImage,
-                            AuthorInfo = t.AuthorInfo
+                            AuthorInfo = t.AuthorInfo,
+                            Introduction = t.Introduction
                         };
             }
 
@@ -167,14 +169,14 @@ namespace Cosmos.Common.Data.Logic
                 query = query.OrderBy(o => o.Title);
             }
 
-            var results = await query.ToListAsync();
+            var items = await query.ToListAsync();
 
             var model = new TableOfContents
             {
-                TotalCount = results.Count,
+                TotalCount = items.Count,
                 PageNo = pageNo,
                 PageSize = pageSize,
-                Items = results.Skip(skip).Take(pageSize).ToList()
+                Items = items.Skip(skip).Take(pageSize).ToList()
             };
 
             return model;

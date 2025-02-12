@@ -21,6 +21,11 @@ namespace Cosmos.Editor.Data
         /// <returns>Validation success.</returns>
         public static bool Validate(string html)
         {
+            if (string.IsNullOrEmpty(html))
+            {
+                return true;
+            }
+
             // Check for nested editable regions as this will mess up CKEditor.
             var htmlDoc = new HtmlAgilityPack.HtmlDocument();
             htmlDoc.LoadHtml(html);

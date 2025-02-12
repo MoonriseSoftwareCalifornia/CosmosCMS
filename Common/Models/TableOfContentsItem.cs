@@ -49,5 +49,10 @@ namespace Cosmos.Common.Models
         /// </summary>
         /// <remarks>Not stored in the database.</remarks>
         public string Content { get; set; }
+
+        /// <summary>
+        /// Gets or sets the page introduction.
+        /// </summary>
+        public string Introduction { get; set; }
     }
 }

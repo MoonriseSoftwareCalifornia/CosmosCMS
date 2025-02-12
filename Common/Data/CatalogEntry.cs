@@ -53,6 +53,12 @@ namespace Cosmos.Common.Data
         public string Title { get; set; }
 
         /// <summary>
+        ///    Gets or sets introduction of the page.
+        /// </summary>
+        [Display(Name = "Introduction")]
+        public string Introduction { get; set; }
+
+        /// <summary>
         ///     Gets or sets disposition of the page.
         /// </summary>
         [Display(Name = "Status")]
