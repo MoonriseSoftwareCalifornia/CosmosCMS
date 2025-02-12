@@ -27,3 +27,7 @@ jobs:
       run: docker build . --file Publisher/Dockerfile --tag ${{ secrets.DOCKERLOGIN}}/cosmos-publisher:latest
     - name: Push Publisher container to Docker Hub
       run: docker push ${{ secrets.DOCKERLOGIN}}/cosmos-publisher
+    - name: Build API container Docker Image
+      run: docker build . --file Cosmos.Api/Dockerfile --tag ${{ secrets.DOCKERLOGIN}}/cosmos-api:latest
+    - name: Push API container to Docker Hub
+      run: docker push ${{ secrets.DOCKERLOGIN}}/cosmos-api
