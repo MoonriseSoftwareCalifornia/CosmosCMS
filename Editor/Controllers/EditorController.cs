@@ -159,6 +159,9 @@ namespace Cosmos.Cms.Controllers
             ViewData["pageNo"] = pageNo;
             ViewData["pageSize"] = pageSize;
 
+            // Make sure the catalog is up to date.
+            // await articleLogic.UpdateArticleCatalog();
+
             var query = dbContext.ArticleCatalog.Select(s => new
             {
                 s.ArticleNumber,

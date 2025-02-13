@@ -237,6 +237,8 @@ namespace Cosmos.Cms.Data.Logic
                 await PublishArticle(article);
             }
 
+            await CreateCatalogEntry(article.ArticleNumber, StatusCodeEnum.Active);
+
             return await BuildArticleViewModel(article, "en-US");
         }
 
@@ -1306,6 +1308,26 @@ namespace Cosmos.Cms.Data.Logic
         }
 
         /// <summary>
+        ///   Makes sure the article catalog isn't missing anything.
+        /// </summary>
+        /// <returns>Task.</returns>
+        public async Task UpdateArticleCatalog()
+        {
+            var deletedStatus = (int)StatusCodeEnum.Deleted;
+            var articleNumbers = await DbContext.Articles.Where(w => w.StatusCode != deletedStatus).Select(s => s.ArticleNumber).Distinct().ToListAsync();
+            var catalogArticleNumbers = await DbContext.ArticleCatalog.Select(s => s.ArticleNumber).Distinct().ToListAsync();
+
+            foreach (var articleNumber in articleNumbers)
+            {
+                if (!catalogArticleNumbers.Contains(articleNumber))
+                {
+                    var last = await DbContext.Articles.Where(w => w.ArticleNumber == articleNumber).OrderBy(o => o.VersionNumber).LastOrDefaultAsync();
+                    await CreateCatalogEntry(articleNumber, (StatusCodeEnum)last.StatusCode);
+                }
+            }
+        }
+
+        /// <summary>
         ///     Provides a standard method for turning a title into a URL Encoded path.
         /// </summary>
         /// <param name="title">Title to be converted into a URL.</param>
@@ -1921,23 +1943,7 @@ namespace Cosmos.Cms.Data.Logic
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         private async Task<CatalogEntry> CreateCatalogEntry(int articleNumber, StatusCodeEnum code)
         {
-            var versions = await DbContext.Articles.Where(w => w.ArticleNumber == articleNumber && w.Published.HasValue).OrderBy(o => o.VersionNumber).ToListAsync();
-
-            if (versions.Count == 0)
-            {
-                return new CatalogEntry()
-                {
-                    ArticleNumber = articleNumber,
-                    BannerImage = string.Empty,
-                    Published = null,
-                    Status = "Active",
-                    Title = string.Empty,
-                    Updated = DateTimeOffset.UtcNow,
-                    UrlPath = string.Empty,
-                    TemplateId = null,
-                    AuthorInfo = string.Empty,
-                };
-            }
+            var versions = await DbContext.Articles.Where(w => w.ArticleNumber == articleNumber).OrderBy(o => o.VersionNumber).ToListAsync();
 
             var oldEntry = await DbContext.ArticleCatalog.FirstOrDefaultAsync(f => f.ArticleNumber == articleNumber);
 
