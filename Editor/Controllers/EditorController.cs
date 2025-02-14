@@ -159,9 +159,6 @@ namespace Cosmos.Cms.Controllers
             ViewData["pageNo"] = pageNo;
             ViewData["pageSize"] = pageSize;
 
-            // Make sure the catalog is up to date.
-            // await articleLogic.UpdateArticleCatalog();
-
             var query = dbContext.ArticleCatalog.Select(s => new
             {
                 s.ArticleNumber,
@@ -1837,7 +1834,6 @@ namespace Cosmos.Cms.Controllers
                             Updated = model.Updated.Value
                         }, await GetUserEmail());
 
-
                     if (options.Value.SiteSettings.StaticWebPages && model.Published.HasValue)
                     {
                         await articleLogic.CreateStaticTableOfContentsJsonFile("/");
@@ -2323,7 +2319,7 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Flush the CDN if configured.
         /// </summary>
-        /// <returns>IActionResult</returns>
+        /// <returns>IActionResult.</returns>
         [HttpGet]
         [Authorize(Roles = "Administrators, Editors")]
         public async Task<IActionResult> RefreshCdn()

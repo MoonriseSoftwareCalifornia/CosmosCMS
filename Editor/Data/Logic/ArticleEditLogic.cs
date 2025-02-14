@@ -30,7 +30,7 @@ namespace Cosmos.Cms.Data.Logic
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Newtonsoft.Json;
-    //using NUglify;
+    using NUglify;
     using SendGrid.Helpers.Errors.Model;
 
     /// <summary>
@@ -1193,7 +1193,7 @@ namespace Cosmos.Cms.Data.Logic
         /// <summary>
         /// Creates a pre-rendered static web page and saves it in blob storage.
         /// </summary>
-        /// <param name="page">PublishedPage</param>
+        /// <param name="page">PublishedPage.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         /// <remarks>Only works if the environment variable 'CosmosStaticWebPages' is set to 'true'.</remarks>
         public async Task CreateStaticWebpage(PublishedPage page)
@@ -1219,6 +1219,13 @@ namespace Cosmos.Cms.Data.Logic
                 {
                     var model = await BuildArticleViewModel(page, string.Empty);
                     html = await viewRenderService.RenderToStringAsync("~/Views/Home/Export.cshtml", model);
+                }
+
+                // Compress HTML
+                var compressed = Uglify.Html(html).Code;
+                if (!string.IsNullOrEmpty(compressed))
+                {
+                    html = compressed;
                 }
 
                 using var stream = new MemoryStream(Encoding.UTF8.GetBytes(html));
