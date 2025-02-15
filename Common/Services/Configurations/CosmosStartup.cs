@@ -129,13 +129,24 @@ namespace Cosmos.Cms.Common.Services.Configurations
             cosmosConfig.SendGridConfig.EmailFrom = "no-reply@moonrise.net";
             cosmosConfig.SendGridConfig.SendGridKey = GetValue<string>("CosmosSendGridApiKey");
 
-            // Cosmos Endpoints
-            cosmosConfig.SiteSettings.PublisherUrl = GetValue<string>("CosmosPublisherUrl");
-            cosmosConfig.SiteSettings.BlobPublicUrl = GetValue<string>("AzureBlobStorageEndPoint");
-            cosmosConfig.SiteSettings.BlobPublicUrl = cosmosConfig.SiteSettings.BlobPublicUrl?.TrimEnd('/');
-
             // Publish static web pages?
             cosmosConfig.SiteSettings.StaticWebPages = GetValue<bool>("CosmosStaticWebPages");
+
+            // Cosmos Endpoints
+            cosmosConfig.SiteSettings.BlobPublicUrl = GetValue<string>("AzureBlobStorageEndPoint");
+
+            // With static website, the public website is the blob storage static website.
+            if (cosmosConfig.SiteSettings.StaticWebPages)
+            {
+                cosmosConfig.SiteSettings.PublisherUrl = cosmosConfig.SiteSettings.BlobPublicUrl;
+            }
+            else
+            {
+                cosmosConfig.SiteSettings.PublisherUrl = GetValue<string>("CosmosPublisherUrl");
+            }
+
+            cosmosConfig.SiteSettings.BlobPublicUrl = cosmosConfig.SiteSettings.BlobPublicUrl?.TrimEnd('/');
+
 
             var editorUrl = GetValue<string>("CosmosEditorUrl");
             if (!string.IsNullOrEmpty(editorUrl))

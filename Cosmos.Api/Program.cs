@@ -1,18 +1,16 @@
 using Azure.Identity;
 using Cosmos.BlobService;
-using Cosmos.Common.Data;
-using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
-using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
-using Microsoft.AspNetCore.DataProtection;
-using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json.Serialization;
-using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
-using Microsoft.Azure.Cosmos.Fluent;
 using Cosmos.Cms.Common.Services.Configurations;
+using Cosmos.Common.Data;
 using Cosmos.Common.Data.Logic;
 using Cosmos.EmailServices;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
+using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Azure.Cosmos.Fluent;
+using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Serialization;
 using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
