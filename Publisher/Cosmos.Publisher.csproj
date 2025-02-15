@@ -2,15 +2,15 @@
 
 	<PropertyGroup>
 		<TargetFramework>net9.0</TargetFramework>
-		<AssemblyVersion>9.0.3.33</AssemblyVersion>
-		<FileVersion>9.0.3.33</FileVersion>
+		<AssemblyVersion>9.0.3.34</AssemblyVersion>
+		<FileVersion>9.0.3.34</FileVersion>
 		<Nullable>disable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<UserSecretsId>aspnet-Cosmos.Cms.Publisher-F1D91233-1093-41F8-B23F-43E81E1454FF</UserSecretsId>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 		<EnableSdkContainerSupport>true</EnableSdkContainerSupport>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
-		<Version>9.0.3.33</Version>
+		<Version>9.0.3.34</Version>
 		<DockerfileContext>..\..\..</DockerfileContext>
 	</PropertyGroup>
 
@@ -49,6 +49,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Azure.Extensions.AspNetCore.DataProtection.Blobs" Version="1.5.0" />
+		<PackageReference Include="Cosmos.BlobService" Version="9.0.3.33" />
 		<PackageReference Include="Cosmos.MicrosoftGraph" Version="9.0.0.5" />
 		<PackageReference Include="MailChimp.Net.V3" Version="5.5.0" />
 		<PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />

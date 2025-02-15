@@ -62,6 +62,20 @@
           "System.Text.Json": "4.7.2"
         }
       },
+      "Cosmos.BlobService": {
+        "type": "Direct",
+        "requested": "[9.0.3.33, )",
+        "resolved": "9.0.3.33",
+        "contentHash": "S3pmSsQ2BZnzAxsWKElPQepkBeNVHWAOkvyvp4FIhywuNS9IyALnYBNKxRxo3H4uBib7sn8eZtxrdkumXHdpaA==",
+        "dependencies": {
+          "Azure.Identity": "1.13.2",
+          "Azure.Storage.Blobs": "12.23.0",
+          "Azure.Storage.Files.Shares": "12.21.0",
+          "Microsoft.Extensions.Caching.Abstractions": "9.0.2",
+          "Microsoft.Extensions.Configuration.Abstractions": "9.0.2",
+          "Microsoft.Extensions.Options": "9.0.2"
+        }
+      },
       "CsvHelper": {
         "type": "Direct",
         "requested": "[33.0.1, )",
@@ -352,19 +366,6 @@
         "dependencies": {
           "Azure.Storage.Common": "12.22.0",
           "System.Text.Json": "6.0.10"
-        }
-      },
-      "Cosmos.BlobService": {
-        "type": "Transitive",
-        "resolved": "9.0.2.1",
-        "contentHash": "kF8DHBtPwVWcAWq9s9yFvmJ++iQno48bwYaDXmIfNy8Zd6aOxBw53yUcMtzvF7p2ibptgxGzKyMu7F5pJ2ZHcQ==",
-        "dependencies": {
-          "Azure.Identity": "1.13.2",
-          "Azure.Storage.Blobs": "12.23.0",
-          "Azure.Storage.Files.Shares": "12.21.0",
-          "Microsoft.Extensions.Caching.Abstractions": "9.0.1",
-          "Microsoft.Extensions.Configuration.Abstractions": "9.0.1",
-          "Microsoft.Extensions.Options": "9.0.1"
         }
       },
       "Cosmos.EmailServices": {
@@ -2734,7 +2735,7 @@
           "AspNetCore.Identity.CosmosDb": "[9.0.1, )",
           "Azure.Extensions.AspNetCore.Configuration.Secrets": "[1.4.0, )",
           "Azure.Identity": "[1.13.2, )",
-          "Cosmos.BlobService": "[9.0.2.1, )",
+          "Cosmos.BlobService": "[9.0.3.33, )",
           "Cosmos.EmailServices": "[9.0.1, )",
           "MailChimp.Net.V3": "[5.5.0, )",
           "Microsoft.AspNetCore.DataProtection.EntityFrameworkCore": "[9.0.2, )",

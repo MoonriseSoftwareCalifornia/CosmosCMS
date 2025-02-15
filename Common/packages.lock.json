@@ -43,16 +43,16 @@
       },
       "Cosmos.BlobService": {
         "type": "Direct",
-        "requested": "[9.0.2.1, )",
-        "resolved": "9.0.2.1",
-        "contentHash": "kF8DHBtPwVWcAWq9s9yFvmJ++iQno48bwYaDXmIfNy8Zd6aOxBw53yUcMtzvF7p2ibptgxGzKyMu7F5pJ2ZHcQ==",
+        "requested": "[9.0.3.33, )",
+        "resolved": "9.0.3.33",
+        "contentHash": "S3pmSsQ2BZnzAxsWKElPQepkBeNVHWAOkvyvp4FIhywuNS9IyALnYBNKxRxo3H4uBib7sn8eZtxrdkumXHdpaA==",
         "dependencies": {
           "Azure.Identity": "1.13.2",
           "Azure.Storage.Blobs": "12.23.0",
           "Azure.Storage.Files.Shares": "12.21.0",
-          "Microsoft.Extensions.Caching.Abstractions": "9.0.1",
-          "Microsoft.Extensions.Configuration.Abstractions": "9.0.1",
-          "Microsoft.Extensions.Options": "9.0.1"
+          "Microsoft.Extensions.Caching.Abstractions": "9.0.2",
+          "Microsoft.Extensions.Configuration.Abstractions": "9.0.2",
+          "Microsoft.Extensions.Options": "9.0.2"
         }
       },
       "Cosmos.EmailServices": {
