@@ -117,6 +117,9 @@ namespace Cosmos.Cms.Common.Services.Configurations
                 cosmosConfig.SiteSettings.AllowLocalAccounts = localLogin.Value;
             }
 
+            // Gets the architecture type.
+            cosmosConfig.SiteSettings.CosmosArchitecture = GetValue<string>("CosmosArchitecture");
+
             // Microsoft App ID
             cosmosConfig.SecretName = GetValue<string>("CosmosSecretName");
 
@@ -136,14 +139,7 @@ namespace Cosmos.Cms.Common.Services.Configurations
             cosmosConfig.SiteSettings.BlobPublicUrl = GetValue<string>("AzureBlobStorageEndPoint");
 
             // With static website, the public website is the blob storage static website.
-            if (cosmosConfig.SiteSettings.StaticWebPages)
-            {
-                cosmosConfig.SiteSettings.PublisherUrl = cosmosConfig.SiteSettings.BlobPublicUrl;
-            }
-            else
-            {
-                cosmosConfig.SiteSettings.PublisherUrl = GetValue<string>("CosmosPublisherUrl");
-            }
+            cosmosConfig.SiteSettings.PublisherUrl = GetValue<string>("CosmosPublisherUrl");
 
             cosmosConfig.SiteSettings.BlobPublicUrl = cosmosConfig.SiteSettings.BlobPublicUrl?.TrimEnd('/');
 

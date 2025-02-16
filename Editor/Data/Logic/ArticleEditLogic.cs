@@ -1965,24 +1965,24 @@ namespace Cosmos.Cms.Data.Logic
             var userId = lastVersion.UserId;
             var authorInfo = await DbContext.AuthorInfos.FirstOrDefaultAsync(f => f.UserId == userId && f.AuthorName != string.Empty);
 
-            //var htmlDoc = new HtmlAgilityPack.HtmlDocument();
-            //htmlDoc.LoadHtml(lastVersion.Content);
-            //var intro = string.Empty;
-            //var contentAreas = htmlDoc.DocumentNode.SelectNodes("//div[contains(@class, 'ck-content')]");
+            var htmlDoc = new HtmlAgilityPack.HtmlDocument();
+            htmlDoc.LoadHtml(lastVersion.Content);
+            var intro = string.Empty;
+            var contentAreas = htmlDoc.DocumentNode.SelectNodes("//div[contains(@class, 'ck-content')]");
 
-            //foreach (var area in contentAreas)
-            //{
-            //    var ps = area.SelectNodes("//p").Select(s => Uglify.HtmlToText(s.InnerHtml).Code).ToList();
+            foreach (var area in contentAreas)
+            {
+                var ps = area.SelectNodes("//p").Where(w => !string.IsNullOrEmpty(w.InnerText) && !string.IsNullOrEmpty(w.InnerText.Trim().ToLower().Replace("&nbsp;", string.Empty))).Select(s => s.InnerText).ToList();
 
-            //    foreach (var p in ps)
-            //    {
-            //        if (!string.IsNullOrEmpty(p.Trim()))
-            //        {
-            //            intro = p;
-            //            break;
-            //        }
-            //    }
-            //}
+                foreach (var p in ps)
+                {
+                    if (!string.IsNullOrEmpty(p.Trim()))
+                    {
+                        intro = p;
+                        break;
+                    }
+                }
+            }
 
             var entry = new CatalogEntry()
             {

@@ -48,6 +48,12 @@ namespace Cosmos.Cms.Common.Services.Configurations
         public bool AllowLocalAccounts { get; set; } = false;
 
         /// <summary>
+        /// Gets or sets a value indicating what kind of architecture is being used.
+        /// </summary>
+        /// <remarks>Valid values are: Static, Decoupled, Api, Hybrid.</remarks>
+        public string CosmosArchitecture { get; set; } = string.Empty;
+
+        /// <summary>
         /// Gets or sets uRI of the blob public website (can be same as publisher URL).
         /// </summary>
         /// <remarks>
