@@ -2,28 +2,83 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "10.13.0.0",
     "metadata": {
-        "description": "Installs the Cosmos CMS integrated with Azure Email Communication Services."
+        "description": "Installs the Cosmos CMS with options for architecture, email service, and app service plan <a target='_blank' href='https://cosmos.moonrise.net/install'>(see docs)</a>."
     },
     "parameters": {
-        "administratorReplyEmail": {
+        "architecture": {
+            "type": "string",
+            "defaultValue": "Static",
+            "allowedValues": [
+				"Static",
+                "Decoupled",
+                "Headless"
+            ],
+            "metadata": {
+                "description": "The architecture of the app service plan <a target='_blank' href='https://cosmos.moonrise.net/install#Architecture'>(see docs)</a>."
+            }
+        },
+        "noReplyEmailAddress": {
             "type": "string",
             "metadata": {
-                "description": "The 'no reply' email address from your Azure 'Email Communication Services Domain'."
+                "description": "Enter the 'no reply' email address for your SMTP domain."
             }
         },
         "azureCommunicationsConnectionString": {
             "type": "securestring",
             "defaultValue": "",
             "metadata": {
-                "description": "If you are using Azure Communications for email, enter connection string."
+                "description": "If you are using Azure Communications for email, enter connection string <a target='_blank' href='https://cosmos.moonrise.net/install#Com'>(see docs)</a>."
+            }
+        },
+        "sendGridApiKey": {
+            "type": "securestring",
+            "defaultValue": "",
+            "metadata": {
+                "description": "If you are using SendGrid for email, enter API key <a target='_blank' href='https://cosmos.moonrise.net/install#SendGrid'>(see docs)</a>."
+            }
+        },
+        "smtpHostName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "If you are using an SMTP relay, enter host name. Example: smtp.mycompany.com <a target='_blank' href='https://cosmos.moonrise.net/install#SMTP'>(see docs)</a>."
+            }
+        },
+        "smtpPort": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "If you are using an SMTP relay, enter port number. Example: 587  <a target='_blank' href='https://cosmos.moonrise.net/install#SMTP'>(see docs)</a>."
+            }
+        },
+        "smtpEnableSsl": {
+            "type": "string",
+            "defaultValue": "",
+            "allowedValues": [ "", "true", "false" ],
+            "metadata": {
+                "description": "If you are using an SMTP relay, enter true or false to enable TLS/SSL  <a target='_blank' href='https://cosmos.moonrise.net/install#SMTP'>(see docs)</a>."
+            }
+        },
+        "smtpUserName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "If you are using an SMTP relay, enter user name. Example: smtpEmailUser  <a target='_blank' href='https://cosmos.moonrise.net/install#SMTP'>(see docs)</a>."
+            }
+        },
+        "smtpPassword": {
+            "type": "securestring",
+            "defaultValue": "",
+            "metadata": {
+                "description": "If you are using an SMTP relay, enter user password  <a target='_blank' href='https://cosmos.moonrise.net/install#SMTP'>(see docs)</a>."
             }
         },
         "webAppPlanChoice": {
             "type": "string",
             "defaultValue": "Premium Tier",
-            "allowedValues": [ "Free Tier", "Basic Tier", "Premium Tier" ],
+            "allowedValues": [ "Basic Tier", "Premium Tier" ],
             "metadata": {
-                "description": "This is the App Plan size--which can be changed later."
+                "description": "Your choice of app service plan can be changed after installation <a target='_blank' href='https://cosmos.moonrise.net/install#Plan'>(see docs)</a>."
             }
         },
         "storageAccountType": {
@@ -34,87 +89,16 @@
                 "Geo-redundant storage"
             ],
             "metadata": {
-                "description": "Storage account type."
-            }
-        },
-        "usePasswordlessDbConnections": {
-            "type": "bool",
-            "defaultValue": false,
-            "allowedValues": [true, false],
-            "metadata": {
-                "description": "Use passwordless connection to database."
-            }
-        },
-        "AzureB2CDomain": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "Entra ID B2C domain (example: 'mydomain.onmicrosoft.com')."
-            }
-        },
-        "AzureB2CAdInstanceUrl": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "B2C instance (example: 'https://mydomain.b2clogin.com/')."
-            }
-        },
-        "AzureB2CTenantId": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "This is the Tenant Id."
-            }
-        },
-        "AzureB2CClientId": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "B2C Registered Application (client) ID."
-            }
-        },
-        "AzureB2CClientSecret": {
-            "type": "securestring",
-            "defaultValue": "",
-            "metadata": {
-                "description": "B2C Registered Application Secret."
-            }
-        },
-        "AzureB2CSignUpSignInPolicyId": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "Required sign up/sign in policy ID (example: 'B2C_1_Susi')."
-            }
-        },
-        "AzureB2CResetPasswordPolicyId": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "Optional reset password policy ID (example: 'b2c_1_reset')."
-            }
-        },
-        "AzureEditProfilePolicyId": {
-             "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "Optional edit profile policy ID (example: 'b2c_1_edit_profile')."
-            }
-        },
-        "AzureB2CUserGroup": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "Name of Entra ID 'group' that users must be a member."
+                "description": "For static websites, choose Geo-redundant to have your website hosted in two different regions <a target='_blank' href='https://cosmos.moonrise.net/install#Storage'>(see docs)</a>."
             }
         }
     },
     "functions": [],
     "variables": {
         "allowLocalAccounts": "true",
-        "adminEmail": "[parameters('administratorReplyEmail')]",
+        "adminEmail": "[parameters('noReplyEmailAddress')]",
         "cosmosSendGridApiKey": "",
-        "webAppPlanSku": "[concat(if(equals(parameters('webAppPlanChoice'), 'Free Tier'), 'F1', ''),if(equals(parameters('webAppPlanChoice'), 'Shared Tier'), 'D1', ''),if(equals(parameters('webAppPlanChoice'), 'Basic Tier'), 'B1', ''), if(equals(parameters('webAppPlanChoice'), 'Standard Tier'), 'S1', ''), if(equals(parameters('webAppPlanChoice'), 'Premium Tier'), 'P0v3', ''))]",
+        "webAppPlanSku": "[concat(if(equals(parameters('webAppPlanChoice'), 'Free Tier'), 'F1', ''),if(equals(parameters('webAppPlanChoice'), 'Shared Tier'), 'D1', ''),if(equals(parameters('webAppPlanChoice'), 'Basic Tier'), 'B3', ''), if(equals(parameters('webAppPlanChoice'), 'Standard Tier'), 'S1', ''), if(equals(parameters('webAppPlanChoice'), 'Premium Tier'), 'P0v3', ''))]",
         "webAppTier": "[concat(if(equals(parameters('webAppPlanChoice'), 'Free Tier'), 'Free', ''),if(equals(parameters('webAppPlanChoice'), 'Shared Tier'), 'Shared', ''),if(equals(parameters('webAppPlanChoice'), 'Basic Tier'), 'Basic', ''),if(equals(parameters('webAppPlanChoice'), 'Standard Tier'), 'Standard', ''))]",
         "webAppFamily": "[concat(if(equals(parameters('webAppPlanChoice'), 'Free Tier'), 'F', ''),if(equals(parameters('webAppPlanChoice'), 'Shared Tier'), 'D', ''),if(equals(parameters('webAppPlanChoice'), 'Basic Tier'), 'B', ''),if(equals(parameters('webAppPlanChoice'), 'Standard Tier'), 'S', ''))]",
         "appServicePlanName": "[concat('appplan', uniquestring(resourceGroup().id))]",
@@ -130,7 +114,9 @@
         "editorName": "[concat('editor-', uniquestring(resourceGroup().id))]",
         "publisherName": "[concat('publisher-', uniquestring(resourceGroup().id))]",
         "databaseName": "cosmoscms",
-        "azureCommunicationConnection": "[parameters('azureCommunicationsConnectionString')]"
+        "azureCommunicationConnection": "[parameters('azureCommunicationsConnectionString')]",
+        "publisherContainerName": "[if(equals(parameters('architecture'),'Headless'), 'api', 'publisher')]",
+        "publisherEnvironment": "[if(equals(parameters('architecture'),'Headless'), 'Development', 'Production')]"
     },
     "resources": [
         {
@@ -139,7 +125,6 @@
             "name": "[toLower(variables('accountName'))]",
             "location": "[variables('location')]",
             "properties": {
-                "disableLocalAuth": "[parameters('usePasswordlessDbConnections')]",
                 "databaseAccountOfferType": "Standard",
                 "consistencyPolicy": {
                     "defaultConsistencyLevel": "Session"
@@ -267,7 +252,7 @@
                     "numberOfWorkers": 1,
                     "linuxFxVersion": "DOCKER|toiyabe/cosmos-editor:latest",
                     "acrUseManagedIdentityCreds": false,
-                    "alwaysOn": false,
+                    "alwaysOn": true,
                     "http20Enabled": true,
                     "functionAppScaleLimit": 0,
                     "minimumElasticInstanceCount": 1
@@ -300,6 +285,8 @@
                         "AdminEmail": "[variables('adminEmail')]",
                         "CosmosAllowSetup": "true",
                         "AllowLocalAccounts": "[variables('allowLocalAccounts')]",
+                        "CosmosArchitecture": "[parameters('architecture')]",
+                        "CosmosStaticWebPages": "[if(equals(parameters('architecture'),'Static'), 'true', 'false')]",
                         "CosmosSendGridApiKey": "[variables('cosmosSendGridApiKey')]",
                         "CosmosPublisherUrl": "[concat('https://', variables('publisherName'), '.azurewebsites.net')]",
                         "CosmosBlobContainer": "$web",
@@ -371,7 +358,7 @@
                 "scmType": "None",
                 "use32BitWorkerProcess": true,
                 "webSocketsEnabled": false,
-                "alwaysOn": false,
+                "alwaysOn": true,
                 "managedPipelineMode": "Integrated",
                 "virtualApplications": [
                     {
@@ -420,6 +407,7 @@
             }
         },
         {
+            "condition": "[or(equals(parameters('architecture'),'Decoupled'), equals(parameters('architecture'),'Headless'))]",
             "type": "Microsoft.Web/sites",
             "apiVersion": "2020-12-01",
             "name": "[variables('publisherName')]",
@@ -453,7 +441,7 @@
                 "hyperV": false,
                 "siteConfig": {
                     "numberOfWorkers": 1,
-                    "linuxFxVersion": "DOCKER|toiyabe/cosmos-publisher-b2c:latest",
+                    "linuxFxVersion": "[concat('DOCKER|toiyabe/cosmos-', variables('publisherContainerName'), ':latest')]",
                     "acrUseManagedIdentityCreds": false,
                     "alwaysOn": true,
                     "http20Enabled": true,
@@ -475,6 +463,7 @@
             },
             "resources": [
                 {
+                    "condition": "[or(equals(parameters('architecture'),'Decoupled'), equals(parameters('architecture'),'Headless'))]",      
                     "name": "appsettings",
                     "type": "config",
                     "apiVersion": "2020-12-01",
@@ -485,22 +474,10 @@
                         "displayName": "appsettings"
                     },
                     "properties": {
+                        "ASPNETCORE_ENVIRONMENT": "[variables('publisherEnvironment')]",
                         "AdminEmail": "[variables('adminEmail')]",
-                        "AllowLocalAccounts": "false",
+                        "AllowLocalAccounts": "[variables('allowLocalAccounts')]",
                         "AzureBlobStorageEndPoint": "[reference(concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName')), '2018-07-01').primaryEndpoints.web]",
-                        "AzureAd__UserGroup": "[parameters('AzureB2CUserGroup')]",
-                        "AzureAd__TenantId": "[parameters('AzureB2CTenantId')]",
-                        "AzureAd__SignUpSignInPolicyId": "[parameters('AzureB2CSignUpSignInPolicyId')]",
-                        "AzureAd__SignedOutCallbackPath": "[concat('/signout/', parameters('AzureB2CSignUpSignInPolicyId'))]",
-                        "AzureAd__ResetPasswordPolicyId": "[parameters('AzureB2CResetPasswordPolicyId')]",
-                        "AzureAd__Instance": "[parameters('AzureB2CAdInstanceUrl')]",
-                        "AzureAd__EnablePiiLogging": "True",
-                        "AzureAd__EditProfilePolicyId": "[parameters('AzureEditProfilePolicyId')]",
-                        "AzureAd__Domain": "[parameters('AzureB2CDomain')]",
-                        "AzureAd__ClientSecret": "[parameters('AzureB2CClientSecret')]",
-                        "AzureAd__ClientId": "[parameters('AzureB2CClientId')]",
-                        "AzureAd__CallbackPath": "/signin-oidc",
-                        "AzureAd__AdminGroup": "[parameters('AzureB2CUserGroup')]",
                         "CosmosRequiresAuthentication": "false",
                         "CosmosSendGridApiKey": "[variables('cosmosSendGridApiKey')]",
                         "SmtpEmailProviderOptions__Host": "[variables('smtpEmailProviderOptions__Host')]",
@@ -515,6 +492,7 @@
                     }
                 },
                 {
+                    "condition": "[or(equals(parameters('architecture'),'Decoupled'), equals(parameters('architecture'),'Headless'))]",      
                     "name": "connectionStrings",
                     "type": "config",
                     "apiVersion": "2020-12-01",
@@ -539,6 +517,7 @@
             ]
         },
         {
+            "condition": "[or(equals(parameters('architecture'),'Decoupled'), equals(parameters('architecture'),'Headless'))]",
             "type": "Microsoft.Web/sites/config",
             "apiVersion": "2023-01-01",
             "name": "[concat(variables('publisherName'), '/web')]",
@@ -560,7 +539,7 @@
                     "hostingstart.html"
                 ],
                 "netFrameworkVersion": "v4.0",
-                "linuxFxVersion": "DOCKER|toiyabe/cosmos-publisher-b2c:latest",
+                "linuxFxVersion": "[concat('DOCKER|toiyabe/cosmos-', variables('publisherContainerName'), ':latest')]",
                 "requestTracingEnabled": false,
                 "remoteDebuggingEnabled": false,
                 "remoteDebuggingVersion": "VS2022",
