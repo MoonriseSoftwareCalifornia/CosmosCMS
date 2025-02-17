@@ -1303,7 +1303,7 @@ namespace Cosmos.Cms.Data.Logic
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task CreateStaticTableOfContentsJsonFile(string path = "")
         {
-            var result = await GetTableOfContents(path, 0, 20, true);
+            var result = await GetTableOfContents(path, 0, 50, true);
             var json = JsonConvert.SerializeObject(result);
             using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
             var storagePath = "pub/js/toc.json";

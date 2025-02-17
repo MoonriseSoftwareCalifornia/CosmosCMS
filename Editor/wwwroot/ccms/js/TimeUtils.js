@@ -24,5 +24,5 @@ function getLocalTime(gmt) {
     var dateTimeString = dateTime.toString();
     var z = dateTimeString.substring(dateTimeString.indexOf("(") - 1);
 
-    return "<span title='" + dateTime.toUTCString() + "'>" +  d + " " + t + " " + z + "</span>";
+    return "<span title='" + d + " " + t + "'>" +  d + "</span>";
 }
