@@ -282,7 +282,7 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Loads the designer GUI.
         /// </summary>
-        /// <param name="id">Template ID.</param>
+        /// <param name="id">Article number.</param>
         /// <returns>View.</returns>
         public async Task<IActionResult> Designer(int id)
         {
@@ -312,7 +312,7 @@ namespace Cosmos.Cms.Controllers
 
             ViewData["PageTitle"] = article.Title;
             ViewData["Published"] = null;
-            ViewData["LastPubDateTime"] = await articleLogic.GetLastPublishedDate();
+            ViewData["LastPubDateTime"] = await articleLogic.GetLastPublishedDate(id);
 
             var catalogEntry = await articleLogic.GetCatalogEntry(id);
 
@@ -1671,7 +1671,7 @@ namespace Cosmos.Cms.Controllers
 
             ViewData["PageTitle"] = model.Title;
             ViewData["Published"] = null;
-            ViewData["LastPubDateTime"] = await articleLogic.GetLastPublishedDate();
+            ViewData["LastPubDateTime"] = await articleLogic.GetLastPublishedDate(id);
 
             // Override defaults
             model.EditModeOn = true;
@@ -1711,7 +1711,7 @@ namespace Cosmos.Cms.Controllers
 
             ViewData["PageTitle"] = article.Title;
             ViewData["Published"] = null;
-            ViewData["LastPubDateTime"] = await articleLogic.GetLastPublishedDate();
+            ViewData["LastPubDateTime"] = await articleLogic.GetLastPublishedDate(id);
 
             var catalogEntry = await articleLogic.GetCatalogEntry(id);
 

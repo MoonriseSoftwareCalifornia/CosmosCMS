@@ -868,20 +868,12 @@
             // success for permissions exist, or danger for not.
             checkForSetPermissions();
 
-            var startDate;
-            if (lastPublished === "") {
-                startDate = new Date();
-            }
-            else {
-                startDate = new Date(lastPublished);
-            }
-
             $('#tbPublished').daterangepicker({
                 autoUpdateInput: false,
                 timePicker: true,
                 singleDatePicker: true,
                 showDropdowns: true,
-                startDate: startDate,
+                startDate: new Date(),
                 locale: {
                     format: 'MM/DD/YYYY hh:mm A'
                 }
