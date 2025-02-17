@@ -196,6 +196,7 @@ namespace Cosmos.Common.Data
                 .HasKey(k => k.Id);
 
             modelBuilder.Entity<DataProtectionKey>()
+                .ToContainer("DataProtection")
                 .HasPartitionKey(k => k.Id)
                 .HasKey(k => k.Id);
 

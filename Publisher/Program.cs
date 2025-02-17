@@ -113,6 +113,18 @@ builder.Services.AddDbContext<ApplicationDbContext>(
 builder.Services.AddCosmosStorageContext(builder.Configuration);
 
 // Add shared data protection here
+var containerClient = Cosmos.BlobService.ServiceCollectionExtensions.GetBlobContainerClient(builder.Configuration, new DefaultAzureCredential(), "dataprotection");
+containerClient.CreateIfNotExists();
+builder.Services.AddDataProtection()
+    .UseCryptographicAlgorithms(
+    new AuthenticatedEncryptorConfiguration
+    {
+        EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
+        ValidationAlgorithm = ValidationAlgorithm.HMACSHA256
+    })
+    .PersistKeysToAzureBlobStorage(containerClient.GetBlobClient("publisherkeys.xml"));
+
+// Add shared data protection here
 builder.Services.AddDataProtection()
     .SetApplicationName("publisher").UseCryptographicAlgorithms(
     new AuthenticatedEncryptorConfiguration

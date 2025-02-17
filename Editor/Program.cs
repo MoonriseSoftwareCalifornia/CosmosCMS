@@ -154,13 +154,18 @@ builder.Services.AddCosmosIdentity<ApplicationDbContext, IdentityUser, IdentityR
     .AddDefaultTokenProviders();
 
 // Add shared data protection here
+// Add shared data protection here
+var containerClient = Cosmos.BlobService.ServiceCollectionExtensions.GetBlobContainerClient(builder.Configuration, new DefaultAzureCredential(), "dataprotection");
+containerClient.CreateIfNotExists();
+
 builder.Services.AddDataProtection()
-    .SetApplicationName("editor").UseCryptographicAlgorithms(
+    .UseCryptographicAlgorithms(
     new AuthenticatedEncryptorConfiguration
     {
         EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
         ValidationAlgorithm = ValidationAlgorithm.HMACSHA256
-    }).PersistKeysToDbContext<ApplicationDbContext>();
+    })
+    .PersistKeysToAzureBlobStorage(containerClient.GetBlobClient("editorkeys.xml"));
 
 // ===========================================================
 // SUPPORTED OAuth Providers
