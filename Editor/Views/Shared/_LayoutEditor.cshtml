@@ -11,6 +11,8 @@
     var isDesigner = (bool?)ViewData["IsDesigner"];
     var controllerName = ViewContext.RouteData.Values["controller"].ToString();
     var actionName = ViewContext.RouteData.Values["action"].ToString();
+    var lastPublishedDateTimeOffset = (DateTimeOffset?)ViewData["LastPubDateTime"];
+    var lastPublishedString = lastPublishedDateTimeOffset.HasValue ? lastPublishedDateTimeOffset.Value.ToString("s") : string.Empty;
 }
 <!DOCTYPE HTML>
 <html>
@@ -197,7 +199,7 @@
                                 <a class="dropdown-item" title="Save as a new unpublished draft." onclick="bgEditClick('Draft')" href="#">Save draft</a>
                             </li>
                             <li id="btnSaveAndPublish" style="display:none;">
-                                <a class="dropdown-item" title="Save content and publish now." onclick="bgEditClick('Publish')" href="#">Publish now</a>
+                                <a class="dropdown-item" title="Publish now if new, or republish using previous date and time." onclick="bgEditClick('Publish')" href="#">Publish now</a>
                             </li>
                             <li>
                                 <a class="dropdown-item" onclick="bgEditClick('Close')">Close</a>
@@ -302,7 +304,7 @@
                         <div id="divPublishedTitleGroup" class="input-group input-group-sm mt-1" style="display:none">
                             <div id="lblPublished" class="input-group-text" style="height:31px;">Published:</div>
                             <input autocomplete="off" class="form-control text-truncate" name="tbPublished" id="tbPublished" placeholder="DRAFT (not published)" value="@((DateTimeOffset?)ViewData["Published"])" />
-                            <button class="btn btn-sm btn-danger" title="Clicking this button publishes this page version immediately." type="button" id="btnPublishNow" onclick="bgEditClick('Publish')" style="display:none">Publish Now</button>
+                            <button class="btn btn-sm btn-danger" title="Publish now if new, or republish using previous date and time." type="button" id="btnPublishNow" onclick="bgEditClick('Publish')" style="display:none">Publish Now</button>
                             <button class="btn btn-sm btn-secondary" title="Clicking this button will make an editable draft of this page that is not published." type="button" id="btnDraftNow" onclick="bgEditClick('Draft')" style="display:none">Make Draft</button>
                         </div>
                     </li>
@@ -546,7 +548,7 @@
         let comboBoxTimeout = null;
         let fileMgrPopup = null;
         let selectedFile = "";
-        let lastPublished = "@(((DateTimeOffset?)ViewData["LastPubDateTime"]))";
+        let lastPublished = "@lastPublishedString";
         let autoSaveSwLastStatus;
         // Sometimes auto save switch is on, but something is going on
         // where auto save should not save. Example:right in the middle of
@@ -728,9 +730,12 @@
                     if (isAuthor) {
                         alert("Only Editors and Administratos can publish changes.");
                     } else {
-                        var now = new Date();
-                        $("#tbPublished").val(now.toLocaleString());
-                        $("#Published").val(now.toLocaleString());
+                        let publishedDateTime = new Date();
+                        if (lastPublished !== "") {
+                            publishedDateTime = new Date(lastPublished);
+                        }
+                        $("#tbPublished").val(publishedDateTime.toLocaleString());
+                        $("#Published").val(publishedDateTime.toLocaleString());
                         $("#tbPublished").removeClass("is-invalid");
                         $("#btnPublishNow").hide();
                         $("#btnDraftNow").show();
@@ -876,7 +881,7 @@
                 timePicker: true,
                 singleDatePicker: true,
                 showDropdowns: true,
-                minDate: startDate,
+                startDate: startDate,
                 locale: {
                     format: 'MM/DD/YYYY hh:mm A'
                 }

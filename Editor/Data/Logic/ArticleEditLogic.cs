@@ -955,6 +955,19 @@ namespace Cosmos.Cms.Data.Logic
         }
 
         /// <summary>
+        /// Gets the last published date.
+        /// </summary>
+        /// <returns>Last published date and time.</returns>
+        public async Task<DateTimeOffset?> GetLastPublishedDate()
+        {
+            return await DbContext.Articles
+                .Where(w => w.Published != null)
+                .OrderByDescending(o => o.VersionNumber)
+                .Select(s => s.Published)
+                .LastOrDefaultAsync();
+        }
+
+        /// <summary>
         ///     Gets the latest versions of articles that are in the trash.
         /// </summary>
         /// <returns>Gets article number, version number, last data published (if applicable).</returns>
@@ -1972,7 +1985,7 @@ namespace Cosmos.Cms.Data.Logic
 
             foreach (var area in contentAreas)
             {
-                var ps = area.SelectNodes("//p").Where(w => !string.IsNullOrEmpty(w.InnerText) && !string.IsNullOrEmpty(w.InnerText.Trim().ToLower().Replace("&nbsp;", string.Empty))).Select(s => s.InnerText).ToList();
+                var ps = area.SelectNodes("//p").Where(w => !string.IsNullOrEmpty(w.InnerHtml) && !string.IsNullOrEmpty(w.InnerText.Trim().ToLower().Replace("&nbsp;", string.Empty))).Select(s => s.InnerText).ToList();
 
                 foreach (var p in ps)
                 {
@@ -1995,7 +2008,7 @@ namespace Cosmos.Cms.Data.Logic
                 UrlPath = lastVersion.UrlPath,
                 TemplateId = lastVersion.TemplateId,
                 AuthorInfo = JsonConvert.SerializeObject(authorInfo).Replace("\"", "'"),
-                //Introduction = node?.InnerText ?? string.Empty,
+                Introduction = intro,
             };
 
             DbContext.ArticleCatalog.Add(entry);

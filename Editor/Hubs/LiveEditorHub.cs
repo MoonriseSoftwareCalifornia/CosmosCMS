@@ -65,7 +65,7 @@ namespace Cosmos.Cms.Hubs
         {
             try
             {
-                var model = JsonConvert.DeserializeObject<LiveEditorSignal>(data);
+                var model = JsonConvert.DeserializeObject<SaveHtmlEditorViewModel>(data);
 
                 switch (model.Command)
                 {

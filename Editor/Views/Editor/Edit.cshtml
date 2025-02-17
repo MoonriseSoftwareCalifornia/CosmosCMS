@@ -740,7 +740,7 @@
                 Data: data
             };
 
-            $.post("@Url.Action("SaveLiveEditorData", "Editor")", model, function (data){
+            $.post("@Url.Action("SaveHtml", "Editor")", model, function (data){
                 saveInProgress = false;
                 doneSaving();
             }).done(function (data) {

@@ -312,7 +312,7 @@ namespace Cosmos.Cms.Controllers
 
             ViewData["PageTitle"] = article.Title;
             ViewData["Published"] = null;
-            ViewData["LastPubDateTime"] = null;
+            ViewData["LastPubDateTime"] = await articleLogic.GetLastPublishedDate();
 
             var catalogEntry = await articleLogic.GetCatalogEntry(id);
 
@@ -523,7 +523,7 @@ namespace Cosmos.Cms.Controllers
         /// <param name="model">Live editor post model.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [HttpPost]
-        public async Task<IActionResult> SaveLiveEditorData(LiveEditorSignal model)
+        public async Task<IActionResult> SaveHtml(SaveHtmlEditorViewModel model)
         {
             if (!ModelState.IsValid)
             {
@@ -1668,10 +1668,10 @@ namespace Cosmos.Cms.Controllers
 
             // Get an article, or a template based on the controller name.
             var model = await articleLogic.GetArticleByArticleNumber(id, null);
-            ViewData["LastPubDateTime"] = null;
 
             ViewData["PageTitle"] = model.Title;
             ViewData["Published"] = null;
+            ViewData["LastPubDateTime"] = await articleLogic.GetLastPublishedDate();
 
             // Override defaults
             model.EditModeOn = true;
@@ -1711,7 +1711,7 @@ namespace Cosmos.Cms.Controllers
 
             ViewData["PageTitle"] = article.Title;
             ViewData["Published"] = null;
-            ViewData["LastPubDateTime"] = null;
+            ViewData["LastPubDateTime"] = await articleLogic.GetLastPublishedDate();
 
             var catalogEntry = await articleLogic.GetCatalogEntry(id);
 

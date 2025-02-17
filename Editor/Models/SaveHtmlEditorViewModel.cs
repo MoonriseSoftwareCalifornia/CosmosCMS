@@ -10,9 +10,9 @@ namespace Cosmos.Cms.Models
     using System;
 
     /// <summary>
-    /// Live editor SignalR model.
+    /// HTML editor SignalR model.
     /// </summary>
-    public class LiveEditorSignal
+    public class SaveHtmlEditorViewModel
     {
         /// <summary>
         /// Gets or sets article record ID.
