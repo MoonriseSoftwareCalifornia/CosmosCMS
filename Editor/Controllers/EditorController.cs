@@ -1932,9 +1932,6 @@ namespace Cosmos.Cms.Controllers
                 await articleLogic.CreateStaticWebpage(page);
             }
 
-            // publish table of contents.
-            await articleLogic.CreateStaticTableOfContentsJsonFile("/");
-
             return Json(new { pages.Count });
         }
 
@@ -1948,6 +1945,7 @@ namespace Cosmos.Cms.Controllers
         public async Task<IActionResult> PublishTOC(string path = "/")
         {
             await articleLogic.CreateStaticTableOfContentsJsonFile(path);
+            await articleLogic.CreateSiteMapFile();
             return Ok();
         }
 

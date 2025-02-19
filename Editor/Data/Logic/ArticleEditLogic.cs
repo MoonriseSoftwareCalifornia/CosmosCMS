@@ -25,6 +25,7 @@ namespace Cosmos.Cms.Data.Logic
     using Cosmos.Common.Models;
     using Cosmos.Editor.Controllers;
     using Cosmos.Editor.Services;
+    using Microsoft.Azure.Cosmos.Core;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.Extensions.Logging;
@@ -32,6 +33,7 @@ namespace Cosmos.Cms.Data.Logic
     using Newtonsoft.Json;
     using NUglify;
     using SendGrid.Helpers.Errors.Model;
+    using X.Web.Sitemap.Extensions;
 
     /// <summary>
     ///     Article Editor Logic.
@@ -1294,6 +1296,32 @@ namespace Cosmos.Cms.Data.Logic
             var setting = await DbContext.Settings.FirstOrDefaultAsync(f => f.Name == "ReservedPaths");
             setting.Value = JsonConvert.SerializeObject(paths);
             await DbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Creates a site map file in the blob storage.
+        /// </summary>
+        /// <param name="filePath">Path and file name.</param>
+        /// <returns>Task.</returns>
+        public async Task CreateSiteMapFile(string filePath = "sitemap.xml")
+        {
+            var siteMap = await this.GetSiteMap();
+            using var stream = new MemoryStream(Encoding.UTF8.GetBytes(siteMap.ToXml()));
+            var storagePath = $"/{filePath}";
+
+            storageContext.AppendBlob(stream, new BlobService.Models.FileUploadMetaData()
+            {
+                ChunkIndex = 0,
+                ContentType = "application/xml",
+                FileName = Path.GetFileName(storagePath).ToLower(),
+                ImageHeight = string.Empty,
+                ImageWidth = string.Empty,
+                RelativePath = storagePath,
+                TotalChunks = 1,
+                TotalFileSize = stream.Length,
+                UploadUid = Guid.NewGuid().ToString(),
+                CacheControl = "max-age=300;must-revalidate"
+            });
         }
 
         /// <summary>

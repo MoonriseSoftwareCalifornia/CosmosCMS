@@ -9,6 +9,7 @@ namespace Cosmos.Common
 {
     using System;
     using System.Linq;
+    using System.Text;
     using System.Threading.Tasks;
     using Cosmos.BlobService;
     using Cosmos.Cms.Common.Services.Configurations;
@@ -24,10 +25,12 @@ namespace Cosmos.Common
     using Microsoft.AspNetCore.Identity.UI.Services;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.RateLimiting;
+    using Microsoft.Azure.Cosmos.Core;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Microsoft.PowerBI.Api.Models;
+    using X.Web.Sitemap.Extensions;
 
     /// <summary>
     /// Methods common to both the editor and publisher home controllers.

@@ -2729,6 +2729,11 @@
         "resolved": "4.5.0",
         "contentHash": "okurQJO6NRE/apDIP23ajJ0hpiNmJ+f0BwOlB/cSqTLQlw5upkf+5+96+iG2Jw40G1fCVCyPz/FhIABUjMR+RQ=="
       },
+      "X.Web.Sitemap": {
+        "type": "Transitive",
+        "resolved": "2.10.5",
+        "contentHash": "QGlwUfhKWdHnFXlKUtXW0zaQ3wyBuJMDIZKUl+sZqa/bLVXosvM6VzxtxWKJUj8tk3dJNRkRhTZ4Xib5I7huKw=="
+      },
       "cosmos.common": {
         "type": "Project",
         "dependencies": {
@@ -2743,7 +2748,8 @@
           "Microsoft.AspNetCore.Identity.UI": "[9.0.2, )",
           "Microsoft.EntityFrameworkCore.SqlServer": "[9.0.2, )",
           "Microsoft.PowerBI.Api": "[4.22.0, )",
-          "System.Formats.Asn1": "[9.0.2, )"
+          "System.Formats.Asn1": "[9.0.2, )",
+          "X.Web.Sitemap": "[2.10.5, )"
         }
       }
     },

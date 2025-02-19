@@ -150,6 +150,12 @@
         "resolved": "9.0.2",
         "contentHash": "OKWHCPYQr/+cIoO8EVjFn7yFyiT8Mnf1wif/5bYGsqxQV6PrwlX2HQ9brZNx57ViOvRe4ing1xgHCKl/5Ko8xg=="
       },
+      "X.Web.Sitemap": {
+        "type": "Direct",
+        "requested": "[2.10.5, )",
+        "resolved": "2.10.5",
+        "contentHash": "QGlwUfhKWdHnFXlKUtXW0zaQ3wyBuJMDIZKUl+sZqa/bLVXosvM6VzxtxWKJUj8tk3dJNRkRhTZ4Xib5I7huKw=="
+      },
       "Azure.Communication.Email": {
         "type": "Transitive",
         "resolved": "1.0.1",

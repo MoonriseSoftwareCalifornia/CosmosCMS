@@ -21,6 +21,7 @@ namespace Cosmos.Common.Data.Logic
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.Extensions.Options;
     using Newtonsoft.Json;
+    using X.Web.Sitemap;
 
     /// <summary>
     ///     Main logic behind getting and maintaining web site articles.
@@ -66,6 +67,68 @@ namespace Cosmos.Common.Data.Logic
         /// </summary>
         /// <returns>Indicates the publisher is healthy using a <see cref="bool"/>.</returns>
         public static bool GetPublisherHealth() => true;
+
+        /// <summary>
+        /// Gets the sitemap for a website.
+        /// </summary>
+        /// <returns>Sitemap.</returns>
+        public async Task<Sitemap> GetSiteMap()
+        {
+            var publicUrl = CosmosOptions.Value.SiteSettings.PublisherUrl.TrimEnd('/');
+
+            var query = from t in DbContext.ArticleCatalog
+                        where t.Published <= DateTimeOffset.UtcNow.AddMinutes(10)
+                        select new
+                        {
+                            t.UrlPath,
+                            t.Title,
+                            t.Published,
+                            t.Updated,
+                            t.BannerImage
+                        };
+            var items = await query.ToListAsync();
+            var home = items.FirstOrDefault(f => f.UrlPath == "root");
+            var others = items.Where(w => w.UrlPath != "root").ToList();
+
+            var sitemap = new Sitemap();
+
+            sitemap.Add(new Url
+            {
+                Location = publicUrl,
+                LastMod = home.Updated.ToString("u"),
+                Priority = 1.0,
+                Images = new List<Image>
+                {
+                    new Image
+                    {
+                        Location = home.BannerImage.ToLower().StartsWith("http") ? home.BannerImage : $"{publicUrl}/{home.BannerImage.TrimStart('/')}",
+                    }
+                }
+            });
+
+            foreach (var item in others)
+            {
+                var images = new List<Image>();
+
+                if (!string.IsNullOrEmpty(item.BannerImage))
+                {
+                    images.Add(new Image
+                    {
+                        Location = item.UrlPath.ToLower().StartsWith("http") ? item.UrlPath : $"{publicUrl}/{item.UrlPath.TrimStart('/')}"
+                    });
+                }
+
+                sitemap.Add(new Url
+                {
+                    Location = $"{publicUrl}/{item.UrlPath}",
+                    LastMod = item.Updated.ToString("u"),
+                    Priority = 0.5,
+                    Images = images
+                });
+            }
+
+            return sitemap;
+        }
 
         /// <summary>
         ///     Serializes an object using <see cref="Newtonsoft.Json.JsonConvert.SerializeObject(object)" />
