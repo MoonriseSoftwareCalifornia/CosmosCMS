@@ -1306,22 +1306,45 @@ namespace Cosmos.Cms.Data.Logic
         public async Task CreateSiteMapFile(string filePath = "sitemap.xml")
         {
             var siteMap = await this.GetSiteMap();
-            using var stream = new MemoryStream(Encoding.UTF8.GetBytes(siteMap.ToXml()));
-            var storagePath = $"/{filePath}";
-
-            storageContext.AppendBlob(stream, new BlobService.Models.FileUploadMetaData()
+            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(siteMap.ToXml())))
             {
-                ChunkIndex = 0,
-                ContentType = "application/xml",
-                FileName = Path.GetFileName(storagePath).ToLower(),
-                ImageHeight = string.Empty,
-                ImageWidth = string.Empty,
-                RelativePath = storagePath,
-                TotalChunks = 1,
-                TotalFileSize = stream.Length,
-                UploadUid = Guid.NewGuid().ToString(),
-                CacheControl = "max-age=300;must-revalidate"
-            });
+                var storagePath = $"/{filePath}";
+
+                storageContext.AppendBlob(stream, new BlobService.Models.FileUploadMetaData()
+                {
+                    ChunkIndex = 0,
+                    ContentType = "application/xml",
+                    FileName = Path.GetFileName(storagePath).ToLower(),
+                    ImageHeight = string.Empty,
+                    ImageWidth = string.Empty,
+                    RelativePath = storagePath,
+                    TotalChunks = 1,
+                    TotalFileSize = stream.Length,
+                    UploadUid = Guid.NewGuid().ToString(),
+                    CacheControl = "max-age=300;must-revalidate"
+                });
+            }
+
+            var robotsTxtFile = $"Sitemap: {this.CosmosOptions.Value.SiteSettings.PublisherUrl.TrimEnd('/')}/sitemap.xml";
+            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(robotsTxtFile)))
+            {
+                var storagePath = "/robots.txt";
+
+                storageContext.AppendBlob(stream, new BlobService.Models.FileUploadMetaData()
+                {
+                    ChunkIndex = 0,
+                    ContentType = "text/plain",
+                    FileName = Path.GetFileName(storagePath).ToLower(),
+                    ImageHeight = string.Empty,
+                    ImageWidth = string.Empty,
+                    RelativePath = storagePath,
+                    TotalChunks = 1,
+                    TotalFileSize = stream.Length,
+                    UploadUid = Guid.NewGuid().ToString(),
+                    CacheControl = "max-age=300;must-revalidate"
+                });
+            }
+
         }
 
         /// <summary>
