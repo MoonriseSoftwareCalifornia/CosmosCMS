@@ -106,13 +106,8 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Catalog of web pages on this website.
         /// </summary>
-        /// <param name="sortOrder">Sort order either asc or desc.</param>
-        /// <param name="currentSort">Current sort field.</param>
-        /// <param name="pageNo">Page number.</param>
-        /// <param name="pageSize">Number of records per page.</param>
-        /// <param name="filter">Search filter.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task<IActionResult> Index(string sortOrder, string currentSort, int pageNo = 0, int pageSize = 10, string filter = "")
+        public async Task<IActionResult> Index()
         {
             if (!ModelState.IsValid)
             {
@@ -143,140 +138,10 @@ namespace Cosmos.Cms.Controllers
             }
 
             ViewData["HomePageArticleNumber"] = await dbContext.Pages.Where(f => f.UrlPath == "root").Select(s => s.ArticleNumber).FirstOrDefaultAsync();
-            ViewData["PublisherUrl"] = options.Value.SiteSettings.PublisherUrl;
 
             ViewData["ShowNotFoundBtn"] = !await dbContext.ArticleCatalog.Where(w => w.UrlPath == "not_found").CosmosAnyAsync();
 
-            if (!string.IsNullOrEmpty(filter))
-            {
-                filter = filter.TrimStart('/');
-            }
-
-            ViewData["Filter"] = filter;
-
-            ViewData["sortOrder"] = sortOrder;
-            ViewData["currentSort"] = currentSort;
-            ViewData["pageNo"] = pageNo;
-            ViewData["pageSize"] = pageSize;
-
-            var query = dbContext.ArticleCatalog.Select(s => new
-            {
-                s.ArticleNumber,
-                s.Title,
-                s.UrlPath,
-                s.Published,
-                s.Status,
-                s.Updated,
-                s.ArticlePermissions
-            }).AsNoTracking().AsQueryable();
-
-            ViewData["RowCount"] = await query.CountAsync();
-
-            if (!string.IsNullOrEmpty(filter))
-            {
-                var f = filter.ToLower();
-                query = query.Where(w => w.Title.ToLower().Contains(f));
-            }
-
-            if (sortOrder == "desc")
-            {
-                if (!string.IsNullOrEmpty(currentSort))
-                {
-                    switch (currentSort)
-                    {
-                        case "ArticleNumber":
-                            query = query.OrderByDescending(o => o.ArticleNumber);
-                            break;
-                        case "Title":
-                            query = query.OrderByDescending(o => o.Title);
-                            break;
-                        case "LastPublished":
-                            query = query.OrderByDescending(o => o.Published);
-                            break;
-                        case "UrlPath":
-                            query = query.OrderByDescending(o => o.UrlPath);
-                            break;
-                        case "Status":
-                            query = query.OrderByDescending(o => o.Status);
-                            break;
-                        case "Updated":
-                            query = query.OrderByDescending(o => o.Updated);
-                            break;
-                    }
-                }
-            }
-            else
-            {
-                if (!string.IsNullOrEmpty(currentSort))
-                {
-                    switch (currentSort)
-                    {
-                        case "ArticleNumber":
-                            query = query.OrderBy(o => o.ArticleNumber);
-                            break;
-                        case "Title":
-                            query = query.OrderBy(o => o.Title);
-                            break;
-                        case "LastPublished":
-                            query = query.OrderBy(o => o.Published);
-                            break;
-                        case "UrlPath":
-                            query = query.OrderBy(o => o.UrlPath);
-                            break;
-                        case "Status":
-                            query = query.OrderBy(o => o.Status);
-                            break;
-                        case "Updated":
-                            query = query.OrderBy(o => o.Updated);
-                            break;
-                    }
-                }
-                else
-                {
-                    // Default sort order
-                    query = query.OrderBy(o => o.Title);
-                }
-            }
-
-            var users = await dbContext.Users.Select(s => new { s.Id, s.Email }).ToListAsync();
-            var roles = await dbContext.Roles.Select(s => new { s.Id, s.Name }).ToListAsync();
-
-            var pageList = query.Skip(pageNo * pageSize).Take(pageSize).AsNoTracking().ToList();
-
-            var model = new List<ArticleListItem>();
-
-            foreach (var datum in pageList)
-            {
-                var item = new ArticleListItem()
-                {
-                    ArticleNumber = datum.ArticleNumber,
-                    IsDefault = datum.UrlPath.Equals("root", StringComparison.CurrentCultureIgnoreCase),
-                    UrlPath = datum.UrlPath,
-                    LastPublished = datum.Published,
-                    Status = datum.Status,
-                    Updated = datum.Updated,
-                    Title = datum.Title
-                };
-
-                if (datum.ArticlePermissions != null && datum.ArticlePermissions.Count > 0)
-                {
-                    var userIds = datum.ArticlePermissions.Where(w => !w.IsRoleObject).Select(s => s.IdentityObjectId).ToList();
-                    if (userIds.Any())
-                    {
-                        item.Permissions.AddRange(users.Where(s => userIds.Contains(s.Id)).Select(s => s.Email).ToArray());
-                    }
-
-                    var roleds = datum.ArticlePermissions.Where(w => w.IsRoleObject).Select(s => s.IdentityObjectId).ToList();
-                    if (roleds.Any())
-                    {
-                        item.Permissions.AddRange(roles.Where(s => roleds.Contains(s.Id)).Select(s => s.Name).ToArray());
-                    }
-                }
-
-                model.Add(item);
-            }
-
-            return View(model);
+            return View();
         }
 
         /// <summary>
@@ -2019,27 +1884,16 @@ namespace Cosmos.Cms.Controllers
                 return BadRequest(ModelState);
             }
 
-            var query = dbContext.ArticleCatalog.Select(s => new ArticleListItem()
+            var data = await dbContext.ArticleCatalog.Select(s => new 
             {
-                ArticleNumber = s.ArticleNumber,
-                Title = s.Title,
+                s.ArticleNumber,
+                s.Title,
                 IsDefault = s.UrlPath == "root",
-                LastPublished = s.Published,
+                LastPublished = s.Published.Value.UtcDateTime.ToString("o"),
                 UrlPath = HttpUtility.UrlEncode(s.UrlPath).Replace("%2f", "/"),
-                Status = s.Status,
-                Updated = s.Updated
-            }).OrderBy(o => o.Title);
-
-            var data = new List<ArticleListItem>();
-            if (string.IsNullOrEmpty(term))
-            {
-                data.AddRange(await query.Take(10).ToListAsync());
-            }
-            else
-            {
-                term = term.TrimStart('/').Trim().ToLower();
-                data.AddRange(await query.Where(w => w.Title.ToLower().Contains(term)).Take(10).ToListAsync());
-            }
+                s.Status,
+                Updated = s.Updated.UtcDateTime.ToString("o")
+            }).OrderBy(o => o.Title).ToListAsync();
 
             return Json(data);
         }

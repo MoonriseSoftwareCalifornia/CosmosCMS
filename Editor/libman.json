@@ -8,14 +8,20 @@
     },
     {
       "library": "cropperjs@1.6.2",
-      "destination": "/wwwroot/lib/cropperjs"
+      "destination": "wwwroot/lib/cropperjs"
     },
     {
       "library": "filepond@4.25.1",
-      "destination": "/wwwroot/lib/filepond"
+      "destination": "wwwroot/lib/filepond"
     },
     {
-      "library": "filepond-plugin-file-metadata@"
+      "provider": "unpkg",
+      "library": "filepond-plugin-file-metadata@1.0.8",
+      "destination": "wwwroot/lib/filepond-plugin-file-metadata"
+    },
+    {
+      "library": "luxon@2.3.1",
+      "destination": "wwwroot/lib/luxon"
     },
     {
       "library": "grapesjs@0.22.3",
@@ -23,7 +29,7 @@
     },
     {
       "library": "jquery-cropper@1.0.1",
-      "destination": "/wwwroot/lib/jquery-cropper"
+      "destination": "wwwroot/lib/jquery-cropper"
     },
     {
       "library": "jquery-validate@1.21.0",
@@ -52,6 +58,11 @@
     {
       "library": "tippy.js@6.3.7",
       "destination": "wwwroot/lib/tippy/"
+    },
+    {
+      "provider": "unpkg",
+      "library": "tabulator-tables@6.3.1",
+      "destination": "wwwroot/lib/tabulator-tables"
     },
     {
       "provider": "unpkg",

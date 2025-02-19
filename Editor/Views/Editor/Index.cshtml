@@ -6,7 +6,6 @@
 @{
     ViewData["Title"] = "Web Page Inventory";
 
-    var publisherUrl = ViewData["PublisherUrl"];
     var isReviewer = User.IsInRole("Reviewers");
     var canEdit = User.IsInRole("Administrators") || User.IsInRole("Editors");
 
@@ -14,15 +13,11 @@
     var showFirstPageBtn = (bool)ViewData["ShowFirstPageBtn"];
     var showNotFoundBtn = (bool)ViewData["ShowNotFoundBtn"];
 
-    var rowCount = (int)ViewData["RowCount"];
-    var sortOrder = (string)ViewData["sortOrder"];
-    var currentSort = (string)ViewData["currentSort"];
-    var pageNumber = (int)ViewData["pageNo"];
-    var pageSize = (int)ViewData["pageSize"];
-    var filter = (string)ViewData["Filter"];
-
-    var pagerModel = new GridPagerPartialViewModel(pageNumber, rowCount, pageSize, sortOrder, currentSort, "/Editor/Index", filter);
 }
+@* <link href="~/lib/tabulator-tables/dist/css/tabulator.min.css" rel="stylesheet" /> *@
+<link href="~/lib/tabulator-tables/dist/css/tabulator_midnight.css" rel="stylesheet" />
+<script src="~/lib/luxon/luxon.min.js"></script>
+<script src="~/lib/tabulator-tables/dist/js/tabulator.min.js"></script>
 <script src="~/js/clipboard.min.js"></script>
 <style>
     .fs-small {
@@ -45,14 +40,6 @@
                 }
             </div>
         </div>
-        <div class="row">
-            <div class="col-md-12 d-flex flex-row">
-                <button id="btnFilter" class="btn btn-sm btn-primary" style="min-width:100px;display:none;">Filter <i class="fa-solid fa-filter"></i></button>
-                <button id="btnOpen" title="Go to the version list for this page." class="btn btn-sm btn-primary" style="min-width:100px;" disabled>Go <i class="fa-solid fa-circle-arrow-right"></i></button>
-                <button id="btnCreate" title="Create a page with this title." class="btn btn-sm btn-primary" style="min-width:100px;">Create <i class="fa-solid fa-circle-arrow-right"></i></button>
-                <input id="combobox" autocomplete="off" placeholder="Search for a page ..." type="text" class="form-control bg-dark text-light" aria-label="Type to search for a page." style="height:32px" value="@filter">
-            </div>
-        </div>
         <div class="row cpws-table-pager-row-top">
             <div class="col-md-6">
                 @if (!isReviewer)
@@ -69,91 +56,138 @@
                 }
             </div>
             <div class="col-md-6 d-flex justify-content-end">
-                <partial name="~/Views/Shared/GridPager/_GridPager.cshtml" model="pagerModel"></partial>
             </div>
         </div>
 
         <div class="row bg-dark">
             <div class="col-md-12">
-                <div class="table-responsive custom-table-responsive">
-                    <table class="table custom-table">
-                        <thead class="fs-small">
-                            <tr>
-                                <th scope="col"><i class="fa-solid fa-house"></i></th>
-                                <th scope="col">URL/Title</th>
-                                <th scope="col">Last Updated</th>
-                                <th scope="col">Last Published</th>
-                                <th scope="col"></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var row in Model)
-                            {
-                                <tr scope="row">
-                                    <td>
-                                        @if (row.UrlPath == "root")
-                                        {
-                                            <div title='Current home page.' class='btn btn-sm btn-success'><i class="fa-solid fa-house"></i></div>
-                                        }
-                                        else if (row.LastPublished.HasValue)
-                                        {
-                                            <a href='/Editor/NewHome/@row.ArticleNumber' title='Make this the new home page.' class='btn btn-sm btn-secondary'><i class="fa-solid fa-house"></i></a>
-                                        }
-                                    </td>
-                                    <td title="Click to select article '@row.Title.'" class="fs-small" onclick="openArticleVersions(@row.ArticleNumber)">
-                                        /@row.Title
-                                        @if (options.Value.SiteSettings.CosmosRequiresAuthentication)
-                                        {
-                                            <small class="d-block">
-                                                @if (row.Permissions.Any())
-                                                {
-                                                    <a href='/Editor/Permissions/@row.ArticleNumber' title='Set access permissions for users and roles.' id="btnArticleAccess" class='btn btn-sm btn-success'><i class="fa-solid fa-users"></i></a>
-                                                    <span>Permissions: @string.Join(", ", row.Permissions)</span>
-                                                }
-                                                else
-                                                {
-                                                    <a href='/Editor/Permissions/@row.ArticleNumber' title='Set access permissions for users and roles.' id="btnArticleAccess" class='btn btn-sm btn-danger'><i class="fa-solid fa-users"></i></a>                                                  
-                                                }
-                                            </small>
-                                        }
-                                    </td>
-                                    <td title="Click to select article '@row.Title.'" onclick="openArticleVersions(@row.ArticleNumber)">
-                                        <div class='toLocalTimeZone fs-small'>@row.Updated</div>
-                                    </td>
-                                    <td title="Click to select article '@row.Title.'" onclick="openArticleVersions(@row.ArticleNumber)">
-                                        <div class='toLocalTimeZone fs-small'>@row.LastPublished</div>
-                                    </td>
-                                    <td class="text-end">
-                                        <div class="btn-group" role="group" aria-label="Actions">
-                                            <a class="btn btn-sm btn-secondary" title="Create a clone of this page" asp-action="Clone" asp-route-id="@row.ArticleNumber"><i class="fa-solid fa-copy"></i> Clone</a>
-                                            @if (row.LastPublished.HasValue && canEdit && row.IsDefault == false)
-                                            {
-                                                <button onclick="unpublish(@row.ArticleNumber)" title="Unpublishes a this item, and makes it no longer accessible except for editing." class="btn btn-sm btn-secondary">Unpublish</button>
-                                            }
-                                            else
-                                            {
-                                                <button disabled title="Unpublishes a this item, and makes it no longer accessible except for editing." class="btn btn-sm btn-secondary">Unpublish</button>
-                                            }@if (canEdit && row.UrlPath != "root")
-                                            {
-                                                <button type='button' onclick='selectArticle("@row.ArticleNumber", "@row.Title")' class='btn btn-sm btn-secondary' data-bs-toggle='modal' data-bs-target='#delConfModal'><i title='Send article to trash' class='fa-solid fa-trash'></i> Trash</button>
-                                            }
-                                            else
-                                            {
-                                                <button disabled title='Send article to trash' class='btn btn-sm btn-secondary'><i class='fa-solid fa-trash'></i> Trash</button>
-                                            }
-                                        </div>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
+                <div id="pagelist-table" class="table-dark"></div>
+                <script>
+
+                    const publisherUrl = "@options.Value.SiteSettings.PublisherUrl.TrimEnd('/')";
+
+                    function dateTime(cell, formatterParams, onRendered){
+                        //cell - the cell component
+                        //formatterParams - parameters set for the column
+                        //onRendered - function to call when the formatter has been rendered
+                        return getLocalTime(cell.getValue());
+                    }
+                    
+                    function dateFilterFunction(headerValue, rowValue, rowData, filterParams){
+                        if (rowValue === null || rowValue === "") {
+                            return false;
+                        }
+                        return headerValue === rowValue.split("T")[0]; //must return a boolean, true if it passes the filter.
+                    }
+
+                    function sendToTrash(articleNumber) {
+                        window.location.href = "@Url.Action("TrashArticle", "Editor")/" + articleNumber;
+                    }
+
+                    function openArticleVersions(e, cell) {
+                        const data = cell.getRow().getData();
+                        window.location.href = "@Url.Action("Versions")/" + data.ArticleNumber;
+                    }
+
+                    function unpublish(articleNumber) {
+                        const data = cell.getRow().getData();
+                        $.get("@Url.Action("UnpublishPage", "Editor")/" + articleNumber, function (data) {
+                            pageTable.setData();
+                        });
+                    }
+
+                    const trashBtn = function(cell, formatterParams){
+                        data = cell.getRow().getData();
+                        if (data.IsDefault === true){
+                            return "";
+                        }
+                        return "<button type='button' title='Send page to trash' onclick='selectArticle(" + data.ArticleNumber + ", \"" + data.Title + "\")' class='btn btn-sm btn-secondary' data-bs-toggle='modal' data-bs-target='#delConfModal'><i class='fa-solid fa-trash'></i></button>";
+                    };
+
+                    const menuBar = function(cell, formatterParams){
+                        data = cell.getRow().getData();
+                        let html = "<div class='btn-group btn-group-sm' role='group' aria-label='Page actions.'>";
+                        html += html += "<a href='/Editor/Versions/" + data.ArticleNumber + "' title='Click to edit page.' class='btn btn-sm btn-success'><i class='fa-solid fa-pen-to-square'></i></a>";
+                        let url = data.UrlPath;
+                        if (url === "root") {
+                            url = "";
+                        }
+                        if (data.LastPublished !== null && data.LastPublished !== ""){
+                            html += "<a target='_blank' href='" + publisherUrl + "/" + url + "' title='Open page on website.'  class='btn btn-sm btn-secondary'><i class='fa-solid fa-arrow-up-right-from-square'></i></a>";
+                        }
+                        else
+                        {
+                            html += "<a title='Cannot open page on website until it is published.' onclick='alert(\"Cannot open page on website until it is published.\")' class='btn btn-sm btn-secondary'><i class='fa-solid fa-arrow-up-right-from-square'></i></a>";
+                        }
+
+                        if (data.IsDefault === true){
+                            html += "<div title='Current home page.' class='btn btn-sm btn-primary'><i class='fa-solid fa-house'></i></div>";
+                        }
+                        else if (data.LastPublished !== null && data.LastPublished !== ""){
+                            html += "<a href='/Editor/NewHome/" + data.ArticleNumber + "' title='Make this the new home page.' class='btn btn-sm btn-secondary'><i class='fa-solid fa-house'></i></a>";
+                        }
+                        else
+                        {
+                            html += "<a title='Cannot make this the new home page until it is published.' onclick='alert(\"Cannot make this the home until it is published.\")' class='btn btn-sm btn-secondary'><i class='fa-solid fa-house'></i></a>";
+                        }
+
+                        html += "<a class='btn btn-sm btn-secondary' title='Create a clone of this page' href='/Editor/Clone/" + data.ArticleNumber + "'><i class='fa-solid fa-copy'></i></a>";
+
+                        if (data.LastPublished !== null && canEdit && data.IsDefault === false)
+                        {
+                            html += "<button onclick='unpublish(" + data.ArticleNumber + ")' title='Unpublishes a this item, and makes it no longer accessible except for editing.' class='btn btn-sm btn-secondary'><i class='fa-solid fa-calendar-xmark'></i></button>";
+                        }html += "</div>";
+                        return html;
+                    };
+
+                    const pageTable = new Tabulator("#pagelist-table", {
+                        maxHeight:(window.innerHeight - 172),
+                        layout:"fitColumns",
+                        ajaxURL:"@Url.Action("GetArticleList", "Editor")", //ajax URL
+                        columns:[
+                            {title:"UrlPath", field:"UrlPath", visible: false },
+                            {title:"No.", field:"ArticleNumber", visible: false },
+                            {title:"Status", field:"Status", sorter:"string", visible: false },
+
+                            {title:"Actions", field:"IsDefault", formatter:menuBar, width:176, headerSort:false },
+
+                            {title:"Published", field:"LastPublished", sorter:"date", headerFilter:"date", headerFilterFunc:dateFilterFunction, cellClick:openArticleVersions, width:180,
+                                sorter:"datetime",
+                                sorterParams:{
+                                    format:"iso", alignEmptyValues:"top", },
+                                formatter:"datetime",
+                                formatterParams:{
+                                    inputFormat:"iso",
+                                    outputFormat:"MM/dd/yyyy HH:mm:ss",
+                                    invalidPlaceholder:"(Invalid date)"
+                                }
+                            },
+
+                            {title:"Updated", field:"Updated", headerFilter:"date", headerFilterFunc:dateFilterFunction, cellClick:openArticleVersions, width:180,
+                                sorter:"datetime",
+                                sorterParams:{
+                                    format:"iso", alignEmptyValues:"top", },
+                                formatter:"datetime",
+                                formatterParams:{
+                                    inputFormat:"iso",
+                                    outputFormat:"MM/dd/yyyy HH:mm:ss",
+                                    invalidPlaceholder:"(Invalid date)"
+                                }
+                            },
+
+                            {title:"Title", field:"Title", sorter:"string", headerFilter:"input", cellClick:openArticleVersions },
+
+                            {title: "Trash", field:"ArticleNumber", formatter:trashBtn, width:56, headerSort:false, hozAlign:"center", headerHozAlign:"center" }
+                            
+                        ],
+                    });
+                </script>
             </div>
         </div>
 
         <div class="row cpws-table-pager-row-bottom">
             <div class="col-md-12 d-flex justify-content-center">
-                <partial name="~/Views/Shared/GridPager/_GridPager.cshtml" model="pagerModel"></partial>
+                &nbsp;
             </div>
         </div>
     </div>
@@ -184,8 +218,8 @@
 
 <script>
 
-    var canEdit = @canEdit.ToString().ToLower();
-    var clipboard = new ClipboardJS('.clipboard');
+    const canEdit = @canEdit.ToString().ToLower();
+    const clipboard = new ClipboardJS('.clipboard');
     clipboard.on('success',
         function (e) {
             console.info('Action:', e.action);
@@ -204,20 +238,6 @@
         return true;
     }
 
-    function sendToTrash() {
-        window.location.href = "@Url.Action("TrashArticle", "Editor")/" + articleNumber;
-    }
-
-    function openArticleVersions(id) {
-        window.location.href = "@Url.Action("Versions")/" + id;
-    }
-
-    function unpublish(articleNumber) {
-        $.get("@Url.Action("UnpublishPage", "Editor")/" + articleNumber, function (data) {
-            window.location.reload(true);
-        });
-    }
-
     $(document).ready(function () {
 
         $("body").addClass("cwps-editor-container");
@@ -229,77 +249,9 @@
         $("#btnCreate").hide();
 
         $("#btnCreate").click(function (e) {
-            window.location.href = "@Url.Action("Create", "Editor")?title=" + $("#combobox").val();
+            window.location.href = "@Url.Action("Create", "Editor")?title=";
         });
 
-        // COMBOBOX
-        $("#combobox").combobox({
-            source: function (request, response) {
-
-                $("#btnOpen").prop('disabled', true);
-                $("#btnOpen").show();
-                $("#btnCreate").hide();
-                $("#btnFilter").prop('disabled', true);
-
-                $.ajax({
-                    url: "@Url.Action("GetArticleList","Editor")",
-                    dataType: "json",
-                    data: {
-                        term: request.term
-                    },
-                    success: function (data) {
-                        let results = [];
-                        let showCreate = true;
-                        $.each(data, function (index, entity) {
-                            var item = { label: entity.Title, value: entity.Title, url: entity.UrlPath, updated: entity.Updated, id: entity.ArticleNumber, published: entity.LastPublished };
-                            results.push(item);
-                            if (request.term.toLowerCase() === item.label.toLowerCase()) {
-                                showCreate = false;
-                            }
-                        });
-                        response(results);
-                        var value = $("#combobox").val();
-
-                        if (value !== null && value.length > 0) {
-                            $("#btnFilter").prop('disabled', false);
-                        }
-
-                        $("#btnOpen").hide();
-
-                        if (showCreate) {
-                            $("#btnCreate").show();
-                        }
-                    }
-                });
-            },
-            select: function (event, ui) {
-                $("#btnCreate").hide();
-                $("#btnOpen").show();
-                $("#btnOpen").click(function () {
-                    window.location.href = "@Url.Action("Versions", "Editor")/" + ui.item.id;
-                });
-                $("#btnOpen").prop('disabled', false);
-            }
-        });
-
-        $("#combobox").keypress(function (event) {
-            var keycode = (event.keyCode ? event.keyCode : event.which);
-            if (keycode == '13') {
-                var url = "/Editor/Index?pageNo=0&sortOrder=@sortOrder&currentSort=@currentSort&pageSize=@pageSize&filter=" + $("#combobox").val();
-                window.location.href = url;
-            }
-        });
-
-        $("#btnFilter").click(function (e) {
-            e.preventDefault();
-            var url = "/Editor/Index?pageNo=0&sortOrder=@sortOrder&currentSort=@currentSort&pageSize=@pageSize&filter=" + $("#combobox").val();
-            window.location.href = url;
-        });
-
-
-        if ("@filter" === "") {
-            $("#btnFilter").prop('disabled', true);
-        }
     });
 
 
