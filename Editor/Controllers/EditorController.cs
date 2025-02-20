@@ -1884,7 +1884,17 @@ namespace Cosmos.Cms.Controllers
                 return BadRequest(ModelState);
             }
 
-            var data = await dbContext.ArticleCatalog.Select(s => new 
+            var data = await dbContext.ArticleCatalog.Select(s => new
+            {
+                s.ArticleNumber,
+                s.Title,
+                s.Published,
+                s.UrlPath,
+                s.Status,
+                s.Updated
+            }).ToListAsync();
+
+            var model = data.Select(s => new
             {
                 s.ArticleNumber,
                 s.Title,
@@ -1893,9 +1903,9 @@ namespace Cosmos.Cms.Controllers
                 UrlPath = HttpUtility.UrlEncode(s.UrlPath).Replace("%2f", "/"),
                 s.Status,
                 Updated = s.Updated.UtcDateTime.ToString("o")
-            }).OrderBy(o => o.Title).ToListAsync();
+            }).OrderBy(o => o.Title).ToList();
 
-            return Json(data);
+            return Json(model);
         }
 
         /// <summary>
