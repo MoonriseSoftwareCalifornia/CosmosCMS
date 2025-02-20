@@ -239,7 +239,7 @@ namespace Cosmos.Cms.Data.Logic
                 await PublishArticle(article);
             }
 
-            await CreateCatalogEntry(article.ArticleNumber, StatusCodeEnum.Active);
+            await CreateCatalogEntry(article.ArticleNumber, StatusCodeEnum.Active, article.Published);
 
             return await BuildArticleViewModel(article, "en-US");
         }
@@ -255,7 +255,7 @@ namespace Cosmos.Cms.Data.Logic
 
             if (entry == null)
             {
-                entry = await CreateCatalogEntry(articleNumber, StatusCodeEnum.Active);
+                entry = await CreateCatalogEntry(articleNumber, StatusCodeEnum.Active, entry.Published);
             }
 
             return entry;
@@ -537,7 +537,7 @@ namespace Cosmos.Cms.Data.Logic
             var results = await PublishArticle(article);
 
             // Finally update the catalog entry
-            await CreateCatalogEntry(article.ArticleNumber, (StatusCodeEnum)article.StatusCode);
+            await CreateCatalogEntry(article.ArticleNumber, (StatusCodeEnum)article.StatusCode, article.Published);
 
             var result = new ArticleUpdateResult
             {
@@ -1387,7 +1387,7 @@ namespace Cosmos.Cms.Data.Logic
                 if (!catalogArticleNumbers.Contains(articleNumber))
                 {
                     var last = await DbContext.Articles.Where(w => w.ArticleNumber == articleNumber).OrderBy(o => o.VersionNumber).LastOrDefaultAsync();
-                    await CreateCatalogEntry(articleNumber, (StatusCodeEnum)last.StatusCode);
+                    await CreateCatalogEntry(articleNumber, (StatusCodeEnum)last.StatusCode, last.Published);
                 }
             }
         }
@@ -1734,7 +1734,7 @@ namespace Cosmos.Cms.Data.Logic
                     // Publish the static webpage
                     await CreateStaticWebpage(newPage);
 
-                    await CreateCatalogEntry(item.ArticleNumber, (StatusCodeEnum)item.StatusCode);
+                    //await CreateCatalogEntry(item.ArticleNumber, (StatusCodeEnum)item.StatusCode);
                 }
 
                 // Update the pages collection
@@ -2005,8 +2005,9 @@ namespace Cosmos.Cms.Data.Logic
         /// </summary>
         /// <param name="articleNumber">Article number.</param>
         /// <param name="code">Article status code.</param>
+        /// <param name="published">The date/time when published.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        private async Task<CatalogEntry> CreateCatalogEntry(int articleNumber, StatusCodeEnum code)
+        private async Task<CatalogEntry> CreateCatalogEntry(int articleNumber, StatusCodeEnum code, DateTimeOffset? published)
         {
             var versions = await DbContext.Articles.Where(w => w.ArticleNumber == articleNumber).OrderBy(o => o.VersionNumber).ToListAsync();
 
@@ -2045,7 +2046,7 @@ namespace Cosmos.Cms.Data.Logic
             {
                 ArticleNumber = articleNumber,
                 BannerImage = lastVersion.BannerImage,
-                Published = versions.Max(m => m.Published),
+                Published = published,
                 Status = code == StatusCodeEnum.Active ? "Active" : "Inactive",
                 Title = lastVersion.Title,
                 Updated = versions.Max(m => m.Updated),

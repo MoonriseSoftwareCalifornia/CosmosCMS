@@ -447,7 +447,7 @@ namespace Cosmos.Cms.Controllers
             // Save changes back to the database
             var result = await articleLogic.SaveArticle(article, model.UserId);
 
-            if (options.Value.SiteSettings.StaticWebPages && article.Published.HasValue)
+            if (article.Published.HasValue)
             {
                 await articleLogic.CreateStaticTableOfContentsJsonFile("/");
             }
@@ -1699,7 +1699,7 @@ namespace Cosmos.Cms.Controllers
                             Updated = model.Updated.Value
                         }, await GetUserEmail());
 
-                    if (options.Value.SiteSettings.StaticWebPages && model.Published.HasValue)
+                    if (model.Published.HasValue)
                     {
                         await articleLogic.CreateStaticTableOfContentsJsonFile("/");
                     }
