@@ -65,6 +65,7 @@
                 <script>
 
                     const publisherUrl = "@options.Value.SiteSettings.PublisherUrl.TrimEnd('/')";
+                    const tblHeight = window.innerHeight - 200;
 
                     function dateTime(cell, formatterParams, onRendered){
                         //cell - the cell component
@@ -141,7 +142,9 @@
                     };
 
                     const pageTable = new Tabulator("#pagelist-table", {
-                        maxHeight:(window.innerHeight - 172),
+                        pagination:true, //enable pagination
+                        paginationMode:"local", //enable remote pagination
+                        paginationSize:15, //optional parameter to request a certain number of rows per page
                         layout:"fitColumns",
                         ajaxURL:"@Url.Action("GetArticleList", "Editor")", //ajax URL
                         columns:[
