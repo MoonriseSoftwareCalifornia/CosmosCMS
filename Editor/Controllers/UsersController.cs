@@ -480,7 +480,6 @@ namespace Cosmos.Cms.Controllers
                             Message = emailSender.SendResult.Message,
                             StatusCode = emailSender.SendResult.StatusCode
                         };
-
                     }
                     catch (Exception e)
                     {

@@ -41,6 +41,5 @@ namespace Cosmos.Editor.Models
         /// Gets or sets the CSS content.
         /// </summary>
         public string CssContent { get; set; }
-
     }
 }

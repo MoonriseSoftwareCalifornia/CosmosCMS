@@ -185,8 +185,7 @@ namespace Cosmos.Common.Data.Logic
             if (string.IsNullOrEmpty(prefix))
             {
                 query = from t in DbContext.ArticleCatalog
-                        where t.Published <= DateTimeOffset.UtcNow
-                        && t.UrlPath != "root"
+                        where t.Published.HasValue
                         select new TableOfContentsItem
                         {
                             UrlPath = t.UrlPath,
@@ -207,7 +206,7 @@ namespace Cosmos.Common.Data.Logic
                 var pattern = $"(?i)(^[{epath}]*)(\\/[^\\/]*){dcount}$";
 
                 query = from t in DbContext.ArticleCatalog
-                        where t.Published <= DateTimeOffset.UtcNow
+                        where t.Published.HasValue
                         && t.UrlPath != prefix
                         && t.UrlPath.StartsWith(prefix)
                         && Regex.IsMatch(t.UrlPath, pattern)
@@ -223,23 +222,28 @@ namespace Cosmos.Common.Data.Logic
                         };
             }
 
+            var data = await query.ToListAsync();
+            var sort = data.AsQueryable();
+
             if (orderByPublishedDate)
             {
-                query = query.OrderByDescending(o => o.Published);
+                sort = sort.OrderByDescending(o => o.Published);
             }
             else
             {
-                query = query.OrderBy(o => o.Title);
+                sort = sort.OrderBy(o => o.Title);
             }
 
-            var items = await query.ToListAsync();
+            var d = DateTimeOffset.UtcNow;
+
+            var items = sort.Where(w => w.Published.UtcDateTime <= d).Skip(skip).Take(pageSize).ToList();
 
             var model = new TableOfContents
             {
                 TotalCount = items.Count,
                 PageNo = pageNo,
                 PageSize = pageSize,
-                Items = items.Skip(skip).Take(pageSize).ToList()
+                Items = items
             };
 
             return model;

@@ -12,7 +12,7 @@
     var controllerName = ViewContext.RouteData.Values["controller"].ToString();
     var actionName = ViewContext.RouteData.Values["action"].ToString();
     var lastPublishedDateTimeOffset = (DateTimeOffset?)ViewData["LastPubDateTime"];
-    var lastPublishedString = lastPublishedDateTimeOffset.HasValue ? lastPublishedDateTimeOffset.Value.ToString("s") : string.Empty;
+    var lastPublishedString = lastPublishedDateTimeOffset.HasValue ? lastPublishedDateTimeOffset.Value.ToString("o") : string.Empty;
 }
 <!DOCTYPE HTML>
 <html>
@@ -303,7 +303,7 @@
                     <li class="nav-item">
                         <div id="divPublishedTitleGroup" class="input-group input-group-sm mt-1" style="display:none">
                             <div id="lblPublished" class="input-group-text" style="height:31px;">Published:</div>
-                            <input autocomplete="off" class="form-control text-truncate" name="tbPublished" id="tbPublished" placeholder="DRAFT (not published)" value="@((DateTimeOffset?)ViewData["Published"])" />
+                            <input autocomplete="off" class="form-control text-truncate" name="tbPublished" id="tbPublished" placeholder="DRAFT (not published)" value="@(lastPublishedDateTimeOffset)" />
                             <button class="btn btn-sm btn-danger" title="Publish now if new, or republish using previous date and time." type="button" id="btnPublishNow" onclick="bgEditClick('Publish')" style="display:none">Publish Now</button>
                             <button class="btn btn-sm btn-secondary" title="Clicking this button will make an editable draft of this page that is not published." type="button" id="btnDraftNow" onclick="bgEditClick('Draft')" style="display:none">Make Draft</button>
                         </div>
@@ -714,10 +714,10 @@
                     modalCheckSaveFirst.show();
                     break;
                 case "Draft":
-                    $("#tbPublished").val("");
+                    //$("#tbPublished").val("");
                     $("#btnPublishNow").show();
                     $("#btnDraftNow").hide();
-                    $("#tbPublished").addClass("is-invalid");
+                    //$("#tbPublished").addClass("is-invalid");
                     $("#Published").val("");
                     $("#SaveAsNewVersion").val("true");
                     $("#frmSave").submit();
@@ -801,9 +801,9 @@
             // Note, this saves the date/time using local time (of the user's computer).
             // The server stores this as UTC time.
             if (dateTimeValue !== null && dateTimeValue !== "null" && dateTimeValue !== "") {
-                var datetime = new Date(dateTimeValue);
-                var utcString = datetime.toUTCString();
-                $("#Published").val(utcString);
+                //var datetime = new Date(dateTimeValue);
+                //var utcString = datetime.toUTCString();
+                $("#Published").val(dateTimeValue);
                 $("#btnPublish").html("Published");
                 $("#tbPublished").removeClass("is-invalid");
                 $("#btnPublishNow").hide();
@@ -894,7 +894,7 @@
             }
 
             if ($("#Published").val() === null || $("#Published").val() === "") {
-                $("#tbPublished").addClass("is-invalid");
+                //$("#tbPublished").addClass("is-invalid");
                 $("#btnPublishNow").show();
                 $("#btnDraftNow").hide();
             } else {

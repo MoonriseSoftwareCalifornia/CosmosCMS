@@ -959,7 +959,7 @@ namespace Cosmos.Cms.Data.Logic
         /// <summary>
         /// Gets the last published date.
         /// </summary>
-        /// <param name="articleNumber">articleNumber</param>
+        /// <param name="articleNumber">articleNumber.</param>
         /// <returns>Last published date and time.</returns>
         public async Task<DateTimeOffset?> GetLastPublishedDate(int articleNumber)
         {
@@ -1265,7 +1265,6 @@ namespace Cosmos.Cms.Data.Logic
                     TotalFileSize = stream.Length,
                     UploadUid = Guid.NewGuid().ToString(),
                 });
-
             }
         }
 
@@ -1344,7 +1343,6 @@ namespace Cosmos.Cms.Data.Logic
                     CacheControl = "max-age=300;must-revalidate"
                 });
             }
-
         }
 
         /// <summary>

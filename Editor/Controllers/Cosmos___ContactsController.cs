@@ -198,7 +198,6 @@ namespace Cosmos.Editor.Controllers
                 await dbContext.SaveChangesAsync();
 
                 return RedirectToAction("Index");
-
             }
 
             // Something isn't right.

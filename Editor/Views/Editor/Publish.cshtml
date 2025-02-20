@@ -100,8 +100,8 @@
         $("#statusMsg").html("<p>Updating time stamps on " + pageList.length + " published pages. Please wait, this may take a while ...</p>");
 
         // Start with updating the time stamps of all published articles
-        const response2 = await fetch('@Url.Action("UpdateTimeStamps")');
-        const result2 = response2.json(); // await response.
+        //const response2 = await fetch('@Url.Action("UpdateTimeStamps")');
+        //const result2 = response2.json(); // await response.
 
         // Now handle static web pages.
         if (staticWebsite) {
@@ -122,7 +122,7 @@
                         body: JSON.stringify(idlist)
                     });
                     const result = await response.json();
-                    $("#statusMsg").html("<p>Published " + i + " out of " + pageList.length + "static pages. Working ...</p>");
+                    $("#statusMsg").html("<p>Published " + (i + 1) + " out of " + pageList.length + "static pages. Working ...</p>");
                     c = 0;
                     idlist = [];
                 }

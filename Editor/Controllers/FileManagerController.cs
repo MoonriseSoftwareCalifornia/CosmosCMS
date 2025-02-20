@@ -425,7 +425,6 @@ namespace Cosmos.Cms.Controllers
                 {
                     src = FixPath(s.Path),
                 }).ToList().Select(s => s.src).ToArray();
-
             }
 
             return blobs.Select(s => new
