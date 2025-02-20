@@ -2026,17 +2026,16 @@ namespace Cosmos.Cms.Data.Logic
             var htmlDoc = new HtmlAgilityPack.HtmlDocument();
             htmlDoc.LoadHtml(lastVersion.Content);
             var intro = string.Empty;
-            var contentAreas = htmlDoc.DocumentNode.SelectNodes("//div[contains(@class, 'ck-content')]");
 
-            foreach (var area in contentAreas)
+            var contentAreas = htmlDoc.DocumentNode.SelectNodes("//p").Where(w => !string.IsNullOrEmpty(w.InnerHtml) && !string.IsNullOrEmpty(w.InnerText.Trim().ToLower().Replace("&nbsp;", string.Empty))).Select(s => s.InnerText).ToList();
+
+            if (contentAreas != null && contentAreas.Any())
             {
-                var ps = area.SelectNodes("//p").Where(w => !string.IsNullOrEmpty(w.InnerHtml) && !string.IsNullOrEmpty(w.InnerText.Trim().ToLower().Replace("&nbsp;", string.Empty))).Select(s => s.InnerText).ToList();
-
-                foreach (var p in ps)
+                foreach (var area in contentAreas)
                 {
-                    if (!string.IsNullOrEmpty(p.Trim()))
+                    if (!string.IsNullOrEmpty(area.Trim()))
                     {
-                        intro = p;
+                        intro = area;
                         break;
                     }
                 }
