@@ -1899,7 +1899,7 @@ namespace Cosmos.Cms.Controllers
                 s.ArticleNumber,
                 s.Title,
                 IsDefault = s.UrlPath == "root",
-                LastPublished = s.Published.Value.UtcDateTime.ToString("o"),
+                LastPublished = s.Published.HasValue ? s.Published.Value.UtcDateTime.ToString("o") : string.Empty,
                 UrlPath = HttpUtility.UrlEncode(s.UrlPath).Replace("%2f", "/"),
                 s.Status,
                 Updated = s.Updated.UtcDateTime.ToString("o")
