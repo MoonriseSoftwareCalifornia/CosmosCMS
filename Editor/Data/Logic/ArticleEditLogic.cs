@@ -239,7 +239,7 @@ namespace Cosmos.Cms.Data.Logic
                 await PublishArticle(article);
             }
 
-            await CreateCatalogEntry(article.ArticleNumber, StatusCodeEnum.Active, article.Published);
+            await CreateCatalogEntry(article);
 
             return await BuildArticleViewModel(article, "en-US");
         }
@@ -247,15 +247,15 @@ namespace Cosmos.Cms.Data.Logic
         /// <summary>
         /// Gets or creates a catalog entry for an article.
         /// </summary>
-        /// <param name="articleNumber">Article number.</param>
+        /// <param name="article">Article for which to get the entry.</param>
         /// <returns>CatalogEntry.</returns>
-        public async Task<CatalogEntry> GetCatalogEntry(int articleNumber)
+        public async Task<CatalogEntry> GetCatalogEntry(Article article)
         {
-            var entry = await DbContext.ArticleCatalog.FirstOrDefaultAsync(f => f.ArticleNumber == articleNumber);
+            var entry = await DbContext.ArticleCatalog.FirstOrDefaultAsync(f => f.ArticleNumber == article.ArticleNumber);
 
             if (entry == null)
             {
-                entry = await CreateCatalogEntry(articleNumber, StatusCodeEnum.Active, entry.Published);
+                entry = await CreateCatalogEntry(article);
             }
 
             return entry;
@@ -537,7 +537,7 @@ namespace Cosmos.Cms.Data.Logic
             var results = await PublishArticle(article);
 
             // Finally update the catalog entry
-            await CreateCatalogEntry(article.ArticleNumber, (StatusCodeEnum)article.StatusCode, article.Published);
+            await CreateCatalogEntry(article);
 
             var result = new ArticleUpdateResult
             {
@@ -1387,7 +1387,7 @@ namespace Cosmos.Cms.Data.Logic
                 if (!catalogArticleNumbers.Contains(articleNumber))
                 {
                     var last = await DbContext.Articles.Where(w => w.ArticleNumber == articleNumber).OrderBy(o => o.VersionNumber).LastOrDefaultAsync();
-                    await CreateCatalogEntry(articleNumber, (StatusCodeEnum)last.StatusCode, last.Published);
+                    await CreateCatalogEntry(last);
                 }
             }
         }
@@ -1733,8 +1733,6 @@ namespace Cosmos.Cms.Data.Logic
 
                     // Publish the static webpage
                     await CreateStaticWebpage(newPage);
-
-                    //await CreateCatalogEntry(item.ArticleNumber, (StatusCodeEnum)item.StatusCode);
                 }
 
                 // Update the pages collection
@@ -2003,15 +2001,10 @@ namespace Cosmos.Cms.Data.Logic
         /// <summary>
         /// Creates or updates a catalog entry.
         /// </summary>
-        /// <param name="articleNumber">Article number.</param>
-        /// <param name="code">Article status code.</param>
-        /// <param name="published">The date/time when published.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        private async Task<CatalogEntry> CreateCatalogEntry(int articleNumber, StatusCodeEnum code, DateTimeOffset? published)
+        /// <param name="article">Article from which to derive the catalog entry.</param>
+        private async Task<CatalogEntry> CreateCatalogEntry(Article article)
         {
-            var versions = await DbContext.Articles.Where(w => w.ArticleNumber == articleNumber).OrderBy(o => o.VersionNumber).ToListAsync();
-
-            var oldEntry = await DbContext.ArticleCatalog.FirstOrDefaultAsync(f => f.ArticleNumber == articleNumber);
+            var oldEntry = await DbContext.ArticleCatalog.FirstOrDefaultAsync(f => f.ArticleNumber == article.ArticleNumber);
 
             if (oldEntry != null)
             {
@@ -2019,7 +2012,7 @@ namespace Cosmos.Cms.Data.Logic
                 await DbContext.SaveChangesAsync();
             }
 
-            var lastVersion = versions.LastOrDefault();
+            var lastVersion = await DbContext.Articles.Where(a => a.ArticleNumber == article.ArticleNumber).OrderByDescending(o => o.VersionNumber).LastOrDefaultAsync();
 
             var userId = lastVersion.UserId;
             var authorInfo = await DbContext.AuthorInfos.FirstOrDefaultAsync(f => f.UserId == userId && f.AuthorName != string.Empty);
@@ -2044,14 +2037,14 @@ namespace Cosmos.Cms.Data.Logic
 
             var entry = new CatalogEntry()
             {
-                ArticleNumber = articleNumber,
-                BannerImage = lastVersion.BannerImage,
-                Published = published,
-                Status = code == StatusCodeEnum.Active ? "Active" : "Inactive",
-                Title = lastVersion.Title,
-                Updated = versions.Max(m => m.Updated),
-                UrlPath = lastVersion.UrlPath,
-                TemplateId = lastVersion.TemplateId,
+                ArticleNumber = article.ArticleNumber,
+                BannerImage = article.BannerImage,
+                Published = article.Published,
+                Status = article.StatusCode == (int)StatusCodeEnum.Active ? "Active" : "Inactive",
+                Title = article.Title,
+                Updated = article.Updated,
+                UrlPath = article.UrlPath,
+                TemplateId = article.TemplateId,
                 AuthorInfo = JsonConvert.SerializeObject(authorInfo).Replace("\"", "'"),
                 Introduction = intro,
             };
@@ -2063,4 +2056,3 @@ namespace Cosmos.Cms.Data.Logic
         }
     }
 }
-

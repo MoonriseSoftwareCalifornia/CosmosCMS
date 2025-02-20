@@ -38,7 +38,7 @@ namespace Cosmos.Common.Data.Logic
         /// <param name="dbContext">Database context.</param>
         /// <param name="config">Cosmos configuration.</param>
         /// <param name="memoryCache">Memory cache used only by Publishers.</param>
-        /// <param name="isEditor">Is in edit mode or not (by passess redis if set to true).</param>
+        /// <param name="isEditor">Is in edit mode or not.</param>
         public ArticleLogic(ApplicationDbContext dbContext, IOptions<CosmosConfig> config, IMemoryCache memoryCache, bool isEditor = false)
         {
             this.memoryCache = memoryCache;

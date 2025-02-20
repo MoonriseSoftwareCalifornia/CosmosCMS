@@ -651,7 +651,14 @@ namespace Cosmos.Cms.Controllers
 
                 storageContext.AppendBlob(memoryStream, metaData);
 
-                await PurgeCdnPath(metaData);
+                try
+                {
+                    await PurgeCdnPath(metaData);
+                }
+                catch
+                {
+                    // Nothing to do.
+                }
 
                 if (editorType == "grapesjs")
                 {

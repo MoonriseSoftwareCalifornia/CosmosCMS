@@ -159,7 +159,7 @@ namespace Cosmos.Cms.Controllers
             // Loads GrapeJS.
             ViewData["IsDesigner"] = true;
 
-            var article = await articleLogic.GetArticleByArticleNumber(id, null);
+            var article = await dbContext.Articles.Where(w => w.ArticleNumber == id).LastOrDefaultAsync();
             if (article == null)
             {
                 return NotFound();
@@ -179,7 +179,7 @@ namespace Cosmos.Cms.Controllers
             ViewData["Published"] = null;
             ViewData["LastPubDateTime"] = await articleLogic.GetLastPublishedDate(id);
 
-            var catalogEntry = await articleLogic.GetCatalogEntry(id);
+            var catalogEntry = await articleLogic.GetCatalogEntry(article);
 
             var designerUtils = new DesignerUtilities();
             var data = designerUtils.ExtractDesignerData(article.Content);
@@ -1143,7 +1143,9 @@ namespace Cosmos.Cms.Controllers
             ViewData["pageSize"] = pageSize;
             ViewData["showingRoles"] = forRoles;
 
-            var catalogEntry = await articleLogic.GetCatalogEntry(id);
+            var article = await dbContext.Articles.FindAsync(id);
+
+            var catalogEntry = await articleLogic.GetCatalogEntry(article);
 
             ViewData["ArticleNumber"] = catalogEntry.ArticleNumber;
             ViewData["ArticlePermissions"] = catalogEntry.ArticlePermissions;
@@ -1222,15 +1224,16 @@ namespace Cosmos.Cms.Controllers
 
             try
             {
-                var article = await articleLogic.GetCatalogEntry(id);
+                var article = await dbContext.Articles.Where(w => w.ArticleNumber == id).OrderByDescending(o => o.VersionNumber).LastOrDefaultAsync();
+                var entry = await articleLogic.GetCatalogEntry(article);
 
-                if (article.ArticlePermissions == null)
+                if (entry.ArticlePermissions == null)
                 {
-                    article.ArticlePermissions = new List<ArticlePermission>();
+                    entry.ArticlePermissions = new List<ArticlePermission>();
                 }
                 else
                 {
-                    article.ArticlePermissions.Clear();
+                    entry.ArticlePermissions.Clear();
                 }
 
                 var roles = await dbContext.Roles.Where(w => identityObjectIds.Contains(w.Id)).ToListAsync();
@@ -1238,7 +1241,7 @@ namespace Cosmos.Cms.Controllers
 
                 if (roles.Any())
                 {
-                    article.ArticlePermissions.AddRange(roles.Select(s => new ArticlePermission()
+                    entry.ArticlePermissions.AddRange(roles.Select(s => new ArticlePermission()
                     {
                         IdentityObjectId = s.Id,
                         IsRoleObject = true
@@ -1247,7 +1250,7 @@ namespace Cosmos.Cms.Controllers
 
                 if (users.Any())
                 {
-                    article.ArticlePermissions.AddRange(users.Select(s => new ArticlePermission()
+                    entry.ArticlePermissions.AddRange(users.Select(s => new ArticlePermission()
                     {
                         IdentityObjectId = s.Id,
                         IsRoleObject = false
@@ -1548,7 +1551,9 @@ namespace Cosmos.Cms.Controllers
                 return Unauthorized();
             }
 
-            var entry = await articleLogic.GetCatalogEntry(id);
+            var article = await dbContext.Articles.Where(w => w.ArticleNumber == id).LastOrDefaultAsync();
+
+            var entry = await articleLogic.GetCatalogEntry(article);
 
             return View(new HtmlEditorViewModel(model, entry));
         }
@@ -1566,7 +1571,7 @@ namespace Cosmos.Cms.Controllers
                 return BadRequest(ModelState);
             }
 
-            var article = await articleLogic.GetArticleByArticleNumber(id, null);
+            var article = await dbContext.Articles.Where(w => w.ArticleNumber == id).OrderByDescending(o => o.VersionNumber).LastOrDefaultAsync();
             if (article == null)
             {
                 return NotFound();
@@ -1578,7 +1583,7 @@ namespace Cosmos.Cms.Controllers
             ViewData["Published"] = null;
             ViewData["LastPubDateTime"] = await articleLogic.GetLastPublishedDate(id);
 
-            var catalogEntry = await articleLogic.GetCatalogEntry(id);
+            var catalogEntry = await articleLogic.GetCatalogEntry(article);
 
             return View(new EditCodePostModel
             {
@@ -1619,7 +1624,7 @@ namespace Cosmos.Cms.Controllers
                         ToolTip = "Content to appear at the bottom of the <body> tag."
                     }
                 },
-                HeadJavaScript = article.HeadJavaScript,
+                HeadJavaScript = article.HeaderJavaScript,
                 FooterJavaScript = article.FooterJavaScript,
                 Content = article.Content,
                 EditingField = "HeadJavaScript",
@@ -1667,8 +1672,9 @@ namespace Cosmos.Cms.Controllers
             }
 
             // Next pull the original. This is a view model, not tracked by DbContext.
-            var article = await articleLogic.GetArticleByArticleNumber(model.ArticleNumber, null);
-            var entry = await articleLogic.GetCatalogEntry(model.ArticleNumber);
+            // var article = await articleLogic.GetArticleByArticleNumber(model.ArticleNumber, null);
+            var article = await dbContext.Articles.Where(w => w.ArticleNumber == model.ArticleNumber).LastOrDefaultAsync();
+            var entry = await articleLogic.GetCatalogEntry(article);
 
             if (article == null)
             {
@@ -1693,7 +1699,7 @@ namespace Cosmos.Cms.Controllers
                             Expires = article.Expires,
                             FooterJavaScript = model.FooterJavaScript,
                             HeadJavaScript = model.HeadJavaScript,
-                            StatusCode = article.StatusCode,
+                            StatusCode = (StatusCodeEnum)article.StatusCode,
                             UrlPath = article.UrlPath,
                             VersionNumber = article.VersionNumber,
                             Updated = model.Updated.Value
