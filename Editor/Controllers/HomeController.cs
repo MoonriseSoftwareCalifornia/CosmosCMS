@@ -14,12 +14,12 @@ namespace Cosmos.Cms.Controllers
     using System.Threading.Tasks;
     using Cosmos.BlobService;
     using Cosmos.Cms.Common.Services.Configurations;
-    using Cosmos.Cms.Data.Logic;
     using Cosmos.Cms.Models;
     using Cosmos.Common;
     using Cosmos.Common.Data;
     using Cosmos.Common.Models;
     using Cosmos.Common.Services.PowerBI;
+    using Cosmos.Editor.Data.Logic;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Identity;

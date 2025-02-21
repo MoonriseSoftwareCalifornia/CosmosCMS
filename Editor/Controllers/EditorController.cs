@@ -15,7 +15,6 @@ namespace Cosmos.Cms.Controllers
     using System.Web;
     using Cosmos.BlobService;
     using Cosmos.Cms.Common.Services.Configurations;
-    using Cosmos.Cms.Data.Logic;
     using Cosmos.Cms.Models;
     using Cosmos.Cms.Services;
     using Cosmos.Common.Data;

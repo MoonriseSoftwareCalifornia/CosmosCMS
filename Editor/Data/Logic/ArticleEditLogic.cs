@@ -5,7 +5,7 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
-namespace Cosmos.Cms.Data.Logic
+namespace Cosmos.Editor.Data.Logic
 {
     using System;
     using System.Collections.Generic;
@@ -25,7 +25,6 @@ namespace Cosmos.Cms.Data.Logic
     using Cosmos.Common.Models;
     using Cosmos.Editor.Controllers;
     using Cosmos.Editor.Services;
-    using Microsoft.Azure.Cosmos.Core;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.Extensions.Logging;
@@ -523,7 +522,7 @@ namespace Cosmos.Cms.Data.Logic
 
             // If we are publishing this to a static website, write it
             // to the blob storage now.
-            if (this.CosmosOptions.Value.UseStaticPublisherWebsite)
+            if (CosmosOptions.Value.UseStaticPublisherWebsite)
             {
                 // TODO: Write to blob storage
             }
@@ -775,7 +774,7 @@ namespace Cosmos.Cms.Data.Logic
         /// </remarks>
         public void UpdateHeadBaseTag(Article model)
         {
-            if (!string.IsNullOrEmpty(model.HeaderJavaScript) && (model.HeaderJavaScript.Contains("<base ") || (model.HeaderJavaScript.ToLower().Contains("ccms:framework") && model.HeaderJavaScript.ToLower().Contains("angular"))))
+            if (!string.IsNullOrEmpty(model.HeaderJavaScript) && (model.HeaderJavaScript.Contains("<base ") || model.HeaderJavaScript.ToLower().Contains("ccms:framework") && model.HeaderJavaScript.ToLower().Contains("angular")))
             {
                 model.HeaderJavaScript = UpdateHeadBaseTag(model.HeaderJavaScript, model.UrlPath);
             }
@@ -1012,9 +1011,9 @@ namespace Cosmos.Cms.Data.Logic
         /// <param name="blobPublicAbsoluteUrl">Blob absolute URL.</param>
         /// <param name="viewRenderService">View render service.</param>
         /// <returns>web page.</returns>
-        public async Task<string> ExportArticle(ArticleViewModel article, Uri blobPublicAbsoluteUrl, Services.IViewRenderService viewRenderService)
+        public async Task<string> ExportArticle(ArticleViewModel article, Uri blobPublicAbsoluteUrl, IViewRenderService viewRenderService)
         {
-            var htmlUtilities = new Services.HtmlUtilities();
+            var htmlUtilities = new HtmlUtilities();
 
             article.Layout.Head = htmlUtilities.RelativeToAbsoluteUrls(article.Layout.Head, blobPublicAbsoluteUrl, false);
 
@@ -1214,7 +1213,7 @@ namespace Cosmos.Cms.Data.Logic
         /// <remarks>Only works if the environment variable 'CosmosStaticWebPages' is set to 'true'.</remarks>
         public async Task CreateStaticWebpage(PublishedPage page)
         {
-            if (this.CosmosOptions.Value.SiteSettings.StaticWebPages)
+            if (CosmosOptions.Value.SiteSettings.StaticWebPages)
             {
                 if (page.UrlPath.StartsWith("/pub", StringComparison.OrdinalIgnoreCase))
                 {
@@ -1302,9 +1301,9 @@ namespace Cosmos.Cms.Data.Logic
         /// </summary>
         /// <param name="filePath">Path and file name.</param>
         /// <returns>Task.</returns>
-        public async Task CreateSiteMapFile(string filePath = "sitemap.xml")
+        public async Task CreateSiteMapFile(string filePath = "/pub/sitemap.xml")
         {
-            var siteMap = await this.GetSiteMap();
+            var siteMap = await GetSiteMap();
             using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(siteMap.ToXml())))
             {
                 var storagePath = $"/{filePath}";
@@ -1324,7 +1323,7 @@ namespace Cosmos.Cms.Data.Logic
                 });
             }
 
-            var robotsTxtFile = $"Sitemap: {this.CosmosOptions.Value.SiteSettings.PublisherUrl.TrimEnd('/')}/sitemap.xml";
+            var robotsTxtFile = $"Sitemap: {CosmosOptions.Value.SiteSettings.PublisherUrl.TrimEnd('/')}/pub/sitemap.xml";
             using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(robotsTxtFile)))
             {
                 var storagePath = "/robots.txt";
@@ -1549,7 +1548,7 @@ namespace Cosmos.Cms.Data.Logic
         /// <param name="filePath">Path to page to remove.</param>
         private void DeleteStaticWebpage(string filePath)
         {
-            if (this.CosmosOptions.Value.SiteSettings.StaticWebPages)
+            if (CosmosOptions.Value.SiteSettings.StaticWebPages)
             {
                 if (filePath.StartsWith("/pub", StringComparison.OrdinalIgnoreCase))
                 {
@@ -1563,7 +1562,7 @@ namespace Cosmos.Cms.Data.Logic
 
         private async Task CreateStaticRedirectPage(string fromUrl, string toUrl)
         {
-            if (this.CosmosOptions.Value.SiteSettings.StaticWebPages)
+            if (CosmosOptions.Value.SiteSettings.StaticWebPages)
             {
                 if (fromUrl.Equals(toUrl, StringComparison.OrdinalIgnoreCase))
                 {
@@ -1665,7 +1664,6 @@ namespace Cosmos.Cms.Data.Logic
                 && w.Content != ""
                 && w.Title != "")
                 .OrderByDescending(o => o.Published).AsNoTracking().ToListAsync();
-
 
             var paths = itemsToPublish.Select(s => s.UrlPath).Distinct().ToList();
 
@@ -1916,7 +1914,7 @@ namespace Cosmos.Cms.Data.Logic
             }
             else
             {
-                urlPrefix = System.Web.HttpUtility.UrlDecode(urlPrefix.ToLower().Replace("%20", "_").Replace(" ", "_"));
+                urlPrefix = HttpUtility.UrlDecode(urlPrefix.ToLower().Replace("%20", "_").Replace(" ", "_"));
             }
 
             var query = DbContext.Articles.Where(a => a.UrlPath.StartsWith(urlPrefix));

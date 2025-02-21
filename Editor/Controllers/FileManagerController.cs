@@ -17,11 +17,11 @@ namespace Cosmos.Cms.Controllers
     using Cosmos.BlobService;
     using Cosmos.BlobService.Models;
     using Cosmos.Cms.Common.Services.Configurations;
-    using Cosmos.Cms.Data.Logic;
     using Cosmos.Cms.Models;
     using Cosmos.Cms.Services;
     using Cosmos.Common.Data;
     using Cosmos.Editor.Controllers;
+    using Cosmos.Editor.Data.Logic;
     using Cosmos.Editor.Models;
     using Cosmos.Editor.Services;
     using Microsoft.AspNetCore.Authorization;

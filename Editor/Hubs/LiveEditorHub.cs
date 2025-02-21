@@ -9,8 +9,8 @@ namespace Cosmos.Cms.Hubs
 {
     using System;
     using System.Threading.Tasks;
-    using Cosmos.Cms.Data.Logic;
     using Cosmos.Cms.Models;
+    using Cosmos.Editor.Data.Logic;
     using Microsoft.AspNetCore.SignalR;
     using Microsoft.Extensions.Logging;
     using Newtonsoft.Json;
