@@ -6,7 +6,7 @@
 
     var data = new ImportMapDefinition(
         new Dictionary<string, string>()
-                {
+                        {
             { "ckeditor5", "/lib/ckeditor/ckeditor5.js" },
             { "ckeditor5/", "/lib/ckeditor/" },
 
@@ -24,7 +24,7 @@
 
             { "vscodeeditor", "/lib/cosmos/ckeditor/vscodeeditor/vscodeeditor.js" },
             { "vscodeeditor/", "/lib/cosmos/ckeditor/vscodeeditor/" },
-                },
+                        },
         null,
         null);
 }
@@ -49,6 +49,9 @@
     </style>
     @Html.Raw(Model.Layout.Head)
     <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/44.1.0/ckeditor5.css" />
+    <link href="https://unpkg.com/filepond@4/dist/filepond.css" rel="stylesheet" />
+    <link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css" rel="stylesheet" />
+    <link href="https://unpkg.com/filepond-plugin-image-edit/dist/filepond-plugin-image-edit.css" rel="stylesheet" />
     @Html.Raw(Model.HeadJavaScript)
     @Html.Raw(JavaScriptSnippet.FullScript)
 </head>
@@ -64,7 +67,14 @@
     </script>
     <link href="~/lib/cropperjs/cropper.min.css" rel="stylesheet" asp-append-version="true" />
     <script src="~/lib/cropperjs/cropper.min.js" asp-append-version="true"></script>
-
+    <script src="https://unpkg.com/filepond-plugin-file-metadata/dist/filepond-plugin-file-metadata.js"></script>
+    <script src="https://unpkg.com/filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.js"></script>
+    <script src="https://unpkg.com/filepond-plugin-image-edit/dist/filepond-plugin-image-edit.js"></script>
+    <script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.js"></script>
+    <script src="https://unpkg.com/filepond-plugin-image-exif-orientation/dist/filepond-plugin-image-exif-orientation.js"></script>
+    <script src="https://unpkg.com/filepond-plugin-image-validate-size/dist/filepond-plugin-image-validate-size.js"></script>
+    <script src="https://unpkg.com/filepond-plugin-image-crop/dist/filepond-plugin-image-crop.js"></script>
+    <script src="https://unpkg.com/filepond/dist/filepond.js"></script>
     <script>
 
         // Create editors
@@ -95,7 +105,8 @@
                         if (editor === null) {
                             parent.saveChanges();
                         } else {
-                            parent.saveChanges(editor.getData(), editor.sourceElement.getAttribute("data-ccms-ceid"));
+                            const data = editor.getData();
+                            parent.saveChanges(data, editor.sourceElement.getAttribute("data-ccms-ceid"));
                         }
                         break;
                 }
@@ -107,7 +118,7 @@
     <script src="@Html.Raw("https://unpkg.com/tippy.js@6")"></script>
 
     <script type="module" src="~/lib/cosmos/ckeditor/main.js" asp-append-version="true"></script>
-    
+
     <script>
         const elements = document.querySelectorAll('[data-ccms-ceid]');
         elements.forEach(function (el, index) {
@@ -119,6 +130,78 @@
             placement: "right-start",
             inlinePositioning: true,
         }); //data-ccms-ceid
+
+        // We want to preview images, so we register
+        // the Image Preview plugin, We also register
+        // exif orientation (to correct mobile image
+        // orientation) and size validation, to prevent
+        // large files from being added
+        FilePond.registerPlugin(
+          FilePondPluginFileMetadata,
+          FilePondPluginImagePreview,
+          FilePondPluginImageExifOrientation,
+          FilePondPluginImageValidateSize,
+          FilePondPluginImageEdit
+        );
+
+        function getImageDimensions(blob, callback) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const dimensions = {
+                        width: img.naturalWidth,
+                        height: img.naturalHeight
+                    };
+                    callback(dimensions);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(blob);
+        }
+
+        const imgholders = document.querySelectorAll(".imgholder");
+
+        const ponds = document.querySelectorAll('.filepond');
+
+        ponds.forEach(function (el, index) {
+
+            let pond = FilePond.create(el,
+                { 
+                    acceptedFileTypes: ['image/*']
+                });
+
+            pond.setOptions({
+                server: "@Url.Action("UploadImage", "FileManager")"
+            });
+
+            pond.on('addfile', (error, file) => {
+                file.setMetadata("Path", "/pub/articles/@Model.ArticleNumber/");
+                file.setMetadata("RelativePath", "");
+                file.setMetadata("fileName", file.filename.toLowerCase());
+                getImageDimensions(file.file, function(dimensions) {
+                    file.setMetadata('imageWidth', dimensions.width);
+                    file.setMetadata('imageHeight', dimensions.height);
+                });
+            });
+
+            pond.on('processfilestart', (e) => {
+                const metadata = e.getMetadata();
+            });
+
+            pond.on('processfile', (error, file) => {
+                const f = file;
+                const fileName = file.getMetadata("fileName");
+                const relativePath = "/pub/articles/@Model.ArticleNumber/" + fileName;
+                const img = document.getElementById("image-1");
+                img.src = relativePath;
+            });
+
+
+            pond.on('removefile', (file) => {
+                const f = file;
+            });
+        });
     </script>
 </body>
 </html>

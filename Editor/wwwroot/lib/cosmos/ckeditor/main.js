@@ -166,6 +166,7 @@ const EditorConfig = {
     ],
     toolbar: {
         items: [
+            'link',
             'pageLink',
             'fileLink',
             'insertImage',
@@ -258,41 +259,24 @@ const EditorConfig = {
     },
     licenseKey: LICENSE_KEY,
     link: {
-        addTargetToExternalLinks: true,
+        addTargetToExternalLinks: false,
         defaultProtocol: 'https://',
-        decorators: {
-            toggleDownloadable: {
-                mode: 'manual',
-                label: 'Downloadable',
-                attributes: {
-                    download: 'file'
-                }
-            },
-            openInNewTab: {
-                mode: 'manual',
-                label: 'Open in same tab',
-                defaultValue: '_self',
-                attributes: {
-                    target: '_self'
-                }
-            }
-        },
-        list: {
-            properties: {
-                styles: true,
-                startIndex: true,
-                reversed: true
-            }
-        },
-        placeholder: 'Type or paste your content here!',
-        ui: {
-            viewportOffset: {
-                top: getDistanceFromTop(),
-            }
-        },
-        table: {
-            contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells', 'tableProperties', 'tableCellProperties']
+    },
+    list: {
+        properties: {
+            styles: true,
+            startIndex: true,
+            reversed: true
         }
+    },
+    placeholder: 'Type or paste your content here!',
+    ui: {
+        viewportOffset: {
+            top: getDistanceFromTop(),
+        }
+    },
+    table: {
+        contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells', 'tableProperties', 'tableCellProperties']
     }
 };
 
@@ -303,12 +287,11 @@ function ccms_createEditors() {
         InlineEditor
             .create(editorElement, EditorConfig)
             .then(editor => {
+                window.editor = editor;
                 const imageUploadEditing = editor.plugins.get('ImageUploadEditing');
                 imageUploadEditing.on('uploadComplete', (evt, { data, imageElement }) => {
                     parent.ccms_setBannerImage(data.url);
                 });
-                window.editor = editor;
-
                 editor.editing.view.document.on('change:isFocused', (evt, data, isFocused) => {
                     console.log(`View document is focused: ${isFocused}.`);
                     if (isFocused) {
@@ -318,7 +301,6 @@ function ccms_createEditors() {
                         focusedEditor = null;
                     }
                 });
-
                 ccms_editors.push(editor);
             });
     });

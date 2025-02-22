@@ -25,6 +25,7 @@ namespace Cosmos.Editor.Data.Logic
     using Cosmos.Common.Models;
     using Cosmos.Editor.Controllers;
     using Cosmos.Editor.Services;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.Extensions.Logging;
@@ -454,7 +455,7 @@ namespace Cosmos.Editor.Data.Logic
             // Retrieve the article that we will be using.
             // This will either be used to create a new version (detached then added as new),
             // or updated in place.
-            var article = await DbContext.Articles.OrderByDescending(o => o.VersionNumber).FirstOrDefaultAsync(a => a.ArticleNumber == model.ArticleNumber);
+           var article = await DbContext.Articles.OrderByDescending(o => o.VersionNumber).FirstOrDefaultAsync(a => a.ArticleNumber == model.ArticleNumber);
 
             if (article == null)
             {
@@ -1237,11 +1238,11 @@ namespace Cosmos.Editor.Data.Logic
                 }
 
                 // Compress HTML
-                var compressed = Uglify.Html(html).Code;
-                if (!string.IsNullOrEmpty(compressed))
-                {
-                    html = compressed;
-                }
+                //var compressed = Uglify.Html(html).Code;
+                //if (!string.IsNullOrEmpty(compressed))
+                //{
+                //    html = compressed;
+                //}
 
                 using var stream = new MemoryStream(Encoding.UTF8.GetBytes(html));
 
@@ -1483,18 +1484,13 @@ namespace Cosmos.Editor.Data.Logic
         /// </remarks>
         private async Task<List<CdnResult>> PublishArticle(Article article)
         {
-            // Clean things up a bit.
-            var doomed = await DbContext.Pages.Where(w => w.Content == "" || w.Title == "").ToListAsync();
-
-            if (doomed.Any())
-            {
-                DbContext.Pages.RemoveRange(doomed);
-                await DbContext.SaveChangesAsync();
-            }
-
             if (article.Published.HasValue)
             {
-                var others = await DbContext.Articles.Where(w => w.ArticleNumber == article.ArticleNumber && w.Published != null && w.Id != article.Id).ToListAsync();
+                // If the article is already published, then remove the other published versions.
+                var others = await DbContext.Articles.Where(
+                    w => w.ArticleNumber == article.ArticleNumber
+                    && w.Published != null
+                    && w.Id != article.Id).ToListAsync();
 
                 var now = DateTimeOffset.Now;
 
@@ -1536,7 +1532,7 @@ namespace Cosmos.Editor.Data.Logic
                 await UpdateVersionExpirations(article.ArticleNumber);
 
                 // Update the published pages collection
-                return await CreatePublishedPage(article.ArticleNumber);
+                return await UpsertPublishedPage(article.ArticleNumber);
             }
 
             return null;
@@ -1651,93 +1647,88 @@ namespace Cosmos.Editor.Data.Logic
         }
 
         /// <summary>
-        /// Creates a published page for a given article number, both in the database and in the blob storage (if enabled).
+        /// Creates a published page for a set of article versions, both in the database and in the blob storage (if enabled).
         /// </summary>
-        /// <param name="articleNumber">Article number to publish.</param>
+        /// <param name="articleNumber">Artice number to publish.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        private async Task<List<CdnResult>> CreatePublishedPage(int articleNumber)
+        private async Task<List<CdnResult>> UpsertPublishedPage(int articleNumber)
         {
-            // Now we are going to update the Pages table
-            var itemsToPublish = await DbContext.Articles.Where(
+            // Clean things up a bit.
+            var doomed = await DbContext.Pages.Where(w => w.Content == "" || w.Title == "").ToListAsync();
+
+            if (doomed.Any())
+            {
+                DbContext.Pages.RemoveRange(doomed);
+                await DbContext.SaveChangesAsync();
+            }
+
+            // One or more versions of the article are going to be published.
+            var newVersions = await DbContext.Articles.Where(
                 w => w.ArticleNumber == articleNumber
-                && w.Published != null
-                && w.Content != ""
-                && w.Title != "")
-                .OrderByDescending(o => o.Published).AsNoTracking().ToListAsync();
+                && w.Published != null).ToListAsync();
 
-            var paths = itemsToPublish.Select(s => s.UrlPath).Distinct().ToList();
+            // These published versions are going to be replaced--except for redirects.
+            var publishedVersions = await DbContext.Pages.Where(
+                w => w.ArticleNumber == articleNumber
+                && w.StatusCode != (int)StatusCodeEnum.Redirect).ToListAsync();
 
-            // Get everything that is going to be removed or replaced
-            var itemsToRemove = await DbContext.Pages.Where(w => w.ArticleNumber == articleNumber || paths.Contains(w.UrlPath)).ToListAsync();
+            // This holds the new or updated page URLS.
+            var purgePaths = new List<string>();
+            purgePaths.AddRange(newVersions.Select(s => s.UrlPath));
+            purgePaths.AddRange(publishedVersions.Select(s => s.UrlPath));
 
-            // Get the paths to purge, these are items that are going to be removed or replaced.
-            var purgePaths = itemsToRemove.Select(s => s.UrlPath).Distinct().ToList();
 
-            if (itemsToRemove.Any())
+            if (publishedVersions.Count > 0)
             {
                 // Mark these for deletion - do this first to avoid any conflicts
-                DbContext.Pages.RemoveRange(itemsToRemove);
-                await DbContext.SaveChangesAsync();
-                purgePaths.AddRange(itemsToRemove.Select(s => s.UrlPath).Distinct().ToArray());
-
-                foreach (var path in purgePaths)
+                foreach (var item in publishedVersions)
                 {
-                    DeleteStaticWebpage(path);
+                    DbContext.Pages.Remove(item);
+                    await DbContext.SaveChangesAsync();
+                    DeleteStaticWebpage(item.UrlPath);
                 }
             }
 
-            if (itemsToPublish.Any())
+            // Now refresh the published pages
+            foreach (var item in newVersions)
             {
-                // Now refresh the published pages
-                foreach (var item in itemsToPublish)
+                var authorInfo = await DbContext.AuthorInfos.FirstOrDefaultAsync(f => f.UserId == item.UserId && f.AuthorName != string.Empty);
+
+                var newPage = new PublishedPage()
                 {
-                    var authorInfo = await DbContext.AuthorInfos.FirstOrDefaultAsync(f => f.UserId == item.UserId && f.AuthorName != string.Empty);
+                    ArticleNumber = item.ArticleNumber,
+                    BannerImage = item.BannerImage,
+                    Content = item.Content,
+                    Expires = item.Expires,
+                    FooterJavaScript = item.FooterJavaScript,
+                    HeaderJavaScript = item.HeaderJavaScript,
+                    Id = Guid.NewGuid(), // Use a new GUID
+                    Published = item.Published,
+                    StatusCode = item.StatusCode,
+                    Title = item.Title,
+                    Updated = item.Updated,
+                    UrlPath = item.UrlPath,
+                    ParentUrlPath = item.UrlPath.Substring(0, Math.Max(item.UrlPath.LastIndexOf('/'), 0)),
+                    VersionNumber = item.VersionNumber,
+                    AuthorInfo = JsonConvert.SerializeObject(authorInfo).Replace("\"", "'")
+                };
 
-                    var newPage = new PublishedPage()
-                    {
-                        ArticleNumber = item.ArticleNumber,
-                        BannerImage = item.BannerImage,
-                        Content = item.Content,
-                        Expires = item.Expires,
-                        FooterJavaScript = item.FooterJavaScript,
-                        HeaderJavaScript = item.HeaderJavaScript,
-                        Id = Guid.NewGuid(), // Use a new GUID
-                        Published = item.Published,
-                        StatusCode = item.StatusCode,
-                        Title = item.Title,
-                        Updated = item.Updated,
-                        UrlPath = item.UrlPath,
-                        ParentUrlPath = item.UrlPath.Substring(0, Math.Max(item.UrlPath.LastIndexOf('/'), 0)),
-                        VersionNumber = item.VersionNumber,
-                        AuthorInfo = JsonConvert.SerializeObject(authorInfo).Replace("\"", "'")
-                    };
+                DbContext.Pages.Add(newPage);
+                await DbContext.SaveChangesAsync();
 
-                    // Check for duplicate
-                    var duplicate = await DbContext.Pages.FirstOrDefaultAsync(f => f.Id == newPage.Id);
-                    if (duplicate == null)
-                    {
-                        DbContext.Pages.Add(newPage);
-                        purgePaths.Add(newPage.UrlPath);
-                    }
-                    else
-                    {
-                        throw new ArgumentException($"Duplicate Page Id. Existing: {duplicate.Id} New: {newPage.Id} ArticleId: {articleNumber}.");
-                    }
+                if (item.UrlPath != "root")
+                {
+                    purgePaths.Add($"/pub/articles/{item.ArticleNumber}/");
+                }
 
-                    if (item.UrlPath != "root")
-                    {
-                        purgePaths.Add($"/pub/articles/{item.ArticleNumber}/");
-                    }
-
-                    // Publish the static webpage
+                // Publish the static webpage that are published before now (add 5 min)
+                if (newPage.Published.Value <= DateTimeOffset.Now.AddMinutes(5))
+                {
                     await CreateStaticWebpage(newPage);
                 }
-
-                // Update the pages collection
-                await DbContext.SaveChangesAsync();
             }
 
-            if (purgePaths.Any())
+            if (purgePaths.Count > 0)
             {
                 var settings = await Cosmos___CdnController.GetCdnConfiguration(DbContext);
                 var cdnService = new CdnService(settings, logger);
@@ -1894,11 +1885,6 @@ namespace Cosmos.Editor.Data.Logic
 
             await DbContext.SaveChangesAsync();
 
-            // Now update the published pages
-            foreach (var num in articleNumbersToUpdate)
-            {
-                await CreatePublishedPage(num);
-            }
         }
 
         /// <summary>

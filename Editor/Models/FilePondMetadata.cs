@@ -18,10 +18,10 @@ namespace Cosmos.Cms.Models
         /// Gets or sets upload path or folder.
         /// </summary>
         [JsonProperty("path")]
-        public string Path { get; set; }
+        public string Path { get; set; } = string.Empty;
 
         /// <summary>
-        /// Gets or sets subfolder (of appplicable) of upload.
+        /// Gets or sets subfolder (if appplicable) of upload.
         /// </summary>
         [JsonProperty("relativePath")]
         public string RelativePath { get; set; }

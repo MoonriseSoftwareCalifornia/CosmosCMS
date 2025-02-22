@@ -11,6 +11,7 @@ namespace Cosmos.Cms.Controllers
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Security.Cryptography;
     using System.Text;
     using System.Threading.Tasks;
     using System.Web;
@@ -30,6 +31,7 @@ namespace Cosmos.Cms.Controllers
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore.Metadata.Internal;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using MimeTypes;
@@ -494,10 +496,62 @@ namespace Cosmos.Cms.Controllers
             var parsed = JsonConvert.DeserializeObject<FilePondMetadata>(files);
 
             var mime = MimeTypeMap.GetMimeType(Path.GetExtension(parsed.FileName));
-            
+
             var uid = $"{parsed.Path.TrimEnd('/')}|{parsed.RelativePath.TrimStart('/')}|{Guid.NewGuid().ToString()}|{mime}|{parsed.ImageWidth}|{parsed.ImageHeight}";
 
             return Ok(uid);
+        }
+
+        /// <summary>
+        /// This is used by filepond to upload a single image.
+        /// </summary>
+        /// <param name="files">File metadata.</param>
+        /// <returns>IActionResult.</returns>
+        [HttpPost]
+        public async Task<IActionResult> UploadImage([FromForm] string files)
+        {
+            var parsed = JsonConvert.DeserializeObject<FilePondMetadata>(files);
+            var mime = MimeTypeMap.GetMimeType(Path.GetExtension(parsed.FileName));
+
+
+            // Gets the file being uploaded.
+            var file = Request.Form.Files.FirstOrDefault();
+
+            if (file.Length > (1048576 * 25))
+            {
+                return Json(ReturnSimpleErrorMessage("The image upload failed because the image was too big (max 25MB)."));
+            }
+
+            var extension = Path.GetExtension(file.FileName).ToLower();
+            var blobEndPoint = options.Value.SiteSettings.BlobPublicUrl.TrimEnd('/');
+            var directory = parsed.Path.TrimEnd('/');
+            var fileName = file.FileName.ToLower();
+
+            var image = await Image.LoadAsync(file.OpenReadStream());
+
+            string relativePath = UrlEncode($"{directory}/{fileName}");
+
+            var contentType = MimeTypeMap.GetMimeType(extension);
+
+            var metaData = new FileUploadMetaData()
+            {
+                ChunkIndex = 0,
+                ContentType = contentType,
+                FileName = fileName,
+                RelativePath = relativePath,
+                TotalChunks = 1,
+                TotalFileSize = file.Length,
+                UploadUid = Guid.NewGuid().ToString(),
+                ImageHeight = image.Height.ToString(),
+                ImageWidth = image.Width.ToString(),
+            };
+
+            using var memoryStream = new MemoryStream();
+            await file.CopyToAsync(memoryStream);
+
+            storageContext.AppendBlob(memoryStream, metaData);
+
+            return Ok();
         }
 
         /// <summary>
