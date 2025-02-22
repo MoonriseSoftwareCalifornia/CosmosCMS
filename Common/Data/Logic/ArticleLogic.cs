@@ -243,7 +243,9 @@ namespace Cosmos.Common.Data.Logic
                 TotalCount = items.Count,
                 PageNo = pageNo,
                 PageSize = pageSize,
-                Items = items
+                Items = items,
+                PublisherUrl = CosmosOptions.Value.SiteSettings.PublisherUrl,
+                BlobPublicUrl = CosmosOptions.Value.SiteSettings.BlobPublicUrl
             };
 
             return model;

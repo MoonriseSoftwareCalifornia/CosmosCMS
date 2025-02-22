@@ -1352,10 +1352,19 @@ namespace Cosmos.Editor.Data.Logic
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task CreateStaticTableOfContentsJsonFile(string path = "")
         {
-            var result = await GetTableOfContents(path, 0, 50, true);
-            var json = JsonConvert.SerializeObject(result);
+            var tableOfContents = await GetTableOfContents(path, 0, 50, true);
+            var json = JsonConvert.SerializeObject(tableOfContents);
             using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
             var storagePath = "pub/js/toc.json";
+
+            foreach (var item in tableOfContents.Items)
+            {
+                item.UrlPath = this.CosmosOptions.Value.SiteSettings.PublisherUrl.TrimEnd('/') + "/" + item.UrlPath.TrimStart('/');
+                if (!string.IsNullOrEmpty(item.BannerImage) && !item.BannerImage.StartsWith("http"))
+                {
+                    item.BannerImage = this.CosmosOptions.Value.SiteSettings.PublisherUrl.TrimEnd('/') + "/" + item.BannerImage.TrimStart('/');
+                }
+            }
 
             storageContext.AppendBlob(stream, new BlobService.Models.FileUploadMetaData()
             {

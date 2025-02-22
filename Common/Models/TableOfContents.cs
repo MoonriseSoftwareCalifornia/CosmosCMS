@@ -7,6 +7,7 @@
 
 namespace Cosmos.Common.Models
 {
+    using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
     using System.Collections.Generic;
 
     /// <summary>
@@ -28,6 +29,16 @@ namespace Cosmos.Common.Models
         /// Gets or sets total number of items.
         /// </summary>
         public int TotalCount { get; set; }
+
+        /// <summary>
+        /// Gets or sets the publisher URL of the table of contents.
+        /// </summary>
+        public string PublisherUrl { get; set; }
+
+        /// <summary>
+        /// Gets or sets the static web URL.
+        /// </summary>
+        public string BlobPublicUrl { get; set; }
 
         /// <summary>
         /// Gets or sets items in the current page.
