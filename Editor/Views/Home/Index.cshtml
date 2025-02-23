@@ -1,7 +1,5 @@
-﻿@using Cosmos.Cms.Common.Services.Configurations
-@using Microsoft.Extensions.Options
+﻿
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
-@inject IOptions<CosmosConfig> options
 @model Cosmos.Common.Models.ArticleViewModel
 @{
     Layout = null;
@@ -11,7 +9,6 @@
 <html lang="@Model.LanguageCode">
 <head>
     <title>@Model.Title</title>
-    <link rel="canonical" href="@options.Value.SiteSettings.PublisherUrl" />
     <meta property="og:title" content="@Model.Title" />
     <meta property="og:url" content="@Model.OGUrl" />
     <meta property="og:type" content="article" />

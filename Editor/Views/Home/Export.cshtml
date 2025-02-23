@@ -1,7 +1,4 @@
-﻿@using Cosmos.Cms.Common.Services.Configurations
-@using Microsoft.Extensions.Options
-@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
-@inject IOptions<CosmosConfig> options
+﻿@using System.Reflection
 @model Cosmos.Common.Models.ArticleViewModel
 @{
     Layout = null;
@@ -12,18 +9,18 @@
 <html lang="@Model.LanguageCode">
 <head>
     <title>@Model.Title</title>
-    <link rel="canonical" href="@options.Value.SiteSettings.PublisherUrl" />
     <meta property="og:title" content="@Model.Title" />
     <meta property="og:url" content="@Model.OGUrl" />
     <meta property="og:type" content="article" />
     <meta property="og:image" content="@Model.OGImage" />
     <meta property="article:modified_time" content="@Model.Updated.ToString("u")">
+    <meta name="cwps-meta-v-id" content="@Assembly.GetExecutingAssembly().GetName().Version.ToString()" />
     <meta name="cwps-meta-path-url" content="@Model.UrlPath" />
     <meta name="cwps-meta-path-updated" content="@Model.Updated" />
     <meta name="cwps-meta-path-title" content="@Model.Title" />
     <meta name="cwps-meta-author-info" content="@Model.AuthorInfo" />
     <meta name="cwps-meta-user-is-authenticated" content="@User.Identity.IsAuthenticated.ToString().ToLower()" />
-    <meta name="cwps-meta-af-value" content="@Antiforgery.GetAndStoreTokens(Context).RequestToken" />
+    <meta name="cwps-meta-af-value" content="" />
     @Html.Raw(Model.Layout.Head)
     <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/44.1.0/ckeditor5-content.css" />
     @*
