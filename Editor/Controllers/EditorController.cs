@@ -2009,7 +2009,7 @@ namespace Cosmos.Cms.Controllers
             }
 
             await articleLogic.DeleteArticle(id);
-            return RedirectToAction("Index", "Editor");
+            return Ok();
         }
 
         /// <summary>

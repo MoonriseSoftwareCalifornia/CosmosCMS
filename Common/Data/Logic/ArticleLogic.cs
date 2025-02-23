@@ -510,7 +510,7 @@ namespace Cosmos.Common.Data.Logic
                 Expires = article.Expires ?? null,
                 AuthorInfo = article.AuthorInfo,
                 OGDescription = string.Empty,
-                OGImage = string.IsNullOrEmpty(article.BannerImage) ? string.Empty : article.BannerImage.StartsWith("http") ? article.BannerImage : CosmosOptions.Value.SiteSettings.BlobPublicUrl.TrimEnd('/') + "/" + article.BannerImage.TrimStart('/'),
+                OGImage = string.IsNullOrEmpty(article.BannerImage) ? string.Empty : article.BannerImage.StartsWith("http") ? article.BannerImage : CosmosOptions.Value.SiteSettings.PublisherUrl.TrimEnd('/') + "/" + article.BannerImage.TrimStart('/'),
                 OGUrl = CosmosOptions.Value.SiteSettings.PublisherUrl.TrimEnd('/') + "/" + article.UrlPath.Replace("root", string.Empty).TrimStart('/'),
             };
         }
