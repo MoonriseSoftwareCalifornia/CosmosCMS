@@ -915,9 +915,9 @@ namespace Cosmos.Editor.Data.Logic
 
             urlPath = urlPath?.ToLower().Trim(' ', '/');
 
-            if (string.IsNullOrEmpty(urlPath) || urlPath.Trim() == "/")
+            if (string.IsNullOrEmpty(urlPath) || urlPath == "root")
             {
-                urlPath = "root";
+                urlPath = string.Empty;
             }
 
             if (publishedOnly)

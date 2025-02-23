@@ -151,5 +151,20 @@ namespace Cosmos.Common.Models
         /// Gets or sets article banner image.
         /// </summary>
         public string BannerImage { get; set; }
+
+        /// <summary>
+        /// Gets or sets the open graph image.
+        /// </summary>
+        public string OGImage { get; set; }
+
+        /// <summary>
+        /// Gets or sets the open graph description.
+        /// </summary>
+        public string OGDescription { get; set; }
+
+        /// <summary>
+        /// Gets or sets the open graph URL.
+        /// </summary>
+        public string OGUrl { get; set; }
     }
 }
