@@ -158,7 +158,7 @@ namespace Cosmos.Cms.Controllers
             // Loads GrapeJS.
             ViewData["IsDesigner"] = true;
 
-            var article = await dbContext.Articles.Where(w => w.ArticleNumber == id).LastOrDefaultAsync();
+            var article = await articleLogic.GetArticleByArticleNumber(id, null);
             if (article == null)
             {
                 return NotFound();
@@ -1570,7 +1570,8 @@ namespace Cosmos.Cms.Controllers
                 return BadRequest(ModelState);
             }
 
-            var article = await dbContext.Articles.Where(w => w.ArticleNumber == id).OrderByDescending(o => o.VersionNumber).LastOrDefaultAsync();
+            // Get an article, or a template based on the controller name.
+            var article = await articleLogic.GetArticleByArticleNumber(id, null);
             if (article == null)
             {
                 return NotFound();
@@ -1623,7 +1624,7 @@ namespace Cosmos.Cms.Controllers
                         ToolTip = "Content to appear at the bottom of the <body> tag."
                     }
                 },
-                HeadJavaScript = article.HeaderJavaScript,
+                HeadJavaScript = article.HeadJavaScript,
                 FooterJavaScript = article.FooterJavaScript,
                 Content = article.Content,
                 EditingField = "HeadJavaScript",

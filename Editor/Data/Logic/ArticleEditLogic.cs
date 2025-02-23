@@ -245,6 +245,18 @@ namespace Cosmos.Editor.Data.Logic
         }
 
         /// <summary>
+        ///   Gets or creates a catalog entry for an article.
+        /// </summary>
+        /// <param name="model">ArticleViewModel.</param>
+        /// <returns>CatalogEntry.</returns>
+        public async Task<CatalogEntry> GetCatalogEntry(ArticleViewModel model)
+        {
+            var article = await DbContext.Articles.FirstOrDefaultAsync(f => f.Id == model.Id);
+            
+            return await GetCatalogEntry(article);
+        }
+
+        /// <summary>
         /// Gets or creates a catalog entry for an article.
         /// </summary>
         /// <param name="article">Article for which to get the entry.</param>
