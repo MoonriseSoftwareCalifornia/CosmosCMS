@@ -236,9 +236,9 @@
       },
       "NUglify": {
         "type": "Direct",
-        "requested": "[1.21.11, )",
-        "resolved": "1.21.11",
-        "contentHash": "Wc5wk4rddtU5zhRTVDg0rm+NH4kHSIxARLP84cZPwtPuyEf3I5mAbwY1o1vNfzg/78hiTT3BXylg5ST98yztag=="
+        "requested": "[1.21.12, )",
+        "resolved": "1.21.12",
+        "contentHash": "lspukmkfywOYWhSrVNt+IWdU+iZZdVfLe2w0WovI6XH/2AyXaaf+HPr/ldGrS6mZgG3JRkU2McYXk2Ux+O0+KA=="
       },
       "PasswordGenerator": {
         "type": "Direct",

@@ -7,9 +7,9 @@
 		<EnableNETAnalyzers>false</EnableNETAnalyzers>
 		<RepositoryUrl>https://github.com/CosmosSoftware/CosmosCms</RepositoryUrl>
 		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-		<Version>9.0.3.51</Version>
-		<AssemblyVersion>9.0.3.51</AssemblyVersion>
-		<FileVersion>9.0.3.51</FileVersion>
+		<Version>9.0.3.52</Version>
+		<AssemblyVersion>9.0.3.52</AssemblyVersion>
+		<FileVersion>9.0.3.52</FileVersion>
 		<RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
 		<Authors></Authors>
 		<ApplicationInsightsResourceId>/subscriptions/9bdb8e29-156f-4fc9-a1fe-1bb6a915a4f0/resourceGroups/CosmosCMS/providers/microsoft.insights/components/edit-cosmos-cms202107021426</ApplicationInsightsResourceId>
@@ -103,7 +103,7 @@
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.2" />
 		
 		<PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="9.0.0" />
-		<PackageReference Include="NUglify" Version="1.21.11" />
+		<PackageReference Include="NUglify" Version="1.21.12" />
 		<PackageReference Include="PasswordGenerator" Version="2.1.0" />
 		<PackageReference Include="SixLabors.ImageSharp" Version="3.1.6" />
 		<PackageReference Include="MimeTypeMapOfficial" Version="1.0.17" />

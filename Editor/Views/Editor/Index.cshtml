@@ -14,6 +14,7 @@
     var showNotFoundBtn = (bool)ViewData["ShowNotFoundBtn"];
 
 }
+@* <link href="~/lib/tabulator-tables/dist/css/tabulator.min.css" rel="stylesheet" /> *@
 <link href="~/lib/tabulator-tables/dist/css/tabulator_midnight.css" rel="stylesheet" />
 <script src="~/lib/luxon/luxon.min.js"></script>
 <script src="~/lib/tabulator-tables/dist/js/tabulator.min.js"></script>
@@ -65,6 +66,7 @@
 
                     const publisherUrl = "@options.Value.SiteSettings.PublisherUrl.TrimEnd('/')";
                     const tblHeight = window.innerHeight - 200;
+                    let pageSize = Math.round(tblHeight / 50);
 
                     function dateTime(cell, formatterParams, onRendered){
                         //cell - the cell component
@@ -72,14 +74,14 @@
                         //onRendered - function to call when the formatter has been rendered
                         return getLocalTime(cell.getValue());
                     }
-                    
+
                     function dateFilterFunction(headerValue, rowValue, rowData, filterParams){
                         if (rowValue === null || rowValue === "") {
                             return false;
                         }
                         return headerValue === rowValue.split("T")[0]; //must return a boolean, true if it passes the filter.
                     }
-                    
+
                     async function sendToTrash(articleNumber) {
                         const result = await fetch("@Url.Action("TrashArticle", "Editor")/" + articleNumber);
                         if (result.ok) {
@@ -145,10 +147,29 @@
                     };
 
                     const pageTable = new Tabulator("#pagelist-table", {
-                        persistence:true,
                         pagination:true, //enable pagination
-                        paginationMode:"local", //enable remote pagination
-                        paginationSize:15, //optional parameter to request a certain number of rows per page
+                        paginationMode:"local", //enable local pagination
+                        paginationSize:pageSize, //optional parameter to request a certain number of rows per page
+                        persistence:{
+                            sort: true, //persist column sorting
+                            filter: true, //persist filters
+                            headerFilter: true, //persist header filters
+                            group: false, //persist row grouping
+                            page: true, //persist page
+                            columns: false, //persist columns
+                        },
+                        persistenceWriterFunc:function(id, type, data){
+                            //id - tables persistence id
+                            //type - type of data being persisted ("sort", "filter", "group", "page" or "columns")
+                            //data - array or object of data
+                            sessionStorage.setItem(id + "-" + type, JSON.stringify(data));
+                        },
+                        persistenceReaderFunc:function(id, type){
+                            //id - tables persistence id
+                            //type - type of data being persisted ("sort", "filter", "group", "page" or "columns")
+                            var data = sessionStorage.getItem(id + "-" + type);
+                            return data ? JSON.parse(data) : false;
+                        },
                         layout:"fitColumns",
                         ajaxURL:"@Url.Action("GetArticleList", "Editor")", //ajax URL
                         columns:[
@@ -185,7 +206,7 @@
                             {title:"Title", field:"Title", sorter:"string", headerFilter:"input", cellClick:openArticleVersions },
 
                             {title: "Trash", field:"ArticleNumber", formatter:trashBtn, width:56, headerSort:false, hozAlign:"center", headerHozAlign:"center" }
-                            
+
                         ],
                     });
                 </script>
@@ -241,4 +262,3 @@
 
 
 </script>
-
