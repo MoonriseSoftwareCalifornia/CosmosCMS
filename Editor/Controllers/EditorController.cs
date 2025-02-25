@@ -9,7 +9,9 @@ namespace Cosmos.Cms.Controllers
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
+    using System.Security.Cryptography;
     using System.Text;
     using System.Threading.Tasks;
     using System.Web;
@@ -32,6 +34,8 @@ namespace Cosmos.Cms.Controllers
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.ModelBinding;
+    using Microsoft.Azure.Cosmos.Core;
+    using Microsoft.Azure.Cosmos.Core.Utf8;
     using Microsoft.Azure.Cosmos.Serialization.HybridRow;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
@@ -381,6 +385,35 @@ namespace Cosmos.Cms.Controllers
             return View(data);
         }
 
+        private static string Decrypt(string encryptedText)
+        {
+            // Decode the base64 encoded string
+            byte[] encryptedBytes = Convert.FromBase64String(encryptedText);
+
+            // Extract the salt and the actual encrypted data
+
+            // Generate the key and IV using the passphrase and salt
+            byte[] key = Encoding.UTF8.GetBytes("1234567890123456");
+            byte[] iv = Encoding.UTF8.GetBytes("1234567890123456");
+
+            // Decrypt the data
+            using (var aes = Aes.Create())
+            {
+                aes.Key = key;
+                aes.IV = iv;
+                aes.Mode = CipherMode.CBC;
+                aes.Padding = PaddingMode.PKCS7;
+
+                using (var decryptor = aes.CreateDecryptor(aes.Key, aes.IV))
+                using (var ms = new MemoryStream(encryptedBytes))
+                using (var cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read))
+                using (var sr = new StreamReader(cs))
+                {
+                    return sr.ReadToEnd();
+                }
+            }
+        }
+
         /// <summary>
         /// Saves live editor data.
         /// </summary>
@@ -391,7 +424,7 @@ namespace Cosmos.Cms.Controllers
         {
             if (!string.IsNullOrEmpty(model.Data))
             {
-                model.Data = AesDecryption.Decrypt(model.Data, model.Id.ToString());
+                model.Data = Decrypt(model.Data);
             }
 
             if (!ModelState.IsValid)

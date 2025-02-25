@@ -568,10 +568,13 @@
         var selectFileMode;
 
         function encryptData(plainText, secret) {
-            //Secret Bytes.
-            var encrypted = CryptoJS.AES.encrypt(plainText, secret, {
-                mode: CryptoJS.mode.ECB,
-                padding: CryptoJS.pad.Pkcs7
+            const key = CryptoJS.enc.Utf8.parse('1234567890123456'); // 16 bytes key for AES-128
+            const iv = CryptoJS.enc.Utf8.parse('1234567890123456');
+            // Encrypt the plaintext
+            const encrypted = CryptoJS.AES.encrypt(plainText, key, {
+                iv: iv,
+                padding: CryptoJS.pad.Pkcs7,
+                mode: CryptoJS.mode.CBC
             });
 
             return encrypted.toString();

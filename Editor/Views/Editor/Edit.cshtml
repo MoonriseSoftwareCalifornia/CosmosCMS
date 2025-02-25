@@ -727,7 +727,7 @@
             const id = $("#Id").val();
             const published = $("#Published").val();
             const updated = $("#Updated").val();
-            const encrypted = encryptData(data, id);
+            const encrypted = encryptData(data, id.toLowerCase());
 
             let model = {
                 Id: id,

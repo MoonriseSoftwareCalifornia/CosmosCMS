@@ -2,10 +2,14 @@
 Encryption helpler class for CryptoJS that is setup to work with C# to decrypt.
 This is derived from the fine work by Daniel Little
 Repo: https://github.com/daniellittledev/CryptoTest
+
+This code is provided as is and is not guaranteed to be correct or secure.
+Use at your own risk.
+
+The purpose of this code is to provide a simple way of how to encrypt data
+so that it can safey be sent to a server while not triggering a firewall rule.
+
 */
-
-
-
 
 const wordArraySubArray = function (array, index, length) {
     var hex = array.toString(CryptoJS.enc.Hex);
@@ -38,21 +42,22 @@ const getKeyAndIV = function (password, salt) {
     };
 };
 
-function encryptData(password, plainText) {
-    const salt = CryptoJS.lib.WordArray.random(bytesInSalt);
-    const skey = getKeyAndIV(password, salt);
+const encryptData = function (password, plainText) {
+    // Generate a random salt
     const bytesInSalt = 128 / 8;
+    const salt = CryptoJS.lib.WordArray.random(bytesInSalt);
+    // Generate the key and IV
+    const skey = getKeyAndIV(password, salt);
+    // Encrypt the data
     const data = CryptoJS.AES.encrypt(plainText, skey.key, { iv: skey.iv, padding: CryptoJS.pad.Pkcs7 }); // , format: JsonFormatter
-    const key = data.key.toString(CryptoJS.enc.Base64);
-    const iv = data.iv.toString(CryptoJS.enc.Base64);
-
+    // Package up the encrypted data and salt and IV
     var dataToSend = {
         password: password,
         salt: salt.toString(CryptoJS.enc.Base64),
         ciphertext: data.ciphertext.toString(CryptoJS.enc.Base64),
-        key: key,
-        iv: iv,
+        key: data.key.toString(CryptoJS.enc.Base64),
+        iv: data.iv.toString(CryptoJS.enc.Base64),
     }
 
-    return dataToSend;
+    return JSON.stringify(dataToSend);
 }
