@@ -25,6 +25,7 @@ namespace Cosmos.Cms.Controllers
     using Cosmos.Editor.Data.Logic;
     using Cosmos.Editor.Models;
     using Cosmos.Editor.Models.GrapesJs;
+    using Cosmos.Editor.Services;
     using HtmlAgilityPack;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
@@ -376,6 +377,9 @@ namespace Cosmos.Cms.Controllers
         [HttpPost]
         public async Task<IActionResult> DesignerData(Guid id, string title, string htmlContent, string cssContent)
         {
+            htmlContent = CryptoJsDecryption.Decrypt(htmlContent);
+            cssContent = CryptoJsDecryption.Decrypt(cssContent);
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -505,6 +509,8 @@ namespace Cosmos.Cms.Controllers
         [HttpPost]
         public async Task<IActionResult> EditNotes(LayoutIndexViewModel model)
         {
+            model.Notes = CryptoJsDecryption.Decrypt(model.Notes);
+
             if (!ModelState.IsValid)
             {
                 return View(model);
@@ -608,7 +614,7 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         ///     Saves the code and html of the page.
         /// </summary>
-        /// <param name="layout">Post <see cref="LayoutCodeViewModel">model</see>.</param>
+        /// <param name="model">Post <see cref="LayoutCodeViewModel">model</see>.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         /// <remarks>
         ///     <para>
@@ -634,63 +640,52 @@ namespace Cosmos.Cms.Controllers
         /// <exception cref="NotFoundResult">Not found.</exception>
         /// <exception cref="UnauthorizedResult">Unauthorized access attempted.</exception>
         [HttpPost]
-        public async Task<IActionResult> EditCode(LayoutCodeViewModel layout)
+        public async Task<IActionResult> EditCode(LayoutCodeViewModel model)
         {
-            if (ModelState.IsValid)
+            model.Head = CryptoJsDecryption.Decrypt(StripBOM(model.Head));
+            model.HtmlHeader = CryptoJsDecryption.Decrypt(StripBOM(model.HtmlHeader));
+            model.FooterHtmlContent = CryptoJsDecryption.Decrypt(StripBOM(model.FooterHtmlContent));
+
+            if (!ModelState.IsValid)
             {
-                try
-                {
-                    // Strip out BOM
-                    layout.Head = StripBOM(layout.Head);
-                    layout.HtmlHeader = StripBOM(layout.HtmlHeader);
-                    layout.FooterHtmlContent = StripBOM(layout.FooterHtmlContent);
-                    layout.BodyHtmlAttributes = StripBOM(layout.BodyHtmlAttributes);
-
-                    // This layout now is the default, make sure the others are set to "false."
-                    var entity = await dbContext.Layouts.FindAsync(layout.Id);
-                    entity.FooterHtmlContent =
-                        BaseValidateHtml("FooterHtmlContent", layout.FooterHtmlContent);
-                    entity.Head = BaseValidateHtml("Head", layout.Head);
-                    entity.HtmlHeader = BaseValidateHtml("HtmlHeader", layout.HtmlHeader);
-                    entity.BodyHtmlAttributes = layout.BodyHtmlAttributes;
-
-                    // Check validation again after validation of HTML
-                    await dbContext.SaveChangesAsync();
-
-                    var jsonModel = new SaveCodeResultJsonModel
-                    {
-                        ErrorCount = ModelState.ErrorCount,
-                        IsValid = ModelState.IsValid
-                    };
-                    jsonModel.Errors.AddRange(ModelState.Values
-                        .Where(w => w.ValidationState == ModelValidationState.Invalid)
-                        .ToList());
-                    jsonModel.ValidationState = ModelState.ValidationState;
-
-                    try
-                    {
-                        await PurgeCdn();
-                    }
-                    catch (Exception e)
-                    {
-                        var d = e; // Debugging.
-                    }
-
-                    return Json(jsonModel);
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!LayoutExists(layout.Id))
-                    {
-                        return NotFound();
-                    }
-
-                    throw;
-                }
+                ViewData["PageTitle"] = model.EditorTitle;
+                return View(model);
             }
 
-            ViewData["PageTitle"] = layout.EditorTitle;
-            return View(layout);
+            // Strip out BOM
+            model.BodyHtmlAttributes = StripBOM(model.BodyHtmlAttributes);
+
+            // This layout now is the default, make sure the others are set to "false."
+            var entity = await dbContext.Layouts.FindAsync(model.Id);
+            entity.FooterHtmlContent =
+                BaseValidateHtml("FooterHtmlContent", model.FooterHtmlContent);
+            entity.Head = BaseValidateHtml("Head", model.Head);
+            entity.HtmlHeader = BaseValidateHtml("HtmlHeader", model.HtmlHeader);
+            entity.BodyHtmlAttributes = model.BodyHtmlAttributes;
+
+            // Check validation again after validation of HTML
+            await dbContext.SaveChangesAsync();
+
+            var jsonModel = new SaveCodeResultJsonModel
+            {
+                ErrorCount = ModelState.ErrorCount,
+                IsValid = ModelState.IsValid
+            };
+            jsonModel.Errors.AddRange(ModelState.Values
+                .Where(w => w.ValidationState == ModelValidationState.Invalid)
+                .ToList());
+            jsonModel.ValidationState = ModelState.ValidationState;
+
+            try
+            {
+                await PurgeCdn();
+            }
+            catch (Exception e)
+            {
+                var d = e; // Debugging.
+            }
+
+            return Json(jsonModel);
         }
 
         /// <summary>
@@ -950,7 +945,7 @@ namespace Cosmos.Cms.Controllers
             }
 
             var settings = await Cosmos___CdnController.GetCdnConfiguration(dbContext);
-            var cdnService = new Editor.Services.CdnService(settings,logger);
+            var cdnService = new Editor.Services.CdnService(settings, logger);
             await cdnService.PurgeCdn(new List<string>() { "/" });
         }
     }

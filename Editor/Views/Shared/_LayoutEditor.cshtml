@@ -323,6 +323,7 @@
         </div>
     </nav>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js" integrity="sha512-a+SUDuwNzXDvz4XrIcXHuCf089/iJAoN4lmrXJg18XnduKK6YlDHNRalv4yd1N40OKI80tFidF+rqTFKGPoWFQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="~/lib/cosmos/crypto-js/cryptpo-js-encrypt.js"></script>
     <!-- Full screen modal -->
     <script>
         // Must have global scope so using var
@@ -566,19 +567,6 @@
         // Selected anchor data
         let selectedAnchorData;
         var selectFileMode;
-
-        function encryptData(plainText, secret) {
-            const key = CryptoJS.enc.Utf8.parse('1234567890123456'); // 16 bytes key for AES-128
-            const iv = CryptoJS.enc.Utf8.parse('1234567890123456');
-            // Encrypt the plaintext
-            const encrypted = CryptoJS.AES.encrypt(plainText, key, {
-                iv: iv,
-                padding: CryptoJS.pad.Pkcs7,
-                mode: CryptoJS.mode.CBC
-            });
-
-            return encrypted.toString();
-        }
 
         function setupIframes(iframeId, contentId) {
             var iframe = $(iframeId);

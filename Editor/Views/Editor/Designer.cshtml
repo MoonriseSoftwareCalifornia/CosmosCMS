@@ -60,7 +60,7 @@
 
     function cosmos__designerPostData() {
         return new Promise((resolve, reject) => {
-            $.post('@Url.Action("PostDesignerData", "Editor")',
+            $.post('@Url.Action("Designer", "Editor")',
                 $("#frmSave").serialize(),
                 function(response) {
                     saveInProgress = false;

@@ -65,7 +65,7 @@ namespace Cosmos.Cms.Hubs
         {
             try
             {
-                var model = JsonConvert.DeserializeObject<SaveHtmlEditorViewModel>(data);
+                var model = JsonConvert.DeserializeObject<HtmlEditorPostViewModel>(data);
 
                 switch (model.Command)
                 {
@@ -91,8 +91,8 @@ namespace Cosmos.Cms.Hubs
         /// <summary>
         /// Sends a signal to update editors in the group.
         /// </summary>
-        /// <param name="editorId"></param>
-        /// <param name="data"></param>
+        /// <param name="editorId">Editor ID.</param>
+        /// <param name="data">Html Data.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task UpdateEditors(string editorId, string data)
         {

@@ -9,9 +9,7 @@ namespace Cosmos.Cms.Controllers
 {
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
-    using System.Security.Cryptography;
     using System.Text;
     using System.Threading.Tasks;
     using System.Web;
@@ -34,8 +32,6 @@ namespace Cosmos.Cms.Controllers
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.ModelBinding;
-    using Microsoft.Azure.Cosmos.Core;
-    using Microsoft.Azure.Cosmos.Core.Utf8;
     using Microsoft.Azure.Cosmos.Serialization.HybridRow;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
@@ -204,37 +200,16 @@ namespace Cosmos.Cms.Controllers
         }
 
         /// <summary>
-        /// Visual designer based on GrapeJS.
-        /// </summary>
-        /// <param name="id">Article number.</param>
-        /// <returns>IActionResult.</returns>
-        [HttpGet]
-        public async Task<IActionResult> GetDesignerData(int id)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var article = await articleLogic.GetArticleByArticleNumber(id, null);
-            if (article == null)
-            {
-                return NotFound();
-            }
-
-            var htmlContent = articleLogic.Ensure_ContentEditable_IsMarked(article.Content);
-
-            return Json(new project(htmlContent));
-        }
-
-        /// <summary>
         /// Save designer data.
         /// </summary>
         /// <param name="model">Designer post model.</param>
         /// <returns>IActionResult.</returns>
         [HttpPost]
-        public async Task<IActionResult> PostDesignerData(ArticleDesignerDataViewModel model)
+        public async Task<IActionResult> Designer(ArticleDesignerDataViewModel model)
         {
+            model.HtmlContent = CryptoJsDecryption.Decrypt(model.HtmlContent);
+            model.CssContent = CryptoJsDecryption.Decrypt(model.CssContent);
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -283,6 +258,30 @@ namespace Cosmos.Cms.Controllers
             }
 
             return Json(new { success = true });
+        }
+
+        /// <summary>
+        /// Visual designer based on GrapeJS.
+        /// </summary>
+        /// <param name="id">Article number.</param>
+        /// <returns>IActionResult.</returns>
+        [HttpGet]
+        public async Task<IActionResult> GetDesignerData(int id)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var article = await articleLogic.GetArticleByArticleNumber(id, null);
+            if (article == null)
+            {
+                return NotFound();
+            }
+
+            var htmlContent = articleLogic.Ensure_ContentEditable_IsMarked(article.Content);
+
+            return Json(new project(htmlContent));
         }
 
         /// <summary>
@@ -383,113 +382,6 @@ namespace Cosmos.Cms.Controllers
             var data = await query.Skip(skip).Take(pageSize).ToListAsync();
 
             return View(data);
-        }
-
-        private static string Decrypt(string encryptedText)
-        {
-            // Decode the base64 encoded string
-            byte[] encryptedBytes = Convert.FromBase64String(encryptedText);
-
-            // Extract the salt and the actual encrypted data
-
-            // Generate the key and IV using the passphrase and salt
-            byte[] key = Encoding.UTF8.GetBytes("1234567890123456");
-            byte[] iv = Encoding.UTF8.GetBytes("1234567890123456");
-
-            // Decrypt the data
-            using (var aes = Aes.Create())
-            {
-                aes.Key = key;
-                aes.IV = iv;
-                aes.Mode = CipherMode.CBC;
-                aes.Padding = PaddingMode.PKCS7;
-
-                using (var decryptor = aes.CreateDecryptor(aes.Key, aes.IV))
-                using (var ms = new MemoryStream(encryptedBytes))
-                using (var cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read))
-                using (var sr = new StreamReader(cs))
-                {
-                    return sr.ReadToEnd();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Saves live editor data.
-        /// </summary>
-        /// <param name="model">Live editor post model.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        [HttpPost]
-        public async Task<IActionResult> SaveHtml(SaveHtmlEditorViewModel model)
-        {
-            if (!string.IsNullOrEmpty(model.Data))
-            {
-                model.Data = Decrypt(model.Data);
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
-
-            if (string.IsNullOrEmpty(model.Title))
-            {
-                throw new ArgumentException("Title cannot be null or empty.");
-            }
-
-            if (model == null)
-            {
-                throw new ArgumentException("SaveEditorContent method, model was null.");
-            }
-
-            // Next pull the original. This is a view model, not tracked by DbContext.
-            var article = await articleLogic.GetArticleByArticleNumber(model.ArticleNumber, null);
-            if (article == null)
-            {
-                throw new NotFoundException($"SIGNALR: SaveEditorContent method, could not find artile with #: {model.ArticleNumber}.");
-            }
-
-            // Handle empty areas
-            if (model.Data == null)
-            {
-                model.Data = string.Empty;
-            }
-
-            // Get the editable regions from the original document.
-            var originalHtmlDoc = new HtmlDocument();
-            originalHtmlDoc.LoadHtml(article.Content);
-            var originalEditableDivs = originalHtmlDoc.DocumentNode.SelectNodes("//*[@data-ccms-ceid]");
-
-            // Find the region we are updating
-            var target = originalEditableDivs.FirstOrDefault(w => w.Attributes["data-ccms-ceid"].Value == model.EditorId);
-            if (target != null)
-            {
-                // Update the region now
-                target.InnerHtml = model.Data;
-            }
-
-            // Now carry over what's being updated to the original.
-            article.Content = originalHtmlDoc.DocumentNode.OuterHtml;
-
-            // Banner image
-            article.BannerImage = model.BannerImage;
-
-            // Make sure we are setting to the orignal updated date/time
-            // This is validated to make sure that someone else hasn't already edited this
-            // entity
-            article.Published = model.Published;
-            article.Updated = DateTimeOffset.UtcNow;
-            article.Title = model.Title;
-
-            // Save changes back to the database
-            var result = await articleLogic.SaveArticle(article, model.UserId);
-
-            if (article.Published.HasValue)
-            {
-                await articleLogic.CreateStaticTableOfContentsJsonFile("/");
-            }
-
-            return Json(result);
         }
 
         /// <summary>
@@ -1596,6 +1488,81 @@ namespace Cosmos.Cms.Controllers
         }
 
         /// <summary>
+        /// Saves live editor data.
+        /// </summary>
+        /// <param name="model">Live editor post model.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        [HttpPost]
+        public async Task<IActionResult> Edit(HtmlEditorPostViewModel model)
+        {
+            model.Data = CryptoJsDecryption.Decrypt(model.Data);
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            if (string.IsNullOrEmpty(model.Title))
+            {
+                throw new ArgumentException("Title cannot be null or empty.");
+            }
+
+            if (model == null)
+            {
+                throw new ArgumentException("SaveEditorContent method, model was null.");
+            }
+
+            // Next pull the original. This is a view model, not tracked by DbContext.
+            var article = await articleLogic.GetArticleByArticleNumber(model.ArticleNumber, null);
+            if (article == null)
+            {
+                throw new NotFoundException($"SIGNALR: SaveEditorContent method, could not find artile with #: {model.ArticleNumber}.");
+            }
+
+            // Handle empty areas
+            if (model.Data == null)
+            {
+                model.Data = string.Empty;
+            }
+
+            // Get the editable regions from the original document.
+            var originalHtmlDoc = new HtmlDocument();
+            originalHtmlDoc.LoadHtml(article.Content);
+            var originalEditableDivs = originalHtmlDoc.DocumentNode.SelectNodes("//*[@data-ccms-ceid]");
+
+            // Find the region we are updating
+            var target = originalEditableDivs.FirstOrDefault(w => w.Attributes["data-ccms-ceid"].Value == model.EditorId);
+            if (target != null)
+            {
+                // Update the region now
+                target.InnerHtml = model.Data;
+            }
+
+            // Now carry over what's being updated to the original.
+            article.Content = originalHtmlDoc.DocumentNode.OuterHtml;
+
+            // Banner image
+            article.BannerImage = model.BannerImage;
+
+            // Make sure we are setting to the orignal updated date/time
+            // This is validated to make sure that someone else hasn't already edited this
+            // entity
+            article.Published = model.Published;
+            article.Updated = DateTimeOffset.UtcNow;
+            article.Title = model.Title;
+
+            // Save changes back to the database
+            var result = await articleLogic.SaveArticle(article, model.UserId);
+
+            if (article.Published.HasValue)
+            {
+                await articleLogic.CreateStaticTableOfContentsJsonFile("/");
+            }
+
+            return Json(result);
+        }
+
+        /// <summary>
         /// Edit web page code with Monaco editor.
         /// </summary>
         /// <param name="id">Article Number (not ID).</param>
@@ -1686,6 +1653,10 @@ namespace Cosmos.Cms.Controllers
         [Authorize(Roles = "Administrators, Editors, Authors, Team Members")]
         public async Task<IActionResult> EditCode(EditCodePostModel model)
         {
+            model.Content = CryptoJsDecryption.Decrypt(model.Content);
+            model.HeadJavaScript = CryptoJsDecryption.Decrypt(model.HeadJavaScript);
+            model.FooterJavaScript = CryptoJsDecryption.Decrypt(model.FooterJavaScript);
+
             if (!ModelState.IsValid)
             {
                 return View(model);

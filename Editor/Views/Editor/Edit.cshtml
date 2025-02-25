@@ -727,7 +727,7 @@
             const id = $("#Id").val();
             const published = $("#Published").val();
             const updated = $("#Updated").val();
-            const encrypted = encryptData(data, id.toLowerCase());
+            const encrypted = encryptData(data);
 
             let model = {
                 Id: id,
@@ -745,7 +745,7 @@
                 Data: encrypted
             };
 
-            $.post("@Url.Action("SaveHtml", "Editor")", model, function (data){
+            $.post("@Url.Action("Edit", "Editor")", model, function (data){
                 saveInProgress = false;
                 doneSaving();
             }).done(function (data) {

@@ -146,9 +146,9 @@
         let model = {
             Id: $("#Id").val(),
             EditingField: $("#EditingField").val(),
-            Head: $("#Head").val(),
-            HtmlHeader: $("#HtmlHeader").val(),
-            FooterHtmlContent: $("#FooterHtmlContent").val(),
+            Head: encryptData($("#Head").val()),
+            HtmlHeader: encryptData($("#HtmlHeader").val()),
+            FooterHtmlContent: encryptData($("#FooterHtmlContent").val()),
             EditorType: $("#EditorType").val()
         }
 

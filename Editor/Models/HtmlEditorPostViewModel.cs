@@ -12,7 +12,7 @@ namespace Cosmos.Cms.Models
     /// <summary>
     /// HTML editor SignalR model.
     /// </summary>
-    public class SaveHtmlEditorViewModel
+    public class HtmlEditorPostViewModel
     {
         /// <summary>
         /// Gets or sets article record ID.

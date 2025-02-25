@@ -8,8 +8,9 @@
 namespace Cosmos.Editor.Services
 {
     using System;
+    using System.IO;
+    using System.Security.Cryptography;
     using System.Text;
-    using Cosmos.Editor.Models;
 
     /// <summary>
     /// AesDecryption utility for CryptoJS.
@@ -17,20 +18,42 @@ namespace Cosmos.Editor.Services
     public class CryptoJsDecryption
     {
         /// <summary>
-        /// Decrypts a string encrypted by CryptoJS.
+        /// Decrypts the encrypted text if not null or empty.
         /// </summary>
-        /// <param name="model">payload.</param>
-        /// <returns>Decrypted string.</returns>
-        public static string Decrypt(CryptoJsDataModel model)
+        /// <param name="encryptedText">Encrypted text.</param>
+        /// <returns>Decripted text.</returns>
+        public static string Decrypt(string encryptedText)
         {
-            var cipherText = Convert.FromBase64String(model.CipherText);
-            var password = Encoding.UTF8.GetBytes(model.Password);
-            var salt = Convert.FromBase64String(model.Salt);
-            var crypto = new SimpleCrypto(password, salt);
+            if (string.IsNullOrEmpty(encryptedText))
+            {
+                return string.Empty;
+            }
 
-            var plainText = crypto.Decrypt(cipherText);
+            // Decode the base64 encoded string
+            byte[] encryptedBytes = Convert.FromBase64String(encryptedText);
 
-            return Encoding.UTF8.GetString(plainText);
+            // Extract the salt and the actual encrypted data
+
+            // Generate the key and IV using the passphrase and salt
+            byte[] key = Encoding.UTF8.GetBytes("1234567890123456");
+            byte[] iv = Encoding.UTF8.GetBytes("1234567890123456");
+
+            // Decrypt the data
+            using (var aes = Aes.Create())
+            {
+                aes.Key = key;
+                aes.IV = iv;
+                aes.Mode = CipherMode.CBC;
+                aes.Padding = PaddingMode.PKCS7;
+
+                using (var decryptor = aes.CreateDecryptor(aes.Key, aes.IV))
+                using (var ms = new MemoryStream(encryptedBytes))
+                using (var cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read))
+                using (var sr = new StreamReader(cs))
+                {
+                    return sr.ReadToEnd();
+                }
+            }
         }
     }
 }

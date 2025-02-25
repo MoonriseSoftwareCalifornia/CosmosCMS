@@ -1460,6 +1460,8 @@ namespace Cosmos.Cms.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditCode(FileManagerEditCodeViewModel model)
         {
+            model.Content = CryptoJsDecryption.Decrypt(model.Content);
+
             if (!ModelState.IsValid)
             {
                 return View(model);

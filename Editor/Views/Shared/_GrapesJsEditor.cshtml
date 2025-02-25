@@ -50,9 +50,7 @@
 @Html.Raw(pluginScripts.ToString())
 
 <script>
-    const sessionStoragePlugin = (editor) => {
-        // As sessionStorage is not an asynchronous API,
-        // the `async` keyword could be skipped
+    const  sessionStoragePlugin = (editor) => {
         editor.Storage.add('cosmos', {
             async load(options = {}) {
                 const response = await fetch(cosmos__designerDataEndpoint + "/" + cosmos__id);
@@ -63,8 +61,8 @@
                 showSaving(); // Show saving message.
                 const pagesHtml = editor.Pages.getAll().map((page) => {
                     const component = page.getMainComponent();
-                    $("#HtmlContent").val(editor.getHtml({ component }));
-                    $("#CssContent").val(editor.getCss({ component }));
+                    $("#HtmlContent").val(encryptData(editor.getHtml({ component })));
+                    $("#CssContent").val(encryptData(editor.getCss({ component })));
                     cosmos__designerPostData();
                 });
             }

@@ -195,7 +195,7 @@
         // Saving publish date with time zone information
         savePublishDateTime();
 
-        let form = $('#frmSave');
+        //let form = $('#frmSave');
 
         if (editor) {
             $("#" + fieldId).val(editor.getValue());
@@ -210,9 +210,9 @@
             RoleList: $("#RoleList").val(),
             Published: $("#Published").val(),
             Updated: $("#Updated").val(),
-            Content: $("#Content").val(),
-            HeadJavaScript: $("#HeadJavaScript").val(),
-            FooterJavaScript: $("#FooterJavaScript").val(),
+            Content: encryptData($("#Content").val()),
+            HeadJavaScript: encryptData($("#HeadJavaScript").val()),
+            FooterJavaScript: encryptData($("#FooterJavaScript").val()),
             EditingField: $("#EditingField").val(),
             UrlPath: $("#UrlPath").val(),
             EditorType: $("#EditorType").val(),

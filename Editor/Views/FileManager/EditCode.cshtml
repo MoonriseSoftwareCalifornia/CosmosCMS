@@ -151,7 +151,7 @@
         var form = $('#frmSave');
 
         if (editor) {
-            $("#" + fieldId).val(editor.getValue());
+            $("#" + fieldId).val(encryptData(editor.getValue()));
         }
 
         $.post("@Url.Action("EditCode")",

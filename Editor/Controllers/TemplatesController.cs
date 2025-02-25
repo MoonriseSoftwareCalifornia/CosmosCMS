@@ -21,6 +21,7 @@ namespace Cosmos.Cms.Controllers
     using Cosmos.Editor.Data.Logic;
     using Cosmos.Editor.Models;
     using Cosmos.Editor.Models.GrapesJs;
+    using Cosmos.Editor.Services;
     using HtmlAgilityPack;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
@@ -373,6 +374,8 @@ namespace Cosmos.Cms.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(TemplateEditViewModel model)
         {
+            model.Description = CryptoJsDecryption.Decrypt(model.Description);
+
             if (!ModelState.IsValid)
             {
                 return View(model);
@@ -381,7 +384,6 @@ namespace Cosmos.Cms.Controllers
             var template = await dbContext.Templates.FirstOrDefaultAsync(f => f.Id == model.Id);
             template.Title = model.Title;
             template.Description = model.Description;
-
             await dbContext.SaveChangesAsync();
 
             return RedirectToAction("Index");
@@ -435,6 +437,8 @@ namespace Cosmos.Cms.Controllers
         [HttpPost]
         public async Task<IActionResult> EditCode(TemplateCodeEditorViewModel model)
         {
+            model.Content = CryptoJsDecryption.Decrypt(model.Content);
+
             if (!ModelState.IsValid)
             {
                 return View(model);
@@ -554,8 +558,8 @@ namespace Cosmos.Cms.Controllers
             DesignerDataViewModel model = new DesignerDataViewModel()
             {
                 Id = id,
-                HtmlContent = htmlContent,
-                CssContent = cssContent,
+                HtmlContent = CryptoJsDecryption.Decrypt(htmlContent),
+                CssContent = CryptoJsDecryption.Decrypt(cssContent),
                 Title = title
             };
 
