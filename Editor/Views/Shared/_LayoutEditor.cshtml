@@ -41,6 +41,7 @@
         <link href="~/lib/grapesjs/build_20241212/ccms-designer.css" rel="stylesheet" />
     }
 
+
     <script src="~/lib/promise-window/promise-window.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
     <script src="~/lib/jquery/jquery.min.js"></script>
@@ -172,6 +173,8 @@
     }
     
     <script src="~/lib/microsoft-signalr/signalr.min.js"></script>
+
+
     @Html.Raw(JavaScriptSnippet.FullScript)
 </head>
 <body class="cwps-body" style="margin:0px;padding:0px;">
@@ -319,7 +322,7 @@
             </div>
         </div>
     </nav>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js" integrity="sha512-a+SUDuwNzXDvz4XrIcXHuCf089/iJAoN4lmrXJg18XnduKK6YlDHNRalv4yd1N40OKI80tFidF+rqTFKGPoWFQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <!-- Full screen modal -->
     <script>
         // Must have global scope so using var
@@ -563,6 +566,16 @@
         // Selected anchor data
         let selectedAnchorData;
         var selectFileMode;
+
+        function encryptData(plainText, secret) {
+            //Secret Bytes.
+            var encrypted = CryptoJS.AES.encrypt(plainText, secret, {
+                mode: CryptoJS.mode.ECB,
+                padding: CryptoJS.pad.Pkcs7
+            });
+
+            return encrypted.toString();
+        }
 
         function setupIframes(iframeId, contentId) {
             var iframe = $(iframeId);

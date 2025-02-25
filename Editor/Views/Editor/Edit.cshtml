@@ -705,6 +705,11 @@
 
     // Saves changes to page title, publishing, not content.
     async function saveChanges(data, editorId) {
+
+        if (typeof(data)==="undefined") {
+            return;
+        }
+
         return new Promise((resolve, reject) => {
             if (validatePermissions() === false) {
                 // Need permissions set before going any further.
@@ -719,13 +724,13 @@
             savePublishDateTime();
 
             // Build the post payload
-            var id = $("#Id").val();
-            var published = $("#Published").val();
-
-            var updated = $("#Updated").val();
+            const id = $("#Id").val();
+            const published = $("#Published").val();
+            const updated = $("#Updated").val();
+            const encrypted = encryptData(data, id);
 
             let model = {
-                Id: $("#Id").val(),
+                Id: id,
                 ArticleNumber: $("#ArticleNumber").val(),
                 BannerImage: $("#BannerImage").val(),
                 EditorId: editorId,
@@ -737,7 +742,7 @@
                 Command: "SavePageProperties",
                 IsFocused: false,
                 VersionNumber: $("#VersionNumber").val(),
-                Data: data
+                Data: encrypted
             };
 
             $.post("@Url.Action("SaveHtml", "Editor")", model, function (data){

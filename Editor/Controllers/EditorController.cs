@@ -389,6 +389,11 @@ namespace Cosmos.Cms.Controllers
         [HttpPost]
         public async Task<IActionResult> SaveHtml(SaveHtmlEditorViewModel model)
         {
+            if (!string.IsNullOrEmpty(model.Data))
+            {
+                model.Data = AesDecryption.Decrypt(model.Data, model.Id.ToString());
+            }
+
             if (!ModelState.IsValid)
             {
                 return View(model);
