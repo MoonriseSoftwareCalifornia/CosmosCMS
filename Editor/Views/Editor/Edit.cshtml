@@ -704,16 +704,16 @@
     }
 
     // Saves changes to page title, publishing, not content.
-    async function saveChanges(data, editorId) {
-
-        if (typeof(data)==="undefined") {
-            return;
-        }
+    async function saveChanges(html, editorId) {
 
         return new Promise((resolve, reject) => {
             if (validatePermissions() === false) {
                 // Need permissions set before going any further.
                 return;
+            }
+
+            if (typeof html === "undefined") {
+                html = $("#Content").val();
             }
 
             // Signal to the user that saving has started.
@@ -727,7 +727,7 @@
             const id = $("#Id").val();
             const published = $("#Published").val();
             const updated = $("#Updated").val();
-            const encrypted = encryptData(data);
+            const encrypted = encryptData(html);
 
             let model = {
                 Id: id,

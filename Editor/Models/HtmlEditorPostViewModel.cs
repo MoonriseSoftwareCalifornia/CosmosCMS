@@ -57,7 +57,7 @@ namespace Cosmos.Cms.Models
         /// <summary>
         /// Gets or sets hTML data being sent back.
         /// </summary>
-        public string Data { get; set; }
+        public string Data { get; set; } = string.Empty;
 
         /// <summary>
         /// Gets or sets date/time published.
