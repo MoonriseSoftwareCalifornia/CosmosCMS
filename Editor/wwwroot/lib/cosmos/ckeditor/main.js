@@ -259,7 +259,16 @@ const EditorConfig = {
     },
     licenseKey: LICENSE_KEY,
     link: {
-        addTargetToExternalLinks: false,
+        decorators: {
+            openInNewTab: {
+                mode: 'manual',
+                label: 'Open in a new tab',
+                attributes: {
+                    target: '_blank',
+                    rel: 'noopener noreferrer'
+                }
+            }
+        },
         defaultProtocol: 'https://',
     },
     list: {
