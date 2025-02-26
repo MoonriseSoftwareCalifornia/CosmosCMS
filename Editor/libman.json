@@ -7,6 +7,9 @@
       "destination": "wwwroot/lib/bootstrap"
     },
     {
+      "library": ""
+    },
+    {
       "library": "cropperjs@1.6.2",
       "destination": "wwwroot/lib/cropperjs"
     },

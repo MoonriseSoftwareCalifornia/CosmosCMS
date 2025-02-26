@@ -97,15 +97,20 @@ namespace Cosmos.Editor.Data.Logic
         /// <returns>List of stylesheet URLs.</returns>
         public List<string> ExtractStyleReferences(string html)
         {
+            var styles = new List<string>
+            {
+                "/lib/ckeditor/ckeditor5-content.css"
+            };
+
             htmlEditor.LoadHtml(html);
             var nodes = htmlEditor.DocumentNode.SelectNodes("//link[@rel='stylesheet' and @href]");
 
-            if (nodes == null)
+            if (nodes != null)
             {
-                return new List<string>();
+                styles.AddRange(nodes.Select(n => n.Attributes["href"].Value).ToList());
             }
 
-            return nodes.Select(n => n.Attributes["href"].Value).ToList();
+            return styles;
         }
 
         /// <summary>
