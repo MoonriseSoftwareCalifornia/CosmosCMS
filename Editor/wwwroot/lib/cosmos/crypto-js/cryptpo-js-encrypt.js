@@ -6,6 +6,9 @@
  */
 function encryptData(plainText, keyText) {
     if (typeof keyText === 'undefined' || keyText === null || keyText === "") {
+        return "";
+    }
+    if (typeof keyText === 'undefined' || keyText === null || keyText === "") {
         keyText = '1234567890123456';
     }
     const key = CryptoJS.enc.Utf8.parse(keyText); // 16 bytes key for AES-128
