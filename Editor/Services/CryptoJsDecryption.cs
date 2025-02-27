@@ -24,7 +24,7 @@ namespace Cosmos.Editor.Services
         /// <returns>Decripted text.</returns>
         public static string Decrypt(string encryptedText)
         {
-            if (string.IsNullOrEmpty(encryptedText))
+            if (string.IsNullOrWhiteSpace(encryptedText))
             {
                 return string.Empty;
             }

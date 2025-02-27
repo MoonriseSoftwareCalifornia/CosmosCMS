@@ -108,11 +108,11 @@
 
 <script>
 
-    // Current user
-    const ccms_editor_userid = "@this.Context.User.Identity.Name";
-    const isAuthor = @User.IsInRole("Authors").ToString().ToLower();
-    const isReviewer = @User.IsInRole("Reviewers").ToString().ToLower();
-    const hasModel = @((Model != null).ToString().ToLower());
+    // Global variables
+    var ccms_editor_userid = "@this.Context.User.Identity.Name";
+    var isAuthor = @User.IsInRole("Authors").ToString().ToLower();
+    var isReviewer = @User.IsInRole("Reviewers").ToString().ToLower();
+    var hasModel = @((Model != null).ToString().ToLower());
     // This needs global scope, so using var
     var hasPermissionsSet = @hasPermissionsSet.ToString().ToLower();
 
@@ -702,17 +702,18 @@
         });
     }
 
-    // Saves changes to page title, publishing, not content.
+    // Saves changes to page.
     async function saveChanges(html, editorId) {
+
+        // If a save is already underway, skip this.
+        if (saveInProgress) {
+            return;
+        }
 
         return new Promise((resolve, reject) => {
             if (validatePermissions() === false) {
                 // Need permissions set before going any further.
                 return;
-            }
-
-            if (typeof html === "undefined") {
-                html = $("#Content").val();
             }
 
             // Signal to the user that saving has started.
@@ -726,7 +727,6 @@
             const id = $("#Id").val();
             const published = $("#Published").val();
             const updated = $("#Updated").val();
-            const encrypted = encryptData(html);
 
             let model = {
                 Id: id,
@@ -741,7 +741,7 @@
                 Command: "SavePageProperties",
                 IsFocused: false,
                 VersionNumber: $("#VersionNumber").val(),
-                Data: encrypted
+                Data: encryptData(html)
             };
 
             $.post("@Url.Action("Edit", "Editor")", model, function (data){
@@ -752,11 +752,7 @@
                 if (data.CdnResults !== null) {
                     setCdnResults(data.CdnResults);
                 }
-                try {
-                    signalRConnection.invoke("Notification", JSON.stringify(model));
-                } catch (err) {
-                    console.error(err);
-                }
+
                 if (next !== null && typeof next  === 'function') {
                     next();
                     next = null;
@@ -776,11 +772,6 @@
         // Make sure this editor isn't locked
         if (lockedEditors.includes(id)) {
             return;
-        }
-
-        if (command === "save") {
-            saving();
-            saveInProgress = true;
         }
 
         let offset = -1;
@@ -805,7 +796,7 @@
                 Command: command,
                 IsFocused: isFocused,
                 VersionNumber: $("#VersionNumber").val(),
-                Data: editor.getData()
+                Data: encryptData(editor.getData())
             };
 
             signalRConnection.invoke("Notification", JSON.stringify(model));

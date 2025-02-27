@@ -2009,35 +2009,48 @@ namespace Cosmos.Editor.Data.Logic
         /// <param name="article">Article from which to derive the catalog entry.</param>
         private async Task<CatalogEntry> CreateCatalogEntry(Article article)
         {
+            var lastVersion = await DbContext.Articles.Where(a => a.ArticleNumber == article.ArticleNumber).OrderByDescending(o => o.VersionNumber).LastOrDefaultAsync();
+
+            var userId = lastVersion.UserId;
+            var authorInfo = await DbContext.AuthorInfos.FirstOrDefaultAsync(f => f.UserId == userId && f.AuthorName != string.Empty);
+            var intro = string.Empty;
+
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(article.Content))
+                {
+                    // If there is a parsing problem, log it and continue.
+                    var htmlDoc = new HtmlAgilityPack.HtmlDocument();
+                    htmlDoc.LoadHtml(lastVersion.Content);
+                    var paragraphs = htmlDoc.DocumentNode.SelectNodes("//p");
+                    if (paragraphs != null)
+                    {
+                        var contentAreas = paragraphs.Where(w => !string.IsNullOrEmpty(w.InnerHtml) && !string.IsNullOrEmpty(w.InnerText.Trim().ToLower().Replace("&nbsp;", string.Empty)));
+                        if (contentAreas.Count() > 0)
+                        {
+                            foreach (var area in contentAreas)
+                            {
+                                if (!string.IsNullOrEmpty(area.InnerHtml))
+                                {
+                                    intro = area.InnerHtml;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error parsing article content during catalog entry.");
+            }
+
             var oldEntry = await DbContext.ArticleCatalog.FirstOrDefaultAsync(f => f.ArticleNumber == article.ArticleNumber);
 
             if (oldEntry != null)
             {
                 DbContext.ArticleCatalog.Remove(oldEntry);
                 await DbContext.SaveChangesAsync();
-            }
-
-            var lastVersion = await DbContext.Articles.Where(a => a.ArticleNumber == article.ArticleNumber).OrderByDescending(o => o.VersionNumber).LastOrDefaultAsync();
-
-            var userId = lastVersion.UserId;
-            var authorInfo = await DbContext.AuthorInfos.FirstOrDefaultAsync(f => f.UserId == userId && f.AuthorName != string.Empty);
-
-            var htmlDoc = new HtmlAgilityPack.HtmlDocument();
-            htmlDoc.LoadHtml(lastVersion.Content);
-            var intro = string.Empty;
-
-            var contentAreas = htmlDoc.DocumentNode.SelectNodes("//p").Where(w => !string.IsNullOrEmpty(w.InnerHtml) && !string.IsNullOrEmpty(w.InnerText.Trim().ToLower().Replace("&nbsp;", string.Empty))).Select(s => s.InnerText).ToList();
-
-            if (contentAreas != null && contentAreas.Any())
-            {
-                foreach (var area in contentAreas)
-                {
-                    if (!string.IsNullOrEmpty(area.Trim()))
-                    {
-                        intro = area;
-                        break;
-                    }
-                }
             }
 
             var entry = new CatalogEntry()

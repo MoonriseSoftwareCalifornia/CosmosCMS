@@ -15,6 +15,7 @@ namespace Cosmos.Cms.Controllers
     using System.Web;
     using Cosmos.BlobService;
     using Cosmos.Cms.Common.Services.Configurations;
+    using Cosmos.Cms.Hubs;
     using Cosmos.Cms.Models;
     using Cosmos.Cms.Services;
     using Cosmos.Common.Data;
@@ -28,15 +29,18 @@ namespace Cosmos.Cms.Controllers
     using Cosmos.Editor.Services;
     using HtmlAgilityPack;
     using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Components.Forms;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.ModelBinding;
+    using Microsoft.AspNetCore.SignalR;
     using Microsoft.Azure.Cosmos.Serialization.HybridRow;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using SendGrid.Helpers.Errors.Model;
+    using static System.Runtime.InteropServices.JavaScript.JSType;
 
     /// <summary>
     /// Editor controller.
@@ -54,6 +58,7 @@ namespace Cosmos.Cms.Controllers
         private readonly Uri blobPublicAbsoluteUrl;
         private readonly IViewRenderService viewRenderService;
         private readonly StorageContext storageContext;
+        private readonly IHubContext<LiveEditorHub> hub;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EditorController"/> class.
@@ -66,6 +71,7 @@ namespace Cosmos.Cms.Controllers
         /// <param name="options">Cosmos options.</param>
         /// <param name="viewRenderService">View rendering service.</param>
         /// <param name="storageContext">Storage context.</param>
+        /// <param name="hub">Editor SignalR hub.</param>
         public EditorController(
             ILogger<EditorController> logger,
             ApplicationDbContext dbContext,
@@ -74,7 +80,8 @@ namespace Cosmos.Cms.Controllers
             ArticleEditLogic articleLogic,
             IOptions<CosmosConfig> options,
             IViewRenderService viewRenderService,
-            StorageContext storageContext)
+            StorageContext storageContext,
+            IHubContext<LiveEditorHub> hub)
             : base(dbContext, userManager)
         {
             this.logger = logger;
@@ -84,7 +91,7 @@ namespace Cosmos.Cms.Controllers
             this.userManager = userManager;
             this.articleLogic = articleLogic;
             this.storageContext = storageContext;
-
+            this.hub = hub;
             var htmlUtilities = new HtmlUtilities();
 
             if (htmlUtilities.IsAbsoluteUri(options.Value.SiteSettings.BlobPublicUrl))
@@ -1495,8 +1502,6 @@ namespace Cosmos.Cms.Controllers
         [HttpPost]
         public async Task<IActionResult> Edit(HtmlEditorPostViewModel model)
         {
-            model.Data = CryptoJsDecryption.Decrypt(model.Data);
-
             if (!ModelState.IsValid)
             {
                 return View(model);
@@ -1516,30 +1521,31 @@ namespace Cosmos.Cms.Controllers
             var article = await articleLogic.GetArticleByArticleNumber(model.ArticleNumber, null);
             if (article == null)
             {
-                throw new NotFoundException($"SIGNALR: SaveEditorContent method, could not find artile with #: {model.ArticleNumber}.");
+                throw new NotFoundException($"CScould not find artile with #: {model.ArticleNumber}.");
             }
 
-            // Handle empty areas
-            if (model.Data == null)
+            // Update an editor area if we are given an editor.
+            if (!string.IsNullOrWhiteSpace(model.EditorId))
             {
-                model.Data = string.Empty;
+                // Get the editable regions from the original document.
+                var originalHtmlDoc = new HtmlDocument();
+                originalHtmlDoc.LoadHtml(article.Content);
+                var originalEditableDivs = originalHtmlDoc.DocumentNode.SelectNodes("//*[@data-ccms-ceid]");
+
+                // Find the region we are updating
+                var target = originalEditableDivs.FirstOrDefault(w => w.Attributes["data-ccms-ceid"].Value == model.EditorId);
+                if (target != null)
+                {
+                    // Decrypt the data being sent in.
+                    model.Data = CryptoJsDecryption.Decrypt(model.Data);
+
+                    // Update the region now
+                    target.InnerHtml = model.Data;
+                }
+
+                // Now carry over what's being UPDATED to the original.
+                article.Content = originalHtmlDoc.DocumentNode.OuterHtml;
             }
-
-            // Get the editable regions from the original document.
-            var originalHtmlDoc = new HtmlDocument();
-            originalHtmlDoc.LoadHtml(article.Content);
-            var originalEditableDivs = originalHtmlDoc.DocumentNode.SelectNodes("//*[@data-ccms-ceid]");
-
-            // Find the region we are updating
-            var target = originalEditableDivs.FirstOrDefault(w => w.Attributes["data-ccms-ceid"].Value == model.EditorId);
-            if (target != null)
-            {
-                // Update the region now
-                target.InnerHtml = model.Data;
-            }
-
-            // Now carry over what's being updated to the original.
-            article.Content = originalHtmlDoc.DocumentNode.OuterHtml;
 
             // Banner image
             article.BannerImage = model.BannerImage;
@@ -1554,10 +1560,14 @@ namespace Cosmos.Cms.Controllers
             // Save changes back to the database
             var result = await articleLogic.SaveArticle(article, model.UserId);
 
+            // Notify others of the changes.
+            await hub.Clients.All.SendCoreAsync("UpdateEditors", [model.Id, model.Data]);
+
             if (article.Published.HasValue)
             {
                 await articleLogic.CreateStaticTableOfContentsJsonFile("/");
             }
+
 
             return Json(result);
         }

@@ -10,7 +10,7 @@ namespace Cosmos.Cms.Hubs
     using System;
     using System.Threading.Tasks;
     using Cosmos.Cms.Models;
-    using Cosmos.Editor.Data.Logic;
+    using Cosmos.Editor.Services;
     using Microsoft.AspNetCore.SignalR;
     using Microsoft.Extensions.Logging;
     using Newtonsoft.Json;
@@ -21,35 +21,22 @@ namespace Cosmos.Cms.Hubs
     /// [Authorize(Roles = "Reviewers, Administrators, Editors, Authors")]
     public class LiveEditorHub : Hub
     {
-        private readonly ArticleEditLogic articleLogic;
         private readonly ILogger<LiveEditorHub> logger;
-
-        private string GetArticleGroupName(int articleNumber)
-        {
-            return $"Article:{articleNumber}";
-        }
-
-        private string GetArticleGroupName(string articleNumber)
-        {
-            return $"Article:{articleNumber}";
-        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LiveEditorHub"/> class.
         /// Constructor.
         /// </summary>
-        /// <param name="articleLogic"></param>
-        /// <param name="logger"></param>
-        public LiveEditorHub(ArticleEditLogic articleLogic, ILogger<LiveEditorHub> logger)
+        /// <param name="logger">Logger service.</param>
+        public LiveEditorHub(ILogger<LiveEditorHub> logger)
         {
-            this.articleLogic = articleLogic;
             this.logger = logger;
         }
 
         /// <summary>
         /// Adds an editor to the page group.
         /// </summary>
-        /// <param name="articleNumber"></param>
+        /// <param name="articleNumber">Article number.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task JoinArticleGroup(string articleNumber)
         {
@@ -59,13 +46,14 @@ namespace Cosmos.Cms.Hubs
         /// <summary>
         /// Joins the editing room.
         /// </summary>
-        /// <param name="data"></param>
+        /// <param name="data">Signal data.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task Notification(string data)
         {
             try
             {
                 var model = JsonConvert.DeserializeObject<HtmlEditorPostViewModel>(data);
+                model.Data = CryptoJsDecryption.Decrypt(model.Data);
 
                 switch (model.Command)
                 {
@@ -96,7 +84,17 @@ namespace Cosmos.Cms.Hubs
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task UpdateEditors(string editorId, string data)
         {
-            await Clients.OthersInGroup(editorId).SendCoreAsync("updateEditors", new[] { data });
+            await Clients.OthersInGroup(editorId).SendCoreAsync("updateEditors", new[] { CryptoJsDecryption.Decrypt(data) });
+        }
+
+        private string GetArticleGroupName(int articleNumber)
+        {
+            return $"Article:{articleNumber}";
+        }
+
+        private string GetArticleGroupName(string articleNumber)
+        {
+            return $"Article:{articleNumber}";
         }
     }
 }

@@ -5,7 +5,7 @@
  * @returns
  */
 function encryptData(plainText, keyText) {
-    if (typeof keyText === 'undefined' || keyText === null || keyText === "") {
+    if (typeof plainText === 'undefined' || plainText === null || plainText === "") {
         return "";
     }
     if (typeof keyText === 'undefined' || keyText === null || keyText === "") {
