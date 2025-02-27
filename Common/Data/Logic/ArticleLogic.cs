@@ -442,7 +442,15 @@ namespace Cosmos.Common.Data.Logic
         /// </returns>
         protected async Task<ArticleViewModel> BuildArticleViewModel(Article article, string lang, bool includeLayout = true)
         {
-            var authorInfo = await DbContext.AuthorInfos.AsNoTracking().FirstOrDefaultAsync(f => f.UserId == article.UserId);
+            var author = string.Empty;
+            if (!string.IsNullOrEmpty(article.UserId))
+            {
+                var authorInfo = await DbContext.AuthorInfos.AsNoTracking().FirstOrDefaultAsync(f => f.UserId == article.UserId);
+                if (authorInfo != null)
+                {
+                    author = JsonConvert.SerializeObject(authorInfo).Replace("\"", "'");
+                }
+            }
 
             return new ArticleViewModel
             {
@@ -464,7 +472,7 @@ namespace Cosmos.Common.Data.Logic
                 ReadWriteMode = isEditor,
                 Expires = article.Expires ?? null,
                 BannerImage = article.BannerImage,
-                AuthorInfo = JsonConvert.SerializeObject(authorInfo).Replace("\"", "'")
+                AuthorInfo = author
             };
         }
 
