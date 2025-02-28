@@ -6,7 +6,7 @@
 
     var data = new ImportMapDefinition(
         new Dictionary<string, string>()
-                        {
+                                {
             { "ckeditor5", "/lib/ckeditor/ckeditor5.js" },
             { "ckeditor5/", "/lib/ckeditor/" },
 
@@ -24,7 +24,7 @@
 
             { "vscodeeditor", "/lib/cosmos/ckeditor/vscodeeditor/vscodeeditor.js" },
             { "vscodeeditor/", "/lib/cosmos/ckeditor/vscodeeditor/" },
-                        },
+                                },
         null,
         null);
 }
@@ -85,8 +85,42 @@
         var articleNumber = @Model.ArticleNumber;
         let autosaveTimeout = null;
 
+        // Blur editors
+        window.addEventListener('blur', function() {
+            blurEditors();
+        });
+
+        // Blur editors
+        function blurEditors() {
+            ccms_editors.forEach(function (editor, index) {
+                // To remove focus
+                editor.editing.view.document.isFocused = false;
+                editor.editing.view.document.fire('blur');
+            });
+        }
+
+        function blurOthers(editor) {
+            const guid = editor.sourceElement.getAttribute("data-ccms-ceid");
+            ccms_editors.forEach(function (editor, index) {
+                if (editor.sourceElement.getAttribute("data-ccms-ceid") !== guid) {
+                    // To remove focus
+                    editor.editing.view.document.isFocused = false;
+                    editor.editing.view.document.fire('blur');
+                }
+            });
+        }
+
+        // Close all dropdowns
         window.addEventListener("click", function () {
             parent.closeDropDowns();
+        });
+
+        // Click outside of the editor, force blur of editors.
+        document.addEventListener('click', function(event) {
+            // Check if the clicked element is outside the div with the class 'my-div'
+            if (!event.target.closest('.ck-content')) {
+               blurEditors();
+            }
         });
 
         window.addEventListener("keydown", (event) => {
@@ -167,7 +201,7 @@
         ponds.forEach(function (el, index) {
 
             let pond = FilePond.create(el,
-                { 
+                {
                     acceptedFileTypes: ['image/*']
                 });
 

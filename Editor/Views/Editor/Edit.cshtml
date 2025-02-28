@@ -418,6 +418,13 @@
         }
     });
 
+
+    // Close all dropdowns
+    window.addEventListener("click", function () {
+        const iframe = document.getElementById("ccmsContFrame");
+        iframe.contentWindow.blurEditors();
+    });
+
     window.addEventListener('resize', function (event) { setupFrame(); }, true);
 
     function openVsCodeBlockEditor(ed) {

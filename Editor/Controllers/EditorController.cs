@@ -1909,6 +1909,8 @@ namespace Cosmos.Cms.Controllers
                 return BadRequest(ModelState);
             }
 
+            await articleLogic.UpdateArticleCatalog();
+
             var data = await dbContext.ArticleCatalog.Select(s => new
             {
                 s.ArticleNumber,
