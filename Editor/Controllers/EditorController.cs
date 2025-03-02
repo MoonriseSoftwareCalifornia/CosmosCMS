@@ -10,6 +10,7 @@ namespace Cosmos.Cms.Controllers
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Runtime.CompilerServices;
     using System.Text;
     using System.Threading.Tasks;
     using System.Web;
@@ -37,10 +38,12 @@ namespace Cosmos.Cms.Controllers
     using Microsoft.AspNetCore.SignalR;
     using Microsoft.Azure.Cosmos.Serialization.HybridRow;
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore.Cosmos;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using SendGrid.Helpers.Errors.Model;
     using static System.Runtime.InteropServices.JavaScript.JSType;
+    using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
     /// <summary>
     /// Editor controller.
@@ -392,87 +395,34 @@ namespace Cosmos.Cms.Controllers
         }
 
         /// <summary>
+        /// Gets the article trash list.
+        /// </summary>
+        /// <returns>Trask list.</returns>
+        [Authorize(Roles = "Administrators, Editors, Authors")]
+        public async Task<IActionResult> GetTrashList()
+        {
+            var query = "SELECT c.ArticleNumber, c.Title, c.UrlPath, MAX(c.Published) as Published, MAX(c.Updated) as Updated FROM Articles c WHERE c.StatusCode = 2 GROUP BY c.ArticleNumber, c.Title, c.UrlPath";
+            var client = dbContext.Database.GetCosmosClient();
+            var queryService = new CosmosDbService(client, dbContext.Database.GetCosmosDatabaseId(), "Articles");
+
+            var data = await queryService.QueryWithGroupByAsync(query);
+
+            return Json(data);
+        }
+
+        /// <summary>
         /// Open trash.
         /// </summary>
-        /// <param name="sortOrder">Sort order.</param>
-        /// <param name="currentSort">Current sort item.</param>
-        /// <param name="pageNo">Page number.</param>
-        /// <param name="pageSize">Page size.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [Authorize(Roles = "Administrators, Editors, Authors")]
-        public async Task<IActionResult> Trash(string sortOrder, string currentSort, int pageNo = 0, int pageSize = 10)
+        public IActionResult Trash()
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            ViewData["sortOrder"] = sortOrder;
-            ViewData["currentSort"] = currentSort;
-            ViewData["pageNo"] = pageNo;
-            ViewData["pageSize"] = pageSize;
-
-            var data = await articleLogic.GetArticleTrashList();
-            var query = data.AsQueryable();
-
-            ViewData["RowCount"] = await query.CountAsync();
-
-            if (sortOrder == "desc")
-            {
-                if (!string.IsNullOrEmpty(currentSort))
-                {
-                    switch (currentSort)
-                    {
-                        case "ArticleNumber":
-                            query = query.OrderByDescending(o => o.ArticleNumber);
-                            break;
-                        case "Title":
-                            query = query.OrderByDescending(o => o.Title);
-                            break;
-                        case "LastPublished":
-                            query = query.OrderByDescending(o => o.LastPublished);
-                            break;
-                        case "UrlPath":
-                            query = query.OrderByDescending(o => o.UrlPath);
-                            break;
-                        case "Status":
-                            query = query.OrderByDescending(o => o.Status);
-                            break;
-                        case "Updated":
-                            query = query.OrderByDescending(o => o.Updated);
-                            break;
-                    }
-                }
-            }
-            else
-            {
-                if (!string.IsNullOrEmpty(currentSort))
-                {
-                    switch (currentSort)
-                    {
-                        case "ArticleNumber":
-                            query = query.OrderBy(o => o.ArticleNumber);
-                            break;
-                        case "Title":
-                            query = query.OrderBy(o => o.Title);
-                            break;
-                        case "LastPublished":
-                            query = query.OrderBy(o => o.LastPublished);
-                            break;
-                        case "UrlPath":
-                            query = query.OrderBy(o => o.UrlPath);
-                            break;
-                        case "Status":
-                            query = query.OrderBy(o => o.Status);
-                            break;
-                        case "Updated":
-                            query = query.OrderBy(o => o.Updated);
-                            break;
-                    }
-                }
-            }
-
-            return View(await query.Skip(pageNo * pageSize).Take(pageSize).ToListAsync());
+            return View();
         }
 
         /// <summary>
@@ -1004,12 +954,12 @@ namespace Cosmos.Cms.Controllers
         }
 
         /// <summary>
-        /// Recovers an article from trash.
+        /// Restore an article from trash.
         /// </summary>
         /// <param name="id">Article ID to recover from trash.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [Authorize(Roles = "Administrators, Editors, Authors")]
-        public async Task<IActionResult> Recover(int id)
+        public async Task<IActionResult> Restore(int id)
         {
             if (!ModelState.IsValid)
             {
@@ -1018,7 +968,7 @@ namespace Cosmos.Cms.Controllers
 
             await articleLogic.RestoreArticle(id, await GetUserId());
 
-            return RedirectToAction("Trash");
+            return Ok();
         }
 
         /// <summary>
@@ -1911,14 +1861,14 @@ namespace Cosmos.Cms.Controllers
 
             await articleLogic.UpdateArticleCatalog();
 
-            var data = await dbContext.ArticleCatalog.Select(s => new
+            var data = await dbContext.ArticleCatalog.Select(s => new ArticleListViewItem
             {
-                s.ArticleNumber,
-                s.Title,
-                s.Published,
-                s.UrlPath,
-                s.Status,
-                s.Updated
+                ArticleNumber = s.ArticleNumber,
+                Title = s.Title,
+                Published = s.Published,
+                UrlPath = s.UrlPath,
+                Status = s.Status,
+                Updated = s.Updated
             }).ToListAsync();
 
             var model = data.Select(s => new

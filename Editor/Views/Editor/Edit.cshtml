@@ -162,7 +162,7 @@
                 break;
         }
     }
-       
+
     function setupFrame() {
         const iframe = document.getElementById("ccmsContFrame");
         const iframeWin = iframe.contentWindow || iframe.contentDocument.parentWindow;
@@ -418,10 +418,25 @@
         }
     });
 
+    // Capture change to visibility
+    document.addEventListener("visibilitychange", function() {
+        // Check if tab content is visible
+        if (document.visibilityState) {
+            console.log("Tab is visible!")
+        }
+
+        // Check if tab is active
+        if (!document.hasFocus()) {
+            const iframe = document.getElementById("ccmsContFrame");
+            iframe.contentWindow.blur();
+            iframe.contentWindow.blurEditors();
+        }
+    });
 
     // Close all dropdowns
     window.addEventListener("click", function () {
         const iframe = document.getElementById("ccmsContFrame");
+        iframe.contentWindow.blur();
         iframe.contentWindow.blurEditors();
     });
 

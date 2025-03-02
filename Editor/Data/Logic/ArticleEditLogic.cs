@@ -11,6 +11,7 @@ namespace Cosmos.Editor.Data.Logic
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Runtime.CompilerServices;
     using System.Text;
     using System.Threading.Tasks;
     using System.Web;
@@ -25,7 +26,6 @@ namespace Cosmos.Editor.Data.Logic
     using Cosmos.Common.Models;
     using Cosmos.Editor.Controllers;
     using Cosmos.Editor.Services;
-    using Microsoft.AspNetCore.Http;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.Extensions.Logging;
@@ -980,41 +980,6 @@ namespace Cosmos.Editor.Data.Logic
                 .OrderByDescending(o => o.VersionNumber)
                 .Select(s => s.Published)
                 .LastOrDefaultAsync();
-        }
-
-        /// <summary>
-        ///     Gets the latest versions of articles that are in the trash.
-        /// </summary>
-        /// <returns>Gets article number, version number, last data published (if applicable).</returns>
-        public async Task<List<ArticleListItem>> GetArticleTrashList()
-        {
-            var data = await
-                (from x in DbContext.Articles
-                 where x.StatusCode == (int)StatusCodeEnum.Deleted
-                 select new
-                 {
-                     x.ArticleNumber,
-                     x.VersionNumber,
-                     x.Published,
-                     x.StatusCode,
-                     x.Title
-                 }).ToListAsync();
-
-            var model =
-                (from x in data
-                 where x.StatusCode == (int)StatusCodeEnum.Deleted
-                 group x by x.ArticleNumber
-                    into g
-                 select new ArticleListItem
-                 {
-                     ArticleNumber = g.Key,
-                     Title = g.FirstOrDefault().Title,
-                     VersionNumber = g.Max(i => i.VersionNumber),
-                     LastPublished = g.Max(m => m.Published),
-                     Status = g.Max(f => f.StatusCode) == 0 ? "Active" : "Inactive"
-                 }).ToList();
-
-            return model;
         }
 
         /// <summary>

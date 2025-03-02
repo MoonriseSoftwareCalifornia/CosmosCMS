@@ -1,16 +1,17 @@
-﻿@model List<ArticleListItem>
+﻿@using Cosmos.Cms.Common.Services.Configurations;
+@using Cosmos.Cms.Services
+@using Microsoft.Extensions.Options;
+@inject IOptions<CosmosConfig> options
+@model List<ArticleListItem>
 @{
     var canEdit = User.IsInRole("Administrators") || User.IsInRole("Editors") || User.IsInRole("Authors");
 
     ViewData["Title"] = "Trash";
-    var rowCount = (int)ViewData["RowCount"];
-    var sortOrder = (string)ViewData["sortOrder"];
-    var currentSort = (string)ViewData["currentSort"];
-    var pageNumber = (int)ViewData["pageNo"];
-    var pageSize = (int)ViewData["pageSize"];
-
-    var pagerModel = new GridPagerPartialViewModel(pageNumber, rowCount, pageSize, sortOrder, currentSort, "/Editor/Trash");
+    var isReviewer = User.IsInRole("Reviewers");
 }
+<link href="~/lib/tabulator-tables/dist/css/tabulator_midnight.css" rel="stylesheet" />
+<script src="~/lib/luxon/luxon.min.js"></script>
+<script src="~/lib/tabulator-tables/dist/js/tabulator.min.js"></script>
 <script src="~/js/clipboard.min.js"></script>
 <div class="cwps-editor-container pt-3">
     <div class="container mt-3">
@@ -23,16 +24,134 @@
         </div>
         <div class="row cpws-table-pager-row-top">
             <div class="col-md-6">
-                <div class="btn-group" role="group" aria-label="Actions">
-                    <a title="Return to page list" class="btn btn-sm btn-secondary" href="@Url.Action("Index")">Page list <i class="fa-solid fa-circle-arrow-right"></i></a>
-                </div>
+                @if (!isReviewer)
+                {
+                    <div class="btn-group" role="group" aria-label="Actions">
+                        <a class="btn btn-sm btn-primary" title="Go to page list." asp-action="Index">Page list</a>
+                        <a class="btn btn-sm btn-secondary" title="Create a new web page" asp-action="Index" asp-controller="Templates">Templates</a>
+                        <a title="Manage redirects" class="btn btn-sm btn-secondary" asp-action="Redirects">Redirects</a>
+                        <a title="Manage site design" class="btn btn-sm btn-secondary" asp-action="Index" asp-controller="Layouts">Site Design</a>
+                        <a title="Manage reserved paths" class="btn btn-sm btn-secondary" asp-action="ReservedPaths" asp-controller="Editor">Reserved Paths</a>
+                    </div>
+                }
             </div>
             <div class="col-md-6 d-flex justify-content-end">
-                <partial name="~/Views/Shared/GridPager/_GridPager.cshtml" model="pagerModel"></partial>
+            </div>
+        </div>
+        <div class="row bg-dark">
+            <div class="col-md-12">
+                <div id="pagelist-table" class="table-dark"></div>
+                <script>
+
+                    const publisherUrl = "@options.Value.SiteSettings.PublisherUrl.TrimEnd('/')";
+                    const tblHeight = window.innerHeight - 200;
+                    const canEdit = @canEdit.ToString().ToLower();
+                    let pageSize = Math.round(tblHeight / 50);
+
+                    function dateTime(cell, formatterParams, onRendered){
+                        //cell - the cell component
+                        //formatterParams - parameters set for the column
+                        //onRendered - function to call when the formatter has been rendered
+                        return getLocalTime(cell.getValue());
+                    }
+
+                    function dateFilterFunction(headerValue, rowValue, rowData, filterParams){
+                        if (rowValue === null || rowValue === "") {
+                            return false;
+                        }
+                        return headerValue === rowValue.split("T")[0]; //must return a boolean, true if it passes the filter.
+                    }
+
+                    async function restore(articleNumber) {
+                        const result = await fetch("@Url.Action("Restore", "Editor")/" + articleNumber);
+                        if (result.ok) {
+                            pageTable.setData();
+                        }
+                    }
+
+                    const menuBar = function(cell, formatterParams){
+                        data = cell.getRow().getData();
+                        let html = "<div class='btn-group btn-group-sm' role='group' aria-label='Page actions.'>";
+                        html += "<button title='Recover page from trash' onclick='restore(" + data.ArticleNumber + ")' class='btn btn-sm btn-success'> Restore <i class='fa-solid fa-trash-can-arrow-up'></i></button>";
+                        html += "</div>";
+                        return html;
+                    };
+
+                    const pageTable = new Tabulator("#pagelist-table", {
+                        pagination:true, //enable pagination
+                        paginationMode:"local", //enable local pagination
+                        paginationSize:pageSize, //optional parameter to request a certain number of rows per page
+                        persistence:{
+                            sort: true, //persist column sorting
+                            filter: true, //persist filters
+                            headerFilter: true, //persist header filters
+                            group: false, //persist row grouping
+                            page: true, //persist page
+                            columns: false, //persist columns
+                        },
+                        persistenceWriterFunc:function(id, type, data){
+                            //id - tables persistence id
+                            //type - type of data being persisted ("sort", "filter", "group", "page" or "columns")
+                            //data - array or object of data
+                            sessionStorage.setItem(id + "-" + type, JSON.stringify(data));
+                        },
+                        persistenceReaderFunc:function(id, type){
+                            //id - tables persistence id
+                            //type - type of data being persisted ("sort", "filter", "group", "page" or "columns")
+                            var data = sessionStorage.getItem(id + "-" + type);
+                            return data ? JSON.parse(data) : false;
+                        },
+                        layout:"fitColumns",
+                        ajaxURL:"@Url.Action("GetTrashList", "Editor")", //ajax URL
+                        columns:[
+                            {title:"UrlPath", field:"UrlPath", visible: false },
+                            {title:"No.", field:"ArticleNumber", visible: false },
+                            {title:"Status", field:"Status", sorter:"string", visible: false },
+
+                            {title:"Actions", field:"IsDefault", formatter:menuBar, width:176, headerSort:false },
+
+                            {title:"Published", field:"Published", sorter:"date", headerFilter:"date", headerFilterFunc:dateFilterFunction, width:180,
+                                sorter:"datetime",
+                                sorterParams:{
+                                    format:"iso", alignEmptyValues:"top", },
+                                formatter:"datetime",
+                                formatterParams:{
+                                    inputFormat:"iso",
+                                    outputFormat:"MM/dd/yyyy HH:mm:ss",
+                                    invalidPlaceholder:"(Invalid date)"
+                                }
+                            },
+
+                            {title:"Updated", field:"Updated", headerFilter:"date", headerFilterFunc:dateFilterFunction, width:180,
+                                sorter:"datetime",
+                                sorterParams:{
+                                    format:"iso", alignEmptyValues:"top", },
+                                formatter:"datetime",
+                                formatterParams:{
+                                    inputFormat:"iso",
+                                    outputFormat:"MM/dd/yyyy HH:mm:ss",
+                                    invalidPlaceholder:"(Invalid date)"
+                                }
+                            },
+
+                            {title:"Title", field:"Title", sorter:"string", headerFilter:"input" },
+
+                        ],
+                    });
+                </script>
             </div>
         </div>
 
-        <div class="row bg-dark">
+        <div class="row cpws-table-pager-row-bottom">
+            <div class="col-md-12 d-flex justify-content-center">
+                &nbsp;
+            </div>
+        </div>
+
+
+
+
+@*         <div class="row bg-dark">
             <div class="col-md-12">
                 <div class="table-responsive custom-table-responsive">
                     <table class="table custom-table">
@@ -84,7 +203,7 @@
             <div class="col-md-12 d-flex justify-content-center">
                 <partial name="~/Views/Shared/GridPager/_GridPager.cshtml" model="pagerModel"></partial>
             </div>
-        </div>
+        </div> *@
     </div>
 </div>
 <script>

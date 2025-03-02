@@ -177,6 +177,20 @@
           "Newtonsoft.Json": "13.0.3"
         }
       },
+      "Microsoft.EntityFrameworkCore.Cosmos": {
+        "type": "Direct",
+        "requested": "[9.0.2, )",
+        "resolved": "9.0.2",
+        "contentHash": "FS5ADBr7Z9Z+CO3it5MkwH2vNyxSOaXRbrhXzIZqb4Y0oKzCjljIqHNG2814So6mI0tYneZn8/zc/rsO1RHlIg==",
+        "dependencies": {
+          "Microsoft.Azure.Cosmos": "3.45.2",
+          "Microsoft.EntityFrameworkCore": "9.0.2",
+          "Microsoft.Extensions.Caching.Memory": "9.0.2",
+          "Microsoft.Extensions.Logging": "9.0.2",
+          "Newtonsoft.Json": "13.0.3",
+          "System.Text.Json": "9.0.2"
+        }
+      },
       "Microsoft.Extensions.Azure": {
         "type": "Direct",
         "requested": "[1.10.0, )",
@@ -246,9 +260,9 @@
       },
       "NUglify": {
         "type": "Direct",
-        "requested": "[1.21.12, )",
-        "resolved": "1.21.12",
-        "contentHash": "lspukmkfywOYWhSrVNt+IWdU+iZZdVfLe2w0WovI6XH/2AyXaaf+HPr/ldGrS6mZgG3JRkU2McYXk2Ux+O0+KA=="
+        "requested": "[1.21.13, )",
+        "resolved": "1.21.13",
+        "contentHash": "MXwtvVSoA9xf1o0YoLwcZLfXbkus0dksWItSqn9UTpURN01YsbRcpAEmky+AuuIQmeJ9NSpviolUo8J20ON/dA=="
       },
       "PasswordGenerator": {
         "type": "Direct",
@@ -1382,19 +1396,6 @@
         "type": "Transitive",
         "resolved": "9.0.2",
         "contentHash": "w4jzX7XI+L3erVGzbHXpx64A3QaLXxqG3f1vPpGYYZGpxOIHkh7e4iLLD7cq4Ng1vjkwzWl5ZJp0Kj/nHsgFYg=="
-      },
-      "Microsoft.EntityFrameworkCore.Cosmos": {
-        "type": "Transitive",
-        "resolved": "9.0.1",
-        "contentHash": "IVI+gs5xbWjOlse9+eqXjM35MUXjhzAEFjKyukmp0E++AzOFFeHjHwKrtEQ7mszcWV0YC2b2brgw/XPxp5Jh8Q==",
-        "dependencies": {
-          "Microsoft.Azure.Cosmos": "3.45.2",
-          "Microsoft.EntityFrameworkCore": "9.0.1",
-          "Microsoft.Extensions.Caching.Memory": "9.0.1",
-          "Microsoft.Extensions.Logging": "9.0.1",
-          "Newtonsoft.Json": "13.0.3",
-          "System.Text.Json": "9.0.1"
-        }
       },
       "Microsoft.EntityFrameworkCore.Relational": {
         "type": "Transitive",
