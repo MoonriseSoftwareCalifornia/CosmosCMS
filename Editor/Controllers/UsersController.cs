@@ -87,9 +87,9 @@ namespace Cosmos.Cms.Controllers
             ViewData["pageSize"] = pageSize;
 
             // Get the current list of infos
-            var ids = await dbContext.AuthorInfos.Select(s => s.UserId).ToArrayAsync();
-            var check = await dbContext.Users.Select(s => new AuthorInfo { UserId = s.Id, EmailAddress = s.Email }).ToListAsync();
-            var missing = check.Where(w => !ids.Contains(w.UserId)).ToList();
+            var ids = await dbContext.AuthorInfos.Select(s => s.Id).ToArrayAsync();
+            var check = await dbContext.Users.Select(s => new AuthorInfo { Id = s.Id, EmailAddress = s.Email }).ToListAsync();
+            var missing = check.Where(w => !ids.Contains(w.Id)).ToList();
             // Get missing infos and add them
             dbContext.AuthorInfos.AddRange(missing);
             await dbContext.SaveChangesAsync();
@@ -107,7 +107,7 @@ namespace Cosmos.Cms.Controllers
                         query = query.OrderByDescending(o => o.EmailAddress);
                         break;
                     case "UserId":
-                        query = query.OrderByDescending(o => o.UserId);
+                        query = query.OrderByDescending(o => o.Id);
                         break;
                     case "AuthorName":
                         query.OrderByDescending(o => o.AuthorName);
@@ -122,7 +122,7 @@ namespace Cosmos.Cms.Controllers
                         query = query.OrderBy(o => o.EmailAddress);
                         break;
                     case "UserId":
-                        query = query.OrderBy(o => o.UserId);
+                        query = query.OrderBy(o => o.Id);
                         break;
                     case "AuthorName":
                         query = query.OrderBy(o => o.AuthorName);
@@ -149,21 +149,41 @@ namespace Cosmos.Cms.Controllers
                 return BadRequest(ModelState);
             }
 
-            return View(await dbContext.AuthorInfos.FindAsync(id));
+            var entity = await dbContext.AuthorInfos.FindAsync(id);
+            if (entity == null)
+            {
+                entity = new AuthorInfo() { Id = id };
+                dbContext.AuthorInfos.Add(entity);
+                await dbContext.SaveChangesAsync();
+            }
+
+            return View(entity);
         }
 
         /// <summary>
         /// Edit Editor/Author information.
         /// </summary>
-        /// <param name="model"></param>
+        /// <param name="model">AuthorInfo.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [HttpPost]
         public async Task<IActionResult> AuthorInfoEdit(AuthorInfo model)
         {
             if (ModelState.IsValid)
             {
-                dbContext.Entry(model).State = EntityState.Modified;
+                var entity = await dbContext.AuthorInfos.FindAsync(model.Id);
+                if (entity == null)
+                {
+                    return NotFound();
+                }
+
+                entity.AuthorName = model.AuthorName;
+                entity.AuthorDescription = model.AuthorDescription;
+                entity.TwitterHandle = model.TwitterHandle;
+                entity.InstagramUrl = model.InstagramUrl;
+                entity.EmailAddress = model.EmailAddress;
+
                 await dbContext.SaveChangesAsync();
+
                 return RedirectToAction("AuthorInfos");
             }
 
@@ -532,6 +552,29 @@ namespace Cosmos.Cms.Controllers
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Deletes an author info.
+        /// </summary>
+        /// <param name="id">Author info ID.</param>
+        /// <returns>IActionResult.</returns>
+        public async Task<IActionResult> DeleteAuthorInfo(string id)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var entity = await dbContext.AuthorInfos.FindAsync(id);
+            if (entity == null)
+            {
+                return NotFound();
+            }
+
+            dbContext.AuthorInfos.Remove(entity);
+            await dbContext.SaveChangesAsync();
+            return RedirectToAction("AuthorInfos");
         }
 
         /// <summary>

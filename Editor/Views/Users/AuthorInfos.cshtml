@@ -57,6 +57,9 @@
                                 <th scope="col">
                                     Instagram URL
                                 </th>
+                                <th scope="col">
+                                    
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -64,9 +67,9 @@
                             {
                                 <tr scope="row">
                                     <td scope="row" style="width:80px;">
-                                        <a asp-action="AuthorInfoEdit" asp-route-id="@row.UserId"><i class="fa-solid fa-user-pen"></i></a>
+                                        <a asp-action="AuthorInfoEdit" asp-route-id="@row.Id"><i class="fa-solid fa-user-pen"></i></a>
                                     </td>
-                                    <td style="width:30px;">
+                                    <td>
                                         @row.AuthorName
                                     </td>
                                     <td>
@@ -80,6 +83,9 @@
                                     </td>
                                     <td style="width:142px;">
                                         @row.InstagramUrl
+                                    </td>
+                                    <td>
+                                        <a class="btn btn-sm btn-secondary" asp-action="DeleteAuthorInfo" asp-route-id="@row.Id"><i class="fa-solid fa-trash"></i></a>
                                     </td>
                                 </tr>
                             }
