@@ -445,7 +445,7 @@ namespace Cosmos.Common.Data.Logic
             var author = string.Empty;
             if (!string.IsNullOrEmpty(article.UserId))
             {
-                var authorInfo = await DbContext.AuthorInfos.AsNoTracking().FirstOrDefaultAsync(f => f.UserId == article.UserId);
+                var authorInfo = await DbContext.AuthorInfos.AsNoTracking().FirstOrDefaultAsync(f => f.Id == article.UserId);
                 if (authorInfo != null)
                 {
                     author = JsonConvert.SerializeObject(authorInfo).Replace("\"", "'");

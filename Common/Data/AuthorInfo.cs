@@ -22,13 +22,7 @@ namespace Cosmos.Common.Data
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         [Display(Name = "User Id")]
-        public Guid Id { get; set; } = Guid.NewGuid();
-
-        /// <summary>
-        /// Gets or sets the user ID.
-        /// </summary>
-        [Display(Name = "User Id")]
-        public string UserId { get; set; }
+        public string Id { get; set; }
 
         /// <summary>
         /// Gets or sets author name.

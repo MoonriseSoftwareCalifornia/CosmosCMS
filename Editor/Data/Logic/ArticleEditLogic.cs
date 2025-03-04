@@ -1678,7 +1678,7 @@ namespace Cosmos.Editor.Data.Logic
             // Now refresh the published pages
             foreach (var item in newVersions)
             {
-                var authorInfo = await DbContext.AuthorInfos.FirstOrDefaultAsync(f => f.UserId == item.UserId && f.AuthorName != string.Empty);
+                var authorInfo = await DbContext.AuthorInfos.FirstOrDefaultAsync(f => f.Id == item.UserId && f.AuthorName != string.Empty);
 
                 var newPage = new PublishedPage()
                 {
@@ -1977,7 +1977,7 @@ namespace Cosmos.Editor.Data.Logic
             var lastVersion = await DbContext.Articles.Where(a => a.ArticleNumber == article.ArticleNumber).OrderByDescending(o => o.VersionNumber).LastOrDefaultAsync();
 
             var userId = lastVersion.UserId;
-            var authorInfo = await DbContext.AuthorInfos.FirstOrDefaultAsync(f => f.UserId == userId && f.AuthorName != string.Empty);
+            var authorInfo = await DbContext.AuthorInfos.FirstOrDefaultAsync(f => f.Id == userId && f.AuthorName != string.Empty);
             var intro = string.Empty;
 
             try
