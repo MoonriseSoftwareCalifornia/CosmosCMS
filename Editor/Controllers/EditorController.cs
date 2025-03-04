@@ -10,7 +10,6 @@ namespace Cosmos.Cms.Controllers
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Runtime.CompilerServices;
     using System.Text;
     using System.Threading.Tasks;
     using System.Web;
@@ -30,7 +29,6 @@ namespace Cosmos.Cms.Controllers
     using Cosmos.Editor.Services;
     using HtmlAgilityPack;
     using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Components.Forms;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
@@ -38,12 +36,9 @@ namespace Cosmos.Cms.Controllers
     using Microsoft.AspNetCore.SignalR;
     using Microsoft.Azure.Cosmos.Serialization.HybridRow;
     using Microsoft.EntityFrameworkCore;
-    using Microsoft.EntityFrameworkCore.Cosmos;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using SendGrid.Helpers.Errors.Model;
-    using static System.Runtime.InteropServices.JavaScript.JSType;
-    using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
     /// <summary>
     /// Editor controller.
