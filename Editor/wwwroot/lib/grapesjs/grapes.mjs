@@ -27484,7 +27484,6 @@ var DataSourcesEvents;
      */
     DataSourcesEvents["all"] = "data";
 })(DataSourcesEvents || (DataSourcesEvents = {}));
-/**{END_EVENTS}*/
 
 ;// CONCATENATED MODULE: ./src/data_sources/model/utils.ts
 
@@ -27733,6 +27732,8 @@ var StringOperation;
     StringOperation["startsWith"] = "startsWith";
     StringOperation["endsWith"] = "endsWith";
     StringOperation["matchesRegex"] = "matchesRegex";
+    StringOperation["equalsIgnoreCase"] = "equalsIgnoreCase";
+    StringOperation["trimEquals"] = "trimEquals";
 })(StringOperation || (StringOperation = {}));
 var StringOperator = /** @class */ (function (_super) {
     StringOperations_extends(StringOperator, _super);
@@ -27750,7 +27751,13 @@ var StringOperator = /** @class */ (function (_super) {
             case StringOperation.endsWith:
                 return left.endsWith(right);
             case StringOperation.matchesRegex:
+                if (!right)
+                    throw new Error('Regex pattern must be provided.');
                 return new RegExp(right).test(left);
+            case StringOperation.equalsIgnoreCase:
+                return left.toLowerCase() === right.toLowerCase();
+            case StringOperation.trimEquals:
+                return left.trim() === right.trim();
             default:
                 throw new Error("Unsupported string operator: ".concat(this.operator));
         }
@@ -27904,23 +27911,23 @@ var DataCondition = /** @class */ (function (_super) {
         if (typeof condition === 'undefined') {
             throw new MissingConditionError();
         }
-        _this = _super.call(this) || this;
+        var conditionInstance = new Condition(condition, { em: opts.em });
+        _this = _super.call(this, {
+            type: DataCondition_ConditionalVariableType,
+            condition: conditionInstance,
+            ifTrue: ifTrue,
+            ifFalse: ifFalse,
+        }) || this;
         _this.ifTrue = ifTrue;
         _this.ifFalse = ifFalse;
         _this.variableListeners = [];
-        _this.condition = new Condition(condition, { em: opts.em });
+        _this.condition = conditionInstance;
         _this.em = opts.em;
         _this.lastEvaluationResult = _this.evaluate();
         _this.listenToDataVariables();
         _this._onValueChange = opts.onValueChange;
         return _this;
     }
-    DataCondition.prototype.defaults = function () {
-        return {
-            type: DataCondition_ConditionalVariableType,
-            condition: false,
-        };
-    };
     DataCondition.prototype.evaluate = function () {
         return this.condition.evaluate();
     };
@@ -28015,6 +28022,7 @@ var DynamicVariableListenerManager = /** @class */ (function () {
         var _this = this;
         var _a = this, em = _a.em, dynamicVariable = _a.dynamicVariable, model = _a.model;
         this.removeListeners();
+        // @ts-ignore
         var type = dynamicVariable.get('type');
         var dataListeners = [];
         switch (type) {
@@ -28680,10 +28688,10 @@ var getComponentsFromDefs = function (items, all, opts) {
                 // Update the component if exists already
                 if (all[id]) {
                     result = all[id];
-                    var cmp = result;
-                    tagName && cmp.set({ tagName: tagName }, Components_assign(Components_assign({}, opts), { silent: true }));
-                    (0,index_all.keys)(restAttr).length && cmp.addAttributes(restAttr, Components_assign({}, opts));
-                    (0,index_all.keys)(style).length && cmp.addStyle(style, opts);
+                    var cmp_1 = result;
+                    tagName && cmp_1.set({ tagName: tagName }, Components_assign(Components_assign({}, opts), { silent: true }));
+                    (0,index_all.keys)(restAttr).length && cmp_1.addAttributes(restAttr, Components_assign({}, opts));
+                    (0,index_all.keys)(style).length && cmp_1.addStyle(style, opts);
                 }
             }
             else {
@@ -28693,15 +28701,20 @@ var getComponentsFromDefs = function (items, all, opts) {
                 result.attributes.id = id;
             }
         }
+        // Here `result` might be a Component
+        var cmp = (0,index_all.isFunction)(result.components) ? result : null;
         if (components) {
-            var newComponents = getComponentsFromDefs(components, all);
-            if ((0,index_all.isFunction)(result.components)) {
-                var cmps = result.components();
-                cmps.length > 0 && cmps.reset(newComponents, opts);
+            var newComponents = getComponentsFromDefs(components, all, opts);
+            if (cmp) {
+                cmp.components().reset(newComponents, opts);
             }
             else {
                 result.components = newComponents;
             }
+        }
+        else if (cmp) {
+            // The component already exists but the parsed one is without components
+            cmp.components().reset([], opts);
         }
         return result;
     });
@@ -36556,7 +36569,7 @@ var ComponentView = /** @class */ (function (_super) {
         var hoveredCls = "".concat(ppfx, "hovered");
         var noPointerCls = "".concat(ppfx, "no-pointer");
         var pointerInitCls = "".concat(ppfx, "pointer-init");
-        var toRemove = [selectedCls, selectedParentCls, freezedCls, hoveredCls, noPointerCls];
+        var toRemove = [selectedCls, selectedParentCls, freezedCls, hoveredCls, noPointerCls, pointerInitCls];
         var selCls = extHl && !opts.noExtHl ? '' : selectedCls;
         this.$el.removeClass(toRemove.join(' '));
         var actualCls = el.getAttribute('class') || '';
@@ -37085,9 +37098,13 @@ var ComponentImageView = /** @class */ (function (_super) {
         }
     };
     ComponentImageView.prototype.onError = function () {
-        var fallback = this.model.getSrcResult({ fallback: true });
+        var _a = this, model = _a.model, el = _a.el;
+        var fallback = model.getSrcResult({ fallback: true });
         if (fallback) {
-            this.el.src = fallback;
+            // Remove srcset to prevent error loop on src update #6332
+            if (el.srcset)
+                el.srcset = '';
+            el.src = fallback;
         }
     };
     ComponentImageView.prototype.onLoad = function () {
@@ -37237,7 +37254,7 @@ var ComponentTextView = /** @class */ (function (_super) {
      * */
     ComponentTextView.prototype.onActive = function (ev) {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, rte, em, _b, result, delegate, _c, _d, err_1;
+            var _a, rte, em, _b, result, delegate, _c, view, _d, err_1;
             var _e, _f;
             return __generator(this, function (_g) {
                 switch (_g.label) {
@@ -37263,8 +37280,9 @@ var ComponentTextView = /** @class */ (function (_super) {
                         _g.label = 2;
                     case 2:
                         _g.trys.push([2, 4, , 5]);
+                        view = this;
                         _d = this;
-                        return [4 /*yield*/, rte.enable(this, this.activeRte, { event: ev })];
+                        return [4 /*yield*/, rte.enable(view, this.activeRte, { event: ev, view: view })];
                     case 3:
                         _d.activeRte = _g.sent();
                         return [3 /*break*/, 5];
@@ -37288,40 +37306,37 @@ var ComponentTextView = /** @class */ (function (_super) {
      * */
     ComponentTextView.prototype.disableEditing = function () {
         return __awaiter(this, arguments, void 0, function (opts) {
-            var _a, model, rte, activeRte, em, editable, err_2, _b;
+            var _a, model, rte, activeRte, em, editable, disableRes, content, err_2;
             if (opts === void 0) { opts = {}; }
-            return __generator(this, function (_c) {
-                switch (_c.label) {
+            return __generator(this, function (_b) {
+                switch (_b.label) {
                     case 0:
                         _a = this, model = _a.model, rte = _a.rte, activeRte = _a.activeRte, em = _a.em;
                         editable = model && model.get('editable');
-                        if (!rte) return [3 /*break*/, 8];
-                        _c.label = 1;
-                    case 1:
-                        _c.trys.push([1, 3, , 4]);
-                        return [4 /*yield*/, rte.disable(this, activeRte, opts)];
-                    case 2:
-                        _c.sent();
-                        return [3 /*break*/, 4];
-                    case 3:
-                        err_2 = _c.sent();
-                        em.logError(err_2);
-                        return [3 /*break*/, 4];
-                    case 4:
-                        _b = editable;
-                        if (!_b) return [3 /*break*/, 6];
+                        if (!rte) return [3 /*break*/, 7];
+                        disableRes = {};
                         return [4 /*yield*/, this.getContent()];
+                    case 1:
+                        content = _b.sent();
+                        _b.label = 2;
+                    case 2:
+                        _b.trys.push([2, 4, , 5]);
+                        return [4 /*yield*/, rte.disable(this, activeRte, opts)];
+                    case 3:
+                        disableRes = _b.sent();
+                        return [3 /*break*/, 5];
+                    case 4:
+                        err_2 = _b.sent();
+                        em.logError(err_2);
+                        return [3 /*break*/, 5];
                     case 5:
-                        _b = (_c.sent()) !== this.lastContent;
-                        _c.label = 6;
+                        if (!(editable && (content !== this.lastContent || disableRes.forceSync))) return [3 /*break*/, 7];
+                        return [4 /*yield*/, this.syncContent(ComponentTextView_assign(ComponentTextView_assign({}, opts), { content: content }))];
                     case 6:
-                        if (!_b) return [3 /*break*/, 8];
-                        return [4 /*yield*/, this.syncContent(opts)];
-                    case 7:
-                        _c.sent();
+                        _b.sent();
                         this.lastContent = '';
-                        _c.label = 8;
-                    case 8:
+                        _b.label = 7;
+                    case 7:
                         this.toggleEvents();
                         return [2 /*return*/];
                 }
@@ -37355,17 +37370,24 @@ var ComponentTextView = /** @class */ (function (_super) {
      */
     ComponentTextView.prototype.syncContent = function () {
         return __awaiter(this, arguments, void 0, function (opts) {
-            var _a, model, rte, rteEnabled, content, comps, contentOpt;
+            var _a, model, rte, rteEnabled, content, _b, comps, contentOpt;
+            var _c;
             if (opts === void 0) { opts = {}; }
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            return __generator(this, function (_d) {
+                switch (_d.label) {
                     case 0:
                         _a = this, model = _a.model, rte = _a.rte, rteEnabled = _a.rteEnabled;
                         if (!rteEnabled && !opts.force)
                             return [2 /*return*/];
-                        return [4 /*yield*/, this.getContent()];
-                    case 1:
-                        content = _b.sent();
+                        if (!((_c = opts.content) !== null && _c !== void 0)) return [3 /*break*/, 1];
+                        _b = _c;
+                        return [3 /*break*/, 3];
+                    case 1: return [4 /*yield*/, this.getContent()];
+                    case 2:
+                        _b = (_d.sent());
+                        _d.label = 3;
+                    case 3:
+                        content = _b;
                         comps = model.components();
                         contentOpt = ComponentTextView_assign({ fromDisable: 1 }, opts);
                         model.set('content', '', contentOpt);
@@ -37425,11 +37447,11 @@ var ComponentTextView = /** @class */ (function (_super) {
      * @param  {Event} e
      */
     ComponentTextView.prototype.onInput = function () {
-        var em = this.em;
+        var _a;
         var evPfx = 'component';
         var ev = ["".concat(evPfx, ":update"), "".concat(evPfx, ":input")].join(' ');
         // Update toolbars
-        em && em.trigger(ev, this.model);
+        (_a = this.em) === null || _a === void 0 ? void 0 : _a.trigger(ev, this.model);
     };
     /**
      * Isolate disable propagation method
@@ -39052,7 +39074,7 @@ var ComponentManager = /** @class */ (function (_super) {
         var srcModel = (0,mixins.isComponent)(source) ? source : null;
         if (!srcModel) {
             var wrapper = this.getShallowWrapper();
-            srcModel = (wrapper === null || wrapper === void 0 ? void 0 : wrapper.append(source)[0]) || null;
+            srcModel = (wrapper === null || wrapper === void 0 ? void 0 : wrapper.append(source, { temporary: true })[0]) || null;
         }
         result.source = srcModel;
         if (!srcModel)
@@ -57574,6 +57596,17 @@ var rich_text_editor_extends = (undefined && undefined.__extends) || (function (
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var rich_text_editor_assign = (undefined && undefined.__assign) || function () {
+    rich_text_editor_assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return rich_text_editor_assign.apply(this, arguments);
+};
 var rich_text_editor_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -57902,10 +57935,9 @@ var RichTextEditorModule = /** @class */ (function (_super) {
      * @param {Object} rte The instance of already defined RTE
      * @private
      * */
-    RichTextEditorModule.prototype.enable = function (view_1, rte_1) {
-        return rich_text_editor_awaiter(this, arguments, void 0, function (view, rte, opts) {
+    RichTextEditorModule.prototype.enable = function (view, rte, opts) {
+        return rich_text_editor_awaiter(this, void 0, void 0, function () {
             var _a, customRte, em, el, rteInst;
-            if (opts === void 0) { opts = {}; }
             return rich_text_editor_generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -57913,7 +57945,7 @@ var RichTextEditorModule = /** @class */ (function (_super) {
                         _a = this, customRte = _a.customRte, em = _a.em;
                         el = view.getChildrenContainer();
                         this.toolbar.style.display = '';
-                        return [4 /*yield*/, (customRte ? customRte.enable(el, rte) : this.initRte(el).enable(opts))];
+                        return [4 /*yield*/, (customRte ? customRte.enable(el, rte, opts) : this.initRte(el).enable(opts))];
                     case 1:
                         rteInst = _b.sent();
                         if (em) {
@@ -57930,15 +57962,16 @@ var RichTextEditorModule = /** @class */ (function (_super) {
     };
     RichTextEditorModule.prototype.getContent = function (view, rte) {
         return rich_text_editor_awaiter(this, void 0, void 0, function () {
-            var customRte;
+            var customRte, el;
             return rich_text_editor_generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         customRte = this.customRte;
+                        el = view.getChildrenContainer();
                         if (!(customRte && rte && (0,index_all.isFunction)(customRte.getContent))) return [3 /*break*/, 2];
-                        return [4 /*yield*/, customRte.getContent(view.el, rte)];
+                        return [4 /*yield*/, customRte.getContent(el, rte, { view: view })];
                     case 1: return [2 /*return*/, _a.sent()];
-                    case 2: return [2 /*return*/, view.getChildrenContainer().innerHTML];
+                    case 2: return [2 /*return*/, el.innerHTML];
                 }
             });
         });
@@ -57956,24 +57989,38 @@ var RichTextEditorModule = /** @class */ (function (_super) {
      * @param {Object} rte The instance of already defined RTE
      * @private
      * */
-    RichTextEditorModule.prototype.disable = function (view, rte, opts) {
-        if (opts === void 0) { opts = {}; }
-        var em = this.em;
-        var customRte = this.customRte;
-        // @ts-ignore
-        var el = view.getChildrenContainer();
-        if (customRte) {
-            customRte.disable(el, rte);
-        }
-        else {
-            rte && rte.disable();
-        }
-        this.hideToolbar();
-        if (em) {
-            em.off(eventsUp, this.updatePosition, this);
-            !opts.fromMove && em.trigger('rte:disable', view, rte);
-        }
-        this.model.unset('currentView');
+    RichTextEditorModule.prototype.disable = function (view_1, rte_1) {
+        return rich_text_editor_awaiter(this, arguments, void 0, function (view, rte, opts) {
+            var result, em, customRte, res;
+            if (opts === void 0) { opts = {}; }
+            return rich_text_editor_generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        result = {};
+                        em = this.em;
+                        customRte = this.customRte;
+                        if (!customRte) return [3 /*break*/, 2];
+                        return [4 /*yield*/, customRte.disable(view.getChildrenContainer(), rte, rich_text_editor_assign(rich_text_editor_assign({}, opts), { view: view }))];
+                    case 1:
+                        res = _a.sent();
+                        if (res) {
+                            result = res;
+                        }
+                        return [3 /*break*/, 3];
+                    case 2:
+                        rte && rte.disable();
+                        _a.label = 3;
+                    case 3:
+                        this.hideToolbar();
+                        if (em) {
+                            em.off(eventsUp, this.updatePosition, this);
+                            !opts.fromMove && em.trigger('rte:disable', view, rte);
+                        }
+                        this.model.unset('currentView');
+                        return [2 /*return*/, result];
+                }
+            });
+        });
     };
     return RichTextEditorModule;
 }(abstract_Module));
@@ -63244,6 +63291,17 @@ var DataSource_extends = (undefined && undefined.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var DataSource_assign = (undefined && undefined.__assign) || function () {
+    DataSource_assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return DataSource_assign.apply(this, arguments);
+};
 var DataSource_spreadArray = (undefined && undefined.__spreadArray) || function (to, from, pack) {
     if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
         if (ar || !(i in from)) {
@@ -63262,12 +63320,12 @@ var DataSource = /** @class */ (function (_super) {
      * It sets up the transformers and initializes the collection of records.
      * If the `records` property is not an instance of `DataRecords`, it will be converted into one.
      *
-     * @param {DataSourceProps} props - Properties to initialize the data source.
+     * @param {DataSourceProps<DRProps>} props - Properties to initialize the data source.
      * @param {DataSourceOptions} opts - Options to initialize the data source.
      * @name constructor
      */
     function DataSource(props, opts) {
-        var _this = _super.call(this, props, opts) || this;
+        var _this = _super.call(this, DataSource_assign(DataSource_assign({}, props), { records: [] }), opts) || this;
         var records = props.records, transformers = props.transformers;
         _this.transformers = transformers || {};
         if (!(records instanceof model_DataRecords)) {
@@ -63294,7 +63352,7 @@ var DataSource = /** @class */ (function (_super) {
         /**
          * Retrieves the collection of records associated with this data source.
          *
-         * @returns {DataRecords} The collection of data records.
+         * @returns {DataRecords<DRProps>} The collection of data records.
          * @name records
          */
         get: function () {
@@ -63320,7 +63378,7 @@ var DataSource = /** @class */ (function (_super) {
      * Handles the `add` event for records in the data source.
      * This method triggers a change event on the newly added record.
      *
-     * @param {DataRecord} dr - The data record that was added.
+     * @param {DataRecord<DRProps>} dr - The data record that was added.
      * @private
      * @name onAdd
      */
@@ -63330,7 +63388,7 @@ var DataSource = /** @class */ (function (_super) {
     /**
      * Adds a new record to the data source.
      *
-     * @param {DataRecordProps} record - The properties of the record to add.
+     * @param {DRProps} record - The properties of the record to add.
      * @param {AddOptions} [opts] - Options to apply when adding the record.
      * @returns {DataRecord} The added data record.
      * @name addRecord
@@ -63342,18 +63400,17 @@ var DataSource = /** @class */ (function (_super) {
      * Retrieves a record from the data source by its ID.
      *
      * @param {string | number} id - The ID of the record to retrieve.
-     * @returns {DataRecord | undefined} The data record, or `undefined` if no record is found with the given ID.
+     * @returns {DataRecord<DRProps> | undefined} The data record, or `undefined` if no record is found with the given ID.
      * @name getRecord
      */
     DataSource.prototype.getRecord = function (id) {
-        var record = this.records.get(id);
-        return record;
+        return this.records.get(id);
     };
     /**
      * Retrieves all records from the data source.
      * Each record is processed with the `getRecord` method to apply any read transformers.
      *
-     * @returns {Array<DataRecord | undefined>} An array of data records.
+     * @returns {Array<DataRecord<DRProps> | undefined>} An array of data records.
      * @name getRecords
      */
     DataSource.prototype.getRecords = function () {
@@ -63365,7 +63422,7 @@ var DataSource = /** @class */ (function (_super) {
      *
      * @param {string | number} id - The ID of the record to remove.
      * @param {RemoveOptions} [opts] - Options to apply when removing the record.
-     * @returns {DataRecord | undefined} The removed data record, or `undefined` if no record is found with the given ID.
+     * @returns {DataRecord<DRProps> | undefined} The removed data record, or `undefined` if no record is found with the given ID.
      * @name removeRecord
      */
     DataSource.prototype.removeRecord = function (id, opts) {
@@ -63378,7 +63435,7 @@ var DataSource = /** @class */ (function (_super) {
     /**
      * Replaces the existing records in the data source with a new set of records.
      *
-     * @param {Array<DataRecordProps>} records - An array of data record properties to set.
+     * @param {Array<DRProps>} records - An array of data record properties to set.
      * @returns {Array<DataRecord>} An array of the added data records.
      * @name setRecords
      */
@@ -64323,17 +64380,17 @@ var EditorModel = /** @class */ (function (_super) {
                 });
                 if (!(0,index_all.isUndefined)(min_1)) {
                     while (min_1 !== index_1) {
-                        _this.addSelected(coll_1.at(min_1));
+                        _this.addSelected(coll_1.at(min_1), opts);
                         min_1++;
                     }
                 }
                 if (!(0,index_all.isUndefined)(max_1)) {
                     while (max_1 !== index_1) {
-                        _this.addSelected(coll_1.at(max_1));
+                        _this.addSelected(coll_1.at(max_1), opts);
                         max_1--;
                     }
                 }
-                return _this.addSelected(model);
+                return _this.addSelected(model, opts);
             }
             !multiple && _this.removeSelected(selected.filter(function (s) { return s !== model; }));
             _this.addSelected(model, opts);
@@ -66073,7 +66130,7 @@ var grapesjs = {
     plugins: plugins,
     usePlugin: usePlugin,
     // @ts-ignore Will be replaced on build
-    version: '0.22.3',
+    version: '0.22.4',
     /**
      * Initialize the editor with passed options
      * @param {Object} config Configuration object

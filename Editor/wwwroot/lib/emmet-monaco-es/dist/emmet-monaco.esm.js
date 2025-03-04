@@ -2200,6 +2200,7 @@ function isNode(node) {
 function resolveSnippets(abbr, config) {
     const stack = [];
     const reversed = config.options['output.reverseAttributes'];
+    const { warn } = config;
     const resolve = (child) => {
         const snippet = child.name && config.snippets[child.name];
         // A snippet in stack means circular reference.
@@ -2209,7 +2210,15 @@ function resolveSnippets(abbr, config) {
         if (!snippet || stack.includes(snippet)) {
             return null;
         }
-        const snippetAbbr = parseAbbreviation(snippet, config);
+        let snippetAbbr;
+        try {
+            // User may add invlid snippet. In this case, silently bail out
+            snippetAbbr = parseAbbreviation(snippet, config);
+        }
+        catch (err) {
+            warn === null || warn === void 0 ? void 0 : warn(`Unable to parse "${snippet}" snippet`, err);
+            return null;
+        }
         stack.push(snippet);
         walkResolve(snippetAbbr, resolve);
         stack.pop();
@@ -4000,6 +4009,7 @@ const gradientName = 'lg';
 function parse(abbr, config) {
     var _a;
     const snippets = ((_a = config.cache) === null || _a === void 0 ? void 0 : _a.stylesheetSnippets) || convertSnippets(config.snippets);
+    const result = [];
     if (config.cache) {
         config.cache.stylesheetSnippets = snippets;
     }
@@ -4008,9 +4018,12 @@ function parse(abbr, config) {
     }
     const filteredSnippets = getSnippetsForScope(snippets, config);
     for (const node of abbr) {
-        resolveNode(node, filteredSnippets, config);
+        const resolved = resolveNode(node, filteredSnippets, config);
+        if (resolved) {
+            result.push(resolved);
+        }
     }
-    return abbr;
+    return result;
 }
 /**
  * Converts given raw snippets into internal snippets representation
@@ -4040,11 +4053,14 @@ function resolveNode(node, snippets, config) {
             const snippet = findBestMatch(node.name, snippets, score, true);
             node.snippet = snippet;
             if (snippet) {
-                if (snippet.type === CSSSnippetType.Property) {
-                    resolveAsProperty(node, snippet, config);
+                const resolved = snippet.type === CSSSnippetType.Property
+                    ? resolveAsProperty(node, snippet, config)
+                    : resolveAsSnippet(node, snippet);
+                if (resolved) {
+                    node = resolved;
                 }
-                else {
-                    resolveAsSnippet(node, snippet);
+                else if (config.options['stylesheet.strictMatch']) {
+                    return null;
                 }
             }
         }
@@ -4101,11 +4117,11 @@ function resolveAsProperty(node, snippet, config) {
     if (inlineValue) {
         if (node.value.length) {
             // Already have value: unmatched part indicates matched snippet is invalid
-            return node;
+            return null;
         }
         const kw = resolveKeyword(inlineValue, config, snippet);
         if (!kw) {
-            return node;
+            return null;
         }
         node.value.push(cssValue(kw));
     }
@@ -4600,6 +4616,7 @@ var stylesheetSnippets = {
 	"bxsh": "box-shadow:${1:inset }${2:hoff} ${3:voff} ${4:blur} ${5:#000}|none",
 	"bxsz": "box-sizing:border-box|content-box|border-box",
 	"c": "color:${1:#000}",
+  "cg": "column-gap",
 	"cr": "color:rgb(${1:0}, ${2:0}, ${3:0})",
 	"cra": "color:rgba(${1:0}, ${2:0}, ${3:0}, ${4:.5})",
 	"cl": "clear:both|left|right|none",
@@ -4729,6 +4746,7 @@ var stylesheetSnippets = {
 	"qen": "quotes:'\\201C' '\\201D' '\\2018' '\\2019'",
 	"qru": "quotes:'\\00AB' '\\00BB' '\\201E' '\\201C'",
 	"r": "right",
+  "rg": "row-gap",
 	"rsz": "resize:none|both|horizontal|vertical",
 	"t": "top",
 	"ta": "text-align:left|center|right|justify",
@@ -4876,7 +4894,8 @@ const defaultOptions$1 = {
     'stylesheet.unitAliases': { e: 'em', p: '%', x: 'ex', r: 'rem' },
     'stylesheet.json': false,
     'stylesheet.jsonDoubleQuotes': false,
-    'stylesheet.fuzzySearchMinScore': 0
+    'stylesheet.fuzzySearchMinScore': 0,
+    'stylesheet.strictMatch': false
 };
 const defaultConfig = {
     type: 'markup',
@@ -5983,16 +6002,20 @@ function getTokenizationEnv(model) {
     let _tokenization = 
     // monaco-editor < 0.34.0
     model._tokenization ||
-        // monaco-editor 0.34.0
+        // monaco-editor >= 0.35.0
         model.tokenization._tokenization;
     // monaco-editor <= 0.34.0
     let _tokenizationStateStore = _tokenization === null || _tokenization === void 0 ? void 0 : _tokenization._tokenizationStateStore;
     // monaco-editor >= 0.35.0
     if (!_tokenization || !_tokenizationStateStore) {
         const _t = model.tokenization;
-        if (_t.grammarTokens) {
-            // monaco-editor >= 0.37.0
-            _tokenization = _t.grammarTokens._defaultBackgroundTokenizer;
+        const _tokens = 
+        // monaco-editor <= 0.51.0
+        _t.grammarTokens ||
+            // monaco-editor >= 0.52.0
+            _t._tokens;
+        if (_tokens) {
+            _tokenization = _tokens._defaultBackgroundTokenizer;
             _tokenizationStateStore = _tokenization._tokenizerWithStateStore;
         }
         else {
@@ -6004,7 +6027,7 @@ function getTokenizationEnv(model) {
     const _tokenizationSupport = 
     // monaco-editor >= 0.32.0
     _tokenizationStateStore.tokenizationSupport ||
-        // monaco-editor < 0.32.0
+        // monaco-editor <= 0.31.0
         _tokenization._tokenizationSupport;
     const env = {
         _stateStore: _tokenizationStateStore,

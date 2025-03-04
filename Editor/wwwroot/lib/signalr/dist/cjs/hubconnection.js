@@ -451,8 +451,10 @@ class HubConnection {
                 }
                 switch (message.type) {
                     case IHubProtocol_1.MessageType.Invocation:
-                        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                        this._invokeClientMethod(message);
+                        this._invokeClientMethod(message)
+                            .catch((e) => {
+                            this._logger.log(ILogger_1.LogLevel.Error, `Invoke client method threw error: ${(0, Utils_1.getErrorString)(e)}`);
+                        });
                         break;
                     case IHubProtocol_1.MessageType.StreamItem:
                     case IHubProtocol_1.MessageType.Completion: {

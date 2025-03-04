@@ -4,7 +4,7 @@ import { LogLevel } from "./ILogger";
 import { NullLogger } from "./Loggers";
 // Version token that will be replaced by the prepack command
 /** The version of the SignalR client. */
-export const VERSION = "8.0.0";
+export const VERSION = "8.0.7";
 /** @private */
 export class Arg {
     static isRequired(val, name) {

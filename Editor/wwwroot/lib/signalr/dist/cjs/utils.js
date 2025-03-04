@@ -7,7 +7,7 @@ const ILogger_1 = require("./ILogger");
 const Loggers_1 = require("./Loggers");
 // Version token that will be replaced by the prepack command
 /** The version of the SignalR client. */
-exports.VERSION = "8.0.0";
+exports.VERSION = "8.0.7";
 /** @private */
 class Arg {
     static isRequired(val, name) {

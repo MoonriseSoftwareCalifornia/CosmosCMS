@@ -93,10 +93,16 @@
         // Blur editors
         function blurEditors() {
             ccms_editors.forEach(function (editor, index) {
-                // To remove focus
-                editor.editing.view.document.isFocused = false;
-                editor.editing.view.document.fire('blur');
+                if (editor.editing.view.document.isFocused) {
+                    alert("Blur!");
+                }
+                editor.sourceElement.classList.remove('ck-focused');
+                editor.ui.view.toolbar.destroy();
             });
+            let element = document.querySelector('.ck-balloon-panel_visible');
+            if (element) {
+                element.classList.remove('ck-balloon-panel_visible');
+            }
         }
 
         function blurOthers(editor) {
@@ -104,8 +110,7 @@
             ccms_editors.forEach(function (editor, index) {
                 if (editor.sourceElement.getAttribute("data-ccms-ceid") !== guid) {
                     // To remove focus
-                    editor.editing.view.document.isFocused = false;
-                    editor.editing.view.document.fire('blur');
+                    editor.sourceElement.blur();
                 }
             });
         }

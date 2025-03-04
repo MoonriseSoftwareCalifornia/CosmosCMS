@@ -3033,7 +3033,9 @@ declare enum StringOperation {
 	contains = "contains",
 	startsWith = "startsWith",
 	endsWith = "endsWith",
-	matchesRegex = "matchesRegex"
+	matchesRegex = "matchesRegex",
+	equalsIgnoreCase = "equalsIgnoreCase",
+	trimEquals = "trimEquals"
 }
 declare enum GenericOperation {
 	equals = "equals",
@@ -3075,7 +3077,7 @@ declare class DataVariable extends Model {
 declare class Condition extends Model {
 	private condition;
 	private em;
-	constructor(condition: Expression | LogicGroup | boolean, opts: {
+	constructor(condition: ExpressionDefinition | LogicGroupDefinition | boolean, opts: {
 		em: EditorModel;
 	});
 	evaluate(): boolean;
@@ -3109,22 +3111,29 @@ declare class Condition extends Model {
 	private isOperatorInEnum;
 }
 declare const ConditionalVariableType = "conditional-variable";
-export type Expression = {
+export type ExpressionDefinition = {
 	left: any;
 	operator: GenericOperation | StringOperation | NumberOperation;
 	right: any;
 };
-export type LogicGroup = {
+export type LogicGroupDefinition = {
 	logicalOperator: LogicalOperation;
-	statements: (Expression | LogicGroup | boolean)[];
+	statements: (ExpressionDefinition | LogicGroupDefinition | boolean)[];
 };
+export type ConditionDefinition = ExpressionDefinition | LogicGroupDefinition | boolean;
 export type ConditionalVariableDefinition = {
 	type: typeof ConditionalVariableType;
-	condition: Expression | LogicGroup | boolean;
+	condition: ConditionDefinition;
 	ifTrue: any;
 	ifFalse: any;
 };
-declare class DataCondition extends Model {
+export type DataConditionType = {
+	type: typeof ConditionalVariableType;
+	condition: Condition;
+	ifTrue: any;
+	ifFalse: any;
+};
+declare class DataCondition extends Model<DataConditionType> {
 	ifTrue: any;
 	ifFalse: any;
 	lastEvaluationResult: boolean;
@@ -3132,11 +3141,7 @@ declare class DataCondition extends Model {
 	private em;
 	private variableListeners;
 	private _onValueChange?;
-	defaults(): {
-		type: string;
-		condition: boolean;
-	};
-	constructor(condition: Expression | LogicGroup | boolean, ifTrue: any, ifFalse: any, opts: {
+	constructor(condition: ExpressionDefinition | LogicGroupDefinition | boolean, ifTrue: any, ifFalse: any, opts: {
 		em: EditorModel;
 		onValueChange?: () => void;
 	});
@@ -3475,7 +3480,7 @@ export interface DataSourceOptions extends CombinedModelConstructorOptions<{
 	em: EditorModel;
 }, DataSource> {
 }
-export declare class DataSource extends Model<DataSourceProps> {
+export declare class DataSource<DRProps extends DataRecordProps = DataRecordProps> extends Model<DataSourceType<DRProps>> {
 	transformers: DataSourceTransformers;
 	/**
 	 * Returns the default properties for the data source.
@@ -3484,27 +3489,24 @@ export declare class DataSource extends Model<DataSourceProps> {
 	 * @returns {Object} The default attributes for the data source.
 	 * @name defaults
 	 */
-	defaults(): {
-		records: never[];
-		transformers: {};
-	};
+	defaults(): DataSourceType<DRProps>;
 	/**
 	 * Initializes a new instance of the `DataSource` class.
 	 * It sets up the transformers and initializes the collection of records.
 	 * If the `records` property is not an instance of `DataRecords`, it will be converted into one.
 	 *
-	 * @param {DataSourceProps} props - Properties to initialize the data source.
+	 * @param {DataSourceProps<DRProps>} props - Properties to initialize the data source.
 	 * @param {DataSourceOptions} opts - Options to initialize the data source.
 	 * @name constructor
 	 */
-	constructor(props: DataSourceProps, opts: DataSourceOptions);
+	constructor(props: DataSourceProps<DRProps>, opts: DataSourceOptions);
 	/**
 	 * Retrieves the collection of records associated with this data source.
 	 *
-	 * @returns {DataRecords} The collection of data records.
+	 * @returns {DataRecords<DRProps>} The collection of data records.
 	 * @name records
 	 */
-	get records(): DataRecords;
+	get records(): NonNullable<DataRecords<DRProps>>;
 	/**
 	 * Retrieves the editor model associated with this data source.
 	 *
@@ -3516,25 +3518,25 @@ export declare class DataSource extends Model<DataSourceProps> {
 	 * Handles the `add` event for records in the data source.
 	 * This method triggers a change event on the newly added record.
 	 *
-	 * @param {DataRecord} dr - The data record that was added.
+	 * @param {DataRecord<DRProps>} dr - The data record that was added.
 	 * @private
 	 * @name onAdd
 	 */
-	onAdd(dr: DataRecord): void;
+	onAdd(dr: DataRecord<DRProps>): void;
 	/**
 	 * Adds a new record to the data source.
 	 *
-	 * @param {DataRecordProps} record - The properties of the record to add.
+	 * @param {DRProps} record - The properties of the record to add.
 	 * @param {AddOptions} [opts] - Options to apply when adding the record.
 	 * @returns {DataRecord} The added data record.
 	 * @name addRecord
 	 */
-	addRecord(record: DataRecordProps, opts?: AddOptions): DataRecord<DataRecordProps>;
+	addRecord(record: DRProps, opts?: AddOptions): DataRecord<DRProps>;
 	/**
 	 * Retrieves a record from the data source by its ID.
 	 *
 	 * @param {string | number} id - The ID of the record to retrieve.
-	 * @returns {DataRecord | undefined} The data record, or `undefined` if no record is found with the given ID.
+	 * @returns {DataRecord<DRProps> | undefined} The data record, or `undefined` if no record is found with the given ID.
 	 * @name getRecord
 	 */
 	getRecord(id: string | number): DataRecord | undefined;
@@ -3542,30 +3544,30 @@ export declare class DataSource extends Model<DataSourceProps> {
 	 * Retrieves all records from the data source.
 	 * Each record is processed with the `getRecord` method to apply any read transformers.
 	 *
-	 * @returns {Array<DataRecord | undefined>} An array of data records.
+	 * @returns {Array<DataRecord<DRProps> | undefined>} An array of data records.
 	 * @name getRecords
 	 */
-	getRecords(): (DataRecord<DataRecordProps> | undefined)[];
+	getRecords(): DataRecord<DataRecordProps>[];
 	/**
 	 * Removes a record from the data source by its ID.
 	 *
 	 * @param {string | number} id - The ID of the record to remove.
 	 * @param {RemoveOptions} [opts] - Options to apply when removing the record.
-	 * @returns {DataRecord | undefined} The removed data record, or `undefined` if no record is found with the given ID.
+	 * @returns {DataRecord<DRProps> | undefined} The removed data record, or `undefined` if no record is found with the given ID.
 	 * @name removeRecord
 	 */
-	removeRecord(id: string | number, opts?: RemoveOptions): DataRecord | undefined;
+	removeRecord(id: string | number, opts?: RemoveOptions): DataRecord<DRProps>;
 	/**
 	 * Replaces the existing records in the data source with a new set of records.
 	 *
-	 * @param {Array<DataRecordProps>} records - An array of data record properties to set.
+	 * @param {Array<DRProps>} records - An array of data record properties to set.
 	 * @returns {Array<DataRecord>} An array of the added data records.
 	 * @name setRecords
 	 */
-	setRecords(records: Array<DataRecordProps>): void;
+	setRecords(records: DRProps[]): void;
 	private handleChanges;
 }
-export declare class DataRecords extends Collection<DataRecord> {
+export declare class DataRecords<T extends DataRecordProps = DataRecordProps> extends Collection<DataRecord<T>> {
 	dataSource: DataSource;
 	constructor(models: DataRecord[] | DataRecordProps[], options: {
 		dataSource: DataSource;
@@ -3639,7 +3641,7 @@ export declare class DataRecord<T extends DataRecordProps = DataRecordProps> ext
 	 * record.set('name', 'newValue');
 	 * // Sets 'name' property to 'newValue'
 	 */
-	set<A extends _StringKey<T>>(attributeName: Partial<T> | A, value?: SetOptions | T[A] | undefined, options?: SetOptions | undefined): this;
+	set<A extends _StringKey<T>>(attributeName: DeepPartialDot<T> | A, value?: SetOptions | T[A] | undefined, options?: SetOptions | undefined): this;
 }
 export type DynamicValue = DataVariable | ComponentDataVariable | DataCondition;
 export interface DataRecordProps extends ObjectAny {
@@ -3651,16 +3653,13 @@ export interface DataRecordProps extends ObjectAny {
 	 * Specifies if the record is mutable. Defaults to `true`.
 	 */
 	mutable?: boolean;
+	[key: string]: any;
 }
-export interface DataSourceProps {
+export interface BaseDataSource {
 	/**
 	 * DataSource id.
 	 */
 	id: string;
-	/**
-	 * DataSource records.
-	 */
-	records?: DataRecords | DataRecord[] | DataRecordProps[];
 	/**
 	 * DataSource validation and transformation factories.
 	 */
@@ -3669,6 +3668,12 @@ export interface DataSourceProps {
 	 * If true will store the data source in the GrapesJS project.json file.
 	 */
 	skipFromStorage?: boolean;
+}
+export interface DataSourceType<DR extends DataRecordProps> extends BaseDataSource {
+	records: DataRecords<DR>;
+}
+export interface DataSourceProps<DR extends DataRecordProps> extends BaseDataSource {
+	records?: DataRecords<DR> | DataRecord<DR>[] | DR[];
 }
 export interface DataSourceTransformers {
 	onRecordSetValue?: (args: {
@@ -3711,6 +3716,13 @@ declare enum DataSourcesEvents {
 	 */
 	all = "data"
 }
+/**{END_EVENTS}*/
+export type DotSeparatedKeys<T> = T extends object ? {
+	[K in keyof T]: K extends string ? T[K] extends object ? `${K}` | `${K}.${DotSeparatedKeys<T[K]>}` : `${K}` : never;
+}[keyof T] : never;
+export type DeepPartialDot<T> = {
+	[P in DotSeparatedKeys<T>]?: P extends `${infer K}.${infer Rest}` ? K extends keyof T ? Rest extends DotSeparatedKeys<T[K]> ? DeepPartialDot<T[K]>[Rest] : never : never : P extends keyof T ? T[P] : never;
+};
 export interface DynamicVariableListenerManagerOptions {
 	model: Model | ComponentView;
 	em: EditorModel;
@@ -7105,9 +7117,104 @@ export interface PanelsConfig {
 	 */
 	defaults?: PanelProps[];
 }
+export interface RichTextEditorAction {
+	name: string;
+	icon: string | HTMLElement;
+	event?: string;
+	attributes?: Record<string, any>;
+	result: (rte: RichTextEditor, action: RichTextEditorAction) => void;
+	update?: (rte: RichTextEditor, action: RichTextEditorAction) => number;
+	state?: (rte: RichTextEditor, doc: Document) => number;
+	btn?: HTMLElement;
+	currentState?: RichTextEditorActionState;
+}
+declare enum RichTextEditorActionState {
+	ACTIVE = 1,
+	INACTIVE = 0,
+	DISABLED = -1
+}
+export interface RichTextEditorOptions {
+	actions?: (RichTextEditorAction | string)[];
+	classes?: Record<string, string>;
+	actionbar?: HTMLElement;
+	actionbarContainer?: HTMLElement;
+	styleWithCSS?: boolean;
+	module?: RichTextEditorModule;
+}
+export type EffectOptions = {
+	event?: Event;
+};
+declare class RichTextEditor {
+	em: EditorModel;
+	settings: RichTextEditorOptions;
+	classes: Record<string, string>;
+	actionbar?: HTMLElement;
+	actions: RichTextEditorAction[];
+	el: HTMLElement;
+	doc: Document;
+	enabled?: boolean;
+	getContent?: () => string;
+	constructor(em: EditorModel, el: HTMLElement & {
+		_rte?: RichTextEditor;
+	}, settings?: RichTextEditorOptions);
+	isCustom(module?: RichTextEditorModule): boolean;
+	destroy(): void;
+	setEl(el: HTMLElement): void;
+	updateActiveActions(): void;
+	enable(opts: EffectOptions): this;
+	disable(): this;
+	__toggleEffects(enable?: boolean, opts?: EffectOptions): this;
+	__onKeydown(ev: KeyboardEvent): void;
+	__onPaste(ev: ClipboardEvent): void;
+	/**
+	 * Sync actions with the current RTE
+	 */
+	syncActions(): void;
+	/**
+	 * Add new action to the actionbar
+	 * @param {Object} action
+	 * @param {Object} [opts={}]
+	 */
+	addAction(action: RichTextEditorAction, opts?: {
+		sync?: boolean;
+	}): void;
+	/**
+	 * Get the array of current actions
+	 * @return {Array}
+	 */
+	getActions(): RichTextEditorAction[];
+	/**
+	 * Returns the Selection instance
+	 * @return {Selection}
+	 */
+	selection(): Selection | null;
+	/**
+	 * Wrapper around [execCommand](https://developer.mozilla.org/en-US/docs/Web/API/Document/execCommand) to allow
+	 * you to perform operations like `insertText`
+	 * @param  {string} command Command name
+	 * @param  {any} [value=null Command's arguments
+	 */
+	exec(command: string, value?: string): void;
+	/**
+	 * Get the actionbar element
+	 * @return {HTMLElement}
+	 */
+	actionbarEl(): HTMLElement | undefined;
+	/**
+	 * Set custom HTML to the selection, useful as the default 'insertHTML' command
+	 * doesn't work in the same way on all browsers
+	 * @param  {string} value HTML string
+	 */
+	insertHTML(value: string | HTMLElement, { select }?: {
+		select?: boolean;
+	}): void;
+}
 export type RichTextEditorEvent = "rte:enable" | "rte:disable" | "rte:custom";
 export interface ModelRTE {
-	currentView?: ComponentView;
+	currentView?: ComponentTextView;
+}
+export interface RteDisableResult {
+	forceSync?: boolean;
 }
 declare class RichTextEditorModule extends Module<RichTextEditorConfig & {
 	pStylePrefix?: string;
@@ -7258,8 +7365,8 @@ declare class RichTextEditorModule extends Module<RichTextEditorConfig & {
 	 * @param {Object} rte The instance of already defined RTE
 	 * @private
 	 * */
-	enable(view: ComponentView, rte: RichTextEditor, opts?: any): Promise<any>;
-	getContent(view: ComponentView, rte: RichTextEditor): Promise<string>;
+	enable(view: ComponentTextView, rte: RichTextEditor, opts: CustomRteOptions): Promise<any>;
+	getContent(view: ComponentTextView, rte: RichTextEditor): Promise<string>;
 	hideToolbar(): void;
 	/**
 	 * Unbind rich text editor from the element
@@ -7267,99 +7374,79 @@ declare class RichTextEditorModule extends Module<RichTextEditorConfig & {
 	 * @param {Object} rte The instance of already defined RTE
 	 * @private
 	 * */
-	disable(view: ComponentView, rte?: RichTextEditor, opts?: DisableOptions): void;
+	disable(view: ComponentTextView, rte?: RichTextEditor, opts?: DisableOptions): Promise<RteDisableResult>;
 }
-export interface RichTextEditorAction {
-	name: string;
-	icon: string | HTMLElement;
-	event?: string;
-	attributes?: Record<string, any>;
-	result: (rte: RichTextEditor, action: RichTextEditorAction) => void;
-	update?: (rte: RichTextEditor, action: RichTextEditorAction) => number;
-	state?: (rte: RichTextEditor, doc: Document) => number;
-	btn?: HTMLElement;
-	currentState?: RichTextEditorActionState;
+declare class ComponentText extends Component {
+	get defaults(): {
+		type: string;
+		droppable: boolean;
+		editable: boolean;
+		components?: ComponentDefinitionDefined[] | ComponentDefinitionDefined;
+		traits?: (Partial<TraitProperties> | string)[];
+	};
+	constructor(props: ComponentProperties | undefined, opt: ComponentOptions);
+	__checkInnerChilds(): void;
 }
-declare enum RichTextEditorActionState {
-	ACTIVE = 1,
-	INACTIVE = 0,
-	DISABLED = -1
-}
-export interface RichTextEditorOptions {
-	actions?: (RichTextEditorAction | string)[];
-	classes?: Record<string, string>;
-	actionbar?: HTMLElement;
-	actionbarContainer?: HTMLElement;
-	styleWithCSS?: boolean;
-	module?: RichTextEditorModule;
-}
-export type EffectOptions = {
-	event?: Event;
-};
-declare class RichTextEditor {
-	em: EditorModel;
-	settings: RichTextEditorOptions;
-	classes: Record<string, string>;
-	actionbar?: HTMLElement;
-	actions: RichTextEditorAction[];
-	el: HTMLElement;
-	doc: Document;
-	enabled?: boolean;
-	getContent?: () => string;
-	constructor(em: EditorModel, el: HTMLElement & {
-		_rte?: RichTextEditor;
-	}, settings?: RichTextEditorOptions);
-	isCustom(module?: RichTextEditorModule): boolean;
-	destroy(): void;
-	setEl(el: HTMLElement): void;
-	updateActiveActions(): void;
-	enable(opts: EffectOptions): this;
-	disable(): this;
-	__toggleEffects(enable?: boolean, opts?: EffectOptions): this;
-	__onKeydown(ev: KeyboardEvent): void;
-	__onPaste(ev: ClipboardEvent): void;
-	/**
-	 * Sync actions with the current RTE
-	 */
-	syncActions(): void;
-	/**
-	 * Add new action to the actionbar
-	 * @param {Object} action
-	 * @param {Object} [opts={}]
-	 */
-	addAction(action: RichTextEditorAction, opts?: {
-		sync?: boolean;
+declare class ComponentTextView<TComp extends ComponentText = ComponentText> extends ComponentView<TComp> {
+	rte?: RichTextEditorModule;
+	rteEnabled?: boolean;
+	activeRte?: RichTextEditor;
+	lastContent?: string;
+	events(): {
+		dblclick: string;
+		input: string;
+	};
+	initialize(props: any): void;
+	updateContentText(m: any, v: any, opts?: {
+		fromDisable?: boolean;
 	}): void;
+	canActivate(): {
+		result: boolean;
+		delegate: Component | undefined;
+	};
 	/**
-	 * Get the array of current actions
-	 * @return {Array}
-	 */
-	getActions(): RichTextEditorAction[];
+	 * Enable element content editing
+	 * @private
+	 * */
+	onActive(ev: MouseEvent): Promise<void>;
+	onDisable(opts?: DisableOptions): void;
 	/**
-	 * Returns the Selection instance
-	 * @return {Selection}
-	 */
-	selection(): Selection | null;
+	 * Disable element content editing
+	 * @private
+	 * */
+	disableEditing(opts?: DisableOptions & WithHTMLParserOptions): Promise<void>;
 	/**
-	 * Wrapper around [execCommand](https://developer.mozilla.org/en-US/docs/Web/API/Document/execCommand) to allow
-	 * you to perform operations like `insertText`
-	 * @param  {string} command Command name
-	 * @param  {any} [value=null Command's arguments
+	 * get content from RTE
+	 * @return string
 	 */
-	exec(command: string, value?: string): void;
+	getContent(): Promise<string>;
 	/**
-	 * Get the actionbar element
-	 * @return {HTMLElement}
+	 * Merge content from the DOM to the model
 	 */
-	actionbarEl(): HTMLElement | undefined;
+	syncContent(opts?: ObjectAny): Promise<void>;
+	insertComponent(content: ComponentDefinition, opts?: AddOptions & {
+		useDomContent?: boolean;
+	}): Component | Component[];
 	/**
-	 * Set custom HTML to the selection, useful as the default 'insertHTML' command
-	 * doesn't work in the same way on all browsers
-	 * @param  {string} value HTML string
+	 * Callback on input event
+	 * @param  {Event} e
 	 */
-	insertHTML(value: string | HTMLElement, { select }?: {
-		select?: boolean;
-	}): void;
+	onInput(): void;
+	/**
+	 * Isolate disable propagation method
+	 * @param {Event}
+	 * @private
+	 * */
+	disablePropagation(e: Event): void;
+	/**
+	 * Enable/Disable events
+	 * @param {Boolean} enable
+	 */
+	toggleEvents(enable?: boolean): void;
+}
+export interface CustomRteOptions {
+	event?: MouseEvent;
+	view: ComponentTextView;
 }
 export interface CustomRTE<T = any> {
 	/**
@@ -7371,16 +7458,16 @@ export interface CustomRTE<T = any> {
 	/**
 	 * Create or enable the custom RTE.
 	 */
-	enable: (el: HTMLElement, rte: T | undefined) => T | Promise<T>;
+	enable: (el: HTMLElement, rte: T | undefined, opts: CustomRteOptions) => T | Promise<T>;
 	/**
 	 * Disable the custom RTE.
 	 */
-	disable: (el: HTMLElement, rte: T) => any | Promise<any>;
+	disable: (el: HTMLElement, rte: T, opts: CustomRteOptions) => any | Promise<any>;
 	/**
 	 * Get HTML content from the custom RTE.
 	 * If not specified, it will use the innerHTML of the element (passed also as `content` in options).
 	 */
-	getContent?: (el: HTMLElement, rte: T | undefined) => string | Promise<string>;
+	getContent?: (el: HTMLElement, rte: T | undefined, opts: CustomRteOptions) => string | Promise<string>;
 	/**
 	 * Destroy the custom RTE.
 	 * Will be triggered on editor destroy.
@@ -12571,7 +12658,7 @@ declare class CommandsModule extends Module<CommandsConfig & {
 }
 export declare class DataSources extends Collection<DataSource> {
 	em: EditorModel;
-	constructor(models: DataSource[] | DataSourceProps[], em: EditorModel);
+	constructor(models: DataSource[] | DataSourceProps<DataRecordProps>[], em: EditorModel);
 }
 export declare class DataSourceManager extends ItemManagerModule<ModuleConfig, DataSources> {
 	storageKey: string;
@@ -12591,7 +12678,7 @@ export declare class DataSourceManager extends ItemManagerModule<ModuleConfig, D
 	 *  ]
 	 * });
 	 */
-	add(props: DataSourceProps, opts?: AddOptions): DataSource;
+	add<DRProps extends DataRecordProps>(props: DataSourceProps<DRProps>, opts?: AddOptions): DataSource<DRProps>;
 	/**
 	 * Get data source.
 	 * @param {String} id Data source id.
@@ -12599,7 +12686,7 @@ export declare class DataSourceManager extends ItemManagerModule<ModuleConfig, D
 	 * @example
 	 * const ds = dsm.get('my_data_source_id');
 	 */
-	get(id: string): DataSource;
+	get(id: string): DataSource<DataRecordProps>;
 	/**
 	 * Get value from data sources by key
 	 * @param {String} key Path to value.
@@ -12631,7 +12718,7 @@ export declare class DataSourceManager extends ItemManagerModule<ModuleConfig, D
 	 * // e.g., [DataSource, DataRecord, 'myProp']
 	 */
 	fromPath(path: string): [
-		(DataSource | undefined)?,
+		(DataSource<DataRecordProps> | undefined)?,
 		(DataRecord<DataRecordProps> | undefined)?,
 		(string | undefined)?
 	];

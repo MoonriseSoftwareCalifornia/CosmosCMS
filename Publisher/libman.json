@@ -23,7 +23,7 @@
       "destination": "wwwroot/lib/fotorama"
     },
     {
-      "library": "powerbi-client@2.23.1",
+      "library": "powerbi-client@2.23.7",
       "destination": "wwwroot/lib/powerbi-client"
     }
   ]
