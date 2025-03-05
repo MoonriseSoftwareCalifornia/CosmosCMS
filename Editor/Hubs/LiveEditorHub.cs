@@ -7,13 +7,13 @@
 
 namespace Cosmos.Cms.Hubs
 {
-    using System;
-    using System.Threading.Tasks;
     using Cosmos.Cms.Models;
     using Cosmos.Editor.Services;
     using Microsoft.AspNetCore.SignalR;
     using Microsoft.Extensions.Logging;
     using Newtonsoft.Json;
+    using System;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Live editor collaboration hub.

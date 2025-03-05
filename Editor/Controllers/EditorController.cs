@@ -1881,6 +1881,39 @@ namespace Cosmos.Cms.Controllers
         }
 
         /// <summary>
+        /// Gets an encryption key.
+        /// </summary>
+        /// <returns>Key.</returns>
+        public async Task<IActionResult> GetEncryptionKey()
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var setting = await dbContext.Settings.Where(w => w.Description == "EncryptionKey").FirstOrDefaultAsync();
+            if (setting == null)
+            {
+                var random = new Random();
+                var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+                var value = new string(Enumerable.Repeat(chars, 16)
+                                            .Select(s => s[random.Next(s.Length)])
+                                            .ToArray());
+
+                setting = new Setting()
+                {
+                    Description = "EncryptionKey",
+                    Value = value
+                };
+
+                dbContext.Settings.Add(setting);
+                await dbContext.SaveChangesAsync();
+            }
+
+            return Json(setting.Value);
+        }
+
+        /// <summary>
         /// Gets a list of published pages.
         /// </summary>
         /// <returns>List of published pages.</returns>

@@ -7,10 +7,15 @@
 
 namespace Cosmos.Editor.Services
 {
+    using Cosmos.Common.Data;
+    using Microsoft.Azure.Cosmos.Core;
+    using Microsoft.EntityFrameworkCore;
     using System;
     using System.IO;
+    using System.Linq;
     using System.Security.Cryptography;
     using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// AesDecryption utility for CryptoJS.
@@ -33,10 +38,11 @@ namespace Cosmos.Editor.Services
             byte[] encryptedBytes = Convert.FromBase64String(encryptedText);
 
             // Extract the salt and the actual encrypted data
+            var keyText = "1234567890123456";
 
             // Generate the key and IV using the passphrase and salt
-            byte[] key = Encoding.UTF8.GetBytes("1234567890123456");
-            byte[] iv = Encoding.UTF8.GetBytes("1234567890123456");
+            byte[] key = Encoding.UTF8.GetBytes(keyText);
+            byte[] iv = Encoding.UTF8.GetBytes(keyText);
 
             // Decrypt the data
             using (var aes = Aes.Create())

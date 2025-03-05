@@ -93,9 +93,6 @@
         // Blur editors
         function blurEditors() {
             ccms_editors.forEach(function (editor, index) {
-                if (editor.editing.view.document.isFocused) {
-                    alert("Blur!");
-                }
                 editor.sourceElement.classList.remove('ck-focused');
                 editor.ui.view.toolbar.destroy();
             });
