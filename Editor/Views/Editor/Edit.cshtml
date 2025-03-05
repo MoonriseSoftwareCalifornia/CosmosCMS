@@ -421,28 +421,6 @@
     window.addEventListener('pagehide', function() {
         console.log('Page is being hidden');
         const iframe = document.getElementById("ccmsContFrame");
-        iframe.blur();
-        iframe.contentWindow.blurEditors();
-    });
-
-    // Capture change to visibility
-    document.addEventListener("visibilitychange", function() {
-        // Check if tab content is visible
-        if (document.visibilityState) {
-            console.log("Tab is visible!")
-        }
-
-        // Check if tab is active
-        if (!document.hasFocus()) {
-            const iframe = document.getElementById("ccmsContFrame");
-            iframe.contentWindow.blurEditors();
-        }
-    });
-
-    // Close all dropdowns
-    window.addEventListener("click", function () {
-        const iframe = document.getElementById("ccmsContFrame");
-        iframe.contentWindow.blur();
         iframe.contentWindow.blurEditors();
     });
 

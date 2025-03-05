@@ -92,37 +92,20 @@
 
         // Blur editors
         function blurEditors() {
-            ccms_editors.forEach(function (editor, index) {
-                editor.sourceElement.classList.remove('ck-focused');
-                editor.ui.view.toolbar.destroy();
-            });
-            let element = document.querySelector('.ck-balloon-panel_visible');
+            // Make sure UI is closed for last editor that was active.
+            const focused = document.querySelector('.ck-focused');
+            if (focused) {
+                focused.classList.remove('ck-focused');
+            }
+            const element = document.querySelector('.ck-balloon-panel_visible');
             if (element) {
                 element.classList.remove('ck-balloon-panel_visible');
             }
         }
 
-        function blurOthers(editor) {
-            const guid = editor.sourceElement.getAttribute("data-ccms-ceid");
-            ccms_editors.forEach(function (editor, index) {
-                if (editor.sourceElement.getAttribute("data-ccms-ceid") !== guid) {
-                    // To remove focus
-                    editor.sourceElement.blur();
-                }
-            });
-        }
-
         // Close all dropdowns
         window.addEventListener("click", function () {
             parent.closeDropDowns();
-        });
-
-        // Click outside of the editor, force blur of editors.
-        document.addEventListener('click', function(event) {
-            // Check if the clicked element is outside the div with the class 'my-div'
-            if (!event.target.closest('.ck-content')) {
-               blurEditors();
-            }
         });
 
         window.addEventListener("keydown", (event) => {

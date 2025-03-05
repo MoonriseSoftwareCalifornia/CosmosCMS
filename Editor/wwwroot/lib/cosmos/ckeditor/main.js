@@ -306,7 +306,6 @@ function ccms_createEditors() {
                     if (isFocused) {
                         focusedEditor = editor;
                         parent.cosmosSignalOthers(editor, "join");
-                        blurOthers(editor);
                     } else {
                         focusedEditor = null;
                     }
