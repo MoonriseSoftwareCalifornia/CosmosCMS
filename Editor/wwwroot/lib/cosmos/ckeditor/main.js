@@ -177,7 +177,7 @@ const EditorConfig = {
         waitingTime: 2800, // in ms
         save(editor) {
             if (parent.enableAutoSave === true) {
-                return parent.cosmosSignalOthers(editor, "save");
+                return parent.CkeditorSave(editor, "save");
             }
         }
     },
@@ -305,9 +305,9 @@ function ccms_createEditors() {
                     console.log(`View document is focused: ${isFocused}.`);
                     if (isFocused) {
                         focusedEditor = editor;
-                        parent.cosmosSignalOthers(editor, "join");
                     } else {
                         focusedEditor = null;
+                        return parent.CkeditorSave(editor, "save");
                     }
                 });
                 ccms_editors.push(editor);

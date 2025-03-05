@@ -770,7 +770,7 @@
         });
     }
 
-    function cosmosSignalOthers(editor, command) {
+    async function CkeditorSave(editor) {
 
         const sourceElement = editor.sourceElement;
         const id = sourceElement.getAttribute("data-ccms-ceid");
@@ -780,33 +780,21 @@
             return;
         }
 
-        let offset = -1;
-        let isFocused = false;
+        let model = {
+            Id: $("#Id").val(),
+            EditorId: id,
+            UserId: ccms_editor_userid,
+            Content: encryptData(editor.getData())
+        };
 
-        if (editor.editing.view.document.isFocused) {
-            const position = editor.editing.view.document.selection.getFirstPosition();
-            offset = position.offset;
-            isFocused = true;
-        }
+        saving();
+        saveInProgress = true;
 
-        if (command === "save") {
-            saveChanges(editor.getData(), id);
-        }
-        else {
-            let model = {
-                Id: $("#Id").val(),
-                ArticleNumber: $("#ArticleNumber").val(),
-                EditorId: id,
-                UserId: ccms_editor_userid,
-                Offset: offset,
-                Command: command,
-                IsFocused: isFocused,
-                VersionNumber: $("#VersionNumber").val(),
-                Data: encryptData(editor.getData())
-            };
+        $.post("@Url.Action("CkeditorSave")", model, function (data){
+                saveInProgress = false;
+                doneSaving();
+         }).done(function (data) { });
 
-            signalRConnection.invoke("Notification", JSON.stringify(model));
-        }
     }
 
     function cosmosSignalUpdateEditor(data) {
