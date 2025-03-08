@@ -15,9 +15,9 @@
 		<SignAssembly>false</SignAssembly>
 		<AnalysisLevel>5.0</AnalysisLevel>
 		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-		<Version>9.0.4.67</Version>
-		<AssemblyVersion>9.0.4.67</AssemblyVersion>
-		<FileVersion>9.0.4.67</FileVersion>
+		<Version>9.0.4.68</Version>
+		<AssemblyVersion>9.0.4.68</AssemblyVersion>
+		<FileVersion>9.0.4.68</FileVersion>
 		<UserSecretsId>498e495c-d772-4d44-870d-92009f01de57</UserSecretsId>
 		<PackageProjectUrl>https://www.moonrise.net/cosmos</PackageProjectUrl>
 		<NeutralLanguage></NeutralLanguage>
@@ -95,7 +95,6 @@
 		<PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.4.0" />
 		<PackageReference Include="Azure.Identity" Version="1.13.2" />
 		<PackageReference Include="MailChimp.Net.V3" Version="5.5.0" />
-		<PackageReference Include="Cosmos.BlobService" Version="9.0.3.33" />
 		<PackageReference Include="Cosmos.EmailServices" Version="9.0.1" />
 		<PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="9.0.2" />
 		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.2" />
@@ -108,6 +107,10 @@
 		</PackageReference>
 		<PackageReference Include="System.Formats.Asn1" Version="9.0.2" />
 		<PackageReference Include="X.Web.Sitemap" Version="2.10.5" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="C:\Users\toiya\source\repos\MoonriseSoftwareCalifornia\Cosmos.BlobService\Cosmos.BlobService.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

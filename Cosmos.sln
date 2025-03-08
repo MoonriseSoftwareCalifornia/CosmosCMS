@@ -18,6 +18,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.Publisher", "Publish
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.Api", "Cosmos.Api\Cosmos.Api.csproj", "{FC9AB050-4561-457B-981A-436588EE4DB3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.BlobService", "C:\Users\toiya\source\repos\MoonriseSoftwareCalifornia\Cosmos.BlobService\Cosmos.BlobService.csproj", "{659289AA-2CDF-B896-8279-63963D7E0580}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -40,6 +42,10 @@ Global
 		{FC9AB050-4561-457B-981A-436588EE4DB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FC9AB050-4561-457B-981A-436588EE4DB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FC9AB050-4561-457B-981A-436588EE4DB3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{659289AA-2CDF-B896-8279-63963D7E0580}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{659289AA-2CDF-B896-8279-63963D7E0580}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{659289AA-2CDF-B896-8279-63963D7E0580}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{659289AA-2CDF-B896-8279-63963D7E0580}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

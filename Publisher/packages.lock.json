@@ -14,20 +14,6 @@
           "Microsoft.Bcl.AsyncInterfaces": "8.0.0"
         }
       },
-      "Cosmos.BlobService": {
-        "type": "Direct",
-        "requested": "[9.0.3.33, )",
-        "resolved": "9.0.3.33",
-        "contentHash": "S3pmSsQ2BZnzAxsWKElPQepkBeNVHWAOkvyvp4FIhywuNS9IyALnYBNKxRxo3H4uBib7sn8eZtxrdkumXHdpaA==",
-        "dependencies": {
-          "Azure.Identity": "1.13.2",
-          "Azure.Storage.Blobs": "12.23.0",
-          "Azure.Storage.Files.Shares": "12.21.0",
-          "Microsoft.Extensions.Caching.Abstractions": "9.0.2",
-          "Microsoft.Extensions.Configuration.Abstractions": "9.0.2",
-          "Microsoft.Extensions.Options": "9.0.2"
-        }
-      },
       "Cosmos.MicrosoftGraph": {
         "type": "Direct",
         "requested": "[9.0.0.5, )",
@@ -1774,6 +1760,17 @@
         "type": "Transitive",
         "resolved": "2.10.5",
         "contentHash": "QGlwUfhKWdHnFXlKUtXW0zaQ3wyBuJMDIZKUl+sZqa/bLVXosvM6VzxtxWKJUj8tk3dJNRkRhTZ4Xib5I7huKw=="
+      },
+      "cosmos.blobservice": {
+        "type": "Project",
+        "dependencies": {
+          "Azure.Identity": "[1.13.2, )",
+          "Azure.Storage.Blobs": "[12.23.0, )",
+          "Azure.Storage.Files.Shares": "[12.21.0, )",
+          "Microsoft.Extensions.Caching.Abstractions": "[9.0.2, )",
+          "Microsoft.Extensions.Configuration.Abstractions": "[9.0.2, )",
+          "Microsoft.Extensions.Options": "[9.0.2, )"
+        }
       },
       "cosmos.common": {
         "type": "Project",
