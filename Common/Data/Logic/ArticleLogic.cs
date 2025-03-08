@@ -519,8 +519,18 @@ namespace Cosmos.Common.Data.Logic
                 AuthorInfo = article.AuthorInfo,
                 OGDescription = string.Empty,
                 OGImage = string.IsNullOrEmpty(article.BannerImage) ? string.Empty : article.BannerImage.StartsWith("http") ? article.BannerImage : CosmosOptions.Value.SiteSettings.PublisherUrl.TrimEnd('/') + "/" + article.BannerImage.TrimStart('/'),
-                OGUrl = CosmosOptions.Value.SiteSettings.PublisherUrl.TrimEnd('/') + "/" + article.UrlPath.Replace("root", string.Empty).TrimStart('/'),
+                OGUrl = GetOGUrl(article.UrlPath),
             };
+        }
+
+        private string GetOGUrl(string urlPath)
+        {
+            if (string.IsNullOrWhiteSpace(CosmosOptions.Value.SiteSettings.PublisherUrl))
+            {
+                return urlPath;
+            }
+
+            return CosmosOptions.Value.SiteSettings.PublisherUrl.TrimEnd('/') + "/" + urlPath.TrimStart('/');
         }
     }
 }

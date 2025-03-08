@@ -102,6 +102,7 @@
         </div>
     </div>
 }
+
 <!-- Before the end of the body tag -->
 @* <script src="https://unpkg.com/filepond-plugin-file-metadata/dist/filepond-plugin-file-metadata.js"></script>
 <script src="https://unpkg.com/filepond@4/dist/filepond.js"></script> *@
@@ -770,7 +771,26 @@
         });
     }
 
-    async function CkeditorSave(editor) {
+    function simpleImageEditorSave(html, editorId) {
+
+        let model = {
+            Id: $("#Id").val(),
+            EditorId: editorId,
+            UserId: ccms_editor_userid,
+            Content: encryptData(html)
+        };
+
+        saving();
+        saveInProgress = true;
+
+        $.post("@Url.Action("CkeditorSave")", model, function (data){
+                saveInProgress = false;
+                doneSaving();
+         }).done(function (data) {
+         });
+    }
+
+    function CkeditorSave(editor) {
 
         const sourceElement = editor.sourceElement;
         const id = sourceElement.getAttribute("data-ccms-ceid");
@@ -794,7 +814,6 @@
                 saveInProgress = false;
                 doneSaving();
          }).done(function (data) { });
-
     }
 
     function cosmosSignalUpdateEditor(data) {

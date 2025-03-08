@@ -551,7 +551,7 @@ namespace Cosmos.Cms.Controllers
 
             storageContext.AppendBlob(memoryStream, metaData);
 
-            return Ok();
+            return Content(blobEndPoint + "/" + relativePath);
         }
 
         /// <summary>

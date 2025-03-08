@@ -164,6 +164,8 @@ const EditorConfig = {
         VsCodeEditor,
         SignalR,
     ],
+    placeholder: 'Add your content here.',
+    licenseKey: LICENSE_KEY,
     toolbar: {
         items: [
             'link',
@@ -278,7 +280,6 @@ const EditorConfig = {
             reversed: true
         }
     },
-    placeholder: 'Type or paste your content here!',
     ui: {
         viewportOffset: {
             top: getDistanceFromTop(),
@@ -293,25 +294,34 @@ function ccms_createEditors() {
     // Editor instances
     const editorElements = document.querySelectorAll('[data-ccms-ceid]');
     editorElements.forEach(editorElement => {
-        InlineEditor
-            .create(editorElement, EditorConfig)
-            .then(editor => {
-                window.editor = editor;
-                const imageUploadEditing = editor.plugins.get('ImageUploadEditing');
-                imageUploadEditing.on('uploadComplete', (evt, { data, imageElement }) => {
-                    parent.ccms_setBannerImage(data.url);
+        let config;
+        let editorType = 'default';
+
+        if (editorElement.hasAttribute('data-editor-config')) {
+            editorType = editorElement.getAttribute('data-editor-config').toLowerCase();
+        }
+
+        if (editorType !== 'simpleimage') {
+            InlineEditor
+                .create(editorElement, EditorConfig)
+                .then(editor => {
+                    window.editor = editor;
+                    const imageUploadEditing = editor.plugins.get('ImageUploadEditing');
+                    imageUploadEditing.on('uploadComplete', (evt, { data, imageElement }) => {
+                        parent.ccms_setBannerImage(data.url);
+                    });
+                    editor.editing.view.document.on('change:isFocused', (evt, data, isFocused) => {
+                        console.log(`View document is focused: ${isFocused}.`);
+                        if (isFocused) {
+                            focusedEditor = editor;
+                        } else {
+                            focusedEditor = null;
+                            return parent.CkeditorSave(editor, "save");
+                        }
+                    });
+                    ccms_editors.push(editor);
                 });
-                editor.editing.view.document.on('change:isFocused', (evt, data, isFocused) => {
-                    console.log(`View document is focused: ${isFocused}.`);
-                    if (isFocused) {
-                        focusedEditor = editor;
-                    } else {
-                        focusedEditor = null;
-                        return parent.CkeditorSave(editor, "save");
-                    }
-                });
-                ccms_editors.push(editor);
-            });
+        }
     });
 }
 

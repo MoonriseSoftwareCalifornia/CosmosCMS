@@ -50,8 +50,6 @@
     @Html.Raw(Model.Layout.Head)
     <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/44.1.0/ckeditor5.css" />
     <link href="https://unpkg.com/filepond@4/dist/filepond.css" rel="stylesheet" />
-    <link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css" rel="stylesheet" />
-    <link href="https://unpkg.com/filepond-plugin-image-edit/dist/filepond-plugin-image-edit.css" rel="stylesheet" />
     @Html.Raw(Model.HeadJavaScript)
     @Html.Raw(JavaScriptSnippet.FullScript)
 </head>
@@ -83,6 +81,8 @@
         var focusedEditor;
         var unmoutCkBox;
         var articleNumber = @Model.ArticleNumber;
+        var articleId = "@Model.Id";
+
         let autosaveTimeout = null;
 
         // Blur editors
@@ -131,6 +131,8 @@
                 }
             }
         });
+
+
     </script>
 
     <script src="@Html.Raw("https://unpkg.com/@popperjs/core@2")"></script>
@@ -149,78 +151,7 @@
             placement: "right-start",
             inlinePositioning: true,
         }); //data-ccms-ceid
-
-        // We want to preview images, so we register
-        // the Image Preview plugin, We also register
-        // exif orientation (to correct mobile image
-        // orientation) and size validation, to prevent
-        // large files from being added
-        FilePond.registerPlugin(
-          FilePondPluginFileMetadata,
-          FilePondPluginImagePreview,
-          FilePondPluginImageExifOrientation,
-          FilePondPluginImageValidateSize,
-          FilePondPluginImageEdit
-        );
-
-        function getImageDimensions(blob, callback) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    const dimensions = {
-                        width: img.naturalWidth,
-                        height: img.naturalHeight
-                    };
-                    callback(dimensions);
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(blob);
-        }
-
-        const imgholders = document.querySelectorAll(".imgholder");
-
-        const ponds = document.querySelectorAll('.filepond');
-
-        ponds.forEach(function (el, index) {
-
-            let pond = FilePond.create(el,
-                {
-                    acceptedFileTypes: ['image/*']
-                });
-
-            pond.setOptions({
-                server: "@Url.Action("UploadImage", "FileManager")"
-            });
-
-            pond.on('addfile', (error, file) => {
-                file.setMetadata("Path", "/pub/articles/@Model.ArticleNumber/");
-                file.setMetadata("RelativePath", "");
-                file.setMetadata("fileName", file.filename.toLowerCase());
-                getImageDimensions(file.file, function(dimensions) {
-                    file.setMetadata('imageWidth', dimensions.width);
-                    file.setMetadata('imageHeight', dimensions.height);
-                });
-            });
-
-            pond.on('processfilestart', (e) => {
-                const metadata = e.getMetadata();
-            });
-
-            pond.on('processfile', (error, file) => {
-                const f = file;
-                const fileName = file.getMetadata("fileName");
-                const relativePath = "/pub/articles/@Model.ArticleNumber/" + fileName;
-                const img = document.getElementById("image-1");
-                img.src = relativePath;
-            });
-
-
-            pond.on('removefile', (file) => {
-                const f = file;
-            });
-        });
     </script>
+    <script src="~/lib/cosmos/simpleimage/simpleimageuploader.js"></script>
 </body>
 </html>

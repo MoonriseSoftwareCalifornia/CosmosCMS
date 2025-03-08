@@ -7,10 +7,13 @@
 
 namespace Cosmos.Cms.Hubs
 {
+    using System;
     using System.Threading.Tasks;
+    using Cosmos.Cms.Models;
     using Cosmos.Editor.Services;
     using Microsoft.AspNetCore.SignalR;
     using Microsoft.Extensions.Logging;
+    using Newtonsoft.Json;
 
     /// <summary>
     /// Live editor collaboration hub.
@@ -47,30 +50,30 @@ namespace Cosmos.Cms.Hubs
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task Notification(string data)
         {
-            //try
-            //{
-            //    var model = JsonConvert.DeserializeObject<HtmlEditorPostViewModel>(data);
-            //    model.Data = CryptoJsDecryption.Decrypt(model.Data);
+            try
+            {
+                var model = JsonConvert.DeserializeObject<HtmlEditorPostViewModel>(data);
+                model.Data = CryptoJsDecryption.Decrypt(model.Data);
 
-            //    switch (model.Command)
-            //    {
-            //        case "join":
-            //            await Groups.AddToGroupAsync(Context.ConnectionId, GetArticleGroupName(model.ArticleNumber));
-            //            break;
-            //        case "save":
-            //        case "SavePageProperties":
-            //            // Alert others
-            //            await Clients.OthersInGroup(GetArticleGroupName(model.ArticleNumber)).SendCoreAsync("broadcastMessage", new[] { JsonConvert.SerializeObject(model) });
-            //            break;
-            //        default:
-            //            await Clients.OthersInGroup(GetArticleGroupName(model.ArticleNumber)).SendCoreAsync("broadcastMessage", new[] { data });
-            //            break;
-            //    }
-            //}
-            //catch (Exception e)
-            //{
-            //    logger.LogError($"{e.Message}", e);
-            //}
+                switch (model.Command)
+                {
+                    case "join":
+                        await Groups.AddToGroupAsync(Context.ConnectionId, GetArticleGroupName(model.ArticleNumber));
+                        break;
+                    case "save":
+                    case "SavePageProperties":
+                        // Alert others
+                        await Clients.OthersInGroup(GetArticleGroupName(model.ArticleNumber)).SendCoreAsync("broadcastMessage", new[] { JsonConvert.SerializeObject(model) });
+                        break;
+                    default:
+                        await Clients.OthersInGroup(GetArticleGroupName(model.ArticleNumber)).SendCoreAsync("broadcastMessage", new[] { data });
+                        break;
+                }
+            }
+            catch (Exception e)
+            {
+                logger.LogError($"{e.Message}", e);
+            }
         }
 
         /// <summary>

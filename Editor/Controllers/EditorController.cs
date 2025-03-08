@@ -1448,7 +1448,7 @@ namespace Cosmos.Cms.Controllers
         public async Task<IActionResult> CkeditorSave(CKEditorPostViewModel model)
         {
             var t = Request;
-            if (model.EditorId == null)
+            if (model == null || model.EditorId == null)
             {
                 return Ok();
             }

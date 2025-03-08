@@ -220,11 +220,11 @@ builder.Services.Configure<PowerBiAuth>(builder.Configuration.GetSection("PowerB
 // Add Azure CDN/Frontdoor configuration here.
 builder.Services.Configure<CdnService>(builder.Configuration.GetSection("AzureCdnConfig"));
 
-builder.Services.AddSession(options =>
-{
-    options.IdleTimeout = TimeSpan.FromSeconds(3600);
-    options.Cookie.IsEssential = true;
-});
+//builder.Services.AddSession(options =>
+//{
+//    options.IdleTimeout = TimeSpan.FromSeconds(3600);
+//    options.Cookie.IsEssential = true;
+//});
 
 // Add Email services
 builder.Services.AddCosmosEmailServices(builder.Configuration);
