@@ -26,6 +26,10 @@ function ccms___getImageDimensions(blob, callback) {
 function ccms___setupPond(element) {
     const id = element.getAttribute("data-ccms-ceid");
 
+    // Clear out placeholder image.
+    const placeHolder = element.querySelector(".ccms___placeHolder");
+    if (placeHolder) { placeHolder.remove(); }
+
     if (typeof id === "undefined") {
         return;
     }
@@ -37,7 +41,7 @@ function ccms___setupPond(element) {
         // If an image already present add the remove image option.
         const a = document.createElement("a");
         a.id = "ccms___trash-" + id;
-        a.classList.add("text-overlay");
+        a.classList.add("ccms-img-trashcan");
         a.innerHTML = '<i class="fa-solid fa-trash"></i>';
         a.title = "Click to remove image.";
         a.onclick = function (e) {
@@ -76,9 +80,17 @@ function ccms___setupPond(element) {
         const savingMsg = document.createElement("span");
         savingMsg.innerHTML = "Uploading image ... ";
         savingMsg.id = "saving-" + pond.editorId;
-        parent.saving();
-        parent.saveInProgress = true;
-        file.setMetadata("Path", "/pub/articles/" + articleNumber + "/");
+
+        if (typeof parent.saving !== "undefined") {
+            parent.saving();
+            parent.saveInProgress = true;
+        }
+
+        if (articleNumber) {
+            file.setMetadata("Path", "/pub/articles/" + articleNumber + "/");
+        } else {
+            file.setMetadata("Path", "/pub/images/");
+        }
         file.setMetadata("RelativePath", "");
         file.setMetadata("fileName", file.filename.toLowerCase());
         ccms___getImageDimensions(file.file, function (dimensions) {
@@ -108,10 +120,12 @@ function ccms___setupPond(element) {
         image.src = file.serverId.replace(/['"]+/g, '');
         element.appendChild(image);
 
-        parent.simpleImageEditorSave(element.innerHTML, id);
-        ccms___setupPond(element);
-        parent.doneSaving();
-        parent.saveInProgress = false;
+        if (typeof parent.simpleImageEditorSave !== "undefined") {
+            parent.simpleImageEditorSave(element.innerHTML, id);
+            ccms___setupPond(element);
+            parent.doneSaving();
+            parent.saveInProgress = false;
+        }
     });
 
     pond.on('removefile', (file) => {
@@ -125,6 +139,16 @@ function ccms___removePond(id) {
     const pond = FilePond.find(element);
     element.remove();
     pond.destroy();
+
+    if (!element.hasChildNodes()) {
+        const img = document.createElement('img');
+        img.classList.add("ccms___placeHolder");
+        img.style.display = "block";
+        img.style.margin = "auto";
+        img.style.height = "60px";
+        img.src = "/images/AddImageHere.webp";
+        element.appendChild(img);
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -133,6 +157,6 @@ document.addEventListener('DOMContentLoaded', function () {
         FilePondPluginFileMetadata,
     );
 
-    const imageContainers = document.querySelectorAll('.image-container');
+    const imageContainers = document.querySelectorAll('.ccms-img-container');
     imageContainers.forEach(ccms___setupPond);
 });

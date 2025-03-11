@@ -94,23 +94,20 @@
 		<PackageReference Include="AspNetCore.Identity.CosmosDb" Version="9.0.1" />
 		<PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.4.0" />
 		<PackageReference Include="Azure.Identity" Version="1.13.2" />
-		<PackageReference Include="MailChimp.Net.V3" Version="5.5.0" />
+		<PackageReference Include="Cosmos.BlobService" Version="9.0.4.68" />
+		<PackageReference Include="MailChimp.Net.V3" Version="5.7.0" />
 		<PackageReference Include="Cosmos.EmailServices" Version="9.0.1" />
-		<PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="9.0.2" />
-		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.2" />
-		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.2" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.2" />
+		<PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="9.0.3" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.3" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.3" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.3" />
 		<PackageReference Include="Microsoft.PowerBI.Api" Version="4.22.0" />
 		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="System.Formats.Asn1" Version="9.0.2" />
+		<PackageReference Include="System.Formats.Asn1" Version="9.0.3" />
 		<PackageReference Include="X.Web.Sitemap" Version="2.10.5" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <ProjectReference Include="C:\Users\toiya\source\repos\MoonriseSoftwareCalifornia\Cosmos.BlobService\Cosmos.BlobService.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

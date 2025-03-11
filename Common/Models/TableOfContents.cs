@@ -7,7 +7,6 @@
 
 namespace Cosmos.Common.Models
 {
-    using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
     using System.Collections.Generic;
 
     /// <summary>

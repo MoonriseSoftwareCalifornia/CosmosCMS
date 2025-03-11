@@ -111,7 +111,7 @@
     let grapesjs__canvas__scripts = @Html.Raw(JsonConvert.SerializeObject(Model.Scripts));
     let grapesjs__assets = preloadImages();
 </script>
-<script src="~/lib/grapesjs/build_20241212/designer.js"></script>
+<script asp-append-version="true" src="~/lib/grapesjs/build_20241212/designer.js"></script>
 <script>
     // Unmovable container
     editor.DomComponents.addType('ccms-layout-body', {

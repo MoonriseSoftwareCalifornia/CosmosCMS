@@ -143,8 +143,8 @@ namespace Cosmos.Cms.Common.Services.Configurations
 
             cosmosConfig.SiteSettings.BlobPublicUrl = cosmosConfig.SiteSettings.BlobPublicUrl?.TrimEnd('/');
 
-
             var editorUrl = GetValue<string>("CosmosEditorUrl");
+
             if (!string.IsNullOrEmpty(editorUrl))
             {
                 cosmosConfig.EditorUrls.Add(new EditorUrl() { CloudName = "Azure", Url = editorUrl });

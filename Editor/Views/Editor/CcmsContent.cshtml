@@ -48,10 +48,11 @@
 
     </style>
     @Html.Raw(Model.Layout.Head)
-    <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/44.1.0/ckeditor5.css" />
+    <link asp-append-version="true" rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/44.1.0/ckeditor5.css" />
     <link href="https://unpkg.com/filepond@4/dist/filepond.css" rel="stylesheet" />
     @Html.Raw(Model.HeadJavaScript)
     @Html.Raw(JavaScriptSnippet.FullScript)
+    <link asp-append-version="true" href="~/lib/cosmos/simpleimage/simpleimageuploader.css" rel="stylesheet" />
 </head>
 <body>
     @Html.Raw(Model.Layout.HtmlHeader)
@@ -66,12 +67,6 @@
     <link href="~/lib/cropperjs/cropper.min.css" rel="stylesheet" asp-append-version="true" />
     <script src="~/lib/cropperjs/cropper.min.js" asp-append-version="true"></script>
     <script src="https://unpkg.com/filepond-plugin-file-metadata/dist/filepond-plugin-file-metadata.js"></script>
-    <script src="https://unpkg.com/filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.js"></script>
-    <script src="https://unpkg.com/filepond-plugin-image-edit/dist/filepond-plugin-image-edit.js"></script>
-    <script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.js"></script>
-    <script src="https://unpkg.com/filepond-plugin-image-exif-orientation/dist/filepond-plugin-image-exif-orientation.js"></script>
-    <script src="https://unpkg.com/filepond-plugin-image-validate-size/dist/filepond-plugin-image-validate-size.js"></script>
-    <script src="https://unpkg.com/filepond-plugin-image-crop/dist/filepond-plugin-image-crop.js"></script>
     <script src="https://unpkg.com/filepond/dist/filepond.js"></script>
     <script>
 
@@ -131,7 +126,6 @@
                 }
             }
         });
-
 
     </script>
 

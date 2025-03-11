@@ -69,6 +69,35 @@ namespace Cosmos.Common.Data.Logic
         public static bool GetPublisherHealth() => true;
 
         /// <summary>
+        ///     Deserializes an object using <see cref="Newtonsoft.Json.JsonConvert.DeserializeObject(string)" />
+        ///     and <see cref="System.Text.Encoding.UTF32" />.
+        /// </summary>
+        /// <param name="bytes">Byte array.</param>
+        /// <typeparam name="T">The generic type to convert the bytes to.</typeparam>
+        /// <returns>Returns the bytes as an object.</returns>
+        public static T Deserialize<T>(byte[] bytes)
+        {
+            var data = Encoding.UTF32.GetString(bytes);
+            return JsonConvert.DeserializeObject<T>(data);
+        }
+
+        /// <summary>
+        ///     Serializes an object using <see cref="Newtonsoft.Json.JsonConvert.SerializeObject(object)" />
+        ///     and <see cref="System.Text.Encoding.UTF32" />.
+        /// </summary>
+        /// <param name="obj">Object to serialize into a byte array.</param>
+        /// <returns>Returns a <see cref="byte"/> array.</returns>
+        public static byte[] Serialize(object obj)
+        {
+            if (obj == null)
+            {
+                return null;
+            }
+
+            return Encoding.UTF32.GetBytes(JsonConvert.SerializeObject(obj));
+        }
+
+        /// <summary>
         /// Gets the sitemap for a website.
         /// </summary>
         /// <returns>Sitemap.</returns>
@@ -128,35 +157,6 @@ namespace Cosmos.Common.Data.Logic
             }
 
             return sitemap;
-        }
-
-        /// <summary>
-        ///     Serializes an object using <see cref="Newtonsoft.Json.JsonConvert.SerializeObject(object)" />
-        ///     and <see cref="System.Text.Encoding.UTF32" />.
-        /// </summary>
-        /// <param name="obj">Object to serialize into a byte array.</param>
-        /// <returns>Returns a <see cref="byte"/> array.</returns>
-        public static byte[] Serialize(object obj)
-        {
-            if (obj == null)
-            {
-                return null;
-            }
-
-            return Encoding.UTF32.GetBytes(JsonConvert.SerializeObject(obj));
-        }
-
-        /// <summary>
-        ///     Deserializes an object using <see cref="Newtonsoft.Json.JsonConvert.DeserializeObject(string)" />
-        ///     and <see cref="System.Text.Encoding.UTF32" />.
-        /// </summary>
-        /// <param name="bytes">Byte array.</param>
-        /// <typeparam name="T">The generic type to convert the bytes to.</typeparam>
-        /// <returns>Returns the bytes as an object.</returns>
-        public static T Deserialize<T>(byte[] bytes)
-        {
-            var data = Encoding.UTF32.GetString(bytes);
-            return JsonConvert.DeserializeObject<T>(data);
         }
 
         /// <summary>

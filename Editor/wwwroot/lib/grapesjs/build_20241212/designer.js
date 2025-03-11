@@ -22,6 +22,7 @@ async function cosmos__designerLoadAssets() {
         method: 'GET'
     });
     const json = await response.json();
+    editor.BlockManager.getCategories().each(ctg => ctg.set('open', false));
     editor.AssetManager.add(json);
     editor.AssetManager.render();
 }
@@ -401,7 +402,9 @@ for (var i = 0; i < titles.length; i++) {
 
 // Store and load events
 editor.on('storage:load', function (e) {
-    checkDisplayLiveEditorButton('HtmlContent');
+    if (typeof checkDisplayLiveEditorButton !== "undefined") {
+        checkDisplayLiveEditorButton('HtmlContent');
+    }
     cosmos__designerLoadAssets();
     console.log('Loaded ', e)
 });
@@ -465,18 +468,4 @@ editor.on('storage:load', (data, res) => {
     $("#spinLoading").hide();
 });
 
-// Add the CKEditor editing block
-// Unmovable container
-editor.DomComponents.addType('ccms-ckeditor-block', {
-    model: {
-        defaults: {
-            attributes: {
-                // Default attributes
-                type: 'text',
-                name: 'data-ccms-ceid',
-                placeholder: ccms___generateGUID(),
-            },
-        }
-    }
-});
 //data-ccms-ceid: ccms___generateGUID(), class: 'ck-content' 
