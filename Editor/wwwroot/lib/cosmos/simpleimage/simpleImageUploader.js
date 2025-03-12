@@ -6,7 +6,6 @@
     parent.simpleImageEditorSave(element.innerHTML, id);
     ccms___setupPond(element);
 }
-
 function ccms___getImageDimensions(blob, callback) {
     const reader = new FileReader();
     reader.onload = function (e) {
@@ -22,7 +21,6 @@ function ccms___getImageDimensions(blob, callback) {
     };
     reader.readAsDataURL(blob);
 }
-
 function ccms___setupPond(element) {
     const id = element.getAttribute("data-ccms-ceid");
 
@@ -132,7 +130,6 @@ function ccms___setupPond(element) {
         const f = file;
     });
 }
-
 function ccms___removePond(id) {
     // Clean things up.
     const element = document.getElementById(id);
@@ -150,7 +147,6 @@ function ccms___removePond(id) {
         element.appendChild(img);
     }
 }
-
 document.addEventListener('DOMContentLoaded', function () {
 
     FilePond.registerPlugin(
