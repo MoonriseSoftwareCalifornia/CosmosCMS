@@ -212,6 +212,11 @@ namespace Cosmos.Cms.Controllers
         [HttpPost]
         public async Task<IActionResult> Designer(ArticleDesignerDataViewModel model)
         {
+            if (model == null)
+            {
+                return Json(new { success = false, message = "No data sent."});
+            }
+
             model.HtmlContent = CryptoJsDecryption.Decrypt(model.HtmlContent);
             model.CssContent = CryptoJsDecryption.Decrypt(model.CssContent);
 
