@@ -3,7 +3,7 @@
     while (element.hasChildNodes()) {
         element.removeChild(element.firstChild);
     }
-    parent.simpleImageEditorSave(element.innerHTML, id);
+    parent.simpleimageEditorSave(element.innerHTML, id);
     ccms___setupPond(element);
 }
 function ccms___getImageDimensions(blob, callback) {
@@ -118,8 +118,8 @@ function ccms___setupPond(element) {
         image.src = file.serverId.replace(/['"]+/g, '');
         element.appendChild(image);
 
-        if (typeof parent.simpleImageEditorSave !== "undefined") {
-            parent.simpleImageEditorSave(element.innerHTML, id);
+        if (typeof parent.simpleimageEditorSave !== "undefined") {
+            parent.simpleimageEditorSave(element.innerHTML, id);
             ccms___setupPond(element);
             parent.doneSaving();
             parent.saveInProgress = false;

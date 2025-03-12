@@ -52,7 +52,7 @@
     <link href="https://unpkg.com/filepond@4/dist/filepond.css" rel="stylesheet" />
     @Html.Raw(Model.HeadJavaScript)
     @Html.Raw(JavaScriptSnippet.FullScript)
-    <link asp-append-version="true" href="~/lib/cosmos/simpleimage/simpleimageuploader.css" rel="stylesheet" />
+    <link asp-append-version="true" href="/lib/cosmos/imageuploader/imageuploader.css" rel="stylesheet" />
 </head>
 <body>
     @Html.Raw(Model.Layout.HtmlHeader)
@@ -146,6 +146,6 @@
             inlinePositioning: true,
         }); //data-ccms-ceid
     </script>
-    <script src="~/lib/cosmos/simpleimage/simpleimageuploader.js"></script>
+    <script asp-append-version="true" src="/lib/cosmos/imageuploader/imageuploader.js"></script>
 </body>
 </html>

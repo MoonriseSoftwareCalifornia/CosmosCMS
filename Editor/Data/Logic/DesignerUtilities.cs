@@ -100,7 +100,7 @@ namespace Cosmos.Editor.Data.Logic
             var styles = new List<string>
             {
                 "/lib/ckeditor/ckeditor5-content.css",
-                "/lib/cosmos/simpleimage/simpleimageuploader.css",
+                "/lib/cosmos/imageuploader/imageuploader.css",
                 "https://unpkg.com/filepond@4/dist/filepond.css"
             };
 
@@ -126,7 +126,7 @@ namespace Cosmos.Editor.Data.Logic
                 {
                     "https://unpkg.com/filepond-plugin-file-metadata/dist/filepond-plugin-file-metadata.js",
                     "https://unpkg.com/filepond/dist/filepond.js",
-                    "/lib/cosmos/simpleimage/simpleimageuploader.js"
+                    "/lib/cosmos/imageuploader/imageuploader.js"
                 };
 
             htmlEditor.LoadHtml(html);
