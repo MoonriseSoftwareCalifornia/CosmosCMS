@@ -2,6 +2,7 @@
     var element = this;
     ccms___setupPond(element);
 };
+
 const imageContainerBlockPlugin = (editor) => {
     // Register a new component type
     editor.Components.addType('ImageContainer', {
