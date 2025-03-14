@@ -7,7 +7,7 @@
         // Provide the default properties of the component (more about it in the next section).
         model: {
             defaults: {
-                attributes: { 'data-ccms-ceid': generateGUID() },
+                attributes: { 'data-ccms-new': "true" },
                 droppable: false,
             }
         }

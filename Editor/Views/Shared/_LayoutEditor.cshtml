@@ -176,10 +176,13 @@
                 border-color: transparent;
             }
         </style>
-        <script>
-            let cosmos_plugin_array = [];
-        </script>
     }
+
+    <script>
+        let cosmos_plugin_array = [];
+        const isAuthor = @isAuthor.ToString().ToLower();
+        const isReviewer = @User.IsInRole("Reviewers").ToString().ToLower();
+    </script>
     
     <script src="~/lib/microsoft-signalr/signalr.min.js"></script>
 
@@ -349,6 +352,23 @@
     @RenderBody()
 
     <div id="modals">
+        <div class="modal fade" id="modalRecoverData" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Recover changes?</h5>
+                    </div>
+                    <div class="modal-body">
+                        <p>A recent save for this page did not succeed, but the changes were saved locally.</p>
+                        <p>Do you want to recover saved changes?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="modalBtnSaveFirst" type="button" class="btn btn-secondary" onclick="restoreBackup()" data-bs-dismiss="modal">Yes</button>
+                        <button type="button" class="btn btn-secondary" onclick="deleteBackup()" data-bs-dismiss="modal">No</button>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="modal fade" id="modalCheckSaveFirst" tabindex="-1">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -544,7 +564,7 @@
     <script>
 
         const isDesigner = @((isDesigner.HasValue ? isDesigner : false).ToString().ToLower());
-
+        const modalRecoverData = new bootstrap.Modal(document.getElementById('modalRecoverData'));
         const modalChangeTitle = new bootstrap.Modal(document.getElementById('modalChangeTitle'));
         const modalCheckSaveFirst = new bootstrap.Modal(document.getElementById('modalCheckSaveFirst'));
         const pickPageModal = new bootstrap.Modal(document.getElementById('pickPageModal'));
@@ -560,7 +580,7 @@
             }
         });
         // Indicates a save is in progress - used to deconflict simultaneous saves
-        var saveInProgress = false;
+        let saveInProgress = false;
         const modalPreview = new bootstrap.Modal(document.getElementById('modalPreview'));
 
         // VARIABLES
@@ -1192,10 +1212,6 @@
                 $("#btnOpenBannerImage").attr("title", "Sets the preview image for this page.")
                 $("#btnClearBannerImage").hide();
             }
-        }
-
-        function setWorkingVersion(versionNumber) {
-            $("#spanWorkingVersionNo").html("Working Version: " + versionNumber);
         }
 
         let cdnTimer = null;

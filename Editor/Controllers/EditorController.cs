@@ -1445,91 +1445,7 @@ namespace Cosmos.Cms.Controllers
         }
 
         /// <summary>
-        ///  Saves CKEditor data to an article in the database.
-        /// </summary>
-        /// <param name="model">model.</param>
-        /// <returns>Content that was saved.</returns>
-        [HttpPost]
-        public async Task<IActionResult> CkeditorSave(CKEditorPostViewModel model)
-        {
-            var t = Request;
-            if (model == null || model.EditorId == null)
-            {
-                return Ok();
-            }
-
-            if (model == null)
-            {
-                return NotFound();
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var article = await dbContext.Articles.FindAsync(model.Id);
-            if (article == null)
-            {
-                return NotFound();
-            }
-
-            if (!string.IsNullOrWhiteSpace(model.EditorId))
-            {
-                // Get the editable regions from the original document.
-                var originalHtmlDoc = new HtmlDocument();
-                originalHtmlDoc.LoadHtml(article.Content);
-                var originalEditableDivs = originalHtmlDoc.DocumentNode.SelectNodes("//*[@data-ccms-ceid]");
-
-                // Find the region we are updating
-                var target = originalEditableDivs.FirstOrDefault(w => w.Attributes["data-ccms-ceid"].Value == model.EditorId);
-                if (target != null)
-                {
-                    // Decrypt the data being sent in.
-                    model.Content = CryptoJsDecryption.Decrypt(model.Content);
-
-                    // Update the region now
-                    target.InnerHtml = model.Content;
-                }
-
-                // Now carry over what's being UPDATED to the original.
-                article.Content = originalHtmlDoc.DocumentNode.OuterHtml;
-                article.UserId = model.UserId;
-
-                if (article.Published.HasValue)
-                {
-                    // If this is published, go through the full save process.
-                    await articleLogic.SaveArticle(
-                        new ArticleViewModel()
-                        {
-                            Id = article.Id,
-                            ArticleNumber = article.ArticleNumber,
-                            VersionNumber = article.VersionNumber,
-                            Title = article.Title,
-                            Content = article.Content,
-                            FooterJavaScript = article.FooterJavaScript,
-                            HeadJavaScript = article.HeaderJavaScript,
-                            Published = article.Published,
-                            StatusCode = (StatusCodeEnum)article.StatusCode,
-                            UrlPath = article.UrlPath
-                        }, model.UserId);
-
-                    await articleLogic.CreateStaticTableOfContentsJsonFile("/");
-                }
-                else
-                {
-                    await dbContext.SaveChangesAsync();
-                }
-            }
-
-            // Notify others of the changes.
-            await hub.Clients.All.SendCoreAsync("UpdateEditors", [model.Id, model.Content]);
-
-            return Json(model.Content);
-        }
-
-        /// <summary>
-        /// Saves live editor data.
+        /// Saves article properties.
         /// </summary>
         /// <param name="model">Live editor post model.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
@@ -1558,6 +1474,35 @@ namespace Cosmos.Cms.Controllers
                 throw new NotFoundException($"CScould not find artile with #: {model.ArticleNumber}.");
             }
 
+            if (!string.IsNullOrWhiteSpace(model.EditorId))
+            {
+                // Get the editable regions from the original document.
+                var originalHtmlDoc = new HtmlDocument();
+                originalHtmlDoc.LoadHtml(article.Content);
+                var originalEditableDivs = originalHtmlDoc.DocumentNode.SelectNodes("//*[@data-ccms-ceid]");
+
+                // Find the region we are updating
+                var target = originalEditableDivs.FirstOrDefault(w => w.Attributes["data-ccms-ceid"].Value == model.EditorId);
+                if (target != null)
+                {
+                    // Decrypt the data being sent in.
+                    model.Data = CryptoJsDecryption.Decrypt(model.Data);
+
+                    // Update the region now
+                    target.InnerHtml = model.Data;
+                }
+
+                // Now carry over what's being UPDATED to the original.
+                article.Content = originalHtmlDoc.DocumentNode.OuterHtml;
+
+                // If this is published, go through the full save process.
+                await articleLogic.SaveArticle(article, model.UserId);
+
+                // Notify others of the changes.
+                await hub.Clients.All.SendCoreAsync("UpdateEditors", [model.Id, model.Data]);
+
+            }
+
             // Banner image
             article.BannerImage = model.BannerImage;
 
@@ -1570,12 +1515,6 @@ namespace Cosmos.Cms.Controllers
 
             // Save changes back to the database
             var result = await articleLogic.SaveArticle(article, model.UserId);
-
-            if (article.Published.HasValue)
-            {
-                await articleLogic.CreateStaticTableOfContentsJsonFile("/");
-            }
-
 
             return Json(result);
         }
@@ -1731,11 +1670,6 @@ namespace Cosmos.Cms.Controllers
                             VersionNumber = article.VersionNumber,
                             Updated = model.Updated.Value
                         }, await GetUserEmail());
-
-                    if (model.Published.HasValue)
-                    {
-                        await articleLogic.CreateStaticTableOfContentsJsonFile("/");
-                    }
 
                     jsonModel.Model = new EditCodePostModel()
                     {
@@ -2014,7 +1948,7 @@ namespace Cosmos.Cms.Controllers
         }
 
         /// <summary>
-        /// Publishes a table of contents.
+        /// Publishes a table of contents and new site map file.
         /// </summary>
         /// <param name="path">TOC root path.</param>
         /// <returns>IActionResult.</returns>
@@ -2023,7 +1957,6 @@ namespace Cosmos.Cms.Controllers
         public async Task<IActionResult> PublishTOC(string path = "/")
         {
             await articleLogic.CreateStaticTableOfContentsJsonFile(path);
-            await articleLogic.CreateSiteMapFile();
             return Ok();
         }
 

@@ -121,19 +121,23 @@ namespace Cosmos.Common.Data.Logic
 
             var sitemap = new Sitemap();
 
-            sitemap.Add(new Url
+            var url = new Url
             {
                 Location = publicUrl,
                 LastMod = home.Updated.ToString("u"),
                 Priority = 1.0,
-                Images = new List<Image>
+                Images = new List<Image>()
+            };
+
+            if (!string.IsNullOrWhiteSpace(home.BannerImage))
+            {
+                url.Images.Add(new Image
                 {
-                    new Image
-                    {
-                        Location = home.BannerImage.ToLower().StartsWith("http") ? home.BannerImage : $"{publicUrl}/{home.BannerImage.TrimStart('/')}",
-                    }
-                }
-            });
+                    Location = $"{publicUrl}/images/logo.png"
+                });
+            }
+
+            sitemap.Add(url);
 
             foreach (var item in others)
             {

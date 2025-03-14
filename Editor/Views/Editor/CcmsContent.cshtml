@@ -113,14 +113,10 @@
                 switch (String.fromCharCode(event.which).toLowerCase()) {
                     case 's':
                         event.preventDefault();
-
-                        parent.saving();
-
                         if (editor === null) {
                             parent.saveChanges();
                         } else {
-                            const data = editor.getData();
-                            parent.saveChanges(data, editor.sourceElement.getAttribute("data-ccms-ceid"));
+                            parent.saveChanges(editor.getData(), editor.sourceElement.getAttribute("data-ccms-ceid"));
                         }
                         break;
                 }

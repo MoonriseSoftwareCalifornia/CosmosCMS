@@ -65,7 +65,7 @@
 
                     const publisherUrl = "@options.Value.SiteSettings.PublisherUrl.TrimEnd('/')";
                     const tblHeight = window.innerHeight - 200;
-                    let pageSize = Math.round(tblHeight / 50);
+                    let pageSize = Math.round(tblHeight / 50) + 1;
 
                     function dateTime(cell, formatterParams, onRendered){
                         //cell - the cell component
@@ -146,6 +146,7 @@
                     };
 
                     const pageTable = new Tabulator("#pagelist-table", {
+                        height:tblHeight + "px",
                         pagination:true, //enable pagination
                         paginationMode:"local", //enable local pagination
                         paginationSize:pageSize, //optional parameter to request a certain number of rows per page
@@ -178,7 +179,12 @@
 
                             {title:"Actions", field:"IsDefault", formatter:menuBar, width:176, headerSort:false },
 
-                            {title:"Published", field:"LastPublished", sorter:"date", headerFilter:"date", headerFilterFunc:dateFilterFunction, cellClick:openArticleVersions, width:180,
+                            {title:"Published",
+                                field:"LastPublished",
+                                headerFilter:"date",
+                                headerFilterFunc:dateFilterFunction,
+                                cellClick:openArticleVersions,
+                                width:180,
                                 sorter:"datetime",
                                 sorterParams:{
                                     format:"iso", alignEmptyValues:"top", },
@@ -190,7 +196,12 @@
                                 }
                             },
 
-                            {title:"Updated", field:"Updated", headerFilter:"date", headerFilterFunc:dateFilterFunction, cellClick:openArticleVersions, width:180,
+                            {title:"Updated",
+                                field:"Updated",
+                                headerFilter:"date",
+                                headerFilterFunc:dateFilterFunction,
+                                cellClick:openArticleVersions,
+                                width:180,
                                 sorter:"datetime",
                                 sorterParams:{
                                     format:"iso", alignEmptyValues:"top", },

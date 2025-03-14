@@ -1,69 +1,42 @@
-﻿
-@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
-@model Cosmos.Common.Models.ArticleViewModel
+﻿@model ArticleViewModel
 @{
     Layout = null;
-    ViewData["Title"] = Model.Title;
+    var article = (ArticleViewModel)ViewData["Article"];
+
+    var frameUrl = "/Home/CcmsContentIndex?target=" + Model.UrlPath;
+
+    if (!string.IsNullOrEmpty(Context.Request.Query["articleNumber"]))
+    {
+        frameUrl = "/Home/Preview" + Context.Request.QueryString;
+    }
+
 }
-<!doctype html>
-<html lang="@Model.LanguageCode">
+<!DOCTYPE HTML>
+<html>
 <head>
-    <title>@Model.Title</title>
-    <meta property="og:title" content="@Model.Title" />
-    <meta property="og:url" content="@Model.OGUrl" />
-    <meta property="og:type" content="article" />
-    <meta property="og:image" content="@Model.OGImage" />
-    <meta property="article:modified_time" content="@Model.Updated.ToString("u")">
-    <meta name="cwps-meta-path-url" content="@Model.UrlPath" />
-    <meta name="cwps-meta-path-updated" content="@Model.Updated" />
-    <meta name="cwps-meta-path-title" content="@Model.Title" />
-    <meta name="cwps-meta-author-info" content="@Model.AuthorInfo" />
-    <meta name="cwps-meta-user-is-authenticated" content="@User.Identity.IsAuthenticated.ToString().ToLower()" />
-    <meta name="cwps-meta-af-value" content="@Antiforgery.GetAndStoreTokens(Context).RequestToken" />
-    @Html.Raw(Model.Layout.Head)
-    <link rel="stylesheet" href="/lib/ckeditor/ckeditor5-content.css" />
-    @*
-    Page specific header
-    *@
-    @Html.Raw(Model.HeadJavaScript)
-    @*
-    Application Insights Scripts
-    *@
-    @Html.Raw(JavaScriptSnippet.FullScript)
-    <script async src="//cdn.embedly.com/widgets/platform.js" charset="UTF-8"></script>
+    <meta name="viewport" content="width=device-width" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer">
+
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer">
+
+    <script src="https://code.jquery.com/jquery-3.6.2.min.js" integrity="sha256-2krYZKh//PcchRtd+H+VyyQoZ/e3EcrkxhM8ycwASPA=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
 </head>
-<body>
-    @Html.Raw(Model.Layout.HtmlHeader)
-    @Html.Raw(Model.Content)
-    @Html.Raw(Model.Layout.FooterHtmlContent)
-    @Html.Raw(Model.FooterJavaScript)
+<body class="cwps-body" style="margin:0px;padding:0px;">
+    <partial name="_CosmosMainMenuPartial" model="Model" />
+    <iframe id="iFrameWebPage" src="@frameUrl" style="position: absolute; top: 52px; width: 100%; margin:0px; padding:0px;z-index:1;"></iframe>
     <script>
-        var ccmsUrlPath = "@Model.UrlPath";
-        window.addEventListener("load", () => {
-            if (window.location === window.parent.location) {
-                location.href = "/Home/CcmsContentIndex?target=@Model.UrlPath";
-            } else {
-                window.parent.setupIframe();
-                // Need to handle external links
-                var anchors = document.querySelectorAll("a");
-                anchors.forEach(function (a) {
-                    a.addEventListener("click", function (event) {
-                        const url = a.href.toLowerCase();
-                        if (url.startsWith("http:") || url.startsWith("https:")) {
-                            event.preventDefault();
-                            // Possible external URL
-                            window.parent.location.href = url;
-                        }
-                    });
-                });
-
+        // The following is used to wireup the menu links to this page.
+        function setupIframe() {
+            const iframe = document.getElementById("iFrameWebPage");
+            const iframeWin = iframe.contentWindow || iframe.contentDocument.parentWindow;
+            if (iframeWin.document.body) {
+                iframe.height = window.innerHeight - document.getElementById("ccmsNavMenu").clientHeight;
             }
-        });
-
-        window.addEventListener("click", function () {
-            parent.closeDropDowns();
-        });
-
+            loadDdEditMenu();
+        };
+        window.addEventListener('resize', function (event) { setupIframe(); }, true);
     </script>
 </body>
 </html>

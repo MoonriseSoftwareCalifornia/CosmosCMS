@@ -176,10 +176,10 @@ const EditorConfig = {
         shouldNotGroupWhenFull: false
     },
     autosave: {
-        waitingTime: 2800, // in ms
+        waitingTime: 2000, // in ms
         save(editor) {
             if (parent.enableAutoSave === true) {
-                return parent.CkeditorSave(editor, "save");
+                return parent.saveChanges(editor.getData(), editor.sourceElement.getAttribute("data-ccms-ceid"));
             }
         }
     },
@@ -294,7 +294,7 @@ function ccms_createEditors() {
     // Editor instances
     const editorElements = document.querySelectorAll('[data-ccms-ceid]');
     editorElements.forEach(editorElement => {
-        let config;
+        // let config;
         let editorType = 'default';
 
         if (editorElement.hasAttribute('data-editor-config')) {
@@ -316,17 +316,12 @@ function ccms_createEditors() {
                             focusedEditor = editor;
                         } else {
                             focusedEditor = null;
-                            return parent.CkeditorSave(editor, "save");
                         }
                     });
                     ccms_editors.push(editor);
                 });
         }
     });
-}
-
-function setMinimumMarginBottom() {
-
 }
 
 document.addEventListener("DOMContentLoaded", function (event) {

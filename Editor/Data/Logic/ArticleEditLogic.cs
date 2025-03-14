@@ -252,7 +252,7 @@ namespace Cosmos.Editor.Data.Logic
         public async Task<CatalogEntry> GetCatalogEntry(ArticleViewModel model)
         {
             var article = await DbContext.Articles.FirstOrDefaultAsync(f => f.Id == model.Id);
-            
+
             return await GetCatalogEntry(article);
         }
 
@@ -467,7 +467,7 @@ namespace Cosmos.Editor.Data.Logic
             // Retrieve the article that we will be using.
             // This will either be used to create a new version (detached then added as new),
             // or updated in place.
-           var article = await DbContext.Articles.OrderByDescending(o => o.VersionNumber).FirstOrDefaultAsync(a => a.ArticleNumber == model.ArticleNumber);
+            var article = await DbContext.Articles.OrderByDescending(o => o.VersionNumber).FirstOrDefaultAsync(a => a.ArticleNumber == model.ArticleNumber);
 
             if (article == null)
             {
@@ -477,16 +477,8 @@ namespace Cosmos.Editor.Data.Logic
             // Keep track of the old title--used below if title has changed.
             string oldTitle = article.Title;
 
-            // If an article version is not published and the model is not published, then update the existing version
-            var updateOnly = !article.Published.HasValue && !model.Published.HasValue;
-
-            // =======================================================
-            // Don't track this for now
-            if (!updateOnly)
-            {
-                // Detach so we can create a new verion.
-                DbContext.Entry(article).State = EntityState.Detached;
-            }
+            // A change in publish status triggers a new version.
+            var isNewVersion = article.Published != model.Published;
 
             // =======================================================
             // BEGIN: MAKE CONTENT CHANGES HERE
@@ -498,21 +490,8 @@ namespace Cosmos.Editor.Data.Logic
             // Make sure base tag is set properly.
             UpdateHeadBaseTag(model);
 
-            // Article article = new Article()
-            if (!updateOnly)
-            {
-                // Ensure a user ID is set for creator
-                article.UserId = userId;
-
-                // New version, gets a new ID.
-                article.Id = Guid.NewGuid();
-                article.VersionNumber = article.VersionNumber + 1;
-                model.VersionNumber = article.VersionNumber;
-            }
-
             // Minify the HTML content.
             article.Content = model.Content;
-
             article.Published = model.Published;
             article.Title = model.Title;
             article.Updated = DateTimeOffset.UtcNow;
@@ -525,8 +504,17 @@ namespace Cosmos.Editor.Data.Logic
             // =======================================================
             UpdateHeadBaseTag(article);
 
-            if (!updateOnly)
+            if (isNewVersion)
             {
+                DbContext.Entry(article).State = EntityState.Detached;
+
+                // Ensure a user ID is set for creator
+                article.UserId = userId;
+
+                // New version, gets a new ID.
+                article.Id = Guid.NewGuid();
+                article.VersionNumber = article.VersionNumber + 1;
+                model.VersionNumber = article.VersionNumber;
                 DbContext.Articles.Add(article);
             }
 
@@ -590,7 +578,7 @@ namespace Cosmos.Editor.Data.Logic
             var htmlDoc = new HtmlAgilityPack.HtmlDocument();
             htmlDoc.LoadHtml(content);
 
-            var elements = htmlDoc.DocumentNode.SelectNodes("//*[@contenteditable='true']|//*[@contenteditable='']|//*[@crx]|//*[@data-ccms-ceid]");
+            var elements = htmlDoc.DocumentNode.SelectNodes("//*[@contenteditable='true']|//*[@contenteditable='']|//*[@data-ccms-new]|//*[@data-ccms-ceid]");
 
             if (elements == null)
             {
@@ -621,9 +609,9 @@ namespace Cosmos.Editor.Data.Logic
                         element.Attributes.Remove("contenteditable");
                     }
 
-                    if (element.Attributes.Contains("crx"))
+                    if (element.Attributes.Contains("data-ccms-new"))
                     {
-                        element.Attributes.Remove("crx");
+                        element.Attributes.Remove("data-ccms-new");
                     }
                 }
                 else
@@ -1323,7 +1311,7 @@ namespace Cosmos.Editor.Data.Logic
         }
 
         /// <summary>
-        /// Publishes the table of contents starting at the root.
+        /// Publishes the table of contents starting at the root and site map file.
         /// </summary>
         /// <param name="path">Path to start from.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
@@ -1356,6 +1344,8 @@ namespace Cosmos.Editor.Data.Logic
                 UploadUid = Guid.NewGuid().ToString(),
                 CacheControl = "max-age=300;must-revalidate"
             });
+
+            await CreateSiteMapFile();
         }
 
         /// <summary>
@@ -1519,6 +1509,7 @@ namespace Cosmos.Editor.Data.Logic
 
                 // Update the published pages collection
                 return await UpsertPublishedPage(article.ArticleNumber);
+
             }
 
             return null;
@@ -1713,6 +1704,9 @@ namespace Cosmos.Editor.Data.Logic
                     await CreateStaticWebpage(newPage);
                 }
             }
+
+            // Update TOC file.
+            await CreateStaticTableOfContentsJsonFile("/");
 
             if (purgePaths.Count > 0)
             {

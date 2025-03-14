@@ -13,7 +13,7 @@ const imageContainerBlockPlugin = (editor) => {
             defaults: {
                 script,
                 attributes: {
-                    'data-ccms-ceid': generateGUID(),
+                    'data-ccms-new': "true",
                     'data-editor-config': 'simpleimage',
                 },
                 droppable: false,

@@ -105,8 +105,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
 
             ExternalLogins = (await signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 
-            ReturnUrl = returnUrl.Replace("http:", "https:");
-
             // If there are no users yet, go strait to the register page.
             if (options.Value.AllowSetup)
             {
@@ -176,12 +174,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                 return "/";
             }
 
-            if (string.IsNullOrWhiteSpace(returnUrl) || returnUrl == "/" || returnUrl == "root")
-            {
-                return "/Home/CcmsContentIndex?target=root";
-            }
-
-            return returnUrl;   
+            return string.IsNullOrWhiteSpace(returnUrl) ? "/" : returnUrl.Replace("http://", "https://");   
         }
 
         /// <summary>

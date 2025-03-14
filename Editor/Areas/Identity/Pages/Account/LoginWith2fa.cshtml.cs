@@ -137,12 +137,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                 return "/";
             }
 
-            if (string.IsNullOrWhiteSpace(returnUrl) || returnUrl == "/" || returnUrl == "root")
-            {
-                return "/Home/CcmsContentIndex?target=root";
-            }
-
-            return returnUrl;
+            return string.IsNullOrWhiteSpace(returnUrl) ? "/" : returnUrl.Replace("http://", "https://");
         }
 
         /// <summary>

@@ -3,7 +3,7 @@
     while (element.hasChildNodes()) {
         element.removeChild(element.firstChild);
     }
-    parent.simpleimageEditorSave(element.innerHTML, id);
+    parent.saveChanges(element.innerHTML, id);
     ccms___setupPond(element);
 }
 function ccms___getImageDimensions(blob, callback) {
@@ -23,12 +23,13 @@ function ccms___getImageDimensions(blob, callback) {
 }
 function ccms___setupPond(element) {
     const id = element.getAttribute("data-ccms-ceid");
+    const isNew = element.getAttribute("data-ccms-new");
 
     // Clear out placeholder image.
     const placeHolder = element.querySelector(".ccms___placeHolder");
     if (placeHolder) { placeHolder.remove(); }
 
-    if (typeof id === "undefined") {
+    if (typeof id === "undefined" && isNew === "undefined") {
         return;
     }
 
@@ -118,11 +119,10 @@ function ccms___setupPond(element) {
         image.src = file.serverId.replace(/['"]+/g, '');
         element.appendChild(image);
 
-        if (typeof parent.simpleimageEditorSave !== "undefined") {
-            parent.simpleimageEditorSave(element.innerHTML, id);
+        if (typeof parent.editorSaveChanges !== "undefined") {
+            parent.saveChanges(element.innerHTML, id);
             ccms___setupPond(element);
             parent.doneSaving();
-            parent.saveInProgress = false;
         }
     });
 

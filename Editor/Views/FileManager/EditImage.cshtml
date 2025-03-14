@@ -33,7 +33,6 @@
     const publicBlobBaseUrl = '@options.Value.SiteSettings.BlobPublicUrl';
     const imagePath = '@ViewData["ImageTarget"]';
     const folder = '@System.IO.Path.GetDirectoryName((string)ViewData["ImageTarget"]).Replace("\\", "/")';
-    const isAuthor = @User.IsInRole("Authors").ToString().ToLower();
 
     const { TABS, TOOLS } = window.FilerobotImageEditor;
     const config = {
