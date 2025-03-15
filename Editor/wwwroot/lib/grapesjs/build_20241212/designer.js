@@ -44,7 +44,7 @@ const editor = grapesjs.init({
     assetManager: {
         upload: cosmos__designerUploadEndpoint,
         embedAsBase64: false,
-        assets: preloadImages(),
+        /*assets: preloadImages(),*/
     },
     selectorManager: {
         selectorManager: { componentFirst: true },
@@ -402,10 +402,10 @@ for (var i = 0; i < titles.length; i++) {
 
 // Store and load events
 editor.on('storage:load', function (e) {
-    if (typeof checkDisplayLiveEditorButton !== "undefined") {
-        checkDisplayLiveEditorButton('HtmlContent');
-    }
-    cosmos__designerLoadAssets();
+    //if (typeof checkDisplayLiveEditorButton !== "undefined") {
+    //    checkDisplayLiveEditorButton('HtmlContent');
+    //}
+    //cosmos__designerLoadAssets();
     console.log('Loaded ', e)
 });
 
@@ -426,7 +426,6 @@ editor.on('load', function () {
     document.querySelector('.gjs-logo-version').innerHTML = 'v' + grapesjs.version;
     var logoPanel = document.querySelector('.gjs-pn-commands');
     logoPanel.appendChild(logoCont);
-
 
     // Load and show settings and style manager
     var openTmBtn = pn.getButton('views', 'open-tm');

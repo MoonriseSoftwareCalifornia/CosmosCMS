@@ -130,7 +130,6 @@
 
     // CK Editor
     let ckeditor = null;
-    // Indicates a save is in progress - used to deconflict simultaneous saves
     var enableAutoSave = true;
 
     // Modals
@@ -749,11 +748,6 @@
             // Wait 3 seconds.
             await sleep(3000);
 
-            // Still saving? Wait another 4 seconds
-            if (saveChangesStatus.saveInProgress){
-                await sleep(4000);
-            }
-
             // Still stuck? Cancel save.
             if (saveChangesStatus.saveInProgress){
                 return;
@@ -797,10 +791,14 @@
             Data: encryptData(html)
         };
 
+        localStorage.setItem("ccms_article_" + model.ArticleNumber, JSON.stringify(model));
+
         $.post("@Url.Action("Edit", "Editor")", model, function (data){
 
             // Refresh things here
             savePageProperties(data.Model);
+
+            deleteBackup();
 
             if (data.CdnResults !== null) {
                 setCdnResults(data.CdnResults);
@@ -812,7 +810,6 @@
             }
 
         }).fail(function(jqXHR, textStatus, errorThrown){
-            localStorage.setItem("ccms_article_" + model.ArticleNumber, JSON.stringify(model));
             if (jqXHR.status === 403) {
                 // Handle permission denied
                 alert('Permission Denied: Please sign out and log in again to continue.');

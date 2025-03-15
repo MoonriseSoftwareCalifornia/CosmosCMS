@@ -19,7 +19,7 @@
 <head>
     <meta name="viewport" content="width=device-width" />
     <title>@ViewData["Title"]</title>
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="~/lib/bootstrap/css/bootstrap.min.css">
 
     <link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" />
     <link rel="stylesheet" type="text/css" href="~/lib/jquery-ui-combobox/jquery-ui-combobox.css" />
@@ -28,20 +28,7 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
     <link rel="stylesheet" type="text/css" href="~/css/2024-01-20-01-site.css" />
     <link rel="stylesheet" type="text/css" href="~/css/CodeEditor.css" />
-    <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/44.1.0/ckeditor5.css" />
-
-    @if (isDesigner == true)
-    {
-        <link rel="stylesheet" href="~/lib/grapesjsui/stylesheets/toastr.min.css">
-        <link rel="stylesheet" href="~/lib/grapesjs/css/grapes.min.css">
-        <link rel="stylesheet" href="~/lib/grapesjsui/stylesheets/grapesjs-preset-webpage.min.css">
-        <link rel="stylesheet" href="~/lib/grapesjsui/stylesheets/tooltip.css">
-        <link rel="stylesheet" href="~/lib/grapesjsui/stylesheets/demos.css?v3.1">
-        <link href="https://unpkg.com/grapick/dist/grapick.min.css" rel="stylesheet">
-        <link href="~/lib/grapesjs/build_20241212/ccms-designer.css" rel="stylesheet" />
-        <link href="https://unpkg.com/filepond@4/dist/filepond.css" rel="stylesheet" />
-    }
-
+    <link rel="stylesheet" type="text/css" href="https://cdn.ckeditor.com/ckeditor5/44.1.0/ckeditor5.css" />
 
     <script src="~/lib/promise-window/promise-window.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
@@ -54,129 +41,6 @@
     <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
     <!-- http://www.daterangepicker.com/ -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
-
-    @if (isDesigner == true)
-    {
-        <script src="~/lib/grapesjsui/js/toastr.min.js"></script>
-        <script src="~/lib/grapesjs/grapes.min.js"></script>
-        <script src="https://unpkg.com/grapesjs-preset-webpage@1.0.2"></script>
-        <script src="https://unpkg.com/grapesjs-blocks-basic@1.0.1"></script>
-        <script src="https://unpkg.com/grapesjs-plugin-forms@2.0.5"></script>
-        <script src="https://unpkg.com/grapesjs-component-countdown@1.0.1"></script>
-        <script src="https://unpkg.com/grapesjs-plugin-export@1.0.11"></script>
-        <script src="https://unpkg.com/grapesjs-tabs@1.0.6"></script>
-        <script src="https://unpkg.com/grapesjs-custom-code@1.0.1"></script>
-        <script src="https://unpkg.com/grapesjs-touch@0.1.1"></script>
-        <script src="https://unpkg.com/grapesjs-parser-postcss@1.0.1"></script>
-        <script src="https://unpkg.com/grapesjs-tooltip@0.1.7"></script>
-        <script src="https://unpkg.com/grapesjs-tui-image-editor@0.1.3"></script>
-        <script src="https://unpkg.com/grapesjs-typed@1.0.5"></script>
-        <script src="https://unpkg.com/grapesjs-style-bg@2.0.1"></script>
-        <script src="https://unpkg.com/grapesjs-navbar"></script>
-
-        <!-- Cosmos Plugins -->
-        <script asp-append-version="true" src="~/lib/cosmos/grapesjs/component-constants.js"></script>
-        <script asp-append-version="true" src="~/lib/cosmos/grapesjs/articleblockplugin.js"></script>
-        <script asp-append-version="true" src="~/lib/cosmos/grapesjs/generateguid.js"></script>
-        <script asp-append-version="true" src="~/lib/cosmos/grapesjs/sessionstorageplugin.js"></script>
-        <script asp-append-version="true" src="~/lib/cosmos/grapesjs/ckeditorblockplugin.js"></script>
-        <script asp-append-version="true" src="~/lib/cosmos/grapesjs/imagecontainerplugin.js"></script>
-
-        <style type="text/css">
-            .icons-flex {
-                background-size: 70% 65% !important;
-                height: 15px;
-                width: 17px;
-                opacity: 0.9;
-            }
-
-            .icon-dir-row {
-                background: url("./lib/grapesjsui/img/flex-dir-row.png") no-repeat center;
-            }
-
-            .icon-dir-row-rev {
-                background: url("./lib/grapesjsui/img/flex-dir-row-rev.png") no-repeat center;
-            }
-
-            .icon-dir-col {
-                background: url("./lib/grapesjsui/img/flex-dir-col.png") no-repeat center;
-            }
-
-            .icon-dir-col-rev {
-                background: url("./lib/grapesjsui/img/flex-dir-col-rev.png") no-repeat center;
-            }
-
-            .icon-just-start {
-                background: url("./lib/grapesjsui/img/flex-just-start.png") no-repeat center;
-            }
-
-            .icon-just-end {
-                background: url("./lib/grapesjsui/img/flex-just-end.png") no-repeat center;
-            }
-
-            .icon-just-sp-bet {
-                background: url("./lib/grapesjsui/img/flex-just-sp-bet.png") no-repeat center;
-            }
-
-            .icon-just-sp-ar {
-                background: url("./lib/grapesjsui/img/flex-just-sp-ar.png") no-repeat center;
-            }
-
-            .icon-just-sp-cent {
-                background: url("./lib/grapesjsui/img/flex-just-sp-cent.png") no-repeat center;
-            }
-
-            .icon-al-start {
-                background: url("./lib/grapesjsui/img/flex-al-start.png") no-repeat center;
-            }
-
-            .icon-al-end {
-                background: url("./lib/grapesjsui/img/flex-al-end.png") no-repeat center;
-            }
-
-            .icon-al-str {
-                background: url("./lib/grapesjsui/img/flex-al-str.png") no-repeat center;
-            }
-
-            .icon-al-center {
-                background: url("./lib/grapesjsui/img/flex-al-center.png") no-repeat center;
-            }
-
-            [data-tooltip]::after {
-                background: rgba(51, 51, 51, 0.9);
-            }
-
-            .gjs-pn-commands {
-                min-height: 40px;
-            }
-
-            #gjs-sm-float {
-                display: none;
-            }
-
-            .gjs-logo-version {
-                background-color: #756467;
-            }
-
-            .gjs-pn-btn.gjs-pn-active {
-                box-shadow: none;
-            }
-
-            .CodeMirror {
-                min-height: 450px;
-                margin-bottom: 8px;
-            }
-
-            .grp-handler-close {
-                background-color: transparent;
-                color: #ddd;
-            }
-
-            .grp-handler-cp-wrap {
-                border-color: transparent;
-            }
-        </style>
-    }
 
     <script>
         let cosmos_plugin_array = [];

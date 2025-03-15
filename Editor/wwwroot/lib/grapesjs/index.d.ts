@@ -1,5 +1,5 @@
 import Backbone from 'backbone';
-import { _StringKey } from 'backbone';
+import { ModelDestroyOptions, _StringKey } from 'backbone';
 
 export interface DomComponentsConfig {
 	stylePrefix?: string;
@@ -730,6 +730,11 @@ declare class Sorter<T, NodeType extends SortableTreeNode<T>> {
 		element?: HTMLElement;
 		dragSource?: DragSource<T>;
 	}[]): void;
+	validTarget(targetEl: HTMLElement | undefined, sources: {
+		element?: HTMLElement;
+		dragSource?: DragSource<T>;
+	}[], index: number): boolean;
+	private getSourceNodes;
 	/**
 	 * This method is should be called when the user scrolls within the container.
 	 */
@@ -782,8 +787,225 @@ declare class Sorter<T, NodeType extends SortableTreeNode<T>> {
 	private rollback;
 	protected triggerNullOnEndMove(dragIsCancelled: boolean): void;
 }
+export interface CategoryViewConfig {
+	em: EditorModel;
+	pStylePrefix?: string;
+	stylePrefix?: string;
+}
+declare class CategoryView extends View<Category> {
+	em: EditorModel;
+	config: CategoryViewConfig;
+	pfx: string;
+	caretR: string;
+	caretD: string;
+	iconClass: string;
+	activeClass: string;
+	iconEl?: HTMLElement;
+	typeEl?: HTMLElement;
+	catName: string;
+	events(): {
+		"click [data-title]": string;
+	};
+	template({ pfx, label, catName }: {
+		pfx: string;
+		label: string;
+		catName: string;
+	}): string;
+	/** @ts-ignore */
+	attributes(): Record<string, any>;
+	constructor(o: any, config: CategoryViewConfig, catName: string);
+	updateVisibility(): void;
+	open(): void;
+	close(): void;
+	toggle(): void;
+	getIconEl(): HTMLElement;
+	getTypeEl(): HTMLElement;
+	append(el: HTMLElement): void;
+	render(): this;
+}
+interface CategoryProperties {
+	/**
+	 * Category id.
+	 */
+	id: string;
+	/**
+	 * Category label.
+	 */
+	label: string;
+	/**
+	 * Category open state.
+	 * @default true
+	 */
+	open?: boolean;
+	/**
+	 * Category order.
+	 */
+	order?: string | number;
+	/**
+	 * Category attributes.
+	 * @default {}
+	 */
+	attributes?: Record<string, any>;
+}
+export interface ItemsByCategory<T> {
+	category?: Category;
+	items: T[];
+}
+export declare class Category extends Model<CategoryProperties> {
+	view?: CategoryView;
+	defaults(): {
+		id: string;
+		label: string;
+		open: boolean;
+		attributes: {};
+	};
+	getId(): string;
+	getLabel(): string;
+}
+export type CategoryCollectionParams = ConstructorParameters<typeof Collection<Category>>;
+export interface CategoryOptions {
+	events?: {
+		update?: string;
+	};
+	em?: EditorModel;
+}
+export declare class Categories extends Collection<Category> {
+	constructor(models?: CategoryCollectionParams[0], opts?: CategoryOptions);
+	/** @ts-ignore */
+	add(model: (CategoryProperties | Category)[] | CategoryProperties | Category, opts?: AddOptions): Category;
+	get(id: string | Category): Category;
+}
+export interface ModelWithCategoryProps {
+	category?: string | CategoryProperties;
+}
+declare abstract class CollectionWithCategories<T extends Model<ModelWithCategoryProps>> extends Collection<T> {
+	abstract getCategories(): Categories;
+	initCategory(model: T): Category | undefined;
+}
+export declare class Blocks extends CollectionWithCategories<Block> {
+	em: EditorModel;
+	constructor(coll: any[], options: {
+		em: EditorModel;
+	});
+	getCategories(): Categories;
+	handleAdd(model: Block): void;
+}
+/** @private */
+export interface BlockProperties extends DraggableContent {
+	/**
+	 * Block label, eg. `My block`
+	 */
+	label: string;
+	/**
+	 * HTML string for the media/icon of the block, eg. `<svg ...`, `<img ...`, etc.
+	 * @default ''
+	 */
+	media?: string;
+	/**
+	 * Block category, eg. `Basic blocks`
+	 * @default ''
+	 */
+	category?: string | CategoryProperties;
+	/**
+	 * If true, triggers the `active` event on the dropped component.
+	 * @default false
+	 */
+	activate?: boolean;
+	/**
+	 * If true, the dropped component will be selected.
+	 * @default false
+	 */
+	select?: boolean;
+	/**
+	 * If true, all IDs of dropped components and their styles will be changed.
+	 * @default false
+	 */
+	resetId?: boolean;
+	/**
+	 * Disable the block from being interacted.
+	 * @default false
+	 */
+	disable?: boolean;
+	/**
+	 * Custom behavior on click.
+	 * @example
+	 * onClick: (block, editor) => editor.getWrapper().append(block.get('content'))
+	 */
+	onClick?: (block: Block, editor: Editor) => void;
+	/**
+	 * Block attributes
+	 */
+	attributes?: Record<string, any>;
+	id?: string;
+	/**
+	 * @deprecated
+	 */
+	activeOnRender?: boolean;
+}
+/**
+ * @property {String} label Block label, eg. `My block`
+ * @property {String|Object} content The content of the block. Might be an HTML string or a [Component Defintion](/modules/Components.html#component-definition)
+ * @property {String} [media=''] HTML string for the media/icon of the block, eg. `<svg ...`, `<img ...`, etc.
+ * @property {String} [category=''] Block category, eg. `Basic blocks`
+ * @property {Boolean} [activate=false] If true, triggers the `active` event on the dropped component.
+ * @property {Boolean} [select=false] If true, the dropped component will be selected.
+ * @property {Boolean} [resetId=false] If true, all IDs of dropped components and their styles will be changed.
+ * @property {Boolean} [disable=false] Disable the block from being interacted
+ * @property {Function} [onClick] Custom behavior on click, eg. `(block, editor) => editor.getWrapper().append(block.get('content'))`
+ * @property {Object} [attributes={}] Block attributes to apply in the view element
+ *
+ * @module docsjs.Block
+ */
+export declare class Block extends Model<BlockProperties> {
+	defaults(): {
+		label: string;
+		content: string;
+		media: string;
+		category: string;
+		activate: boolean;
+		select: undefined;
+		resetId: boolean;
+		disable: boolean;
+		onClick: undefined;
+		attributes: {};
+		dragDef: {};
+	};
+	get category(): Category | undefined;
+	get parent(): Blocks;
+	/**
+	 * Get block id
+	 * @returns {String}
+	 */
+	getId(): string;
+	/**
+	 * Get block label
+	 * @returns {String}
+	 */
+	getLabel(): string;
+	/**
+	 * Get block media
+	 * @returns {String}
+	 */
+	getMedia(): string | undefined;
+	/**
+	 * Get block content
+	 * @returns {Object|String|Array<Object|String>}
+	 */
+	getContent(): ContentType | (() => ContentType) | undefined;
+	/**
+	 * Get block component dragDef
+	 * @returns {ComponentDefinition}
+	 */
+	getDragDef(): ComponentDefinition | undefined;
+	/**
+	 * Get block category label
+	 * @returns {String}
+	 */
+	getCategoryLabel(): string;
+}
 declare class ComponentSorter<NodeType extends BaseComponentNode> extends Sorter<Component, NodeType> {
 	targetIsText: boolean;
+	__currentBlock?: Block;
 	constructor({ em, treeClass, containerContext, dragBehavior, positionOptions, eventHandlers, }: {
 		em: EditorModel;
 		treeClass: new (model: Component, dragSource?: DragSource<Component>) => NodeType;
@@ -1552,7 +1774,7 @@ declare class CanvasView extends ModuleView<Canvas> {
 	 * @param {ModuleView} view Component's View
 	 * @private
 	 */
-	updateScript(view: any): void;
+	updateScript(view: ComponentView): void;
 	/**
 	 * Get javascript container
 	 * @private
@@ -2926,81 +3148,6 @@ export declare class Frame extends ModuleModel<CanvasModule> {
 	hasAutoHeight(): boolean;
 	toJSON(opts?: any): any;
 }
-export interface CategoryViewConfig {
-	em: EditorModel;
-	pStylePrefix?: string;
-	stylePrefix?: string;
-}
-declare class CategoryView extends View<Category> {
-	em: EditorModel;
-	config: CategoryViewConfig;
-	pfx: string;
-	caretR: string;
-	caretD: string;
-	iconClass: string;
-	activeClass: string;
-	iconEl?: HTMLElement;
-	typeEl?: HTMLElement;
-	catName: string;
-	events(): {
-		"click [data-title]": string;
-	};
-	template({ pfx, label, catName }: {
-		pfx: string;
-		label: string;
-		catName: string;
-	}): string;
-	/** @ts-ignore */
-	attributes(): Record<string, any>;
-	constructor(o: any, config: CategoryViewConfig, catName: string);
-	updateVisibility(): void;
-	open(): void;
-	close(): void;
-	toggle(): void;
-	getIconEl(): HTMLElement;
-	getTypeEl(): HTMLElement;
-	append(el: HTMLElement): void;
-	render(): this;
-}
-interface CategoryProperties {
-	/**
-	 * Category id.
-	 */
-	id: string;
-	/**
-	 * Category label.
-	 */
-	label: string;
-	/**
-	 * Category open state.
-	 * @default true
-	 */
-	open?: boolean;
-	/**
-	 * Category order.
-	 */
-	order?: string | number;
-	/**
-	 * Category attributes.
-	 * @default {}
-	 */
-	attributes?: Record<string, any>;
-}
-export interface ItemsByCategory<T> {
-	category?: Category;
-	items: T[];
-}
-export declare class Category extends Model<CategoryProperties> {
-	view?: CategoryView;
-	defaults(): {
-		id: string;
-		label: string;
-		open: boolean;
-		attributes: {};
-	};
-	getId(): string;
-	getLabel(): string;
-}
 export interface TraitManagerConfig {
 	/**
 	 * Style prefix.
@@ -3411,26 +3558,6 @@ declare class TraitManager extends Module<TraitManagerConfigModule> {
 	__upSel(): void;
 	__onUp(): void;
 }
-export type CategoryCollectionParams = ConstructorParameters<typeof Collection<Category>>;
-export interface CategoryOptions {
-	events?: {
-		update?: string;
-	};
-	em?: EditorModel;
-}
-export declare class Categories extends Collection<Category> {
-	constructor(models?: CategoryCollectionParams[0], opts?: CategoryOptions);
-	/** @ts-ignore */
-	add(model: (CategoryProperties | Category)[] | CategoryProperties | Category, opts?: AddOptions): Category;
-	get(id: string | Category): Category;
-}
-export interface ModelWithCategoryProps {
-	category?: string | CategoryProperties;
-}
-declare abstract class CollectionWithCategories<T extends Model<ModelWithCategoryProps>> extends Collection<T> {
-	abstract getCategories(): Categories;
-	initCategory(model: T): Category | undefined;
-}
 declare class TraitFactory {
 	config: Partial<TraitManagerConfig>;
 	constructor(config?: Partial<TraitManagerConfig>);
@@ -3724,7 +3851,6 @@ export type DeepPartialDot<T> = {
 	[P in DotSeparatedKeys<T>]?: P extends `${infer K}.${infer Rest}` ? K extends keyof T ? Rest extends DotSeparatedKeys<T[K]> ? DeepPartialDot<T[K]>[Rest] : never : never : P extends keyof T ? T[P] : never;
 };
 export interface DynamicVariableListenerManagerOptions {
-	model: Model | ComponentView;
 	em: EditorModel;
 	dataVariable: DynamicValue;
 	updateValueFromDataVariable: (value: any) => void;
@@ -3732,9 +3858,9 @@ export interface DynamicVariableListenerManagerOptions {
 declare class DynamicVariableListenerManager {
 	private dataListeners;
 	private em;
-	private model;
-	private dynamicVariable;
+	dynamicVariable: DynamicValue;
 	private updateValueFromDynamicVariable;
+	private model;
 	constructor(options: DynamicVariableListenerManagerOptions);
 	private onChange;
 	listenToDynamicVariable(): void;
@@ -3782,7 +3908,6 @@ export declare class Trait extends Model<TraitProperties> {
 	get component(): Component;
 	get changeProp(): boolean;
 	setTarget(component: Component): void;
-	updateValueFromDataVariable(value: string): void;
 	/**
 	 * Get the trait id.
 	 * @returns {String}
@@ -4628,11 +4753,7 @@ export interface ComponentProperties {
 	 * Component default style, eg. `{ width: '100px', height: '100px', 'background-color': 'red' }`
 	 * @default {}
 	 */
-	style?: string | Record<string, any | {
-		type: typeof DataVariableType;
-		path: string;
-		value: string;
-	}>;
+	style?: string | Record<string, any>;
 	/**
 	 * Component related styles, eg. `.my-component-class { color: red }`
 	 * @default ''
@@ -4824,6 +4945,19 @@ declare enum ComponentsEvents {
 	select = "component:select",
 	selectBefore = "component:select:before",
 	/**
+	 * @event `component:script:mount` Component with script is mounted.
+	 * @example
+	 * editor.on('component:script:mount', ({ component, view, el }) => { ... });
+	 */
+	scriptMount = "component:script:mount",
+	scriptMountBefore = "component:script:mount:before",
+	/**
+	 * @event `component:script:unmount` Component with script is unmounted. This is triggered when the component is removed or the script execution has to be refreshed. This event might be useful to clean up resources.
+	 * @example
+	 * editor.on('component:script:unmount', ({ component, view, el }) => { ... });
+	 */
+	scriptUnmount = "component:script:unmount",
+	/**
 	 * @event `symbol:main:add` Added new main symbol.
 	 * @example
 	 * editor.on('symbol:main:add', ({ component }) => { ... });
@@ -4887,127 +5021,6 @@ declare class Symbols extends Components {
 	onUpdateDeep(props: PropsComponentUpdate): void;
 	refresh(): void;
 	__trgEvent(event: string, props: ObjectAny, isInstance?: boolean): void;
-}
-export declare class Blocks extends CollectionWithCategories<Block> {
-	em: EditorModel;
-	constructor(coll: any[], options: {
-		em: EditorModel;
-	});
-	getCategories(): Categories;
-	handleAdd(model: Block): void;
-}
-/** @private */
-export interface BlockProperties extends DraggableContent {
-	/**
-	 * Block label, eg. `My block`
-	 */
-	label: string;
-	/**
-	 * HTML string for the media/icon of the block, eg. `<svg ...`, `<img ...`, etc.
-	 * @default ''
-	 */
-	media?: string;
-	/**
-	 * Block category, eg. `Basic blocks`
-	 * @default ''
-	 */
-	category?: string | CategoryProperties;
-	/**
-	 * If true, triggers the `active` event on the dropped component.
-	 * @default false
-	 */
-	activate?: boolean;
-	/**
-	 * If true, the dropped component will be selected.
-	 * @default false
-	 */
-	select?: boolean;
-	/**
-	 * If true, all IDs of dropped components and their styles will be changed.
-	 * @default false
-	 */
-	resetId?: boolean;
-	/**
-	 * Disable the block from being interacted.
-	 * @default false
-	 */
-	disable?: boolean;
-	/**
-	 * Custom behavior on click.
-	 * @example
-	 * onClick: (block, editor) => editor.getWrapper().append(block.get('content'))
-	 */
-	onClick?: (block: Block, editor: Editor) => void;
-	/**
-	 * Block attributes
-	 */
-	attributes?: Record<string, any>;
-	id?: string;
-	/**
-	 * @deprecated
-	 */
-	activeOnRender?: boolean;
-}
-/**
- * @property {String} label Block label, eg. `My block`
- * @property {String|Object} content The content of the block. Might be an HTML string or a [Component Defintion](/modules/Components.html#component-definition)
- * @property {String} [media=''] HTML string for the media/icon of the block, eg. `<svg ...`, `<img ...`, etc.
- * @property {String} [category=''] Block category, eg. `Basic blocks`
- * @property {Boolean} [activate=false] If true, triggers the `active` event on the dropped component.
- * @property {Boolean} [select=false] If true, the dropped component will be selected.
- * @property {Boolean} [resetId=false] If true, all IDs of dropped components and their styles will be changed.
- * @property {Boolean} [disable=false] Disable the block from being interacted
- * @property {Function} [onClick] Custom behavior on click, eg. `(block, editor) => editor.getWrapper().append(block.get('content'))`
- * @property {Object} [attributes={}] Block attributes to apply in the view element
- *
- * @module docsjs.Block
- */
-export declare class Block extends Model<BlockProperties> {
-	defaults(): {
-		label: string;
-		content: string;
-		media: string;
-		category: string;
-		activate: boolean;
-		select: undefined;
-		resetId: boolean;
-		disable: boolean;
-		onClick: undefined;
-		attributes: {};
-		dragDef: {};
-	};
-	get category(): Category | undefined;
-	get parent(): Blocks;
-	/**
-	 * Get block id
-	 * @returns {String}
-	 */
-	getId(): string;
-	/**
-	 * Get block label
-	 * @returns {String}
-	 */
-	getLabel(): string;
-	/**
-	 * Get block media
-	 * @returns {String}
-	 */
-	getMedia(): string | undefined;
-	/**
-	 * Get block content
-	 * @returns {Object|String|Array<Object|String>}
-	 */
-	getContent(): ContentType | (() => ContentType) | undefined;
-	/**
-	 * Get block component dragDef
-	 * @returns {ComponentDefinition}
-	 */
-	getDragDef(): ComponentDefinition | undefined;
-	/**
-	 * Get block category label
-	 * @returns {String}
-	 */
-	getCategoryLabel(): string;
 }
 export type ComponentEvent = "component:create" | "component:mount" | "component:add" | "component:remove" | "component:remove:before" | "component:clone" | "component:update" | "component:styleUpdate" | "component:selected" | "component:deselected" | "component:toggled" | "component:type:add" | "component:type:update" | "component:drag:start" | "component:drag" | "component:drag:end" | "component:resize";
 export interface ComponentModelDefinition extends IComponent {
@@ -5742,9 +5755,36 @@ declare class ItemView extends View {
 	render(): this;
 	__render(): void;
 }
+declare class ComponentDynamicValueWatcher {
+	private component;
+	private propertyWatcher;
+	private attributeWatcher;
+	constructor(component: Component, em: EditorModel);
+	private createPropertyUpdater;
+	private createAttributeUpdater;
+	addProps(props: ObjectAny): void;
+	addAttributes(attributes: ObjectAny): void;
+	setAttributes(attributes: ObjectAny): void;
+	removeAttributes(attributes: string[]): void;
+	getDynamicPropsDefs(): ObjectAny;
+	getDynamicAttributesDefs(): ObjectAny;
+	getAttributesDefsOrValues(attributes: ObjectAny): {
+		[x: string]: any;
+	};
+	getPropsDefsOrValues(props: ObjectAny): {
+		[x: string]: any;
+	};
+	destroy(): void;
+}
 export interface IComponent extends ExtractMethods<Component> {
 }
-export interface SetAttrOptions extends SetOptions, UpdateStyleOptions {
+export interface DynamicWatchersOptions {
+	skipWatcherUpdates?: boolean;
+	fromDataSource?: boolean;
+}
+export interface SetAttrOptions extends SetOptions, UpdateStyleOptions, DynamicWatchersOptions {
+}
+export interface ComponentSetOptions extends SetOptions, DynamicWatchersOptions {
 }
 /**
  * The Component object represents a single node of our template structure, so when you update its properties the changes are
@@ -5854,7 +5894,9 @@ export declare class Component extends StyleableModel<ComponentProperties> {
 	 * @private
 	 * @ts-ignore */
 	collection: Components;
+	componentDVListener: ComponentDynamicValueWatcher;
 	constructor(props: ComponentProperties | undefined, opt: ComponentOptions);
+	set<A extends string>(keyOrAttributes: A | Partial<ComponentProperties>, valueOrOptions?: ComponentProperties[A] | ComponentSetOptions, optionsOrUndefined?: ComponentSetOptions): this;
 	__postAdd(opts?: {
 		recursive?: boolean;
 	}): void;
@@ -6373,6 +6415,7 @@ export declare class Component extends StyleableModel<ComponentProperties> {
 	 */
 	getScriptString(script?: string | Function): string;
 	emitUpdate(property?: string, ...args: any[]): void;
+	emitWithEitor(event: string, data?: Record<string, any>): void;
 	/**
 	 * Execute callback function on itself and all inner components
 	 * @param  {Function} clb Callback function, the model is passed as an argument
@@ -6397,6 +6440,7 @@ export declare class Component extends StyleableModel<ComponentProperties> {
 	 * @return {this}
 	 */
 	remove(opts?: any): this;
+	destroy(options?: ModelDestroyOptions | undefined): false | JQueryXHR;
 	/**
 	 * Move the component to another destination component
 	 * @param {Component} component Destination component (so the current one will be appended as a child)
@@ -10713,7 +10757,9 @@ declare const ParserCss: (em?: EditorModel, config?: ParserConfig) => {
 	 * @param  {String} input CSS string
 	 * @return {Array<Object>}
 	 */
-	parse(input: string): CssRuleJSON[];
+	parse(input: string, opts?: {
+		throwOnError?: boolean;
+	}): CssRuleJSON[];
 	/**
 	 * Check the returned node from a custom parser and transforms it to
 	 * a valid object for the CSS composer
@@ -10778,11 +10824,33 @@ declare const ParserHtml: (em?: EditorModel, config?: ParserConfig & {
 	__sanitizeNode(node: HTMLElement, opts: HTMLParserOptions): void;
 	__checkAsDocument(str: string, opts: HTMLParserOptions): boolean | undefined;
 };
+declare enum ParserEvents {
+	/**
+	 * @event `parse:html` On HTML parse, an object containing the input and the output of the parser is passed as an argument.
+	 * @example
+	 * editor.on('parse:html', ({ input, output }) => { ... });
+	 */
+	html = "parse:html",
+	htmlRoot = "parse:html:root",
+	/**
+	 * @event `parse:css` On CSS parse, an object containing the input and the output of the parser is passed as an argument.
+	 * @example
+	 * editor.on('parse:css', ({ input, output }) => { ... });
+	 */
+	css = "parse:css",
+	/**
+	 * @event `parse` Catch-all event for all the events mentioned above. An object containing all the available data about the triggered event is passed as an argument to the callback.
+	 * @example
+	 * editor.on('parse', ({ event, ... }) => { ... });
+	 */
+	all = "parse"
+}
 declare class ParserModule extends Module<ParserConfig & {
 	name?: string;
 }> {
 	parserHtml: ReturnType<typeof ParserHtml>;
 	parserCss: ReturnType<typeof ParserCss>;
+	events: typeof ParserEvents;
 	constructor(em: EditorModel);
 	/**
 	 * Get configuration object
@@ -10819,6 +10887,7 @@ declare class ParserModule extends Module<ParserConfig & {
 	 * // [{ ... }]
 	 */
 	parseCss(input: string): CssRuleJSON[];
+	__emitEvent(event: string, data: ObjectAny): void;
 	destroy(): void;
 }
 declare enum StorageEvents {
@@ -12740,6 +12809,7 @@ export declare class DataSourceManager extends ItemManagerModule<ModuleConfig, D
 export interface EditorLoadOptions {
 	/** Clear the editor state (eg. dirty counter, undo manager, etc.). */
 	clear?: boolean;
+	initial?: boolean;
 }
 declare class EditorModel extends Model {
 	defaults(): {
@@ -12983,7 +13053,7 @@ declare class EditorModel extends Model {
 	 */
 	load<T extends StorageOptions>(options?: T, loadOptions?: EditorLoadOptions): Promise<ProjectData>;
 	storeData(): ProjectData;
-	loadData(data?: ProjectData): ProjectData;
+	loadData(project?: ProjectData, opts?: EditorLoadOptions): ProjectData;
 	/**
 	 * Returns device model by name
 	 * @return {Device|null}
@@ -13727,6 +13797,62 @@ declare abstract class ItemManagerModule<TConf extends ModuleConfig = ModuleConf
 	__destroy(): void;
 }
 declare function html(literals: TemplateStringsArray, ...substs: string[]): string;
+declare enum EditorEvents {
+	/**
+	 * @event `update` Event triggered on any change of the project (eg. component added/removed, style changes, etc.)
+	 * @example
+	 * editor.on('update', () => { ... });
+	 */
+	update = "update",
+	/**
+	 * @event `undo` Undo executed.
+	 * @example
+	 * editor.on('undo', () => { ... });
+	 */
+	undo = "undo",
+	/**
+	 * @event `redo` Redo executed.
+	 * @example
+	 * editor.on('redo', () => { ... });
+	 */
+	redo = "redo",
+	/**
+	 * @event `load` Editor is loaded. At this stage, the project is loaded in the editor and elements in the canvas are rendered.
+	 * @example
+	 * editor.on('load', () => { ... });
+	 */
+	load = "load",
+	/**
+	 * @event `project:load` Project JSON loaded in the editor. The event is triggered on the initial load and on the `editor.loadProjectData` method.
+	 * @example
+	 * editor.on('project:load', ({ project, initial }) => { ... });
+	 */
+	projectLoad = "project:load",
+	/**
+	 * @event `log` Log message triggered.
+	 * @example
+	 * editor.on('log', (msg, opts) => { ... });
+	 */
+	log = "log",
+	/**
+	 * @event `telemetry:init` Initial telemetry data are sent.
+	 * @example
+	 * editor.on('telemetry:init', () => { ... });
+	 */
+	telemetryInit = "telemetry:init",
+	/**
+	 * @event `destroy` Editor started destroy (on `editor.destroy()`).
+	 * @example
+	 * editor.on('destroy', () => { ... });
+	 */
+	destroy = "destroy",
+	/**
+	 * @event `destroyed` Editor destroyed.
+	 * @example
+	 * editor.on('destroyed', () => { ... });
+	 */
+	destroyed = "destroyed"
+}
 export type GeneralEvent = "canvasScroll" | "undo" | "redo" | "load" | "update";
 export type EditorBuiltInEvents = ComponentEvent | BlockEvent | AssetEvent | KeymapEvent | StyleManagerEvent | StorageEvent | CanvasEvent | SelectorEvent | RichTextEditorEvent | ModalEvent | CommandEvent | GeneralEvent;
 export type EditorEvent = LiteralUnion<EditorBuiltInEvents, string>;
@@ -13740,6 +13866,7 @@ export declare class Editor implements IBaseModule<EditorConfig> {
 	$: any;
 	em: EditorModel;
 	config: EditorConfigType;
+	events: typeof EditorEvents;
 	constructor(config?: EditorConfig, opts?: any);
 	get Config(): InitEditorConfig;
 	get I18n(): I18nModule;

@@ -4,5 +4,26 @@
   "private": true,
   "devDependencies": {
     "eslint": "^8.46.0"
+  },
+  "dependencies": {
+    "grapesjs": "^0.22.5",
+    "grapesjs-blocks-basic": "^1.0.2",
+    "grapesjs-component-code-editor": "^1.0.20",
+    "grapesjs-component-countdown": "^1.0.2",
+    "grapesjs-custom-code": "^1.0.2",
+    "grapesjs-navbar": "^1.0.2",
+    "grapesjs-parser-postcss": "^1.0.3",
+    "grapesjs-plugin-export": "^1.0.12",
+    "grapesjs-plugin-forms": "^2.0.6",
+    "grapesjs-preset-webpage": "^1.0.3",
+    "grapesjs-style-bg": "^2.0.2",
+    "grapesjs-style-gradient": "^3.0.3",
+    "grapesjs-tabs": "^1.0.6",
+    "grapesjs-tailwind": "^1.0.11",
+    "grapesjs-tooltip": "^0.1.8",
+    "grapesjs-touch": "^0.1.1",
+    "grapesjs-tui-image-editor": "^1.0.2",
+    "grapesjs-typed": "^2.0.1",
+    "grapick": "^0.1.13"
   }
 }

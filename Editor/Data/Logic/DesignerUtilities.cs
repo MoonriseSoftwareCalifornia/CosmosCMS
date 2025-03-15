@@ -101,7 +101,7 @@ namespace Cosmos.Editor.Data.Logic
             {
                 "/lib/ckeditor/ckeditor5-content.css",
                 "/lib/cosmos/imageuploader/imageuploader.css",
-                "https://unpkg.com/filepond@4/dist/filepond.css"
+                "/lib/filepond/filepond.css"
             };
 
             htmlEditor.LoadHtml(html);

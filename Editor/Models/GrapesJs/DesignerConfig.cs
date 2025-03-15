@@ -62,14 +62,29 @@ namespace Cosmos.Editor.Models.GrapesJs
                     Options = "'grapesjs-blocks-bootstrap4': { blocks: {}, blockCategories: {}, labels: {}, gridDevicesPanel: true, formPredefinedActions: [ {name: 'Contact', value: '/contact'}, {name: 'landing', value: '/landing'}, ] }"
                 });
             }
-
-            if (layout.Head.Contains("cdn.tailwindcss.com", System.StringComparison.OrdinalIgnoreCase))
+            else if (layout.Head.Contains("cdn.tailwindcss.com", System.StringComparison.OrdinalIgnoreCase))
             {
                 Plugins.Add(new DesignerPlugin
                 {
                     Name = "grapesjs-tailwind",
                     Url = "https://unpkg.com/grapesjs-tailwind",
                     Options = "'grapesjs-tailwind': { }"
+                });
+            }
+            else
+            {
+                Plugins.Add(new DesignerPlugin
+                {
+                    Name = "gjs-blocks-basic",
+                    Url = "/lib/grapesjs-blocks-basic/index.js",
+                    Options = "'gjs-blocks-basic': { flexGrid: true }"
+                });
+
+                Plugins.Add(new DesignerPlugin
+                {
+                    Name = "grapesjs-plugin-forms",
+                    Url = "/lib/grapesjs-plugin-forms/index.js",
+                    Options = "'gjs-blocks-basic': { flexGrid: true }"
                 });
             }
 

@@ -12,8 +12,6 @@
     <input type="hidden" id="CssContent" name="CssContent" />
 </form>
 
-<partial name="_GrapesJsEditor" model="Model" />
-
 <script>
     /*
       Cosmos Configuration.
@@ -34,20 +32,6 @@
         event.preventDefault(); // Prevents the default form submission
         saveChanges();
     });
-
-    function cosmos__designerPostData() {
-        $.post(cosmos__designerDataEndpoint,
-            $("#frmSave").serialize(),
-            function(response) {
-                saveInProgress = false;
-                doneSaving();
-                if (next !== null && typeof next  === 'function') {
-                    next();
-                    next = null;
-                }
-            }
-        );
-    }
 
     $(document).ready(function () {
 
@@ -98,7 +82,8 @@
 
     let grapesjs__canvas__styles = @Html.Raw(JsonConvert.SerializeObject(Model.Styles));
     let grapesjs__canvas__scripts = @Html.Raw(JsonConvert.SerializeObject(Model.Scripts));
-    let grapesjs__assets = preloadImages();
+    //let grapesjs__assets = preloadImages();
 
 </script>
-<script asp-append-version="true" src="~/lib/grapesjs/build_20241212/designer.js"></script>
+
+<partial name="_GrapesJsEditor" model="Model" />
