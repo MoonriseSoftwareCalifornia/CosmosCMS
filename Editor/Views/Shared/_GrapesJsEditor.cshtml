@@ -237,7 +237,7 @@
 
     let grapesJsPlugins = [
         ckeditorBlockPlugin,
-        imageContainerBlockPlugin,
+        cosmosImageWidgetPlugin,
     @foreach (var plugin in Model.Plugins)
     {
         <text>'@plugin.Name',</text>
@@ -676,6 +676,22 @@
             el.setAttribute('data-tooltip', title);
             el.setAttribute('title', '');
         }
+
+        editor.DomComponents.addType('ccms-layout-body', {
+            model: {
+                defaults: {
+                    attributes: { class: 'ccms-layout-body' },
+                    removable: true,
+                    draggable: true,
+                    droppable: true,
+                    badgable: true,
+                    stylable: true,
+                    highlightable: true,
+                    copyable: true,
+                    resizable: false,
+                    editable: false
+                }
+            }});
 
         // Store and load events
         editor.on('storage:load', function (e) {

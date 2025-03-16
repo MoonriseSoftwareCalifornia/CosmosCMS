@@ -153,6 +153,6 @@ document.addEventListener('DOMContentLoaded', function () {
         FilePondPluginFileMetadata,
     );
 
-    const imageContainers = document.querySelectorAll('.ccms-img-container');
+    const imageContainers = document.querySelectorAll('.ccms-img-widget');
     imageContainers.forEach(ccms___setupPond);
 });
