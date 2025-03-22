@@ -176,10 +176,10 @@ const EditorConfig = {
         shouldNotGroupWhenFull: false
     },
     autosave: {
-        waitingTime: 2000, // in ms
+        waitingTime: 1000, // in ms
         save(editor) {
             if (parent.enableAutoSave === true) {
-                return parent.saveChanges(editor.getData(), editor.sourceElement.getAttribute("data-ccms-ceid"));
+                return parent.saveEditorRegion(editor.getData(), editor.sourceElement.getAttribute("data-ccms-ceid"));
             }
         }
     },
@@ -290,7 +290,41 @@ const EditorConfig = {
     }
 };
 
-function ccms_createEditors() {
+function ccms___createEditor(editorElement) {
+
+    if (typeof editorElement.ckeditorInstance !== "undefined" && editorElement.ckeditorInstance !== null) {
+        return; //
+    }
+
+    const isNew = editorElement.getAttribute("data-ccms-new");
+
+    if (isNew) {
+        const guid = ccms__generateGUID(); // This function is defined in the Editor/wwwroot/lib/cosmos/dublicator/dublicator.js file.
+        editorElement.setAttribute("data-ccms-ceid", guid);
+        editorElement.removeAttribute("data-ccms-new");
+    }
+
+    InlineEditor
+        .create(editorElement, EditorConfig)
+        .then(editor => {
+            window.editor = editor;
+            const imageUploadEditing = editor.plugins.get('ImageUploadEditing');
+            imageUploadEditing.on('uploadComplete', (evt, { data, imageElement }) => {
+                parent.ccms_setBannerImage(data.url);
+            });
+            editor.editing.view.document.on('change:isFocused', (evt, data, isFocused) => {
+                console.log(`View document is focused: ${isFocused}.`);
+                if (isFocused) {
+                    focusedEditor = editor;
+                } else {
+                    focusedEditor = null;
+                }
+            });
+            ccms_editors.push(editor);
+        });
+}
+
+function ccms___createEditors() {
     // Editor instances
     const editorElements = document.querySelectorAll('[data-ccms-ceid]');
     editorElements.forEach(editorElement => {
@@ -301,29 +335,16 @@ function ccms_createEditors() {
             editorType = editorElement.getAttribute('data-editor-config').toLowerCase();
         }
 
-        if (editorType !== 'simpleimage') {
-            InlineEditor
-                .create(editorElement, EditorConfig)
-                .then(editor => {
-                    window.editor = editor;
-                    const imageUploadEditing = editor.plugins.get('ImageUploadEditing');
-                    imageUploadEditing.on('uploadComplete', (evt, { data, imageElement }) => {
-                        parent.ccms_setBannerImage(data.url);
-                    });
-                    editor.editing.view.document.on('change:isFocused', (evt, data, isFocused) => {
-                        console.log(`View document is focused: ${isFocused}.`);
-                        if (isFocused) {
-                            focusedEditor = editor;
-                        } else {
-                            focusedEditor = null;
-                        }
-                    });
-                    ccms_editors.push(editor);
-                });
+        if (editorType !== 'image-widget') {
+            ccms___createEditor(editorElement); // Function in ckeditor-widget.js
         }
     });
 }
 
+window.createCkEditor = ccms___createEditor;
+
 document.addEventListener("DOMContentLoaded", function (event) {
-    ccms_createEditors();
+    ccms___createEditors();
 });
+
+//export const createEditor = ccms___createEditor;

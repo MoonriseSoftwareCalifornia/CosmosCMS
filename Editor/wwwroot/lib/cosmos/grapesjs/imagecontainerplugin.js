@@ -1,6 +1,6 @@
 ﻿const script = function () {
     var element = this;
-    ccms___setupPond(element);
+    ccms___setupImageWidget(element);
 };
 
 const cosmosImageWidgetPlugin = (editor) => {
@@ -14,7 +14,7 @@ const cosmosImageWidgetPlugin = (editor) => {
                 script,
                 attributes: {
                     'data-ccms-new': "true",
-                    'data-editor-config': 'simpleimage',
+                    'data-editor-config': 'image-widget',
                 },
                 droppable: false,
             }

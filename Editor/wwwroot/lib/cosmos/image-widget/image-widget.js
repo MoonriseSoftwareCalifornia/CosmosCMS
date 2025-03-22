@@ -1,11 +1,21 @@
-﻿function ccms___hooverDeleteButton(id, element) {
+﻿function ccms___onClickTrashCan(id, element) {
     // Clean things up.
     while (element.hasChildNodes()) {
         element.removeChild(element.firstChild);
     }
     parent.saveChanges(element.innerHTML, id);
-    ccms___setupPond(element);
+
+    ccms___initializePond(element);
 }
+
+function debounce(func, wait) {
+    let timeout;
+    return function (...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+}
+
 function ccms___getImageDimensions(blob, callback) {
     const reader = new FileReader();
     reader.onload = function (e) {
@@ -21,37 +31,115 @@ function ccms___getImageDimensions(blob, callback) {
     };
     reader.readAsDataURL(blob);
 }
-function ccms___setupPond(element) {
-    const id = element.getAttribute("data-ccms-ceid");
-    const isNew = element.getAttribute("data-ccms-new");
 
+function ccms___handleWidgetMouseLeave(event) {
+
+    // Ensure image element exists.
+    const element = event.currentTarget;
+    const trashCan = element.querySelector(".ccms-img-trashcan");
+
+    // Check if the mouse is moving to the trashCan or its children
+    if (trashCan && trashCan === event.relatedTarget) {
+        return;
+    }
+
+    if (trashCan) {
+        trashCan.remove();
+    }
+
+    element.removeEventListener('mouseleave', ccms___handleWidgetMouseLeave);
+    element.removeEventListener('mouseover', ccms___handleWidgetMouseOver);
+    element.addEventListener('mouseover', ccms___handleWidgetMouseOver, { once: true });
+    console.log("Mouse over event reset.");
+}
+
+function ccms___handleWidgetMouseOver(event) {
+    // Ensure image element exists.
+    const img = this.querySelector("img");
+    const element = event.currentTarget;
+    if (img !== null && img.src !== "") {
+
+        // If an image already present add the remove image option.
+        const id = element.getAttribute("data-ccms-ceid");
+        let a = element.querySelector(".ccms-img-trashcan");
+
+        if (a !== null) {
+            return;
+        }
+
+        a = document.createElement("button");
+
+        a.id = "ccms___trash-" + id;
+        a.classList.add("ccms-img-trashcan");
+        a.innerHTML = '<i class="fa-solid fa-trash"></i>';
+        a.title = "Click to remove image.";
+        a.style.position = "absolute";
+        a.style.top = "50%";
+        a.style.left = "50%";
+        a.style.transform = "translate(-50%, -50%)";
+        a.style.zIndex = window.getComputedStyle(element).zIndex + 10;
+
+        a.onclick = function (e) {
+            e.preventDefault();
+            ccms___onClickTrashCan(id, element);
+        }
+        element.appendChild(a);
+
+        console.log("Mouse over image widget. Added trash can.");
+    }
+    console.log("Mouse over image widget. Removed mouse over event.");
+    console.log("Mouse out event reset.");
+    element.addEventListener('mouseleave', ccms___handleWidgetMouseLeave);
+    element.removeEventListener('mouseover', ccms___handleWidgetMouseOver);
+}
+
+function ccms___setupImageWidget(element) {
+
+    // Setup the style for the image container.
+    element.style.position = "relative";
+    element.display = "inline-block";
+
+    const isNew = element.getAttribute("data-ccms-new");
     // Clear out placeholder image.
     const placeHolder = element.querySelector(".ccms___placeHolder");
     if (placeHolder) { placeHolder.remove(); }
+
+    // Clear out filepond drop area if it exists.
+    const ponds = element.querySelectorAll(".filepond--root");
+    ponds.forEach(pond => { pond.remove(); });
+
+    const id = element.getAttribute("data-ccms-ceid");
 
     if (typeof id === "undefined" && isNew === "undefined") {
         return;
     }
 
-    // Ensure image element exists.
-    let img = document.getElementById("img-" + id);
-
-    if (typeof img !== "undefined" && img !== null && img.src !== "") {
-        // If an image already present add the remove image option.
-        const a = document.createElement("a");
-        a.id = "ccms___trash-" + id;
-        a.classList.add("ccms-img-trashcan");
-        a.innerHTML = '<i class="fa-solid fa-trash"></i>';
-        a.title = "Click to remove image.";
-        a.onclick = function (e) {
-            e.preventDefault();
-            ccms___hooverDeleteButton(id, element);
-        }
-        element.appendChild(a);
-        return;
+    if (isNew) {
+        const guid = ccms__generateGUID(); // This function is defined in the Editor/wwwroot/lib/cosmos/dublicator/dublicator.js file.
+        element.setAttribute("data-ccms-ceid", guid);
+        element.removeAttribute("data-ccms-new");
+        id = element.getAttribute("data-ccms-ceid");
     }
 
-    // '<input type="file" id="inp-' + id + '" class="filepond" name="files" accept="image/*" />'
+    const img = element.querySelector("img");
+    if (img !== null) {
+        element.addEventListener('mouseleave', ccms___handleWidgetMouseLeave);
+        element.addEventListener('mouseover', ccms___handleWidgetMouseOver, { once: true });
+        console.log("Mouse events added.");
+    } else {
+        element.childNodes.forEach(node => {
+            node.remove();
+        });
+        element.removeEventListener('mouseleave', ccms___handleWidgetMouseLeave);
+        element.removeEventListener('mouseover', ccms___handleWidgetMouseOver);
+        ccms___initializePond(element);
+    }
+}
+
+function ccms___initializePond(element) {
+
+    const id = element.getAttribute("data-ccms-ceid");
+
     input = document.createElement("input");
     input.type = "file";
     input.id = "inp-" + id;
@@ -67,7 +155,6 @@ function ccms___setupPond(element) {
         });
 
     pond.editorElement = element;
-    pond.imageElement = img;
     pond.editorId = id;
     pond.inputElement = input;
 
@@ -104,7 +191,7 @@ function ccms___setupPond(element) {
 
     pond.on('processfile', (error, file) => {
         const fileName = file.getMetadata("fileName");
-        const relativePath = "/pub/articles/" + articleNumber + "/" + fileName;
+        //const relativePath = "/pub/articles/" + articleNumber + "/" + fileName;
         const element = pond.editorElement;
         const id = pond.editorId;
 
@@ -117,19 +204,21 @@ function ccms___setupPond(element) {
         const image = document.createElement("img");
         image.id = "img-" + id;
         image.src = file.serverId.replace(/['"]+/g, '');
+        image.classList.add("ccms-img-widget-img");
+
         element.appendChild(image);
 
-        if (typeof parent.editorSaveChanges !== "undefined") {
-            parent.saveChanges(element.innerHTML, id);
-            ccms___setupPond(element);
-            parent.doneSaving();
+        if (typeof parent.savePageBody == "function") {
+            parent.savePageBody(document.querySelector('div[ccms-content-id]').innerHTML);
         }
+        ccms___setupImageWidget(element);
     });
 
     pond.on('removefile', (file) => {
         const f = file;
     });
 }
+
 function ccms___removePond(id) {
     // Clean things up.
     const element = document.getElementById(id);
@@ -147,12 +236,13 @@ function ccms___removePond(id) {
         element.appendChild(img);
     }
 }
+
 document.addEventListener('DOMContentLoaded', function () {
 
     FilePond.registerPlugin(
         FilePondPluginFileMetadata,
     );
 
-    const imageContainers = document.querySelectorAll('.ccms-img-widget');
-    imageContainers.forEach(ccms___setupPond);
+    const imageContainers = document.querySelectorAll('div[data-editor-config="image-widget"]');
+    imageContainers.forEach(ccms___setupImageWidget);
 });

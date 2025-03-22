@@ -29,6 +29,7 @@ namespace Cosmos.Cms.Controllers
     using Cosmos.Editor.Services;
     using HtmlAgilityPack;
     using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Components.Forms;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
@@ -214,7 +215,7 @@ namespace Cosmos.Cms.Controllers
         {
             if (model == null)
             {
-                return Json(new { success = false, message = "No data sent."});
+                return Json(new { success = false, message = "No data sent." });
             }
 
             model.HtmlContent = CryptoJsDecryption.Decrypt(model.HtmlContent);
@@ -1476,31 +1477,8 @@ namespace Cosmos.Cms.Controllers
 
             if (!string.IsNullOrWhiteSpace(model.EditorId))
             {
-                // Get the editable regions from the original document.
-                var originalHtmlDoc = new HtmlDocument();
-                originalHtmlDoc.LoadHtml(article.Content);
-                var originalEditableDivs = originalHtmlDoc.DocumentNode.SelectNodes("//*[@data-ccms-ceid]");
-
-                // Find the region we are updating
-                var target = originalEditableDivs.FirstOrDefault(w => w.Attributes["data-ccms-ceid"].Value == model.EditorId);
-                if (target != null)
-                {
-                    // Decrypt the data being sent in.
-                    model.Data = CryptoJsDecryption.Decrypt(model.Data);
-
-                    // Update the region now
-                    target.InnerHtml = model.Data;
-                }
-
                 // Now carry over what's being UPDATED to the original.
-                article.Content = originalHtmlDoc.DocumentNode.OuterHtml;
-
-                // If this is published, go through the full save process.
-                await articleLogic.SaveArticle(article, model.UserId);
-
-                // Notify others of the changes.
-                await hub.Clients.All.SendCoreAsync("UpdateEditors", [model.Id, model.Data]);
-
+                article.Content = UpdateRegionInDocument(model.EditorId, article.Content, CryptoJsDecryption.Decrypt(model.Data));
             }
 
             // Banner image
@@ -1516,7 +1494,62 @@ namespace Cosmos.Cms.Controllers
             // Save changes back to the database
             var result = await articleLogic.SaveArticle(article, model.UserId);
 
+            // Notify others of the changes.
+            if (!string.IsNullOrWhiteSpace(model.EditorId))
+            {
+                await hub.Clients.All.SendCoreAsync("UpdateEditors", [model.Id, model.Data]);
+            }
+
             return Json(result);
+        }
+
+        /// <summary>
+        /// Updates a single region in an editable document.
+        /// </summary>
+        /// <param name="model">Editor view model.</param>
+        /// <returns>Returns OK on success.</returns>
+        public async Task<IActionResult> EditSaveRegion(EditorRegionViewModel model)
+        {
+            var article = await dbContext.Articles.Where(w => w.ArticleNumber == model.ArticleNumber).OrderBy(o => o.VersionNumber).LastOrDefaultAsync();
+
+            var decryptedData = CryptoJsDecryption.Decrypt(model.Data);
+
+            // Now carry over what's being UPDATED to the original.
+            var content = UpdateRegionInDocument(model.EditorId, article.Content, decryptedData);
+
+            if (article.Content != content)
+            {
+                article.Content = content;
+                article.Updated = DateTimeOffset.UtcNow;
+                await dbContext.SaveChangesAsync();
+                await hub.Clients.All.SendCoreAsync("UpdateEditors", [model.EditorId, model.Data]);
+            }
+
+            return Ok();
+        }
+
+
+        /// <summary>
+        /// Updates the entire body of a web page.
+        /// </summary>
+        /// <param name="model">Editor view model.</param>
+        /// <returns>Returns OK on success.</returns>
+        public async Task<IActionResult> EditSaveBody(EditorRegionViewModel model)
+        {
+            var article = await dbContext.Articles.Where(w => w.ArticleNumber == model.ArticleNumber).OrderBy(o => o.VersionNumber).LastOrDefaultAsync();
+
+            var decryptedData = CryptoJsDecryption.Decrypt(model.Data);
+
+            if (article.Content != decryptedData)
+            {
+                article.Content = decryptedData;
+                article.Updated = DateTimeOffset.UtcNow;
+                await dbContext.SaveChangesAsync();
+
+                // await hub.Clients.All.SendCoreAsync("UpdateEditors", [model.EditorId, model.Data]);
+            }
+
+            return Ok();
         }
 
         /// <summary>
@@ -1639,7 +1672,7 @@ namespace Cosmos.Cms.Controllers
 
             // Next pull the original. This is a view model, not tracked by DbContext.
             // var article = await articleLogic.GetArticleByArticleNumber(model.ArticleNumber, null);
-            var article = await dbContext.Articles.Where(w => w.ArticleNumber == model.ArticleNumber).LastOrDefaultAsync();
+            var article = await dbContext.Articles.Where(w => w.ArticleNumber == model.ArticleNumber).OrderBy(o => o.VersionNumber).LastOrDefaultAsync();
             var entry = await articleLogic.GetCatalogEntry(article);
 
             if (article == null)
@@ -1851,26 +1884,21 @@ namespace Cosmos.Cms.Controllers
                 return BadRequest(ModelState);
             }
 
-            await articleLogic.UpdateArticleCatalog();
+            var query = $"SELECT c.ArticleNumber, c.Title, c.UrlPath, MAX(c.Published) as Published, MAX(c.Updated) as Updated FROM Articles c WHERE c.StatusCode = {(int)StatusCodeEnum.Active} GROUP BY c.ArticleNumber, c.Title, c.UrlPath";
+            var client = dbContext.Database.GetCosmosClient();
+            var queryService = new CosmosDbService(client, dbContext.Database.GetCosmosDatabaseId(), "Articles");
 
-            var data = await dbContext.ArticleCatalog.Select(s => new ArticleListViewItem
-            {
-                ArticleNumber = s.ArticleNumber,
-                Title = s.Title,
-                Published = s.Published,
-                UrlPath = s.UrlPath,
-                Status = s.Status,
-                Updated = s.Updated
-            }).ToListAsync();
+            var data = await queryService.QueryWithGroupByAsync<ArticleListViewItem>(query);
+
+            await articleLogic.UpdateArticleCatalog();
 
             var model = data.Select(s => new
             {
                 s.ArticleNumber,
                 s.Title,
                 IsDefault = s.UrlPath == "root",
-                LastPublished = s.Published.HasValue ? s.Published.Value.UtcDateTime.ToString("o") : string.Empty,
+                LastPublished = s.Published.HasValue ? s.Published.Value.UtcDateTime.ToString("o") : null,
                 UrlPath = HttpUtility.UrlEncode(s.UrlPath).Replace("%2f", "/"),
-                s.Status,
                 Updated = s.Updated.UtcDateTime.ToString("o")
             }).OrderBy(o => o.Title).ToList();
 
@@ -2205,6 +2233,32 @@ namespace Cosmos.Cms.Controllers
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
+        }
+
+        /// <summary>
+        /// Updates the HTML within an editor region no a web page.
+        /// </summary>
+        /// <param name="editorId">Editor ID on page.</param>
+        /// <param name="pageBody">Page body.</param>
+        /// <param name="updatedContent">Updated content.</param>
+        /// <returns>Revised page body.</returns>
+        private string UpdateRegionInDocument(string editorId, string pageBody, string updatedContent)
+        {
+            // Get the editable regions from the original document.
+            var originalHtmlDoc = new HtmlDocument();
+            originalHtmlDoc.LoadHtml(pageBody);
+            var originalEditableDivs = originalHtmlDoc.DocumentNode.SelectNodes("//*[@data-ccms-ceid]");
+
+            // Find the region we are updating
+            var target = originalEditableDivs.FirstOrDefault(w => w.Attributes["data-ccms-ceid"].Value == editorId);
+            if (target != null)
+            {
+                // Update the region now
+                target.InnerHtml = updatedContent;
+            }
+
+            // Now carry over what's being UPDATED to the original.
+            return originalHtmlDoc.DocumentNode.OuterHtml;
         }
     }
 }

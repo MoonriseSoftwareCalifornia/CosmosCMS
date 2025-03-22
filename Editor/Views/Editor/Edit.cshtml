@@ -742,6 +742,97 @@
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
+    async function savePageBody(html) {
+        
+
+        if (saveChangesStatus.saveInProgress) {
+            // Wait 3 seconds.
+            await sleep(3000);
+
+            // Still stuck? Cancel save.
+            if (saveChangesStatus.saveInProgress){
+                return;
+            }
+        }
+
+        saveChangesStatus.saveInProgress = true;
+        saveChangesStatus.savePublishDateTime = new Date();
+        saveChangesStatus.source = "body";
+
+        // Signal to the user that saving has started.
+        saving();
+
+
+        // Build the post payload
+        const id = $("#Id").val();
+        const model = {
+            ArticleNumber: $("#ArticleNumber").val(),
+            EditorId: "body",
+            Data: encryptData(html)
+        }
+
+        $.post("@Url.Action("EditSaveBody", "Editor")", model, function (data) {
+        }).fail(function(jqXHR, textStatus, errorThrown){
+            if (jqXHR.status === 403) {
+                // Handle permission denied
+                alert('Permission Denied: Please sign out and log in again to continue.');
+            } else {
+                alert("There was a problem saving data.");
+            }
+        }).always(function() {
+            saveChangesStatus.saveInProgress = false;
+            doneSaving();
+        });
+    }
+
+    // this is a quick save for an editor region.
+    async function saveEditorRegion(html, editorId)
+    {
+        if (saveChangesStatus.saveInProgress) {
+            // Wait 3 seconds.
+            await sleep(3000);
+
+            // Still stuck? Cancel save.
+            if (saveChangesStatus.saveInProgress){
+                return;
+            }
+        }
+
+        saveChangesStatus.saveInProgress = true;
+        saveChangesStatus.savePublishDateTime = new Date();
+        saveChangesStatus.source = editorId;
+
+        // Signal to the user that saving has started.
+        saving();
+
+        if (validatePermissions() === false) {
+            // Need permissions set before going any further.
+            return;
+        }
+
+        // Build the post payload
+        const id = $("#Id").val();
+        const model = {
+            ArticleNumber: $("#ArticleNumber").val(),
+            EditorId: editorId,
+            Data: encryptData(html)
+        }
+
+        $.post("@Url.Action("EditSaveRegion", "Editor")", model, function (data) {
+        }).fail(function(jqXHR, textStatus, errorThrown){
+            if (jqXHR.status === 403) {
+                // Handle permission denied
+                alert('Permission Denied: Please sign out and log in again to continue.');
+            } else {
+                alert("There was a problem saving data.");
+            }
+        }).always(function() {
+            saveChangesStatus.saveInProgress = false;
+            doneSaving();
+        });
+
+    }
+
     async function saveChanges(html, editorId) {
 
         if (saveChangesStatus.saveInProgress) {

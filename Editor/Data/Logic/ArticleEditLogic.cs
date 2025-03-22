@@ -806,16 +806,14 @@ namespace Cosmos.Editor.Data.Logic
                 article = await DbContext.Articles
                 .FirstOrDefaultAsync(
                     a => a.ArticleNumber == articleNumber &&
-                         a.VersionNumber == versionNumber &&
-                         a.StatusCode != 2);
+                         a.VersionNumber == versionNumber);
             }
             else
             {
                 // Get the latest version
                 article = await DbContext.Articles.OrderByDescending(v => v.VersionNumber)
                 .FirstOrDefaultAsync(
-                    a => a.ArticleNumber == articleNumber &&
-                         a.StatusCode != 2);
+                    a => a.ArticleNumber == articleNumber);
             }
 
             if (article == null)

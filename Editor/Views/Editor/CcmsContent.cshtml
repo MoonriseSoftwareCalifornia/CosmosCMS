@@ -55,6 +55,8 @@
     <link asp-append-version="true" href="~/lib/cosmos/image-widget/image-widget.css" rel="stylesheet" />
     <script asp-append-version="true" src="~/lib/filepond-plugin-file-metadata/dist/filepond-plugin-file-metadata.js"></script>
     <script asp-append-version="true" src="~/lib/filepond/filepond.js"></script>
+    <script asp-append-version="true" src="~/lib/cosmos/dublicator/componets/components.js"></script>
+    <script asp-append-version="true" src="~/lib/cosmos/dublicator/dublicator.js"></script>
 </head>
 <body>
     @Html.Raw(Model.Layout.HtmlHeader)
@@ -116,7 +118,7 @@
                         if (editor === null) {
                             parent.saveChanges();
                         } else {
-                            parent.saveChanges(editor.getData(), editor.sourceElement.getAttribute("data-ccms-ceid"));
+                            parent.SaveEditorRegion(editor.getData(), editor.sourceElement.getAttribute("data-ccms-ceid"));
                         }
                         break;
                 }
@@ -127,7 +129,8 @@
 
     <script asp-append-version="true" src="~/lib/popper/umd/popper.min.js"></script>
     <script asp-append-version="true" src="~/lib/tippy/tippy.umd.min.js"></script>
-    <script asp-append-version="true" type="module" src="~/lib/cosmos/ckeditor/main.js"></script>
+    <script asp-append-version="true" type="module" src="~/lib/cosmos/ckeditor/ckeditor-widget.js"></script>
+    <script asp-append-version="true" src="/lib/cosmos/image-widget/image-widget.js"></script>
 
     <script>
         const elements = document.querySelectorAll('[data-ccms-ceid]');
@@ -140,7 +143,7 @@
             placement: "right-start",
             inlinePositioning: true,
         }); //data-ccms-ceid
+
     </script>
-    <script asp-append-version="true" src="/lib/cosmos/image-widget/image-widget.js"></script>
 </body>
 </html>

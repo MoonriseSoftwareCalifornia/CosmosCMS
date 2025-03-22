@@ -32,6 +32,7 @@ namespace Cosmos.Editor.Data
             container = cosmosClient.GetContainer(databaseName, containerName);
         }
 
+
         /// <summary>  
         /// Query the Cosmos DB container and returns a dynamic list of results.  
         /// </summary>  
@@ -43,6 +44,27 @@ namespace Cosmos.Editor.Data
             var queryResultSetIterator = container.GetItemQueryIterator<dynamic>(queryDefinition);
 
             var results = new List<dynamic>();
+            while (queryResultSetIterator.HasMoreResults)
+            {
+                var response = await queryResultSetIterator.ReadNextAsync();
+                results.AddRange(response);
+            }
+
+            return results;
+        }
+
+        /// <summary>  
+        /// Query the Cosmos DB container and returns a dynamic list of results.  
+        /// </summary>
+        /// <typeparam name="T">The type of the object to be returned.</typeparam>
+        /// <param name="sqlQuery">SQL Query.</param>  
+        /// <returns>Returned dataset.</returns>
+        public async Task<List<T>> QueryWithGroupByAsync<T>(string sqlQuery)
+        {
+            var queryDefinition = new QueryDefinition(sqlQuery);
+            var queryResultSetIterator = container.GetItemQueryIterator<T>(queryDefinition);
+
+            var results = new List<T>();
             while (queryResultSetIterator.HasMoreResults)
             {
                 var response = await queryResultSetIterator.ReadNextAsync();
