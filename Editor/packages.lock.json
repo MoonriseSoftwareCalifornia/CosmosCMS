@@ -166,13 +166,12 @@
       },
       "Microsoft.Extensions.Azure": {
         "type": "Direct",
-        "requested": "[1.10.0, )",
-        "resolved": "1.10.0",
-        "contentHash": "hKYPTmD2NS/DVxS1vSqO24cAjBO3yFioAiXAzs/9UDjHVJZc2CEowtpPMtNMvhoXknFTyu3nlGTpFlj/ofDUtg==",
+        "requested": "[1.11.0, )",
+        "resolved": "1.11.0",
+        "contentHash": "j6Vb858BgfAbzuv0UQxOvn8jPo8i+96Kkacu1q0RwQi+fAwVljL8WmI0oZX4CCLUsJCs1yzbpJCaS7MYPPCUjw==",
         "dependencies": {
           "Azure.Core": "1.44.1",
           "Azure.Identity": "1.13.1",
-          "Microsoft.Bcl.AsyncInterfaces": "8.0.0",
           "Microsoft.Extensions.Configuration.Abstractions": "2.1.0",
           "Microsoft.Extensions.Configuration.Binder": "2.1.0",
           "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.2",
