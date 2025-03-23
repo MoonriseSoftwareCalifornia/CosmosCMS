@@ -179,9 +179,9 @@
                 linksToast.show();
             });
 
-            var editors = contents.find("[data-ccms-ceid]");
+            //var editors = contents.find("[data-ccms-ceid]");
 
-            $(editors).css("border", "dashed 1px #dadada");
+            //$(editors).css("border", "dashed 1px #dadada");
 
         }
 
@@ -620,49 +620,6 @@
         checkBannerImage();
     }
 
-
-    @* function ccms_updateArea(editor) {
-        return new Promise(resolve => {
-
-            // Let others editing this item know where this user is focused
-            ccms_signal_focus_others(editor, "save");
-
-            const sourceElement = editor.sourceElement;
-            const id = sourceElement.getAttribute("data-ccms-ceid");
-
-            const item = { Id: id, Html: editor.getData() };
-
-            if (ccms_editibleAreas.length === 0) {
-                // First entry in the array
-                ccms_editibleAreas.push(item);
-            } else {
-                // Append or update the array
-                const i = ccms_editibleAreas.findIndex((ed => ed.Id == id));
-
-                if (i === -1) {
-                    // Append
-                    const item = { Id: id, Html: editor.getData() };
-                    ccms_editibleAreas.push(item);
-
-                } else {
-                    // Update
-                    ccms_editibleAreas[i].Html = editor.getData();
-                }
-            }
-
-            // Push to server if autosave is turned on.
-            if (getAutoSave()) {
-                const data = [];
-                data.push(item);
-                saveChanges();
-                ccms_signal_focus_others(editor, "updateEditors", editor.getData());
-            }
-            else {
-                resolve();
-            }
-        });
-    } *@
-
     function addCkeditorSession(id, email) {
 
         lockedEditors.push(id);
@@ -744,7 +701,6 @@
 
     async function savePageBody(html) {
         
-
         if (saveChangesStatus.saveInProgress) {
             // Wait 3 seconds.
             await sleep(3000);

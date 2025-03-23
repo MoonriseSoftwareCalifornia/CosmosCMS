@@ -46,6 +46,10 @@
             border: 3px solid blue !important;
         }
 
+        div.img-block:hover {
+            border: 1px solid blue !important; /* Change border on hover */
+        }
+
     </style>
     @Html.Raw(Model.Layout.Head)
     <link asp-append-version="true" rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/44.1.0/ckeditor5.css" />
@@ -143,7 +147,13 @@
             placement: "right-start",
             inlinePositioning: true,
         }); //data-ccms-ceid
-
+        
+        document.addEventListener('DOMContentLoaded', function () {
+            const wineItems = document.querySelectorAll('.ccms-clone');
+            wineItems.forEach(function (element) {
+                Duplicator.create(element)
+            });
+        });
     </script>
 </body>
 </html>

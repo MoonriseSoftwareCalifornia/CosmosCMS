@@ -8,10 +8,6 @@
  */
 const Duplicator = (function () {
 
-    let onCreate = null;
-    let onDelete = null;
-    let component = null; // Used by createClone()
-
     /**
      * Creates a clone node or element.
      * @memberof Duplicator
@@ -66,7 +62,12 @@ const Duplicator = (function () {
         moveUp.title = 'Move this item up.';
 
         moveUp.onclick = () => {
-            element.previousElementSibling ? element.parentNode.insertBefore(element, element.previousElementSibling) : alert("Already at top.");
+            if (element.previousElementSibling) {
+                element.parentNode.insertBefore(element, element.previousElementSibling);
+                savePageBody();
+            } else {
+                alert("Already at top.");
+            }
         };
         
         iconContainer.appendChild(moveUp);
@@ -78,13 +79,11 @@ const Duplicator = (function () {
         above.onclick = () => {
             const clone = createClone(element);
             element.parentNode.insertBefore(clone, element);
-            if (typeof this.onCreate === 'function') {
-                this.onCreate(clone);
-            }
+            onCreate(clone);
             create(clone, this.onCreate, this.onDelete, this.component);
             // Code to save the page body.
             // Found on /Views/Editor/Edit.cshtml
-            parent.savePageBody(document.querySelector('div[ccms-content-id]').innerHTML);
+            savePageBody();
         };
         iconContainer.appendChild(above);
 
@@ -101,13 +100,11 @@ const Duplicator = (function () {
                     alert("You cannot delete the last item.");
                     return;
                 }
-                if (typeof onCreate === 'function') {
-                    onCreate(element);
-                }
+                onDelete(element);
                 element.remove();
                 // Code to save the page body.
                 // Found on /Views/Editor/Edit.cshtml
-                parent.savePageBody(document.querySelector('div[ccms-content-id]').innerHTML);
+                savePageBody();
             } else {
                 // Code to cancel the deletion
                 console.log("Deletion canceled.");
@@ -123,13 +120,11 @@ const Duplicator = (function () {
         below.onclick = () => {
             const clone = createClone(element);
             element.insertAdjacentElement('afterend', clone);
-            if (typeof this.onCreate === 'function') {
-                this.onCreate(clone);
-            }
+            onCreate(clone);
             create(clone, this.onCreate, this.onDelete, this.component);
             // Code to save the page body.
             // Found on /Views/Editor/Edit.cshtml
-            parent.savePageBody(document.querySelector('div[ccms-content-id]').innerHTML);
+            savePageBody();
         };
         iconContainer.appendChild(below);
 
@@ -138,7 +133,12 @@ const Duplicator = (function () {
         moveDown.innerHTML = '<i class="fa-solid fa-arrow-down"></i>'; // You can replace this with any icon
         moveDown.title = 'Move this item down.';
         moveDown.onclick = () => {
-            element.nextElementSibling ? element.parentNode.insertBefore(element.nextElementSibling, element) : alert("Already at bottom.");
+            if (element.nextElementSibling) {
+                element.parentNode.insertBefore(element.nextElementSibling, element);
+                savePageBody();
+            } else {
+                alert("Already at bottom.");
+            }
         };
         iconContainer.appendChild(moveDown);
 
@@ -146,6 +146,74 @@ const Duplicator = (function () {
 
         element.addEventListener('mouseleave', mouseLeaveHandler);
         element.removeEventListener('mouseover', mouseOverHandler);
+    }
+
+    /**
+     * Creates a supported editor for the specified element created by the duplicator.
+     * @param {any} item
+     * @description Normally editors are created when the page is loaded. This function is used to create editors for elements that are created dynamically.
+     */
+    function onCreate(item) {
+        const childDivs = item.querySelectorAll(`div[data-ccms-ceid]`);
+        childDivs.forEach(function (element) {
+            element.setAttribute('data-ccms-ceid', ccms__generateGUID());
+            const type = element.getAttribute("data-editor-config");
+            if (type && type === "image-widget") {
+                ccms___setupImageWidget(element);
+            } else {
+                createCkEditor(element);
+            }
+        });
+    }
+
+    /**
+     * Destroys the editor for the specified element.
+     * @param {any} item
+     */
+    function onDelete(item) {
+
+        // Destroy the editor for the specified element.
+        const childDivs = item.querySelectorAll(`div[data-ccms-ceid]`);
+        childDivs.forEach(function (element) {
+            if (typeof element.ckeditorInstance !== "undefined" && element.ckeditorInstance !== null) {
+                element.ckeditorInstance.destroy();
+            } else {
+                const pond = FilePond.find(element);
+                if (typeof pond !== "undefined" && pond !== null) {
+                    pond.destroy();
+                }
+                var trashcans = element.querySelectorAll('.ccms-img-trashcan');
+                trashcans.forEach(trashcan => {
+                    trashcan.remove();
+                });
+            }
+            element.removeAttribute('data-tippy-content');
+            element.removeAttribute('aria-label');
+        });
+    }
+
+    /**
+     * Saves the page body.
+     * @param {any} element
+     * @returns
+     * @memberof Duplicator
+     */
+    function savePageBody() {
+
+        // Get all elements that need an editor to be closed prior to saving.
+        const items = document.querySelectorAll('.ccms-clone');
+
+        // Close all editors.
+        items.forEach(item => {
+            onDelete(item);
+        });
+
+        parent.savePageBody(document.querySelector('div[ccms-content-id]').innerHTML);
+
+        // Reopen all editors.
+        items.forEach(editor => {
+            onCreate(editor);
+        });
     }
 
     /**
@@ -167,59 +235,17 @@ const Duplicator = (function () {
         element.addEventListener('mouseover', mouseOverHandler, { once: true });
     }
 
-    /**
-        * Creates a duplicator widget.
-        * @param {any} element - The HTML element to duplicate
-        * @param {any} onCreateHandler - The handler to call when a new element is created.
-        * @param {any} onDeleteHandler - The handler to call when an element is deleted.
-        * @param {any} component - The component to replicate instead of the target element (optional).
-        * @memberof Duplicator
-        * @returns - A duplicator widget configured with the specified element.
-        * @example
-        * Duplicator.create(element, onCreateHandler, this.onCreateHandler, component);
-        */
-    function create(target, onCreateHandler, onDeleteHandler, component) {
-
-        if (!target) return;
-
-        // set private fields
-        this.onCreate = onCreateHandler;
-        this.onDelete = onDeleteHandler;
-        this.component = component;
-
-        target.style.position = "relative"; // Required for tool bar placement
-
-        let iconContainer = target.querySelector('.icon-container');
-        if (iconContainer !== null) {
-            iconContainer.remove();
-        }
-
-        if (!target.classList.contains('ccms-clone')) {
-            target.classList.add('ccms-clone');
-        };
-
-        target.addEventListener('mouseover', mouseOverHandler, { once: true });
-    }
-
     return {
         /**
          * Creates a duplicator widget.
          * @param {any} element - The HTML element to duplicate
-         * @param {any} onCreateHandler - The handler to call when a new element is created.
-         * @param {any} onDeleteHandler - The handler to call when an element is deleted.
-         * @param {any} component - The component to replicate instead of the target element (optional).
          * @memberof Duplicator
          * @returns - A duplicator widget configured with the specified element.
          * @example
-         * Duplicator.create(element, onCreateHandler, this.onCreateHandler, component);
+         * Duplicator.create(element);
          */
-        create: function (target, onCreateHandler, onDeleteHandler, component) {
+        create: function (target) {
             if (!target) return;
-
-            // set private fields
-            this.onCreate = onCreateHandler;
-            this.onDelete = onDeleteHandler;
-            this.component = component;
 
             target.style.position = "relative"; // Required for tool bar placement
 
