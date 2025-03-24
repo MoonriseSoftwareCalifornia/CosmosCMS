@@ -532,12 +532,12 @@ namespace Cosmos.Editor.Data.Logic
             // Handle title (and URL) changes for existing 
             await SaveTitleChange(article, oldTitle);
 
+            // Update the catalog entry -- happens before publishing.
+            await CreateCatalogEntry(article);
+
             // HANDLE PUBLISHING OF AN ARTICLE
             // This can be a new or existing article.
             var results = await PublishArticle(article);
-
-            // Finally update the catalog entry
-            await CreateCatalogEntry(article);
 
             var result = new ArticleUpdateResult
             {

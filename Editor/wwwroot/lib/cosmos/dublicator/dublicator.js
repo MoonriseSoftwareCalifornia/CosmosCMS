@@ -9,6 +9,21 @@
 const Duplicator = (function () {
 
     /**
+     * Generates a new GUID.
+     * @memberof Duplicator
+    * @returns a new GUID.
+    * @type {string}
+    */
+    function newGuid() {
+        function s4() {
+            return Math.floor((1 + Math.random()) * 0x10000)
+                .toString(16)
+                .substring(1);
+        }
+        return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+    }
+
+    /**
      * Creates a clone node or element.
      * @memberof Duplicator
      * @returns a clone node or element.
@@ -63,6 +78,7 @@ const Duplicator = (function () {
 
         moveUp.onclick = () => {
             if (element.previousElementSibling) {
+                iconContainer.remove();
                 element.parentNode.insertBefore(element, element.previousElementSibling);
                 savePageBody();
             } else {
@@ -77,6 +93,7 @@ const Duplicator = (function () {
         above.innerHTML = '<i class="fa-solid fa-file-arrow-up"></i>'; // You can replace this with any icon
         above.title = 'Clone and place above.';
         above.onclick = () => {
+            iconContainer.remove();
             const clone = createClone(element);
             element.parentNode.insertBefore(clone, element);
             onCreate(clone);
@@ -95,6 +112,7 @@ const Duplicator = (function () {
         del.title = 'Permanently remove this item.';
         del.onclick = () => {
             if (confirm("Are you sure you want to delete this item?")) {
+                iconContainer.remove();
                 var children = element.parentElement.querySelectorAll(".ccms-clone");
                 if (children.length === 1) {
                     alert("You cannot delete the last item.");
@@ -118,6 +136,7 @@ const Duplicator = (function () {
         below.innerHTML = '<i class="fa-solid fa-file-arrow-down"></i>'; // You can replace this with any icon
         below.title = 'Clone and place below.';
         below.onclick = () => {
+            iconContainer.remove();
             const clone = createClone(element);
             element.insertAdjacentElement('afterend', clone);
             onCreate(clone);
@@ -134,6 +153,7 @@ const Duplicator = (function () {
         moveDown.title = 'Move this item down.';
         moveDown.onclick = () => {
             if (element.nextElementSibling) {
+                iconContainer.remove();
                 element.parentNode.insertBefore(element.nextElementSibling, element);
                 savePageBody();
             } else {
@@ -156,7 +176,6 @@ const Duplicator = (function () {
     function onCreate(item) {
         const childDivs = item.querySelectorAll(`div[data-ccms-ceid]`);
         childDivs.forEach(function (element) {
-            element.setAttribute('data-ccms-ceid', ccms__generateGUID());
             const type = element.getAttribute("data-editor-config");
             if (type && type === "image-widget") {
                 ccms___setupImageWidget(element);
@@ -175,6 +194,10 @@ const Duplicator = (function () {
         // Destroy the editor for the specified element.
         const childDivs = item.querySelectorAll(`div[data-ccms-ceid]`);
         childDivs.forEach(function (element) {
+
+            element.removeAttribute('data-tippy-content');
+            element.removeAttribute('aria-label');
+
             if (typeof element.ckeditorInstance !== "undefined" && element.ckeditorInstance !== null) {
                 element.ckeditorInstance.destroy();
             } else {
@@ -187,8 +210,6 @@ const Duplicator = (function () {
                     trashcan.remove();
                 });
             }
-            element.removeAttribute('data-tippy-content');
-            element.removeAttribute('aria-label');
         });
     }
 
