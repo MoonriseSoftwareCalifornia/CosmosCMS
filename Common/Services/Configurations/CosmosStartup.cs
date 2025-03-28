@@ -123,7 +123,9 @@ namespace Cosmos.Cms.Common.Services.Configurations
             // Microsoft App ID
             cosmosConfig.SecretName = GetValue<string>("CosmosSecretName");
 
-            var microsoftAuth = configuration.GetSection("MicrosoftOAuth").Get<OAuth>();
+            var microsoftAuth = configuration.GetSection("MicrosoftOAuth").Get<AzureAD>()
+                                ?? configuration.GetSection("AzureAD").Get<AzureAD>();
+
             if (microsoftAuth != null)
             {
                 cosmosConfig.MicrosoftAppId = microsoftAuth.ClientId;
