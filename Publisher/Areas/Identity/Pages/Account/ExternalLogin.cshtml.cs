@@ -135,28 +135,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                 await signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, false, true);
             if (result.Succeeded)
             {
-                if (info.LoginProvider == "Microsoft")
-                {
-                    var graphService = this.Request.HttpContext.RequestServices.GetService(typeof(MsGraphService)) as MsGraphService;
-                    if (graphService != null)
-                    {
-                        var userId = info.Principal.Claims.FirstOrDefault(f => f.Type == ClaimTypes.NameIdentifier).Value;
-                        var groups = await graphService.GetGraphApiUserMemberGroups(userId);
-
-                        //if (groups != null)
-                        //{
-                        //    var claims = new List<Claim>();
-
-                        //    foreach (var group in groups)
-                        //    {
-                        //        claims.Add(new Claim(ClaimTypes.Role, group.DisplayName));
-                        //    }
-
-                        //    info.Principal.AddIdentity(new ClaimsIdentity(info.Principal.Identity, claims));
-                        //}
-                    }
-                }
-
                 logger.LogInformation("{Name} logged in with {LoginProvider} provider.", info.Principal.Identity.Name, info.LoginProvider);
                 return LocalRedirect(returnUrl);
             }

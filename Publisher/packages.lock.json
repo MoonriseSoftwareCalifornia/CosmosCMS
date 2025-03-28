@@ -14,6 +14,26 @@
           "Microsoft.Bcl.AsyncInterfaces": "8.0.0"
         }
       },
+      "Cosmos.MicrosoftGraph": {
+        "type": "Direct",
+        "requested": "[9.0.3.8, )",
+        "resolved": "9.0.3.8",
+        "contentHash": "G7ZY1t1GfqMhqHwpkI0gGTNOIfem8FCbAU4ztLk0qfrKKSijVMVDv/xduWoGAoZUG2IiABriMtYHpz4bzusUbA==",
+        "dependencies": {
+          "Azure.Identity": "1.13.2",
+          "Microsoft.AspNetCore.Authorization": "9.0.3",
+          "Microsoft.Extensions.Configuration": "9.0.3",
+          "Microsoft.Extensions.Configuration.Abstractions": "9.0.3",
+          "Microsoft.Extensions.Configuration.Binder": "9.0.3",
+          "Microsoft.Extensions.Configuration.EnvironmentVariables": "9.0.3",
+          "Microsoft.Extensions.Configuration.Json": "9.0.3",
+          "Microsoft.Extensions.Configuration.UserSecrets": "9.0.3",
+          "Microsoft.Extensions.Logging.Abstractions": "9.0.3",
+          "Microsoft.Graph.Beta": "5.78.0-preview",
+          "System.Configuration.ConfigurationManager": "9.0.3",
+          "System.Text.Json": "9.0.3"
+        }
+      },
       "Microsoft.ApplicationInsights.AspNetCore": {
         "type": "Direct",
         "requested": "[2.23.0, )",
@@ -1916,23 +1936,6 @@
           "Microsoft.PowerBI.Api": "[4.22.0, )",
           "System.Formats.Asn1": "[9.0.3, )",
           "X.Web.Sitemap": "[2.10.5, )"
-        }
-      },
-      "cosmos.microsoftgraph": {
-        "type": "Project",
-        "dependencies": {
-          "Azure.Identity": "[1.13.2, )",
-          "Microsoft.AspNetCore.Authorization": "[9.0.3, )",
-          "Microsoft.Extensions.Configuration": "[9.0.3, )",
-          "Microsoft.Extensions.Configuration.Abstractions": "[9.0.3, )",
-          "Microsoft.Extensions.Configuration.Binder": "[9.0.3, )",
-          "Microsoft.Extensions.Configuration.EnvironmentVariables": "[9.0.3, )",
-          "Microsoft.Extensions.Configuration.Json": "[9.0.3, )",
-          "Microsoft.Extensions.Configuration.UserSecrets": "[9.0.3, )",
-          "Microsoft.Extensions.Logging.Abstractions": "[9.0.3, )",
-          "Microsoft.Graph.Beta": "[5.78.0-preview, )",
-          "System.Configuration.ConfigurationManager": "[9.0.3, )",
-          "System.Text.Json": "[9.0.3, )"
         }
       }
     }
