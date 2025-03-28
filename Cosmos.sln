@@ -18,6 +18,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.Publisher", "Publish
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.Api", "Cosmos.Api\Cosmos.Api.csproj", "{FC9AB050-4561-457B-981A-436588EE4DB3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.MicrosoftGraph", "..\Cosmos.MicrosoftGraph\Cosmos.MicrosoftGraph.csproj", "{DEC6984D-933B-92C1-17BC-D332984AFF17}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -40,6 +42,10 @@ Global
 		{FC9AB050-4561-457B-981A-436588EE4DB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FC9AB050-4561-457B-981A-436588EE4DB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FC9AB050-4561-457B-981A-436588EE4DB3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DEC6984D-933B-92C1-17BC-D332984AFF17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DEC6984D-933B-92C1-17BC-D332984AFF17}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DEC6984D-933B-92C1-17BC-D332984AFF17}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DEC6984D-933B-92C1-17BC-D332984AFF17}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

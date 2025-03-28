@@ -1,27 +1,15 @@
 // CKEditor configuration for Cosmos CMS.
 import {
     InlineEditor,
-    Alignment,
     Autoformat,
     AutoImage,
     Autosave,
+    BalloonToolbar,
     BlockQuote,
     Bold,
-    Bookmark,
-    Code,
     CodeBlock,
     Essentials,
-    FindAndReplace,
-    FontBackgroundColor,
-    FontColor,
-    FontFamily,
-    FontSize,
-    GeneralHtmlSupport,
     Heading,
-    Highlight,
-    HorizontalLine,
-    HtmlComment,
-    HtmlEmbed,
     ImageBlock,
     ImageCaption,
     ImageInline,
@@ -42,20 +30,7 @@ import {
     MediaEmbed,
     Paragraph,
     PasteFromOffice,
-    RemoveFormat,
-    ShowBlocks,
     SimpleUploadAdapter,
-    SpecialCharacters,
-    SpecialCharactersArrows,
-    SpecialCharactersCurrency,
-    SpecialCharactersEssentials,
-    SpecialCharactersLatin,
-    SpecialCharactersMathematical,
-    SpecialCharactersText,
-    Strikethrough,
-    Style,
-    Subscript,
-    Superscript,
     Table,
     TableCaption,
     TableCellProperties,
@@ -63,10 +38,8 @@ import {
     TableProperties,
     TableToolbar,
     TextTransformation,
-    Title,
     TodoList,
-    Underline,
-    WordCount
+    Underline
 } from 'ckeditor5';
 
 import FileLink from "filelink";
@@ -92,27 +65,15 @@ const LICENSE_KEY = 'GPL'; // or <YOUR_LICENSE_KEY>.
 
 const EditorConfig = {
     plugins: [
-        Alignment,
         Autoformat,
         AutoImage,
         Autosave,
+        BalloonToolbar,
         BlockQuote,
         Bold,
-        Bookmark,
-        Code,
         CodeBlock,
         Essentials,
-        FindAndReplace,
-        FontBackgroundColor,
-        FontColor,
-        FontFamily,
-        FontSize,
-        GeneralHtmlSupport,
         Heading,
-        Highlight,
-        HorizontalLine,
-        HtmlComment,
-        HtmlEmbed,
         ImageBlock,
         ImageCaption,
         ImageInline,
@@ -133,20 +94,7 @@ const EditorConfig = {
         MediaEmbed,
         Paragraph,
         PasteFromOffice,
-        RemoveFormat,
-        ShowBlocks,
         SimpleUploadAdapter,
-        SpecialCharacters,
-        SpecialCharactersArrows,
-        SpecialCharactersCurrency,
-        SpecialCharactersEssentials,
-        SpecialCharactersLatin,
-        SpecialCharactersMathematical,
-        SpecialCharactersText,
-        Strikethrough,
-        Style,
-        Subscript,
-        Superscript,
         Table,
         TableCaption,
         TableCellProperties,
@@ -154,24 +102,34 @@ const EditorConfig = {
         TableProperties,
         TableToolbar,
         TextTransformation,
-        Title,
         TodoList,
         Underline,
-        WordCount,
+
         FileLink,
         InsertImage,
         PageLinkUI,
         VsCodeEditor,
         SignalR,
     ],
+    balloonToolbar: ['bold', 'italic', 'underline', '|', 'link', 'pageLink', 'insertImage', '|', 'bulletedList', 'numberedList'],
     placeholder: 'Add your content here.',
     licenseKey: LICENSE_KEY,
     toolbar: {
         items: [
-            'link',
-            'pageLink',
-            'fileLink',
+            'heading',
+            '|',
+            'imageInsert',
             'insertImage',
+            'mediaEmbed',
+            'insertTable',
+            'blockQuote',
+            'codeBlock',
+            '|',
+            'bulletedList',
+            'numberedList',
+            'todoList',
+            'outdent',
+            'indent'
         ],
         shouldNotGroupWhenFull: false
     },
@@ -190,7 +148,7 @@ const EditorConfig = {
             withCredentials: true
         },
     menuBar: {
-        isVisible: true
+        isVisible: false
     },
     fontFamily: {
         supportAllValues: true
@@ -261,6 +219,7 @@ const EditorConfig = {
     },
     licenseKey: LICENSE_KEY,
     link: {
+        addTargetToExternalLinks: true,
         decorators: {
             openInNewTab: {
                 mode: 'manual',
@@ -272,6 +231,15 @@ const EditorConfig = {
             }
         },
         defaultProtocol: 'https://',
+        decorators: {
+            toggleDownloadable: {
+                mode: 'manual',
+                label: 'Downloadable',
+                attributes: {
+                    download: 'file'
+                }
+            }
+        }
     },
     list: {
         properties: {
@@ -346,5 +314,3 @@ window.createCkEditor = ccms___createEditor;
 document.addEventListener("DOMContentLoaded", function (event) {
     ccms___createEditors();
 });
-
-//export const createEditor = ccms___createEditor;

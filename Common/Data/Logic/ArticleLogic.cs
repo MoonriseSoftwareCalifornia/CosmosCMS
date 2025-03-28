@@ -262,7 +262,6 @@ namespace Cosmos.Common.Data.Logic
         /// <param name="lang">Language to return content as.</param>
         /// <param name="cacheSpan">Length of time for cache to exist.</param>
         /// <param name="layoutCache">Layout cache duration.</param>
-        /// <param name="headRequest">Is this a head request?.</param>
         /// <param name="includeLayout">Include layout with request.</param>
         /// <returns>
         ///     <see cref="ArticleViewModel" />.
@@ -280,7 +279,7 @@ namespace Cosmos.Common.Data.Logic
         ///     </para>
         ///     <para>NOTE: Cannot access articles that have been deleted.</para>
         /// </remarks>
-        public virtual async Task<ArticleViewModel> GetPublishedPageByUrl(string urlPath, string lang = "", TimeSpan? cacheSpan = null, TimeSpan? layoutCache = null, bool headRequest = false, bool includeLayout = true)
+        public virtual async Task<ArticleViewModel> GetPublishedPageByUrl(string urlPath, string lang = "", TimeSpan? cacheSpan = null, TimeSpan? layoutCache = null, bool includeLayout = true)
         {
             urlPath = urlPath?.ToLower().Trim(new char[] { ' ', '/' });
             if (string.IsNullOrEmpty(urlPath) || urlPath.Trim() == "/")
@@ -290,29 +289,6 @@ namespace Cosmos.Common.Data.Logic
 
             if (memoryCache == null || cacheSpan == null)
             {
-                if (headRequest)
-                {
-                    var header = await DbContext.Pages.WithPartitionKey(urlPath)
-                        .Where(a => a.Published.HasValue && a.Published <= DateTimeOffset.UtcNow)
-                        .Select(s => new
-                        {
-                            s.ArticleNumber,
-                            s.Id,
-                            s.Expires,
-                            s.Updated,
-                            s.VersionNumber
-                        })
-                        .OrderByDescending(o => o.VersionNumber).AsNoTracking().FirstOrDefaultAsync();
-                    return new ArticleViewModel()
-                    {
-                        Expires = header.Expires,
-                        Updated = header.Updated,
-                        VersionNumber = header.VersionNumber,
-                        Id = header.Id,
-                        ArticleNumber = header.ArticleNumber
-                    };
-                }
-
                 var entity = await DbContext.Pages.WithPartitionKey(urlPath)
                .Where(a => a.Published <= DateTimeOffset.UtcNow)
                .OrderByDescending(o => o.VersionNumber).AsNoTracking().FirstOrDefaultAsync();
@@ -344,6 +320,32 @@ namespace Cosmos.Common.Data.Logic
             }
 
             return model;
+        }
+
+        /// <summary>
+        ///    Gets the header of the current *published* version of an article.  Gets the home page if ID is null.
+        /// </summary>
+        /// <param name="urlPath">Path to article.</param>
+        /// <returns>ArticleViewModel.</returns>
+        public virtual async Task<ArticleViewModel> GetPublishedPageHeaderByUrl(string urlPath)
+        {
+            urlPath = urlPath?.ToLower().Trim(new char[] { ' ', '/' });
+            if (string.IsNullOrEmpty(urlPath) || urlPath.Trim() == "/")
+            {
+                urlPath = "root";
+            }
+
+            return await DbContext.Pages.WithPartitionKey(urlPath)
+                       .Where(a => a.Published.HasValue && a.Published <= DateTimeOffset.UtcNow)
+                       .Select(s => new ArticleViewModel
+                       {
+                           ArticleNumber = s.ArticleNumber,
+                           Id = s.Id,
+                           Expires = s.Expires,
+                           Updated = s.Updated,
+                           VersionNumber = s.VersionNumber
+                       })
+                       .OrderByDescending(o => o.VersionNumber).AsNoTracking().FirstOrDefaultAsync();
         }
 
         /// <summary>

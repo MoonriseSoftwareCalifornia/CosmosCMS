@@ -10,7 +10,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
-using System.Threading.Tasks;
+using Cosmos.MicrosoftGraph;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -18,7 +18,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Extensions.Logging;
 
 namespace Cosmos.Cms.Areas.Identity.Pages.Account
 {
@@ -136,6 +135,28 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                 await signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, false, true);
             if (result.Succeeded)
             {
+                if (info.LoginProvider == "Microsoft")
+                {
+                    var graphService = this.Request.HttpContext.RequestServices.GetService(typeof(MsGraphService)) as MsGraphService;
+                    if (graphService != null)
+                    {
+                        var userId = info.Principal.Claims.FirstOrDefault(f => f.Type == ClaimTypes.NameIdentifier).Value;
+                        var groups = await graphService.GetGraphApiUserMemberGroups(userId);
+
+                        //if (groups != null)
+                        //{
+                        //    var claims = new List<Claim>();
+
+                        //    foreach (var group in groups)
+                        //    {
+                        //        claims.Add(new Claim(ClaimTypes.Role, group.DisplayName));
+                        //    }
+
+                        //    info.Principal.AddIdentity(new ClaimsIdentity(info.Principal.Identity, claims));
+                        //}
+                    }
+                }
+
                 logger.LogInformation("{Name} logged in with {LoginProvider} provider.", info.Principal.Identity.Name, info.LoginProvider);
                 return LocalRedirect(returnUrl);
             }

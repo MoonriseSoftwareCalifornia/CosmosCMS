@@ -13,7 +13,6 @@ using Cosmos.BlobService;
 using Cosmos.Cms.Common.Services.Configurations;
 using Cosmos.Common.Data;
 using Cosmos.Common.Data.Logic;
-using Cosmos.Common.Services.Configurations;
 using Cosmos.Common.Services.PowerBI;
 using Cosmos.EmailServices;
 using Cosmos.MicrosoftGraph;
@@ -115,6 +114,8 @@ builder.Services.AddCosmosStorageContext(builder.Configuration);
 // Add shared data protection here
 var containerClient = Cosmos.BlobService.ServiceCollectionExtensions.GetBlobContainerClient(builder.Configuration, new DefaultAzureCredential(), "dataprotection");
 containerClient.CreateIfNotExists();
+
+// Add shared data protection here
 builder.Services.AddDataProtection()
     .UseCryptographicAlgorithms(
     new AuthenticatedEncryptorConfiguration
@@ -123,15 +124,6 @@ builder.Services.AddDataProtection()
         ValidationAlgorithm = ValidationAlgorithm.HMACSHA256
     })
     .PersistKeysToAzureBlobStorage(containerClient.GetBlobClient("publisherkeys.xml"));
-
-// Add shared data protection here
-builder.Services.AddDataProtection()
-    .SetApplicationName("publisher").UseCryptographicAlgorithms(
-    new AuthenticatedEncryptorConfiguration
-    {
-        EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
-        ValidationAlgorithm = ValidationAlgorithm.HMACSHA256
-    }).PersistKeysToDbContext<ApplicationDbContext>();
 
 builder.Services.AddMvc()
                 .AddNewtonsoftJson(options =>
@@ -147,7 +139,7 @@ builder.Services.AddCosmosIdentity<ApplicationDbContext, IdentityUser, IdentityR
 // SUPPORTED OAuth Providers
 //-------------------------------
 // Add Google if keys are present
-var googleOAuth = builder.Configuration.GetSection("GoogleOAuth").Get<OAuth>();
+var googleOAuth = builder.Configuration.GetSection("GoogleOAuth").Get<Cosmos.Common.Services.Configurations.OAuth>();
 
 if (googleOAuth != null && googleOAuth.IsConfigured())
 {
@@ -160,7 +152,7 @@ if (googleOAuth != null && googleOAuth.IsConfigured())
 
 // ---------------------------------
 // Add Microsoft if keys are present
-var entraIdOAuth = builder.Configuration.GetSection("MicrosoftOAuth").Get<OAuth>();
+var entraIdOAuth = builder.Configuration.GetSection("MicrosoftOAuth").Get<Cosmos.Common.Services.Configurations.OAuth>();
 
 if (entraIdOAuth != null && entraIdOAuth.IsConfigured())
 {
@@ -185,6 +177,7 @@ if (entraIdOAuth != null && entraIdOAuth.IsConfigured())
                 return Task.CompletedTask;
             };
         }
+
     });
 }
 

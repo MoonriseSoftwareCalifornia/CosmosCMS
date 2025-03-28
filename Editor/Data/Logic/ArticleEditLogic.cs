@@ -930,7 +930,7 @@ namespace Cosmos.Editor.Data.Logic
             {
                 // Will search unpublished and published articles
                 var article = await DbContext.Articles
-                    .Where(a => a.UrlPath == urlPath && activeStatusCodes.Contains(a.StatusCode))
+                    .Where(a => a.UrlPath == urlPath)
                     .OrderByDescending(o => o.VersionNumber)
                     .FirstOrDefaultAsync();
                 return await BuildArticleViewModel(article, lang);
