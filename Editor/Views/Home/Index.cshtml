@@ -37,6 +37,38 @@
             loadDdEditMenu();
         };
         window.addEventListener('resize', function (event) { setupIframe(); }, true);
+
+        $(document).ready(function() {
+            var iframe = $('#iFrameWebPage');
+
+            iframe.on('load', function() {
+                var iframeContent = iframe.contents();
+                iframeContent.on('click', function(event) {
+                    const iframeBaseUrl = "/Home/CcmsContentIndex?target=";
+                    event.preventDefault();
+                    const target = $(event.target);
+                    //const delegate = $(event.delegateTarget);
+                    let anchor;
+
+                    if (target.is('a')) {
+                        anchor = target;
+                    } else {
+                        anchor = target.closest('a');
+                    }
+
+                    if (anchor.is('a')) {
+                        if (anchor.attr("href").toLowerCase().startsWith("http")) {
+                            window.location.href = anchor.attr("href");
+                        }
+                        else {
+                            const href = anchor.attr("href");
+                            const newUrl = iframeBaseUrl + href;
+                            iframe.attr('src', newUrl);
+                        }
+                    }
+                });
+            });
+        });
     </script>
 </body>
 </html>

@@ -100,7 +100,7 @@
 
     const cosmos__designerAssetsEndPoint = "/pub/articles/" + cosmos__id;
     const cosmos__designerAssetsExclude = "";
-    const cosmos__designerDataEndpoint = "'@Url.Action("Designer", "Editor")'";
+    const cosmos__designerDataEndpoint = "/Editor/Designer";
     const cosmos__designerUploadEndpoint = "/FileManager/SimpleUpload?id=" + cosmos__id + "&entityType=articles&editorType=grapesjs";
 
     let grapesjs__canvas__styles = @Html.Raw(JsonConvert.SerializeObject(designerConfig.Styles));
