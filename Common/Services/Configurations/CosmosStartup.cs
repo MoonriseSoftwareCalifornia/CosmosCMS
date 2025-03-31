@@ -110,6 +110,7 @@ namespace Cosmos.Cms.Common.Services.Configurations
             cosmosConfig.SiteSettings.AllowReset = GetValue<bool>("CosmosAllowReset");
 
             cosmosConfig.SiteSettings.CosmosRequiresAuthentication = GetValue<bool?>("CosmosRequiresAuthentication") ?? false;
+            cosmosConfig.SiteSettings.MultiTenantEditor = GetValue<bool?>("MultiTenantEditor") ?? false;
 
             var localLogin = GetValue<bool?>("AllowLocalAccounts");
             if (localLogin.HasValue)
@@ -135,15 +136,17 @@ namespace Cosmos.Cms.Common.Services.Configurations
             cosmosConfig.SendGridConfig.SendGridKey = GetValue<string>("CosmosSendGridApiKey");
 
             // Publish static web pages?
-            cosmosConfig.SiteSettings.StaticWebPages = GetValue<bool>("CosmosStaticWebPages");
+            cosmosConfig.SiteSettings.StaticWebPages = GetValue<bool?>("CosmosStaticWebPages") ?? false;
 
-            // Cosmos Endpoints
+            // Cosmos storage Endpoints
             cosmosConfig.SiteSettings.BlobPublicUrl = GetValue<string>("AzureBlobStorageEndPoint");
 
             // With static website, the public website is the blob storage static website.
             cosmosConfig.SiteSettings.PublisherUrl = GetValue<string>("CosmosPublisherUrl");
 
-            cosmosConfig.SiteSettings.BlobPublicUrl = cosmosConfig.SiteSettings.BlobPublicUrl?.TrimEnd('/');
+            // Set the blob storage endpoint based on settings or configuration.
+            cosmosConfig.SiteSettings.BlobPublicUrl = (cosmosConfig.SiteSettings.MultiTenantEditor || cosmosConfig.SiteSettings.StaticWebPages) ? "/" :
+                cosmosConfig.SiteSettings.BlobPublicUrl?.TrimEnd('/');
 
             var editorUrl = GetValue<string>("CosmosEditorUrl");
 

@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.RateLimiting;
@@ -21,6 +22,7 @@ using Cosmos.Cms.Common.Services.Configurations;
 using Cosmos.Cms.Hubs;
 using Cosmos.Cms.Services;
 using Cosmos.Common.Data;
+using Cosmos.Common.Services;
 using Cosmos.Common.Services.Configurations;
 using Cosmos.Common.Services.PowerBI;
 using Cosmos.Editor.Data.Logic;
@@ -63,29 +65,6 @@ var cosmosStartup = new CosmosStartup(builder.Configuration);
 var option = cosmosStartup.Build();
 builder.Services.AddSingleton(option);
 
-// The Cosmos connection string
-var connectionString = builder.Configuration.GetConnectionString("ApplicationDbContextConnection");
-if (string.IsNullOrEmpty(connectionString))
-{
-    // It has been the case in the past where Linux web apps want upper case variable names.
-    // This is a check for that.
-    var list = builder.Configuration.GetSection("ConnectionStrings").GetChildren();
-    var keys = new List<string>();
-    foreach (var item in list)
-    {
-        keys.Add(item.Key);
-    }
-
-    throw new ArgumentException($"STARTUP: ApplicationDbContextConnection is null or empty. Did find: {string.Join(';', keys)}");
-}
-
-// Name of the Cosmos database to use
-var cosmosIdentityDbName = builder.Configuration.GetValue<string>("CosmosIdentityDbName");
-if (string.IsNullOrEmpty(cosmosIdentityDbName))
-{
-    cosmosIdentityDbName = "cosmoscms";
-}
-
 // If this is set, the Cosmos identity provider will:
 // 1. Create the database if it does not already exist.
 // 2. Create the required containers if they do not already exist.
@@ -93,59 +72,81 @@ if (string.IsNullOrEmpty(cosmosIdentityDbName))
 
 // If the following is set, it will create the Cosmos database and
 //  required containers.
-if (option.Value.SiteSettings.AllowSetup)
-{
-    var tempParts = connectionString.Split(";").Where(w => !string.IsNullOrEmpty(w)).Select(part => part.Split('=')).ToDictionary(sp => sp[0], sp => sp[1], StringComparer.OrdinalIgnoreCase);
-    var tempEndPoint = tempParts["AccountEndpoint"];
-    var tempBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+//if (option.Value.SiteSettings.AllowSetup)
+//{
+//    var tempParts = connectionString.Split(";").Where(w => !string.IsNullOrEmpty(w)).Select(part => part.Split('=')).ToDictionary(sp => sp[0], sp => sp[1], StringComparer.OrdinalIgnoreCase);
+//    var tempEndPoint = tempParts["AccountEndpoint"];
+//    var tempBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
 
-    if (!tempParts.ContainsKey("AccountKey"))
-    {
-        throw new ArgumentException("AccountKey not found in database connection string.");
-    }
+//    if (!tempParts.ContainsKey("AccountKey"))
+//    {
+//        throw new ArgumentException("AccountKey not found in database connection string.");
+//    }
 
-    if (tempParts["AccountKey"] == "AccessToken")
-    {
-        tempBuilder.UseCosmos(tempEndPoint, defaultAzureCredential, cosmosIdentityDbName);
-    }
-    else
-    {
-        tempBuilder.UseCosmos(connectionString, cosmosIdentityDbName);
-        using var dbContext = new ApplicationDbContext(tempBuilder.Options);
-        _ = dbContext.Database.EnsureCreatedAsync().Result;
-    }
-}
+//    if (tempParts["AccountKey"] == "AccessToken")
+//    {
+//        tempBuilder.UseCosmos(tempEndPoint, defaultAzureCredential, cosmosIdentityDbName);
+//    }
+//    else
+//    {
+//        tempBuilder.UseCosmos(connectionString, cosmosIdentityDbName);
+//        using var dbContext = new ApplicationDbContext(tempBuilder.Options);
+//        _ = dbContext.Database.EnsureCreatedAsync().Result;
+//    }
+//}
+
+builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+builder.Services.AddSingleton<IConnectionStringProvider, ConnectionStringProvider>();
 
 // Add the Cosmos database context here
-var cosmosRegionName = builder.Configuration.GetValue<string>("CosmosRegionName");
-var conpartsDict = connectionString.Split(";").Where(w => !string.IsNullOrEmpty(w)).Select(part => part.Split('=')).ToDictionary(sp => sp[0], sp => sp[1]);
-var endpoint = conpartsDict["AccountEndpoint"];
-builder.Services.AddDbContext<ApplicationDbContext>(
-    options =>
+if (option.Value.SiteSettings.MultiTenantEditor)
+{
+    builder.Services.AddDbContext<ApplicationDbContext>();
+}
+else
+{
+    // The Cosmos connection string
+    var connectionString = builder.Configuration.GetConnectionString("ApplicationDbContextConnection");
+
+    // Name of the Cosmos database to use
+    var cosmosIdentityDbName = builder.Configuration.GetValue<string>("CosmosIdentityDbName");
+    if (string.IsNullOrEmpty(cosmosIdentityDbName))
     {
-        if (string.IsNullOrEmpty(cosmosRegionName))
+        cosmosIdentityDbName = "cosmoscms";
+    }
+
+    // Add the Cosmos database context here for single tenant setup.
+    var cosmosRegionName = builder.Configuration.GetValue<string>("CosmosRegionName");
+    var conpartsDict = connectionString.Split(";").Where(w => !string.IsNullOrEmpty(w)).Select(part => part.Split('=')).ToDictionary(sp => sp[0], sp => sp[1]);
+    var endpoint = conpartsDict["AccountEndpoint"];
+
+    builder.Services.AddDbContext<ApplicationDbContext>(
+        options =>
         {
-            if (conpartsDict["AccountKey"] == "AccessToken")
+            if (string.IsNullOrEmpty(cosmosRegionName))
             {
-                options.UseCosmos(endpoint, defaultAzureCredential, cosmosIdentityDbName);
+                if (conpartsDict["AccountKey"] == "AccessToken")
+                {
+                    options.UseCosmos(endpoint, defaultAzureCredential, cosmosIdentityDbName);
+                }
+                else
+                {
+                    options.UseCosmos(connectionString, cosmosIdentityDbName);
+                }
             }
             else
             {
-                options.UseCosmos(connectionString, cosmosIdentityDbName);
+                if (conpartsDict["AccountKey"] == "AccessToken")
+                {
+                    options.UseCosmos(endpoint, defaultAzureCredential, cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
+                }
+                else
+                {
+                    options.UseCosmos(connectionString, cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
+                }
             }
-        }
-        else
-        {
-            if (conpartsDict["AccountKey"] == "AccessToken")
-            {
-                options.UseCosmos(endpoint, defaultAzureCredential, cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
-            }
-            else
-            {
-                options.UseCosmos(connectionString, cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
-            }
-        }
-    }, optionsLifetime: ServiceLifetime.Singleton); // https://github.com/dotnet/efcore/issues/34918
+        }, optionsLifetime: ServiceLifetime.Singleton);
+}
 
 // Add Cosmos Identity here
 builder.Services.AddCosmosIdentity<ApplicationDbContext, IdentityUser, IdentityRole, string>(
@@ -364,6 +365,9 @@ builder.Services.AddRateLimiter(_ => _
     }));
 
 var app = builder.Build();
+
+// Domain middleware used to get the domain name of the current request.
+app.UseMiddleware<DomainMiddleware>();
 
 if (option.Value.SiteSettings.StaticWebPages)
 {

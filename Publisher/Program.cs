@@ -81,32 +81,7 @@ if (string.IsNullOrEmpty(cosmosIdentityDbName))
 var cosmosRegionName = builder.Configuration.GetValue<string>("CosmosRegionName");
 var conpartsDict = connectionString.Split(";").Where(w => !string.IsNullOrEmpty(w)).Select(part => part.Split('=')).ToDictionary(sp => sp[0], sp => sp[1]);
 var endpoint = conpartsDict["AccountEndpoint"];
-builder.Services.AddDbContext<ApplicationDbContext>(
-    options =>
-    {
-        if (string.IsNullOrEmpty(cosmosRegionName))
-        {
-            if (conpartsDict["AccountKey"] == "AccessToken")
-            {
-                options.UseCosmos(endpoint, defaultAzureCredential, cosmosIdentityDbName);
-            }
-            else
-            {
-                options.UseCosmos(connectionString, cosmosIdentityDbName);
-            }
-        }
-        else
-        {
-            if (conpartsDict["AccountKey"] == "AccessToken")
-            {
-                options.UseCosmos(endpoint, defaultAzureCredential, cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
-            }
-            else
-            {
-                options.UseCosmos(connectionString, cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
-            }
-        }
-    }, optionsLifetime: ServiceLifetime.Singleton);
+builder.Services.AddDbContext<ApplicationDbContext>();
 
 // Add the BLOB and File Storage contexts for Cosmos
 builder.Services.AddCosmosStorageContext(builder.Configuration);

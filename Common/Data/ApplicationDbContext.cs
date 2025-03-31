@@ -7,25 +7,49 @@
 
 namespace Cosmos.Common.Data
 {
+    using System.Linq;
+    using System;
     using System.Threading.Tasks;
+    using Azure.Identity;
+    using Cosmos.Common.Services;
     using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Diagnostics;
+    using Microsoft.Extensions.Options;
+    using Microsoft.Extensions.DependencyInjection;
 
     /// <summary>
     ///     Database Context for Cosmos CMS.
     /// </summary>
     public class ApplicationDbContext : AspNetCore.Identity.CosmosDb.CosmosIdentityDbContext<IdentityUser, IdentityRole, string>, IDataProtectionKeyContext
     {
+        private readonly IHttpContextAccessor httpContextAccessor;
+        private readonly IConnectionStringProvider connectionStringProvider;
+        private readonly DefaultAzureCredential defaultAzureCredential;
+        private readonly IOptions<Cms.Common.Services.Configurations.CosmosConfig> cosmosOptions;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ApplicationDbContext"/> class.
         /// </summary>
         /// <param name="options">Database context options.</param>
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+        /// <param name="httpContextAccessor">HTTP context accessor.</param>
+        /// <param name="connectionStringProvider">Connection string provider.</param>
+        /// <param name="defaultAzureCredential">Default Azure credential.</param>
+        /// <param name="cosmosOptions">Cosmos configuration options.</param>
+        public ApplicationDbContext(
+            DbContextOptions<ApplicationDbContext> options,
+            IHttpContextAccessor httpContextAccessor,
+            IConnectionStringProvider connectionStringProvider,
+            DefaultAzureCredential defaultAzureCredential,
+            IOptions<Cms.Common.Services.Configurations.CosmosConfig> cosmosOptions)
             : base(options, true)
         {
-            // Adding true to base constructor to enable CosmosDB provider is backward compatible with the previous version.
+            this.httpContextAccessor = httpContextAccessor;
+            this.connectionStringProvider = connectionStringProvider;
+            this.defaultAzureCredential = defaultAzureCredential;
+            this.cosmosOptions = cosmosOptions;
         }
 
         /// <summary>
@@ -108,6 +132,32 @@ namespace Cosmos.Common.Data
         /// <param name="optionsBuilder">DbContextOptionsBuilder.</param>
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
+            if (cosmosOptions.Value.SiteSettings.MultiTenantEditor)
+            {
+                var domain = httpContextAccessor.HttpContext.Items["Domain"] as string;
+
+                var connectionString =
+                    connectionStringProvider.GetDatabaseConnectionStringByDomain(domain);
+
+                var conpartsDict =
+                    connectionString.Split(";").Where(w =>
+                    !string.IsNullOrEmpty(w)).Select(part => part.Split('='))
+                    .ToDictionary(sp => sp[0], sp => sp[1], StringComparer.OrdinalIgnoreCase);
+
+                var databaseName =
+                    connectionStringProvider.GetDatabaseNameByDomain(domain);
+
+                if (conpartsDict["AccountKey"] == "AccessToken")
+                {
+                    var endpoint = conpartsDict["AccountEndpoint"];
+                    optionsBuilder.UseCosmos(accountEndpoint: endpoint, defaultAzureCredential, databaseName);
+                }
+                else
+                {
+                    optionsBuilder.UseCosmos(connectionString, databaseName: databaseName);
+                }
+            }
+
             // Synchronous blocking on asynchronous methods can result in deadlock, and the
             // Azure Cosmos DB SDK only supports async methods.
             // https://docs.microsoft.com/en-us/ef/core/providers/cosmos/limitations#synchronous-and-blocking-calls
