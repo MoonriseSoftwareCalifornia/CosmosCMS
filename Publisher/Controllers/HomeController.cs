@@ -68,6 +68,12 @@ namespace Cosmos.Cms.Publisher.Controllers
             this.options = options;
             this.dbContext = dbContext;
             this.graphService = graphService;
+
+            // Ensure the database is created if we are in setup mode.
+            if (options.Value.SiteSettings.AllowSetup)
+            {
+                _ = dbContext.Database.EnsureCreatedAsync().Result;
+            }
         }
 
         /// <summary>
@@ -231,7 +237,6 @@ namespace Cosmos.Cms.Publisher.Controllers
                 Response.StatusCode = (int)HttpStatusCode.NotFound;
                 return View("__NotFound");
             }
-
         }
 
         /// <summary>

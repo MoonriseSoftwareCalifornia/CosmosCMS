@@ -25,6 +25,7 @@ using Cosmos.Common.Data;
 using Cosmos.Common.Services;
 using Cosmos.Common.Services.Configurations;
 using Cosmos.Common.Services.PowerBI;
+using Cosmos.ConnectionStrings;
 using Cosmos.Editor.Data.Logic;
 using Cosmos.Editor.Services;
 using Cosmos.EmailServices;
@@ -64,36 +65,6 @@ builder.Services.AddApplicationInsightsTelemetry();
 var cosmosStartup = new CosmosStartup(builder.Configuration);
 var option = cosmosStartup.Build();
 builder.Services.AddSingleton(option);
-
-// If this is set, the Cosmos identity provider will:
-// 1. Create the database if it does not already exist.
-// 2. Create the required containers if they do not already exist.
-// IMPORTANT: Remove this variable if after first run. It will improve startup performance.
-
-// If the following is set, it will create the Cosmos database and
-//  required containers.
-//if (option.Value.SiteSettings.AllowSetup)
-//{
-//    var tempParts = connectionString.Split(";").Where(w => !string.IsNullOrEmpty(w)).Select(part => part.Split('=')).ToDictionary(sp => sp[0], sp => sp[1], StringComparer.OrdinalIgnoreCase);
-//    var tempEndPoint = tempParts["AccountEndpoint"];
-//    var tempBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-
-//    if (!tempParts.ContainsKey("AccountKey"))
-//    {
-//        throw new ArgumentException("AccountKey not found in database connection string.");
-//    }
-
-//    if (tempParts["AccountKey"] == "AccessToken")
-//    {
-//        tempBuilder.UseCosmos(tempEndPoint, defaultAzureCredential, cosmosIdentityDbName);
-//    }
-//    else
-//    {
-//        tempBuilder.UseCosmos(connectionString, cosmosIdentityDbName);
-//        using var dbContext = new ApplicationDbContext(tempBuilder.Options);
-//        _ = dbContext.Database.EnsureCreatedAsync().Result;
-//    }
-//}
 
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddSingleton<IConnectionStringProvider, ConnectionStringProvider>();
@@ -155,18 +126,17 @@ builder.Services.AddCosmosIdentity<ApplicationDbContext, IdentityUser, IdentityR
     .AddDefaultTokenProviders();
 
 // Add shared data protection here
-// Add shared data protection here
-var containerClient = Cosmos.BlobService.ServiceCollectionExtensions.GetBlobContainerClient(builder.Configuration, new DefaultAzureCredential(), "dataprotection");
-containerClient.CreateIfNotExists();
+//var containerClient = Cosmos.BlobService.ServiceCollectionExtensions.GetBlobContainerClient(builder.Configuration, new DefaultAzureCredential(), "dataprotection");
+//containerClient.CreateIfNotExists();
 
-builder.Services.AddDataProtection()
-    .UseCryptographicAlgorithms(
-    new AuthenticatedEncryptorConfiguration
-    {
-        EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
-        ValidationAlgorithm = ValidationAlgorithm.HMACSHA256
-    })
-    .PersistKeysToAzureBlobStorage(containerClient.GetBlobClient("editorkeys.xml"));
+//builder.Services.AddDataProtection()
+//    .UseCryptographicAlgorithms(
+//    new AuthenticatedEncryptorConfiguration
+//    {
+//        EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
+//        ValidationAlgorithm = ValidationAlgorithm.HMACSHA256
+//    })
+//    .PersistKeysToAzureBlobStorage(containerClient.GetBlobClient("editorkeys.xml"));
 
 // ===========================================================
 // SUPPORTED OAuth Providers
@@ -220,12 +190,6 @@ builder.Services.Configure<PowerBiAuth>(builder.Configuration.GetSection("PowerB
 
 // Add Azure CDN/Frontdoor configuration here.
 builder.Services.Configure<CdnService>(builder.Configuration.GetSection("AzureCdnConfig"));
-
-//builder.Services.AddSession(options =>
-//{
-//    options.IdleTimeout = TimeSpan.FromSeconds(3600);
-//    options.Cookie.IsEssential = true;
-//});
 
 // Add Email services
 builder.Services.AddCosmosEmailServices(builder.Configuration);

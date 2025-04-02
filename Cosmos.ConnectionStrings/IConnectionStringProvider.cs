@@ -4,7 +4,7 @@
 // See https://github.com/MoonriseSoftwareCalifornia/CosmosCMS
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
-namespace Cosmos.Common.Services
+namespace Cosmos.ConnectionStrings
 {
     /// <summary>
     /// Connection string provider interface.
@@ -12,38 +12,39 @@ namespace Cosmos.Common.Services
     public interface IConnectionStringProvider
     {
         /// <summary>
-        /// Get configuration value.
-        /// </summary>
-        /// <param name="key">Key name.</param>
-        /// <returns>Key value.</returns>
-        string GetConfigurationValue(string key);
-
-        /// <summary>
         /// Get database name by domain name.
         /// </summary>
         /// <param name="domain">Domain name.</param>
         /// <returns>Database name.</returns>
-        string GetDatabaseNameByDomain(string domain);
+        string? GetDatabaseNameByDomain();
 
         /// <summary>
         /// Get database connection string based on domain.
         /// </summary>
         /// <param name="domain">domain name.</param>
         /// <returns>Connection string.</returns>
-        string GetDatabaseConnectionStringByDomain(string domain);
+        string? GetDatabaseConnectionStringByDomain();
 
         /// <summary>
         /// Get storage connection string based on domain.
         /// </summary>
         /// <param name="domain">Domain name.</param>
         /// <returns>Connection string.</returns>
-        string GetStorageConnectionStringByDomain(string domain);
+        string? GetStorageConnectionStringByDomain();
+
+        /// <summary>
+        /// Get configuration value.
+        /// </summary>
+        /// <param name="key">Key name.</param>
+        /// <returns>Key value.</returns>
+        string? GetConfigurationValue(string key);
 
         /// <summary>
         /// Get connection string by its name.
         /// </summary>
         /// <param name="name">Connection string name.</param>
         /// <returns>Connection string.</returns>
-        string GetConnectionStringByName(string name);
+        string? GetConnectionStringByName(string name);
     }
 }
+

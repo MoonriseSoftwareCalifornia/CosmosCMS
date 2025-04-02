@@ -88,29 +88,17 @@ namespace Cosmos.Cms.Common.Services.Configurations
         {
             var cosmosConfig = new CosmosConfig();
 
+            // Disable AllowSetup if the database is using token authentication.
+            cosmosConfig.SiteSettings.MultiTenantEditor = GetValue<bool?>("MultiTenantEditor") ?? false;
+
             // SETUP VALUES
             var allowSetup = GetValue<bool?>("CosmosAllowSetup");
-
-            // Disable AllowSetup if the database is using token authentication.
-            var dbUsingTokenAuth = configuration.GetConnectionString("ApplicationDbContextConnection").Contains("accesstoken", StringComparison.CurrentCultureIgnoreCase);
-
-            if (allowSetup.HasValue)
-            {
-                if (dbUsingTokenAuth)
-                {
-                    cosmosConfig.SiteSettings.AllowSetup = false;
-                }
-                else
-                {
-                    cosmosConfig.SiteSettings.AllowSetup = allowSetup.Value;
-                }
-            }
+            cosmosConfig.SiteSettings.AllowSetup = allowSetup ?? false;
 
             cosmosConfig.SiteSettings.AllowConfigEdit = GetValue<bool>("CosmosAllowConfigEdit");
             cosmosConfig.SiteSettings.AllowReset = GetValue<bool>("CosmosAllowReset");
 
             cosmosConfig.SiteSettings.CosmosRequiresAuthentication = GetValue<bool?>("CosmosRequiresAuthentication") ?? false;
-            cosmosConfig.SiteSettings.MultiTenantEditor = GetValue<bool?>("MultiTenantEditor") ?? false;
 
             var localLogin = GetValue<bool?>("AllowLocalAccounts");
             if (localLogin.HasValue)

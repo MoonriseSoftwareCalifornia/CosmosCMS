@@ -152,7 +152,6 @@ if (entraIdOAuth != null && entraIdOAuth.IsConfigured())
                 return Task.CompletedTask;
             };
         }
-
     });
 }
 

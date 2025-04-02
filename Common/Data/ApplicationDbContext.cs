@@ -7,49 +7,42 @@
 
 namespace Cosmos.Common.Data
 {
-    using System.Linq;
     using System;
+    using System.Linq;
     using System.Threading.Tasks;
     using Azure.Identity;
+    using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Common.Services;
+    using Cosmos.ConnectionStrings;
     using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
-    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Diagnostics;
-    using Microsoft.Extensions.Options;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Options;
 
     /// <summary>
     ///     Database Context for Cosmos CMS.
     /// </summary>
     public class ApplicationDbContext : AspNetCore.Identity.CosmosDb.CosmosIdentityDbContext<IdentityUser, IdentityRole, string>, IDataProtectionKeyContext
     {
-        private readonly IHttpContextAccessor httpContextAccessor;
-        private readonly IConnectionStringProvider connectionStringProvider;
-        private readonly DefaultAzureCredential defaultAzureCredential;
-        private readonly IOptions<Cms.Common.Services.Configurations.CosmosConfig> cosmosOptions;
+        private readonly IOptions<CosmosConfig> cosmosOptions;
+        private readonly IServiceProvider services;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ApplicationDbContext"/> class.
         /// </summary>
         /// <param name="options">Database context options.</param>
-        /// <param name="httpContextAccessor">HTTP context accessor.</param>
-        /// <param name="connectionStringProvider">Connection string provider.</param>
-        /// <param name="defaultAzureCredential">Default Azure credential.</param>
         /// <param name="cosmosOptions">Cosmos configuration options.</param>
+        /// <param name="services">Service provider.</param>
         public ApplicationDbContext(
             DbContextOptions<ApplicationDbContext> options,
-            IHttpContextAccessor httpContextAccessor,
-            IConnectionStringProvider connectionStringProvider,
-            DefaultAzureCredential defaultAzureCredential,
-            IOptions<Cms.Common.Services.Configurations.CosmosConfig> cosmosOptions)
+            IOptions<CosmosConfig> cosmosOptions,
+            IServiceProvider services)
             : base(options, true)
         {
-            this.httpContextAccessor = httpContextAccessor;
-            this.connectionStringProvider = connectionStringProvider;
-            this.defaultAzureCredential = defaultAzureCredential;
             this.cosmosOptions = cosmosOptions;
+            this.services = services;
         }
 
         /// <summary>
@@ -130,14 +123,14 @@ namespace Cosmos.Common.Data
         /// Modify logging to simple logging service.
         /// </summary>
         /// <param name="optionsBuilder">DbContextOptionsBuilder.</param>
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        protected override void OnConfiguring(
+            DbContextOptionsBuilder optionsBuilder)
         {
-            if (cosmosOptions.Value.SiteSettings.MultiTenantEditor)
+            if (!optionsBuilder.IsConfigured && cosmosOptions.Value.SiteSettings.MultiTenantEditor)
             {
-                var domain = httpContextAccessor.HttpContext.Items["Domain"] as string;
-
+                var connectionStringProvider = services.GetRequiredService<IConnectionStringProvider>();
                 var connectionString =
-                    connectionStringProvider.GetDatabaseConnectionStringByDomain(domain);
+                    connectionStringProvider.GetDatabaseConnectionStringByDomain();
 
                 var conpartsDict =
                     connectionString.Split(";").Where(w =>
@@ -145,10 +138,11 @@ namespace Cosmos.Common.Data
                     .ToDictionary(sp => sp[0], sp => sp[1], StringComparer.OrdinalIgnoreCase);
 
                 var databaseName =
-                    connectionStringProvider.GetDatabaseNameByDomain(domain);
+                    connectionStringProvider.GetDatabaseNameByDomain();
 
                 if (conpartsDict["AccountKey"] == "AccessToken")
                 {
+                    var defaultAzureCredential = services.GetRequiredService<DefaultAzureCredential>();
                     var endpoint = conpartsDict["AccountEndpoint"];
                     optionsBuilder.UseCosmos(accountEndpoint: endpoint, defaultAzureCredential, databaseName);
                 }

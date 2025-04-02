@@ -94,7 +94,6 @@
 		<PackageReference Include="AspNetCore.Identity.CosmosDb" Version="9.0.1" />
 		<PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.4.0" />
 		<PackageReference Include="Azure.Identity" Version="1.13.2" />
-		<PackageReference Include="Cosmos.BlobService" Version="9.0.4.68" />
 		<PackageReference Include="MailChimp.Net.V3" Version="5.7.0" />
 		<PackageReference Include="Cosmos.EmailServices" Version="9.0.1" />
 		<PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="9.0.3" />
@@ -108,6 +107,11 @@
 		</PackageReference>
 		<PackageReference Include="System.Formats.Asn1" Version="9.0.3" />
 		<PackageReference Include="X.Web.Sitemap" Version="2.10.5" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Cosmos.BlobService\Cosmos.BlobService.csproj" />
+	  <ProjectReference Include="..\Cosmos.ConnectionStrings\Cosmos.ConnectionStrings.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
