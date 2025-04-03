@@ -110,6 +110,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\Cosmos.BlobService\Cosmos.BlobService.csproj" />
 	  <ProjectReference Include="..\Cosmos.ConnectionStrings\Cosmos.ConnectionStrings.csproj" />
 	</ItemGroup>
 

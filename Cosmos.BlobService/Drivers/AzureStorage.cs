@@ -536,5 +536,10 @@ namespace Cosmos.BlobService.Drivers
                 this.blobServiceClient = new BlobServiceClient(connectionString);
             }
         }
+
+        public Task<Stream> GetImageThumbnailStreamAsync(string target)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
