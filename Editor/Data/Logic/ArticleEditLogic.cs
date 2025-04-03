@@ -1350,19 +1350,17 @@ namespace Cosmos.Editor.Data.Logic
         ///   Makes sure the article catalog isn't missing anything.
         /// </summary>
         /// <returns>Task.</returns>
-        public async Task UpdateArticleCatalog()
+        public async Task CheckCatalogEntries()
         {
-            var deletedStatus = (int)StatusCodeEnum.Deleted;
-            var articleNumbers = await DbContext.Articles.Where(w => w.StatusCode != deletedStatus).Select(s => s.ArticleNumber).Distinct().ToListAsync();
+            var articleNumbers = await DbContext.Pages.Select(s => s.ArticleNumber).Distinct().ToListAsync();
             var catalogArticleNumbers = await DbContext.ArticleCatalog.Select(s => s.ArticleNumber).Distinct().ToListAsync();
 
-            foreach (var articleNumber in articleNumbers)
+            var missing = catalogArticleNumbers.Except(catalogArticleNumbers).ToList();
+
+            foreach (var articleNumber in missing)
             {
-                if (!catalogArticleNumbers.Contains(articleNumber))
-                {
-                    var last = await DbContext.Articles.Where(w => w.ArticleNumber == articleNumber).OrderBy(o => o.VersionNumber).LastOrDefaultAsync();
-                    await CreateCatalogEntry(last);
-                }
+                var last = await DbContext.Articles.Where(w => w.ArticleNumber == articleNumber  && w.Published != null).OrderBy(o => o.VersionNumber).LastOrDefaultAsync();
+                await CreateCatalogEntry(last);
             }
         }
 
@@ -1507,8 +1505,10 @@ namespace Cosmos.Editor.Data.Logic
 
                 // Update the published pages collection
                 return await UpsertPublishedPage(article.ArticleNumber);
-
             }
+
+            // Make sure the catalog is up to date.
+            await CheckCatalogEntries();
 
             return null;
         }

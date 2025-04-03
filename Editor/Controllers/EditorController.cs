@@ -1890,8 +1890,6 @@ namespace Cosmos.Cms.Controllers
 
             var data = await queryService.QueryWithGroupByAsync<ArticleListViewItem>(query);
 
-            await articleLogic.UpdateArticleCatalog();
-
             var model = data.Select(s => new
             {
                 s.ArticleNumber,
