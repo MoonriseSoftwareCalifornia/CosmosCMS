@@ -123,25 +123,26 @@ namespace Cosmos.Common.Data
         /// Modify logging to simple logging service.
         /// </summary>
         /// <param name="optionsBuilder">DbContextOptionsBuilder.</param>
-        protected override void OnConfiguring(
-            DbContextOptionsBuilder optionsBuilder)
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            if (!optionsBuilder.IsConfigured && cosmosOptions.Value.SiteSettings.MultiTenantEditor)
+            if (!optionsBuilder.IsConfigured)
             {
                 var connectionStringProvider = services.GetRequiredService<IConnectionStringProvider>();
-                var connectionString =
-                    connectionStringProvider.GetDatabaseConnectionStringByDomain();
 
-                var conpartsDict =
-                    connectionString.Split(";").Where(w =>
-                    !string.IsNullOrEmpty(w)).Select(part => part.Split('='))
-                    .ToDictionary(sp => sp[0], sp => sp[1], StringComparer.OrdinalIgnoreCase);
+                var connectionString = cosmosOptions.Value.SiteSettings.MultiTenantEditor ?
+                    connectionStringProvider.GetDatabaseConnectionStringByDomain() :
+                    connectionStringProvider.GetConnectionStringByName("ApplicationDbContextConnection");
 
                 var databaseName =
                     connectionStringProvider.GetDatabaseNameByDomain();
 
-                if (conpartsDict["AccountKey"] == "AccessToken")
+                if (connectionString.Contains("AccountKey=AccessToken", StringComparison.CurrentCultureIgnoreCase))
                 {
+                    var conpartsDict =
+                        connectionString.Split(";").Where(w =>
+                        !string.IsNullOrEmpty(w)).Select(part => part.Split('='))
+                        .ToDictionary(sp => sp[0], sp => sp[1], StringComparer.OrdinalIgnoreCase);
+
                     var defaultAzureCredential = services.GetRequiredService<DefaultAzureCredential>();
                     var endpoint = conpartsDict["AccountEndpoint"];
                     optionsBuilder.UseCosmos(accountEndpoint: endpoint, defaultAzureCredential, databaseName);
@@ -246,5 +247,6 @@ namespace Cosmos.Common.Data
 
             base.OnModelCreating(modelBuilder);
         }
+
     }
 }

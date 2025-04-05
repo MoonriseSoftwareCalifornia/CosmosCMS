@@ -208,9 +208,11 @@ function ccms___initializePond(element) {
 
         element.appendChild(image);
 
-        if (typeof parent.savePageBody == "function") {
-            parent.savePageBody(document.querySelector('div[ccms-content-id]').innerHTML);
+        if (typeof parent.saveEditorRegion == "function") {
+            const id = element.getAttribute("data-ccms-ceid");
+            parent.saveEditorRegion(element.innerHTML, id);
         }
+
         ccms___setupImageWidget(element);
     });
 

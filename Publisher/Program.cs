@@ -36,10 +36,6 @@ builder.Services.AddMemoryCache();
 var defaultAzureCredential = new DefaultAzureCredential();
 builder.Services.AddSingleton(defaultAzureCredential);
 
-// Add Graph services
-builder.Services.AddScoped<MsGraphService>();
-builder.Services.AddScoped<MsGraphClaimsTransformation>();
-
 builder.Services.AddApplicationInsightsTelemetry();
 
 // Add CORS
@@ -78,10 +74,10 @@ if (string.IsNullOrEmpty(cosmosIdentityDbName))
 }
 
 // Add the Cosmos database context here
-var cosmosRegionName = builder.Configuration.GetValue<string>("CosmosRegionName");
-var conpartsDict = connectionString.Split(";").Where(w => !string.IsNullOrEmpty(w)).Select(part => part.Split('=')).ToDictionary(sp => sp[0], sp => sp[1]);
-var endpoint = conpartsDict["AccountEndpoint"];
-builder.Services.AddDbContext<ApplicationDbContext>();
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+{
+    options.UseCosmos(connectionString, cosmosIdentityDbName);
+});
 
 // Add the BLOB and File Storage contexts for Cosmos
 builder.Services.AddCosmosStorageContext(builder.Configuration);
@@ -91,14 +87,7 @@ var containerClient = Cosmos.BlobService.ServiceCollectionExtensions.GetBlobCont
 containerClient.CreateIfNotExists();
 
 // Add shared data protection here
-builder.Services.AddDataProtection()
-    .UseCryptographicAlgorithms(
-    new AuthenticatedEncryptorConfiguration
-    {
-        EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
-        ValidationAlgorithm = ValidationAlgorithm.HMACSHA256
-    })
-    .PersistKeysToAzureBlobStorage(containerClient.GetBlobClient("publisherkeys.xml"));
+builder.Services.AddCosmosCmsDataProtection(builder.Configuration, defaultAzureCredential);
 
 builder.Services.AddMvc()
                 .AddNewtonsoftJson(options =>
@@ -131,6 +120,11 @@ var entraIdOAuth = builder.Configuration.GetSection("MicrosoftOAuth").Get<Cosmos
 
 if (entraIdOAuth != null && entraIdOAuth.IsConfigured())
 {
+
+    // Add Graph services
+    builder.Services.AddScoped<MsGraphService>();
+    builder.Services.AddScoped<MsGraphClaimsTransformation>();
+
     builder.Services.AddAuthentication().AddMicrosoftAccount(options =>
     {
         options.ClientId = entraIdOAuth.ClientId;

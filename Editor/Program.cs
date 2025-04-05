@@ -1,4 +1,4 @@
-﻿// <copyright file="Startup.cs" company="Moonrise Software, LLC">
+﻿// <copyright file="Program.cs" company="Moonrise Software, LLC">
 // Copyright (c) Moonrise Software, LLC. All rights reserved.
 // Licensed under the GNU Public License, Version 3.0 (https://www.gnu.org/licenses/gpl-3.0.html)
 // See https://github.com/MoonriseSoftwareCalifornia/CosmosCMS
@@ -6,10 +6,8 @@
 // </copyright>
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.RateLimiting;
@@ -43,6 +41,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -126,17 +125,7 @@ builder.Services.AddCosmosIdentity<ApplicationDbContext, IdentityUser, IdentityR
     .AddDefaultTokenProviders();
 
 // Add shared data protection here
-//var containerClient = Cosmos.BlobService.ServiceCollectionExtensions.GetBlobContainerClient(builder.Configuration, new DefaultAzureCredential(), "dataprotection");
-//containerClient.CreateIfNotExists();
-
-//builder.Services.AddDataProtection()
-//    .UseCryptographicAlgorithms(
-//    new AuthenticatedEncryptorConfiguration
-//    {
-//        EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
-//        ValidationAlgorithm = ValidationAlgorithm.HMACSHA256
-//    })
-//    .PersistKeysToAzureBlobStorage(containerClient.GetBlobClient("editorkeys.xml"));
+builder.Services.AddCosmosCmsDataProtection(builder.Configuration, defaultAzureCredential);
 
 // ===========================================================
 // SUPPORTED OAuth Providers
@@ -197,6 +186,7 @@ builder.Services.AddCosmosEmailServices(builder.Configuration);
 // Add the BLOB and File Storage contexts for Cosmos
 builder.Services.AddCosmosStorageContext(builder.Configuration);
 
+// Cosmos CMS Editor data logic layer.
 builder.Services.AddTransient<ArticleEditLogic>();
 
 // This is used by the ViewRenderingService 
@@ -329,6 +319,9 @@ builder.Services.AddRateLimiter(_ => _
     }));
 
 var app = builder.Build();
+
+// Enable data protection services for Cosmos CMS.
+app.UseCosmosCmsDataProtection();
 
 // Domain middleware used to get the domain name of the current request.
 app.UseMiddleware<DomainMiddleware>();

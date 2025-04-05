@@ -36,11 +36,12 @@ namespace Cosmos.Cms.Publisher.Controllers
         private readonly ArticleLogic articleLogic;
         private readonly IOptions<CosmosConfig> options;
         private readonly ApplicationDbContext dbContext;
-        private readonly MsGraphService graphService;
+        private readonly MsGraphService? graphService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HomeController"/> class.
         /// </summary>
+        /// <param name="services">Services provider.</param>
         /// <param name="configuration">Configuration.</param>
         /// <param name="logger">Logger.</param>
         /// <param name="articleLogic">Article logic.</param>
@@ -49,8 +50,8 @@ namespace Cosmos.Cms.Publisher.Controllers
         /// <param name="storageContext">Storage context.</param>
         /// <param name="powerBiTokenService">Service used to get tokens from Power BI.</param>
         /// <param name="emailSender">Email services.</param>
-        /// <param name="graphService">Microsoft Graph service.</param>
         public HomeController(
+            IServiceProvider services,
             IConfiguration configuration,
             ILogger<HomeController> logger,
             ArticleLogic articleLogic,
@@ -58,8 +59,7 @@ namespace Cosmos.Cms.Publisher.Controllers
             ApplicationDbContext dbContext,
             StorageContext storageContext,
             PowerBiTokenService powerBiTokenService,
-            IEmailSender emailSender,
-            MsGraphService graphService)
+            IEmailSender emailSender)
             : base(articleLogic, dbContext, storageContext, logger, powerBiTokenService, emailSender, options)
         {
             this.configuration = configuration;
@@ -67,7 +67,14 @@ namespace Cosmos.Cms.Publisher.Controllers
             this.articleLogic = articleLogic;
             this.options = options;
             this.dbContext = dbContext;
-            this.graphService = graphService;
+            try
+            {
+                this.graphService = services.GetRequiredService<MsGraphService>();
+            }
+            catch
+            {
+                // Ignore if the service is not registered.
+            }
 
             // Ensure the database is created if we are in setup mode.
             if (options.Value.SiteSettings.AllowSetup)
@@ -155,7 +162,7 @@ namespace Cosmos.Cms.Publisher.Controllers
                             var principal = User as ClaimsPrincipal;
                             var emailAdress = principal.FindFirstValue(ClaimTypes.Email);
 
-                            var graphUser = await graphService.GetGraphUserByEmailAddress(emailAdress);  
+                            var graphUser = await graphService.GetGraphUserByEmailAddress(emailAdress);
                             var groups = await graphService.GetGraphApiUserMemberGroups(graphUser.FirstOrDefault().Id);
                             if (groups.Any(a => groupArray.Contains(a.DisplayName)))
                             {

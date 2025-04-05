@@ -1905,10 +1905,12 @@
       "cosmos.blobservice": {
         "type": "Project",
         "dependencies": {
+          "Azure.Extensions.AspNetCore.DataProtection.Blobs": "[1.5.0, )",
           "Azure.Identity": "[1.13.2, )",
           "Azure.Storage.Blobs": "[12.24.0, )",
           "Azure.Storage.Files.Shares": "[12.22.0, )",
           "Cosmos.ConnectionStrings": "[9.0.6.7, )",
+          "Microsoft.AspNetCore.DataProtection": "[9.0.3, )",
           "Microsoft.Extensions.Caching.Abstractions": "[9.0.3, )",
           "Microsoft.Extensions.Configuration.Abstractions": "[9.0.3, )",
           "Microsoft.Extensions.Options": "[9.0.3, )"
