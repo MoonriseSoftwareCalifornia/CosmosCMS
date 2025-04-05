@@ -20,5 +20,7 @@ jobs:
       run: dotnet restore
     - name: Build
       run: dotnet build --no-restore -c Release
-    - name: Publish Cosmos Common NuGet
+    - name: Publish Cosmos.Common Nuget Package
       run: dotnet nuget push /home/runner/work/CosmosCMS/CosmosCMS/Common/bin/Release/*.nupkg --api-key ${{ secrets.NUGET_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+    - name: Publish Cosmos.BlobService Nuget Package
+      run: dotnet nuget push /home/runner/work/CosmosCMS/CosmosCMS/Cosmos.BlobService/bin/Release/*.nupkg --api-key ${{ secrets.NUGET_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
