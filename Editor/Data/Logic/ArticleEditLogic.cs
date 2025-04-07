@@ -485,7 +485,7 @@ namespace Cosmos.Editor.Data.Logic
             // =======================================================
             model.Content = Ensure_ContentEditable_IsMarked(model.Content);
 
-            Ensure_Oembed_Handled(model);
+            //Ensure_Oembed_Handled(model);
 
             // Make sure base tag is set properly.
             UpdateHeadBaseTag(model);
@@ -1376,73 +1376,6 @@ namespace Cosmos.Editor.Data.Logic
         private static string NormailizeArticleUrl(string title)
         {
             return title.Trim().Replace(" ", "_").ToLower();
-        }
-
-        /// <summary>
-        /// If an OEMBED element is present, ensures the necessary JavaScript is injected.
-        /// </summary>
-        /// <param name="model">Article view model.</param>
-        private static void Ensure_Oembed_Handled(ArticleViewModel model)
-        {
-            var htmlDoc = new HtmlAgilityPack.HtmlDocument();
-            var footerDoc = new HtmlAgilityPack.HtmlDocument();
-
-            htmlDoc.LoadHtml(string.IsNullOrEmpty(model.Content) ? string.Empty : model.Content);
-            footerDoc.LoadHtml(string.IsNullOrEmpty(model.FooterJavaScript) ? string.Empty : model.FooterJavaScript);
-
-            var oembed = htmlDoc.DocumentNode.SelectNodes("//oembed[@url]");
-            var hasOembed = oembed != null && oembed.Any();
-
-            var embedlyElements = footerDoc.DocumentNode.SelectNodes("//script[@id='cwps_embedly']");
-            var scriptElements = footerDoc.DocumentNode.SelectNodes("//script[@id='cwps_embedly_launch']");
-
-            // Now add or remove supporting JavaScript as  needed
-            if (hasOembed)
-            {
-                // There are OEmbeds, so add supporting JavaScript injects below
-                if (embedlyElements == null || !embedlyElements.Any())
-                {
-                    var embedly = footerDoc.CreateElement("script");
-                    embedly.Id = "cwps_embedly";
-                    embedly.Attributes.Append("async");
-                    embedly.Attributes.Append("charset", "utf-8");
-                    embedly.Attributes.Append("src", "//cdn.embedly.com/widgets/platform.js");
-
-                    footerDoc.DocumentNode.AppendChild(embedly);
-                }
-
-                if (scriptElements == null || !scriptElements.Any())
-                {
-                    var addon = footerDoc.CreateElement("script");
-                    addon.Id = "cwps_embedly_launch";
-                    addon.InnerHtml = "document.querySelectorAll( 'oembed[url]' ).forEach( element => { const anchor = document.createElement( 'a' ); anchor.setAttribute( 'href', element.getAttribute( 'url' ) ); anchor.className = 'embedly-card'; element.appendChild( anchor ); });";
-
-                    footerDoc.DocumentNode.AppendChild(addon);
-                }
-
-                model.FooterJavaScript = footerDoc.DocumentNode.OuterHtml;
-            }
-            else
-            {
-                // There are NO OEmbeds, so REMOVE supporting JavaScript injects below
-                if (embedlyElements != null && embedlyElements.Any())
-                {
-                    foreach (var el in embedlyElements)
-                    {
-                        el.Remove();
-                    }
-                }
-
-                if (scriptElements != null && scriptElements.Any())
-                {
-                    foreach (var el in scriptElements)
-                    {
-                        el.Remove();
-                    }
-                }
-
-                model.FooterJavaScript = footerDoc.DocumentNode.OuterHtml;
-            }
         }
 
         /// <summary>

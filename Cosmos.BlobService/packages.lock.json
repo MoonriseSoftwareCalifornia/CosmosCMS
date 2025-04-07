@@ -316,6 +316,7 @@
           "Microsoft.AspNetCore.Http.Abstractions": "[2.3.0, )",
           "Microsoft.Extensions.Configuration.Abstractions": "[9.0.3, )",
           "Microsoft.Extensions.Configuration.Binder": "[9.0.3, )",
+          "Microsoft.Extensions.Logging.Abstractions": "[9.0.3, )",
           "System.Text.Encodings.Web": "[9.0.3, )"
         }
       }

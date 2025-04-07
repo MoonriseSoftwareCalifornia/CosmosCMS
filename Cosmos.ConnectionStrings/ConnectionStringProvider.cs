@@ -9,6 +9,7 @@ namespace Cosmos.ConnectionStrings
 {
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.Logging;
 
     /// <summary>
     /// Connection string provider.
@@ -17,16 +18,19 @@ namespace Cosmos.ConnectionStrings
     {
         private readonly IConfiguration configuration;
         private readonly IHttpContextAccessor httpContextAccessor;
+        private readonly ILogger<ConnectionStringProvider> logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ConnectionStringProvider"/> class.
         /// </summary>
         /// <param name="configuration">Connection configuration.</param>
         /// <param name="httpContextAccessor">HTTP context accessor.</param>
-        public ConnectionStringProvider(IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
+        /// <param name="logger">Log service.</param>
+        public ConnectionStringProvider(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<ConnectionStringProvider> logger)
         {
             this.configuration = configuration;
             this.httpContextAccessor = httpContextAccessor;
+            this.logger = logger;
         }
 
         /// <summary>
@@ -36,7 +40,7 @@ namespace Cosmos.ConnectionStrings
         {
             get
             {
-                return (httpContextAccessor.HttpContext.Items["Domain"] as string)?.ToLower().Replace('.', '-');
+                return (httpContextAccessor.HttpContext.Request.Host.Host)?.ToLower().Replace('.', '-');
             }
         }
 
@@ -55,8 +59,12 @@ namespace Cosmos.ConnectionStrings
         /// <returns>Database connection string.</returns>
         public string? GetDatabaseConnectionStringByDomain()
         {
-            // Example: Fetch connection string from configuration based on domain
-            return configuration.GetConnectionString($"{Domain}-db");
+            var connString = configuration.GetConnectionString($"{Domain}-db");
+            if (string.IsNullOrEmpty(connString))
+            {
+                throw new Exception($"Connection string for domain connection string '{Domain}-db' not found.");
+            }
+            return connString;
         }
 
         /// <summary>
@@ -65,8 +73,12 @@ namespace Cosmos.ConnectionStrings
         /// <returns>Database connection string.</returns>
         public string? GetStorageConnectionStringByDomain()
         {
-            // Example: Fetch connection string from configuration based on domain
-            return configuration.GetConnectionString($"{Domain}-st");
+            var connString = configuration.GetConnectionString($"{Domain}-st");
+            if (string.IsNullOrEmpty(connString))
+            {
+                throw new Exception($"Connection string for domain connection string '{Domain}-st' not found.");
+            }
+            return connString;
         }
 
         /// <summary>

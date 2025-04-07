@@ -15,9 +15,9 @@
 		<SignAssembly>false</SignAssembly>
 		<AnalysisLevel>5.0</AnalysisLevel>
 		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-		<Version>9.0.6.7</Version>
-		<AssemblyVersion>9.0.6.7</AssemblyVersion>
-		<FileVersion>9.0.6.7</FileVersion>
+		<Version>9.0.6.8</Version>
+		<AssemblyVersion>9.0.6.8</AssemblyVersion>
+		<FileVersion>9.0.6.8</FileVersion>
 		<UserSecretsId>498e495c-d772-4d44-870d-92009f01de57</UserSecretsId>
 		<PackageProjectUrl>https://www.moonrise.net/cosmos</PackageProjectUrl>
 		<NeutralLanguage></NeutralLanguage>
