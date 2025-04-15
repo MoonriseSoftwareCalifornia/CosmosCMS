@@ -17,9 +17,6 @@ using Cosmos.Common.Services.PowerBI;
 using Cosmos.EmailServices;
 using Cosmos.MicrosoftGraph;
 using Microsoft.AspNetCore.Antiforgery;
-using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
-using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
@@ -60,10 +57,12 @@ else
 }
 
 // Get the DB connection string.
-var connectionString = builder.Configuration.GetConnectionString("ApplicationDbContextConnection");
+var connectionString = string.Empty; // builder.Configuration.GetConnectionString("ApplicationDbContextConnection");
 if (string.IsNullOrEmpty(connectionString))
 {
-    throw new InvalidOperationException("Connection string is missing.");
+    var keys = builder.Configuration.AsEnumerable().Select(keys => keys.Key).Where(w => w.StartsWith("ConnectionStrings", StringComparison.CurrentCultureIgnoreCase)).ToArray();
+    var keyString = string.Join(", ", keys);
+    throw new InvalidOperationException("Connection string is missing. Found keys: " + keyString);
 }
 
 // Name of the Cosmos database to use
