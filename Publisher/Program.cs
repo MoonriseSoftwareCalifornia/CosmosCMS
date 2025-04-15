@@ -57,7 +57,7 @@ else
 }
 
 // Get the DB connection string.
-var connectionString = string.Empty; // builder.Configuration.GetConnectionString("ApplicationDbContextConnection");
+var connectionString = builder.Configuration.GetConnectionString("ApplicationDbContextConnection");
 if (string.IsNullOrEmpty(connectionString))
 {
     var keys = builder.Configuration.AsEnumerable().Select(keys => keys.Key).Where(w => w.StartsWith("ConnectionStrings", StringComparison.CurrentCultureIgnoreCase)).ToArray();
