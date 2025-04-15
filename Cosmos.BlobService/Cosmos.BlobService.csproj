@@ -2,9 +2,9 @@
 
 	<PropertyGroup>
 		<TargetFramework>net9.0</TargetFramework>
-		<AssemblyVersion>9.0.7.1</AssemblyVersion>
-		<FileVersion>9.0.7.1</FileVersion>
-		<Version>9.0.7.1</Version>
+		<AssemblyVersion>9.0.7.3</AssemblyVersion>
+		<FileVersion>9.0.7.3</FileVersion>
+		<Version>9.0.7.3</Version>
 		<Title>Cosmos CMS Azure Storage Provider</Title>
 		<Authors>toiyabe62</Authors>
 		<Company>Moonrise Software LLC</Company>
@@ -43,10 +43,10 @@
 		<PackageReference Include="Azure.Identity" Version="1.13.2" />
 		<PackageReference Include="Azure.Storage.Blobs" Version="12.24.0" />
 		<PackageReference Include="Azure.Storage.Files.Shares" Version="12.22.0" />
-		<PackageReference Include="Microsoft.AspNetCore.DataProtection" Version="9.0.3" />
-		<PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="9.0.3" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.3" />
-		<PackageReference Include="Microsoft.Extensions.Options" Version="9.0.3" />
+		<PackageReference Include="Microsoft.AspNetCore.DataProtection" Version="9.0.4" />
+		<PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="9.0.4" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.4" />
+		<PackageReference Include="Microsoft.Extensions.Options" Version="9.0.4" />
 		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

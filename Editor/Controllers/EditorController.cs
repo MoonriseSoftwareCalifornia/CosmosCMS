@@ -1643,107 +1643,101 @@ namespace Cosmos.Cms.Controllers
             model.Content = CryptoJsDecryption.Decrypt(model.Content);
             model.HeadJavaScript = CryptoJsDecryption.Decrypt(model.HeadJavaScript);
             model.FooterJavaScript = CryptoJsDecryption.Decrypt(model.FooterJavaScript);
-
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
-
             var saveError = new StringBuilder();
 
-            if (string.IsNullOrEmpty(model.Title))
-            {
-                throw new ArgumentException("Title cannot be null or empty.");
-            }
-
-            if (model == null)
-            {
-                return NotFound();
-            }
-
-            // Check for nested editable regions.
-            if (!NestedEditableRegionValidation.Validate(model.Content))
-            {
-                ModelState.AddModelError("Content", "Cannot have nested editable regions.");
-            }
-
-            // Next pull the original. This is a view model, not tracked by DbContext.
-            // var article = await articleLogic.GetArticleByArticleNumber(model.ArticleNumber, null);
-            var article = await dbContext.Articles.Where(w => w.ArticleNumber == model.ArticleNumber).OrderBy(o => o.VersionNumber).LastOrDefaultAsync();
-            var entry = await articleLogic.GetCatalogEntry(article);
-
-            if (article == null)
-            {
-                return NotFound();
-            }
-
-            var jsonModel = new SaveCodeResultJsonModel();
-
+            // Validate the model as it comes in.
             if (ModelState.IsValid)
             {
-                try
+                if (model == null)
                 {
-                    var result = await articleLogic.SaveArticle(
-                        new ArticleViewModel()
-                        {
-                            Id = model.Id,
-                            ArticleNumber = article.ArticleNumber,
-                            BannerImage = article.BannerImage,
-                            Content = model.Content,
-                            Title = model.Title,
-                            Published = model.Published,
-                            Expires = article.Expires,
-                            FooterJavaScript = model.FooterJavaScript,
-                            HeadJavaScript = model.HeadJavaScript,
-                            StatusCode = (StatusCodeEnum)article.StatusCode,
-                            UrlPath = article.UrlPath,
-                            VersionNumber = article.VersionNumber,
-                            Updated = model.Updated.Value
-                        }, await GetUserEmail());
+                    return NotFound();
+                }
 
-                    jsonModel.Model = new EditCodePostModel()
+                // Check for nested editable regions.
+                if (!NestedEditableRegionValidation.Validate(model.Content))
+                {
+                    ModelState.AddModelError("Content", "Cannot have nested editable regions.");
+                }
+
+                // Next pull the original. This is a view model, not tracked by DbContext.
+                // var article = await articleLogic.GetArticleByArticleNumber(model.ArticleNumber, null);
+                var article = await dbContext.Articles.Where(w => w.ArticleNumber == model.ArticleNumber).OrderBy(o => o.VersionNumber).LastOrDefaultAsync();
+                var entry = await articleLogic.GetCatalogEntry(article);
+
+                if (article == null)
+                {
+                    return NotFound();
+                }
+
+                var jsonModel = new SaveCodeResultJsonModel();
+
+                // If still valid, continue processing.
+                if (ModelState.IsValid)
+                {
+                    try
                     {
-                        Id = result.Model.Id,
-                        ArticleNumber = result.Model.ArticleNumber,
-                        VersionNumber = result.Model.VersionNumber,
-                        BannerImage = result.Model.BannerImage,
-                        Content = result.Model.Content,
-                        EditingField = model.EditingField,
-                        CustomButtons = model.CustomButtons,
-                        EditorMode = model.EditorMode,
-                        EditorFields = model.EditorFields,
-                        EditorTitle = model.EditorTitle,
-                        EditorType = model.EditorType,
-                        FooterJavaScript = result.Model.FooterJavaScript,
-                        HeadJavaScript = result.Model.HeadJavaScript,
-                        UrlPath = result.Model.UrlPath,
-                        Published = result.Model.Published,
-                        Title = result.Model.Title,
-                        Updated = result.Model.Updated,
-                        ArticlePermissions = entry.ArticlePermissions
-                    };
+                        var result = await articleLogic.SaveArticle(
+                            new ArticleViewModel()
+                            {
+                                Id = model.Id,
+                                ArticleNumber = article.ArticleNumber,
+                                BannerImage = article.BannerImage,
+                                Content = model.Content,
+                                Title = model.Title,
+                                Published = model.Published,
+                                Expires = article.Expires,
+                                FooterJavaScript = model.FooterJavaScript,
+                                HeadJavaScript = model.HeadJavaScript,
+                                StatusCode = (StatusCodeEnum)article.StatusCode,
+                                UrlPath = article.UrlPath,
+                                VersionNumber = article.VersionNumber,
+                                Updated = model.Updated.Value
+                            }, await GetUserEmail());
 
-                    jsonModel.CdnResults = result.CdnResults;
+                        jsonModel.Model = new EditCodePostModel()
+                        {
+                            Id = result.Model.Id,
+                            ArticleNumber = result.Model.ArticleNumber,
+                            VersionNumber = result.Model.VersionNumber,
+                            BannerImage = result.Model.BannerImage,
+                            Content = result.Model.Content,
+                            EditingField = model.EditingField,
+                            CustomButtons = model.CustomButtons,
+                            EditorMode = model.EditorMode,
+                            EditorFields = model.EditorFields,
+                            EditorTitle = model.EditorTitle,
+                            EditorType = model.EditorType,
+                            FooterJavaScript = result.Model.FooterJavaScript,
+                            HeadJavaScript = result.Model.HeadJavaScript,
+                            UrlPath = result.Model.UrlPath,
+                            Published = result.Model.Published,
+                            Title = result.Model.Title,
+                            Updated = result.Model.Updated,
+                            ArticlePermissions = entry.ArticlePermissions
+                        };
+
+                        jsonModel.CdnResults = result.CdnResults;
+                    }
+                    catch (Exception e)
+                    {
+                        ViewData["Version"] = article.VersionNumber;
+                        var provider = new EmptyModelMetadataProvider();
+                        ModelState.AddModelError("Save", e, provider.GetMetadataForType(typeof(string)));
+                        logger.LogError(e, e.Message);
+                    }
+
+                    jsonModel.ErrorCount = ModelState.ErrorCount;
+                    jsonModel.IsValid = ModelState.IsValid;
+
+                    jsonModel.Errors.AddRange(ModelState.Values
+                        .Where(w => w.ValidationState == ModelValidationState.Invalid)
+                        .ToList());
+                    jsonModel.ValidationState = ModelState.ValidationState;
+
+                    ViewData["Version"] = jsonModel.Model.VersionNumber;
+
+                    return Json(jsonModel);
                 }
-                catch (Exception e)
-                {
-                    ViewData["Version"] = article.VersionNumber;
-                    var provider = new EmptyModelMetadataProvider();
-                    ModelState.AddModelError("Save", e, provider.GetMetadataForType(typeof(string)));
-                    logger.LogError(e, e.Message);
-                }
-
-                jsonModel.ErrorCount = ModelState.ErrorCount;
-                jsonModel.IsValid = ModelState.IsValid;
-
-                jsonModel.Errors.AddRange(ModelState.Values
-                    .Where(w => w.ValidationState == ModelValidationState.Invalid)
-                    .ToList());
-                jsonModel.ValidationState = ModelState.ValidationState;
-
-                ViewData["Version"] = jsonModel.Model.VersionNumber;
-
-                return Json(jsonModel);
             }
 
             saveError.AppendLine("Error(s):");

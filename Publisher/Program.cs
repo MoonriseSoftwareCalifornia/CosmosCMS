@@ -120,7 +120,6 @@ var entraIdOAuth = builder.Configuration.GetSection("MicrosoftOAuth").Get<Cosmos
 
 if (entraIdOAuth != null && entraIdOAuth.IsConfigured())
 {
-
     // Add Graph services
     builder.Services.AddScoped<MsGraphService>();
     builder.Services.AddScoped<MsGraphClaimsTransformation>();

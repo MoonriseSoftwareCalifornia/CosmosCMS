@@ -32,6 +32,7 @@ namespace Cosmos.Editor.Data.Logic
         private readonly IMemoryCache memoryCache;
         private readonly IConfiguration configuration;
         private readonly bool isMultiTenantEditor;
+        private readonly EditorConfig editorConfig;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EditorSettings"/> class.
@@ -47,6 +48,7 @@ namespace Cosmos.Editor.Data.Logic
             this.memoryCache = memoryCache;
             this.configuration = configuration;
             this.isMultiTenantEditor = this.configuration.GetValue<bool?>("MultiTenantEditor") ?? false;
+            this.editorConfig = GetEditorConfig();
         }
 
         /// <summary>
@@ -67,12 +69,7 @@ namespace Cosmos.Editor.Data.Logic
         {
             get
             {
-                if (isMultiTenantEditor)
-                {
-                    return GetEditorConfig().AllowSetup;
-                }
-
-                return configuration.GetValue<bool?>("AllowSetup") ?? false;
+                return this.editorConfig.AllowSetup;
             }
         }
 
@@ -83,12 +80,7 @@ namespace Cosmos.Editor.Data.Logic
         {
             get
             {
-                if (isMultiTenantEditor)
-                {
-                    return GetEditorConfig().BlobPublicUrl;
-                }
-
-                return configuration.GetValue<string>("AzureBlobStorageEndPoint");
+                return this.editorConfig.BlobPublicUrl;
             }
         }
 
@@ -99,19 +91,14 @@ namespace Cosmos.Editor.Data.Logic
         {
             get
             {
-                if (isMultiTenantEditor)
-                {
-                    return GetEditorConfig().CosmosRequiresAuthentication;
-                }
-
-                return configuration.GetValue<bool?>("CosmosRequiresAuthentication") ?? false;
+                return this.editorConfig.CosmosRequiresAuthentication;
             }
         }
 
         /// <summary>
         /// Gets a value indicating whether the editor is a multi-tenant editor.
         /// </summary>
-        public bool IsMultiTenantEditor 
+        public bool IsMultiTenantEditor
         {
             get
             {
@@ -126,12 +113,7 @@ namespace Cosmos.Editor.Data.Logic
         {
             get
             {
-                if (isMultiTenantEditor)
-                {
-                    return GetEditorConfig().MicrosoftAppId;
-                }
-
-                return configuration.GetValue<string>("MicrosoftAppId") ?? string.Empty;
+                return this.editorConfig.MicrosoftAppId;
             }
         }
 
@@ -142,12 +124,7 @@ namespace Cosmos.Editor.Data.Logic
         {
             get
             {
-                if (isMultiTenantEditor)
-                {
-                    return GetEditorConfig().BlobPublicUrl;
-                }
-
-                return configuration.GetValue<string>("CosmosPublisherUrl");
+                return this.editorConfig.PublisherUrl;
             }
         }
 
@@ -158,12 +135,7 @@ namespace Cosmos.Editor.Data.Logic
         {
             get
             {
-                if (isMultiTenantEditor)
-                {
-                    return GetEditorConfig().StaticWebPages;
-                }
-
-                return configuration.GetValue<bool?>("CosmosStaticWebPages") ?? false;
+                return this.editorConfig.StaticWebPages;
             }
         }
 
@@ -174,7 +146,6 @@ namespace Cosmos.Editor.Data.Logic
         public Uri GetBlobAbsoluteUrl()
         {
             var htmlUtilities = new HtmlUtilities();
-            var config = GetEditorConfig();
 
             if (htmlUtilities.IsAbsoluteUri(BlobPublicUrl))
             {
@@ -192,17 +163,43 @@ namespace Cosmos.Editor.Data.Logic
         /// <returns>Editor configuration.</returns>
         public EditorConfig GetEditorConfig()
         {
-            var setting = dbContext.Settings.FirstOrDefaultAsync(f => f.Group == EDITORSETGROUPNAME).Result;
-            if (setting == null || string.IsNullOrWhiteSpace(setting.Value))
+            if (memoryCache.TryGetValue($"{this.httpContextAccessor.HttpContext.Request.Host.Host}-conf", out EditorConfig config))
             {
-                return new EditorConfig()
+                return config;
+            }
+
+            if (this.isMultiTenantEditor)
+            {
+                var setting = dbContext.Settings.FirstOrDefaultAsync(f => f.Group == EDITORSETGROUPNAME);
+                setting.Wait();
+                var settingResult = setting.Result;
+
+                if (settingResult == null || string.IsNullOrWhiteSpace(settingResult.Value))
                 {
-                    AllowSetup = true,
+                    return new EditorConfig()
+                    {
+                        AllowSetup = true,
+                        IsMultiTenantEditor = this.isMultiTenantEditor,
+                    };
+                }
+
+                config = new EditorConfig(settingResult.Value);
+            }
+            else
+            {
+                config = new EditorConfig()
+                {
+                    AllowSetup = this.configuration.GetValue<bool?>("AllowSetup") ?? false,
                     IsMultiTenantEditor = this.isMultiTenantEditor,
+                    BlobPublicUrl = this.configuration.GetValue<string>("AzureBlobStorageEndPoint"),
+                    CosmosRequiresAuthentication = this.configuration.GetValue<bool?>("CosmosRequiresAuthentication") ?? false,
+                    MicrosoftAppId = this.configuration.GetValue<string>("MicrosoftAppId") ?? string.Empty,
+                    PublisherUrl = this.configuration.GetValue<string>("CosmosPublisherUrl"),
+                    StaticWebPages = this.configuration.GetValue<bool?>("CosmosStaticWebPages") ?? false,
                 };
             }
 
-            var config = new EditorConfig(setting.Value);
+            memoryCache.Set($"{this.httpContextAccessor.HttpContext.Request.Host.Host}-conf", config, TimeSpan.FromMinutes(5));
             return config;
         }
     }

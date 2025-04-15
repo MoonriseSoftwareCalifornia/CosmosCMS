@@ -15,9 +15,9 @@
 		<SignAssembly>false</SignAssembly>
 		<AnalysisLevel>5.0</AnalysisLevel>
 		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-		<Version>9.0.7.1</Version>
-		<AssemblyVersion>9.0.7.1</AssemblyVersion>
-		<FileVersion>9.0.7.1</FileVersion>
+		<Version>9.0.7.3</Version>
+		<AssemblyVersion>9.0.7.3</AssemblyVersion>
+		<FileVersion>9.0.7.3</FileVersion>
 		<UserSecretsId>498e495c-d772-4d44-870d-92009f01de57</UserSecretsId>
 		<PackageProjectUrl>https://www.moonrise.net/cosmos</PackageProjectUrl>
 		<NeutralLanguage></NeutralLanguage>
@@ -96,16 +96,16 @@
 		<PackageReference Include="Azure.Identity" Version="1.13.2" />
 		<PackageReference Include="MailChimp.Net.V3" Version="5.7.0" />
 		<PackageReference Include="Cosmos.EmailServices" Version="9.0.1" />
-		<PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="9.0.3" />
-		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.3" />
-		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.3" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.3" />
+		<PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="9.0.4" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.4" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.4" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.4" />
 		<PackageReference Include="Microsoft.PowerBI.Api" Version="4.22.0" />
 		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="System.Formats.Asn1" Version="9.0.3" />
+		<PackageReference Include="System.Formats.Asn1" Version="9.0.4" />
 		<PackageReference Include="X.Web.Sitemap" Version="2.10.5" />
 	</ItemGroup>
 

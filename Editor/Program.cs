@@ -64,7 +64,7 @@ builder.Services.AddSingleton<IDynamicConfigurationProvider, DynamicConfiguratio
 builder.Services.AddDbContext<ApplicationDbContext>();
 
 // This service has to appear right after DB Context.
-builder.Services.AddTransient<IEditorSettings, EditorSettings>();
+builder.Services.AddScoped<IEditorSettings, EditorSettings>();
 
 // Add Cosmos Identity here
 builder.Services.AddCosmosIdentity<ApplicationDbContext, IdentityUser, IdentityRole, string>(

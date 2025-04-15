@@ -192,7 +192,7 @@
     }
 
     function cosmos__designerPostData() {
-        $.post(cosmos__designerDataEndpoint,
+        $.post(cosmos__designerPostEndpoint,
             $("#frmSave").serialize(),
             function(response) {
                 saveInProgress = false;

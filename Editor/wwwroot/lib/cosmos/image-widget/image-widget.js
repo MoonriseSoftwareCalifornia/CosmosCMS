@@ -8,6 +8,15 @@
     ccms___initializePond(element);
 }
 
+function newGuid() {
+    function s4() {
+        return Math.floor((1 + Math.random()) * 0x10000)
+            .toString(16)
+            .substring(1);
+    }
+    return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+}
+
 function debounce(func, wait) {
     let timeout;
     return function (...args) {
@@ -108,14 +117,14 @@ function ccms___setupImageWidget(element) {
     const ponds = element.querySelectorAll(".filepond--root");
     ponds.forEach(pond => { pond.remove(); });
 
-    const id = element.getAttribute("data-ccms-ceid");
+    let id = element.getAttribute("data-ccms-ceid");
 
     if (typeof id === "undefined" && isNew === "undefined") {
         return;
     }
 
     if (isNew) {
-        const guid = ccms__generateGUID(); // This function is defined in the Editor/wwwroot/lib/cosmos/dublicator/dublicator.js file.
+        const guid = newGuid(); // This function is defined in the Editor/wwwroot/lib/cosmos/dublicator/dublicator.js file.
         element.setAttribute("data-ccms-ceid", guid);
         element.removeAttribute("data-ccms-new");
         id = element.getAttribute("data-ccms-ceid");

@@ -36,7 +36,7 @@ namespace Cosmos.Cms.Publisher.Controllers
         private readonly ArticleLogic articleLogic;
         private readonly IOptions<CosmosConfig> options;
         private readonly ApplicationDbContext dbContext;
-        private readonly MsGraphService? graphService;
+        private readonly MsGraphService graphService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HomeController"/> class.

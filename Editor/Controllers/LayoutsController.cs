@@ -31,11 +31,8 @@ namespace Cosmos.Cms.Controllers
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.ModelBinding;
-    using Microsoft.Build.Framework;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Options;
-    using NUglify;
 
     /// <summary>
     /// Layouts controller.
@@ -419,30 +416,6 @@ namespace Cosmos.Cms.Controllers
 
             return Json(new { success = true });
         }
-
-        private string GetTextBetween(string input, string start, string end)
-        {
-            if (string.IsNullOrEmpty(input) || string.IsNullOrEmpty(start) || string.IsNullOrEmpty(end))
-            {
-                return string.Empty;
-            }
-
-            int startIndex = input.IndexOf(start);
-            if (startIndex == -1)
-            {
-                return string.Empty;
-            }
-
-            startIndex += start.Length;
-            int endIndex = input.IndexOf(end, startIndex);
-            if (endIndex == -1)
-            {
-                return string.Empty;
-            }
-
-            return input.Substring(startIndex, endIndex - startIndex);
-        }
-
 
         /// <summary>
         /// Edit the page header and footer of a layout.
@@ -932,9 +905,27 @@ namespace Cosmos.Cms.Controllers
             return View(model);
         }
 
-        private bool LayoutExists(Guid id)
+        private string GetTextBetween(string input, string start, string end)
         {
-            return dbContext.Layouts.Where(e => e.Id == id).CosmosAnyAsync().Result;
+            if (string.IsNullOrEmpty(input) || string.IsNullOrEmpty(start) || string.IsNullOrEmpty(end))
+            {
+                return string.Empty;
+            }
+
+            int startIndex = input.IndexOf(start);
+            if (startIndex == -1)
+            {
+                return string.Empty;
+            }
+
+            startIndex += start.Length;
+            int endIndex = input.IndexOf(end, startIndex);
+            if (endIndex == -1)
+            {
+                return string.Empty;
+            }
+
+            return input.Substring(startIndex, endIndex - startIndex);
         }
 
         private async Task PurgeCdn()
