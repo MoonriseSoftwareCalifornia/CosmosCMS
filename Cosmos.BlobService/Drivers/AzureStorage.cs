@@ -20,7 +20,7 @@ namespace Cosmos.BlobService.Drivers
     using Azure.Storage.Blobs.Specialized;
     using Cosmos.BlobService.Config;
     using Cosmos.BlobService.Models;
-    using Cosmos.ConnectionStrings;
+    using Cosmos.DynamicConfig;
     using Microsoft.Extensions.DependencyInjection;
 
     /// <summary>
@@ -41,10 +41,10 @@ namespace Cosmos.BlobService.Drivers
         /// <param name="containerName">Name of container (default is $web).</param>
         public AzureStorage(IServiceProvider services, DefaultAzureCredential defaultAzureCredential, bool isMultiTenant, string containerName = "$web")
         {
-            var connectionStringProvider = services.GetRequiredService<IConnectionStringProvider>();
+            var connectionStringProvider = services.GetRequiredService<IDynamicConfigurationProvider>();
 
             var connectionString = isMultiTenant ?
-                connectionStringProvider.GetStorageConnectionStringByDomain() :
+                connectionStringProvider.GetStorageConnectionString() :
                 connectionStringProvider.GetConnectionStringByName("AzureBlobStorageConnectionString");
 
             this.Initialize(containerName, connectionString, defaultAzureCredential);

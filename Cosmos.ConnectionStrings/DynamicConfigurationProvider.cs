@@ -5,20 +5,22 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
-namespace Cosmos.ConnectionStrings
+namespace Cosmos.DynamicConfig
 {
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Configuration;
-    using Microsoft.Extensions.Logging;
 
     /// <summary>
-    /// Connection string provider.
+    /// Gets connection strings and configuration values from the configuration file.
     /// </summary>
-    public class ConnectionStringProvider : IConnectionStringProvider
+    /// <remarks>
+    /// If in a multi-tenant environment, the connection string names are prefixed by the domain name.
+    /// </remarks>
+    public class DynamicConfigurationProvider : IDynamicConfigurationProvider
     {
         private readonly IConfiguration configuration;
         private readonly IHttpContextAccessor httpContextAccessor;
-        private readonly ILogger<ConnectionStringProvider> logger;
+        private readonly bool isMultiTenantEditor;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ConnectionStringProvider"/> class.
@@ -26,11 +28,13 @@ namespace Cosmos.ConnectionStrings
         /// <param name="configuration">Connection configuration.</param>
         /// <param name="httpContextAccessor">HTTP context accessor.</param>
         /// <param name="logger">Log service.</param>
-        public ConnectionStringProvider(IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ILogger<ConnectionStringProvider> logger)
+        public DynamicConfigurationProvider(
+            IConfiguration configuration,
+            IHttpContextAccessor httpContextAccessor)
         {
             this.configuration = configuration;
             this.httpContextAccessor = httpContextAccessor;
-            this.logger = logger;
+            isMultiTenantEditor = this.configuration.GetValue<bool?>("MultiTenantEditor") ?? false;
         }
 
         /// <summary>
@@ -45,40 +49,52 @@ namespace Cosmos.ConnectionStrings
         }
 
         /// <summary>
-        /// Gets the database name by domain name.
+        /// Gets the database name.
         /// </summary>
         /// <returns>Database name.</returns>
-        public string? GetDatabaseNameByDomain()
+        public string GetDatabaseName()
         {
-            return configuration.GetValue<string>($"{Domain}-dbname") ?? "cosmoscms";
+            if (this.isMultiTenantEditor)
+            {
+                return configuration.GetValue<string>($"{Domain}-dbname") ?? "cosmoscms";
+            }
+            return configuration.GetValue<string>($"CosmosIdentityDbName") ?? "cosmoscms";
         }
 
         /// <summary>
-        /// Gets the connection string based on the domain.
+        /// Gets the database connection string.
         /// </summary>
         /// <returns>Database connection string.</returns>
-        public string? GetDatabaseConnectionStringByDomain()
+        public string? GetDatabaseConnectionString()
         {
-            var connString = configuration.GetConnectionString($"{Domain}-db");
-            if (string.IsNullOrEmpty(connString))
+            if (this.isMultiTenantEditor)
             {
-                throw new Exception($"Connection string for domain connection string '{Domain}-db' not found.");
+                var connString = configuration.GetConnectionString($"{Domain}-db");
+                if (string.IsNullOrEmpty(connString))
+                {
+                    throw new Exception($"Connection string for domain connection string '{Domain}-db' not found.");
+                }
+                return connString;
             }
-            return connString;
+            return configuration.GetConnectionString("ApplicationDbContextConnection");
         }
 
         /// <summary>
-        /// Gets the connection string based on the domain.
+        /// Gets the storage connection string.
         /// </summary>
         /// <returns>Database connection string.</returns>
-        public string? GetStorageConnectionStringByDomain()
+        public string? GetStorageConnectionString()
         {
-            var connString = configuration.GetConnectionString($"{Domain}-st");
-            if (string.IsNullOrEmpty(connString))
+            if (this.isMultiTenantEditor)
             {
-                throw new Exception($"Connection string for domain connection string '{Domain}-st' not found.");
+                var connString = configuration.GetConnectionString($"{Domain}-st");
+                if (string.IsNullOrEmpty(connString))
+                {
+                    throw new Exception($"Connection string for domain connection string '{Domain}-st' not found.");
+                }
+                return connString;
             }
-            return connString;
+            return configuration.GetConnectionString("AzureBlobStorageConnectionString");
         }
 
         /// <summary>

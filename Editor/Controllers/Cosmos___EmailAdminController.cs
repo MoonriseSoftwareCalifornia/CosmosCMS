@@ -25,7 +25,6 @@ namespace Cosmos.Editor.Controllers
         private readonly ILogger<EmailAdminController> logger;
         private readonly ICosmosEmailSender emailSender;
 
-
         /// <summary>
         /// Initializes a new instance of the <see cref="EmailAdminController"/> class.
         /// </summary>

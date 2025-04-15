@@ -1,7 +1,8 @@
 @using Cosmos.Cms.Common.Services.Configurations;
 @using Cosmos.Cms.Services
+@using Cosmos.Editor.Data.Logic
 @using Microsoft.Extensions.Options;
-@inject IOptions<CosmosConfig> options
+@inject IEditorSettings options
 @model List<ArticleListItem>
 @{
     ViewData["Title"] = "Web Page Inventory";
@@ -63,7 +64,7 @@
                 <div id="pagelist-table" class="table-dark"></div>
                 <script>
 
-                    const publisherUrl = "@options.Value.SiteSettings.PublisherUrl.TrimEnd('/')";
+                    const publisherUrl = "@options.PublisherUrl.TrimEnd('/')";
                     const tblHeight = window.innerHeight - 200;
                     let pageSize = Math.round(tblHeight / 50) + 1;
 

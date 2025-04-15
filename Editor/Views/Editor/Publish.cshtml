@@ -1,7 +1,8 @@
 ﻿@using Cosmos.Cms.Common.Services.Configurations
+@using Cosmos.Editor.Data.Logic
 @using Microsoft.Extensions.Options
 @model ArticleViewModel
-@inject IOptions<CosmosConfig> options
+@inject IEditorSettings options
 @{
     ViewData["Title"] = "Publish Website";
 }
@@ -71,7 +72,7 @@
     let count = 61;
     let second = 1;
     let publishedPages = [];
-    const staticWebsite = @options.Value.SiteSettings.StaticWebPages.ToString().ToLower();
+    const staticWebsite = @options.StaticWebPages.ToString().ToLower();
 
     $("#btnStartCountDown").click(function(e) {
         e.preventDefault();

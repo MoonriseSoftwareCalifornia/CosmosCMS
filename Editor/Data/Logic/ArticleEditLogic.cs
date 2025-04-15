@@ -11,7 +11,6 @@ namespace Cosmos.Editor.Data.Logic
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Runtime.CompilerServices;
     using System.Text;
     using System.Threading.Tasks;
     using System.Web;
@@ -26,12 +25,12 @@ namespace Cosmos.Editor.Data.Logic
     using Cosmos.Common.Models;
     using Cosmos.Editor.Controllers;
     using Cosmos.Editor.Services;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Newtonsoft.Json;
-    using NUglify;
     using SendGrid.Helpers.Errors.Model;
     using X.Web.Sitemap.Extensions;
 
@@ -46,6 +45,7 @@ namespace Cosmos.Editor.Data.Logic
         private readonly IViewRenderService viewRenderService;
         private readonly StorageContext storageContext;
         private readonly ILogger<ArticleEditLogic> logger;
+        private readonly IHttpContextAccessor accessor;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ArticleEditLogic"/> class.
@@ -57,13 +57,15 @@ namespace Cosmos.Editor.Data.Logic
         /// <param name="viewRenderService">View rendering service used to save static web pages.</param>
         /// <param name="storageContext">Storage service used to manage static website blobs.</param>
         /// <param name="logger">Log service.</param>
+        /// <param name="accessor">Http context access.</param>
         public ArticleEditLogic(
             ApplicationDbContext dbContext,
             IMemoryCache memoryCache,
             IOptions<CosmosConfig> config,
             IViewRenderService viewRenderService,
             StorageContext storageContext,
-            ILogger<ArticleEditLogic> logger)
+            ILogger<ArticleEditLogic> logger,
+            IHttpContextAccessor accessor)
             : base(
                 dbContext,
                 config,
@@ -73,6 +75,7 @@ namespace Cosmos.Editor.Data.Logic
             this.viewRenderService = viewRenderService;
             this.storageContext = storageContext;
             this.logger = logger;
+            this.accessor = accessor;
         }
 
         /// <summary>
@@ -1641,8 +1644,8 @@ namespace Cosmos.Editor.Data.Logic
 
             if (purgePaths.Count > 0)
             {
-                var settings = await Cosmos___CdnController.GetCdnConfiguration(DbContext);
-                var cdnService = new CdnService(settings, logger);
+                var settings = await Cosmos___SettingsController.GetCdnConfiguration(DbContext);
+                var cdnService = new CdnService(settings, logger, accessor.HttpContext);
                 try
                 {
                     return await cdnService.PurgeCdn(purgePaths.Select(s => "/" + s.Trim('/')).Distinct().ToList());

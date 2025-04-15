@@ -27,7 +27,6 @@ namespace Cosmos.Cms.Controllers
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Options;
     using Microsoft.Net.Http.Headers;
 
     /// <summary>
@@ -38,9 +37,8 @@ namespace Cosmos.Cms.Controllers
     public class HomeController : HomeControllerBase
     {
         private readonly ArticleEditLogic articleLogic;
-        private readonly IOptions<CosmosConfig> options;
+        private readonly IEditorSettings options;
         private readonly ApplicationDbContext dbContext;
-        private readonly ILogger<HomeController> logger;
         private readonly UserManager<IdentityUser> userManager;
         private readonly StorageContext storageContext;
 
@@ -57,16 +55,15 @@ namespace Cosmos.Cms.Controllers
         /// <param name="emailSender">Email service.</param>
         public HomeController(
             ILogger<HomeController> logger,
-            IOptions<CosmosConfig> options,
+            IEditorSettings options,
             ApplicationDbContext dbContext,
             ArticleEditLogic articleLogic,
             UserManager<IdentityUser> userManager,
             StorageContext storageContext,
             PowerBiTokenService powerBiTokenService,
             IEmailSender emailSender)
-            : base(articleLogic, dbContext, storageContext, logger, powerBiTokenService, emailSender, options)
+            : base(articleLogic, dbContext, storageContext, logger, powerBiTokenService, emailSender)
         {
-            this.logger = logger;
             this.options = options;
             this.articleLogic = articleLogic;
             this.dbContext = dbContext;
@@ -86,16 +83,6 @@ namespace Cosmos.Cms.Controllers
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
-            }
-
-            if (!await EnsureLayoutExists())
-            {
-                return RedirectToAction("Index", "Layouts");
-            }
-
-            if (!await EnsureArticleExists())
-            {
-                return RedirectToAction("Index", "Edit");
             }
 
             ArticleViewModel article;
@@ -174,7 +161,7 @@ namespace Cosmos.Cms.Controllers
                     return Redirect("~/Identity/Account/Logout");
                 }
 
-                if (options.Value.SiteSettings.AllowSetup && (await dbContext.Users.CountAsync()) == 1 && !User.IsInRole("Administrators"))
+                if (options.AllowSetup && (await dbContext.Users.CountAsync()) == 1 && !User.IsInRole("Administrators"))
                 {
                     await userManager.AddToRoleAsync(user, "Administrators");
                 }
@@ -186,10 +173,10 @@ namespace Cosmos.Cms.Controllers
                 }
             }
 
-            if (options.Value.SiteSettings.AllowSetup)
+            if (options.AllowSetup)
             {
                 // Enable static website for Azure BLOB storage
-                if (!options.Value.SiteSettings.CosmosRequiresAuthentication)
+                if (!options.CosmosRequiresAuthentication)
                 {
                     await storageContext.EnableAzureStaticWebsite();
                 }
@@ -197,6 +184,12 @@ namespace Cosmos.Cms.Controllers
                 {
                     await storageContext.DisableAzureStaticWebsite();
                 }
+            }
+
+            if (this.options.IsMultiTenantEditor && !EnsureSettingsExist())
+            {
+                // If we do not yet have a layout, go to a page where we can select one.
+                return RedirectToAction("Index", "Cosmos___Settings");
             }
 
             // If we do not yet have a layout, go to a page where we can select one.
@@ -298,7 +291,7 @@ namespace Cosmos.Cms.Controllers
         public IActionResult GetMicrosoftIdentityAssociation()
         {
             var model = new MicrosoftValidationObject();
-            model.associatedApplications.Add(new AssociatedApplication() { applicationId = options.Value.MicrosoftAppId });
+            model.associatedApplications.Add(new AssociatedApplication() { applicationId = options.MicrosoftAppId });
 
             var data = Newtonsoft.Json.JsonConvert.SerializeObject(model);
 
@@ -330,6 +323,15 @@ namespace Cosmos.Cms.Controllers
                 EditModeOn = false
             };
             return View(model);
+        }
+
+        /// <summary>
+        /// Ensures there are settings if this is in multi-tenant mode.
+        /// </summary>
+        /// <returns>Success or not.</returns>
+        private bool EnsureSettingsExist()
+        {
+            return !string.IsNullOrWhiteSpace(options.PublisherUrl);
         }
 
         /// <summary>

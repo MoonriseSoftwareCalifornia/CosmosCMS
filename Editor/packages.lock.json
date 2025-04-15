@@ -2797,7 +2797,7 @@
           "Azure.Identity": "[1.13.2, )",
           "Azure.Storage.Blobs": "[12.24.0, )",
           "Azure.Storage.Files.Shares": "[12.22.0, )",
-          "Cosmos.ConnectionStrings": "[9.0.6.7, )",
+          "Cosmos.DynamicConfig": "[9.0.6.8, )",
           "Microsoft.AspNetCore.DataProtection": "[9.0.3, )",
           "Microsoft.Extensions.Caching.Abstractions": "[9.0.3, )",
           "Microsoft.Extensions.Configuration.Abstractions": "[9.0.3, )",
@@ -2810,8 +2810,8 @@
           "AspNetCore.Identity.CosmosDb": "[9.0.1, )",
           "Azure.Extensions.AspNetCore.Configuration.Secrets": "[1.4.0, )",
           "Azure.Identity": "[1.13.2, )",
-          "Cosmos.BlobService": "[9.0.6.7, )",
-          "Cosmos.ConnectionStrings": "[9.0.6.7, )",
+          "Cosmos.BlobService": "[9.0.6.8, )",
+          "Cosmos.DynamicConfig": "[9.0.6.8, )",
           "Cosmos.EmailServices": "[9.0.1, )",
           "MailChimp.Net.V3": "[5.7.0, )",
           "Microsoft.AspNetCore.DataProtection.EntityFrameworkCore": "[9.0.3, )",
@@ -2823,7 +2823,7 @@
           "X.Web.Sitemap": "[2.10.5, )"
         }
       },
-      "cosmos.connectionstrings": {
+      "cosmos.dynamicconfig": {
         "type": "Project",
         "dependencies": {
           "Microsoft.AspNetCore.Http.Abstractions": "[2.3.0, )",

@@ -6,6 +6,7 @@
     ViewData["Title"] = Model.EditorTitle;
     var fields = Model.EditorFields.ToArray();
     var aclass = "active";
+    var host = "https://" + this.Context.Request.Host.ToString();
 }
 
 <style>

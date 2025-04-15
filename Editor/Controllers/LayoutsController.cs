@@ -65,7 +65,7 @@ namespace Cosmos.Cms.Controllers
             ApplicationDbContext dbContext,
             UserManager<IdentityUser> userManager,
             ArticleEditLogic articleLogic,
-            IOptions<CosmosConfig> options,
+            IEditorSettings options,
             StorageContext storageContext,
             IViewRenderService viewRenderService,
             ILogger<LayoutsController> logger)
@@ -78,13 +78,13 @@ namespace Cosmos.Cms.Controllers
 
             var htmlUtilities = new HtmlUtilities();
 
-            if (htmlUtilities.IsAbsoluteUri(options.Value.SiteSettings.BlobPublicUrl))
+            if (htmlUtilities.IsAbsoluteUri(options.BlobPublicUrl))
             {
-                blobPublicAbsoluteUrl = new Uri(options.Value.SiteSettings.BlobPublicUrl);
+                blobPublicAbsoluteUrl = new Uri(options.BlobPublicUrl);
             }
             else
             {
-                blobPublicAbsoluteUrl = new Uri($"{options.Value.SiteSettings.PublisherUrl.TrimEnd('/')}/{options.Value.SiteSettings.BlobPublicUrl.TrimStart('/')}");
+                blobPublicAbsoluteUrl = new Uri($"{options.PublisherUrl.TrimEnd('/')}/{options.BlobPublicUrl.TrimStart('/')}");
             }
 
             this.viewRenderService = viewRenderService;
@@ -944,8 +944,8 @@ namespace Cosmos.Cms.Controllers
                 return;
             }
 
-            var settings = await Cosmos___CdnController.GetCdnConfiguration(dbContext);
-            var cdnService = new Editor.Services.CdnService(settings, logger);
+            var settings = await Cosmos___SettingsController.GetCdnConfiguration(dbContext);
+            var cdnService = new Editor.Services.CdnService(settings, logger, HttpContext);
             await cdnService.PurgeCdn(new List<string>() { "/" });
         }
     }

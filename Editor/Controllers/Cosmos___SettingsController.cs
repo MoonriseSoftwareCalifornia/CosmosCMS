@@ -1,4 +1,4 @@
-﻿// <copyright file="Cosmos___CdnController.cs" company="Moonrise Software, LLC">
+﻿// <copyright file="Cosmos___SettingsController.cs" company="Moonrise Software, LLC">
 // Copyright (c) Moonrise Software, LLC. All rights reserved.
 // Licensed under the GNU Public License, Version 3.0 (https://www.gnu.org/licenses/gpl-3.0.html)
 // See https://github.com/MoonriseSoftwareCalifornia/CosmosCMS
@@ -12,12 +12,9 @@ namespace Cosmos.Editor.Controllers
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
-    using Azure;
-    using Azure.Identity;
-    using Azure.ResourceManager;
-    using Azure.ResourceManager.Cdn;
-    using Azure.ResourceManager.Cdn.Models;
     using Cosmos.Common.Data;
+    using Cosmos.Editor.Data.Logic;
+    using Cosmos.Editor.Models;
     using Cosmos.Editor.Services;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
@@ -25,29 +22,36 @@ namespace Cosmos.Editor.Controllers
     using Microsoft.Extensions.Logging;
 
     /// <summary>
-    /// The CDN controller.
+    /// The settings controller.
     /// </summary>
-    [Authorize(Roles = "Administrators,Editors")]
+    [Authorize(Roles = "Administrators")]
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S101:Types should be named in PascalCase", Justification = "The URL must be unique and not have a changes of conflicting with user authored web page URLs.")]
-    public class Cosmos___CdnController : Controller
+    public class Cosmos___SettingsController : Controller
     {
         /// <summary>
         /// CDN group name constant.
         /// </summary>
-        public static readonly string GROUPNAME = "CDN";
+        public static readonly string CDNGROUPNAME = "CDN";
+        /// <summary>
+        /// Editor settings group name.
+        /// </summary>
+        public static readonly string EDITORSETGROUPNAME = "EDITORSETTINGS";
 
         private readonly ApplicationDbContext dbContext;
-        private readonly ILogger<Cosmos___CdnController> logger;
+        private readonly ILogger<Cosmos___SettingsController> logger;
+        private readonly IEditorSettings settings;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Cosmos___CdnController"/> class.
+        /// Initializes a new instance of the <see cref="Cosmos___SettingsController"/> class.
         /// </summary>
         /// <param name="dbContext">Sets the database context.</param>
         /// <param name="logger">Log service.</param>
-        public Cosmos___CdnController(ApplicationDbContext dbContext, ILogger<Cosmos___CdnController> logger)
+        /// <param name="settings">Editor settings.</param>
+        public Cosmos___SettingsController(ApplicationDbContext dbContext, ILogger<Cosmos___SettingsController> logger, IEditorSettings settings)
         {
             this.dbContext = dbContext;
             this.logger = logger;
+            this.settings = settings;
         }
 
         /// <summary>
@@ -57,7 +61,7 @@ namespace Cosmos.Editor.Controllers
         /// <returns>AzureCdnEndpoint.</returns>
         public static async Task<List<Setting>> GetCdnConfiguration(ApplicationDbContext dbContext)
         {
-            var settings = await dbContext.Settings.Where(f => f.Group == GROUPNAME).ToListAsync();
+            var settings = await dbContext.Settings.Where(f => f.Group == CDNGROUPNAME).ToListAsync();
 
             if (settings.Any())
             {
@@ -68,16 +72,79 @@ namespace Cosmos.Editor.Controllers
         }
 
         /// <summary>
-        /// GEts the indext page.
+        /// Gets the index page.
         /// </summary>
         /// <returns>IActionResult.</returns>
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
+        {
+            if (this.settings.IsMultiTenantEditor)
+            {
+                var model = ((EditorSettings)this.settings).GetEditorConfig();
+                model.IsMultiTenantEditor = true; // This is set by environment variables and cannot be changed.
+                return View(model);
+            }
+            else
+            {
+                var model = new EditorConfig((EditorSettings)settings);
+                model.IsMultiTenantEditor = false; // This is set by environment variables and cannot be changed.
+                return View(model);
+            }  
+        }
+
+        /// <summary>
+        /// Updates the index page.
+        /// </summary>
+        /// <param name="model">Editor config model.</param>
+        /// <returns>IActionResult.</returns>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Index(EditorConfig model)
+        {
+            model.IsMultiTenantEditor = true; // This is set by environment variables and cannot be changed.
+            if (!ModelState.IsValid || !this.settings.IsMultiTenantEditor)
+            {
+                return View(model);
+            }
+
+            // Check if mode is static website, and if so, set the blob URL.
+            if (model.StaticWebPages)
+            {
+                model.BlobPublicUrl = "/";
+            }
+
+            var settings = await dbContext.Settings.FirstOrDefaultAsync(f => f.Group == EDITORSETGROUPNAME);
+            if (settings == null)
+            {
+                settings = new Setting
+                {
+                    Group = EDITORSETGROUPNAME,
+                    Name = "EditorSettings",
+                    Value = Newtonsoft.Json.JsonConvert.SerializeObject(model),
+                };
+                dbContext.Settings.Add(settings);
+            }
+            else
+            {
+                settings.Value = Newtonsoft.Json.JsonConvert.SerializeObject(model);
+            }
+
+            // Save the changes to the database.
+            await dbContext.SaveChangesAsync();
+
+            return View(model);
+        }
+
+        /// <summary>
+        /// Gets the CDN configuration page.
+        /// </summary>
+        /// <returns>IActionResult.</returns>
+        public async Task<IActionResult> CDN()
         {
             ViewData["Operation"] = null;
 
             var settings = await GetCdnConfiguration(dbContext);
 
-            var model = new CdnService(settings, logger);
+            var model = new CdnService(settings, logger, HttpContext);
 
             return View(model);
         }
@@ -89,7 +156,7 @@ namespace Cosmos.Editor.Controllers
         /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Index(CdnService config)
+        public async Task<IActionResult> CDN(CdnService config)
         {
             if (!ModelState.IsValid)
             {
@@ -151,7 +218,7 @@ namespace Cosmos.Editor.Controllers
             var profileName = settings.Find(f => f.Name == "ProfileName");
             if (profileName == null)
             {
-                profileName = new Setting { Group = GROUPNAME, Name = "ProfileName", Value = config.ProfileName };
+                profileName = new Setting { Group = CDNGROUPNAME, Name = "ProfileName", Value = config.ProfileName };
                 dbContext.Settings.Add(profileName);
             }
             else
@@ -162,7 +229,7 @@ namespace Cosmos.Editor.Controllers
             var resourceGroupName = settings.Find(f => f.Name == "ResourceGroupName");
             if (resourceGroupName == null)
             {
-                resourceGroupName = new Setting { Group = GROUPNAME, Name = "ResourceGroupName", Value = config.ResourceGroup };
+                resourceGroupName = new Setting { Group = CDNGROUPNAME, Name = "ResourceGroupName", Value = config.ResourceGroup };
                 dbContext.Settings.Add(resourceGroupName);
             }
             else
@@ -173,7 +240,7 @@ namespace Cosmos.Editor.Controllers
             var isFrontDoor = settings.Find(f => f.Name == "IsFrontDoor");
             if (isFrontDoor == null)
             {
-                isFrontDoor = new Setting { Group = GROUPNAME, Name = "IsFrontDoor", Value = config.IsFrontDoor.ToString() };
+                isFrontDoor = new Setting { Group = CDNGROUPNAME, Name = "IsFrontDoor", Value = config.IsFrontDoor.ToString() };
                 dbContext.Settings.Add(isFrontDoor);
             }
             else
@@ -184,7 +251,7 @@ namespace Cosmos.Editor.Controllers
             var subscriptionId = settings.Find(f => f.Name == "SubscriptionId");
             if (subscriptionId == null)
             {
-                subscriptionId = new Setting { Group = GROUPNAME, Name = "SubscriptionId", Value = config.SubscriptionId.ToString() };
+                subscriptionId = new Setting { Group = CDNGROUPNAME, Name = "SubscriptionId", Value = config.SubscriptionId.ToString() };
                 dbContext.Settings.Add(subscriptionId);
             }
             else
@@ -195,7 +262,7 @@ namespace Cosmos.Editor.Controllers
             var endPointName = settings.Find(f => f.Name == "EndPointName");
             if (endPointName == null)
             {
-                endPointName = new Setting { Group = GROUPNAME, Name = "EndPointName", Value = config.EndPointName };
+                endPointName = new Setting { Group = CDNGROUPNAME, Name = "EndPointName", Value = config.EndPointName };
                 dbContext.Settings.Add(endPointName);
             }
             else
@@ -208,7 +275,7 @@ namespace Cosmos.Editor.Controllers
             {
                 sucuriApiKey = new Setting
                 {
-                    Group = GROUPNAME,
+                    Group = CDNGROUPNAME,
                     Name = "SucuriApiKey",
                     Value = config.SucuriApiKey,
                 };
@@ -224,7 +291,7 @@ namespace Cosmos.Editor.Controllers
             {
                 sucuriApiSecret = new Setting
                 {
-                    Group = GROUPNAME,
+                    Group = CDNGROUPNAME,
                     Name = "SucuriApiSecret",
                     Value = config.SucuriApiSecret,
                 };
@@ -261,7 +328,7 @@ namespace Cosmos.Editor.Controllers
         /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
         public async Task<IActionResult> Remove()
         {
-            var cdnConfiguration = await dbContext.Settings.Where(f => f.Group == GROUPNAME).ToListAsync();
+            var cdnConfiguration = await dbContext.Settings.Where(f => f.Group == CDNGROUPNAME).ToListAsync();
 
             if (cdnConfiguration.Any())
             {
@@ -275,7 +342,7 @@ namespace Cosmos.Editor.Controllers
         private async Task<CdnResult> TestConnection()
         {
             var settings = await GetCdnConfiguration(dbContext);
-            var cdnService = new CdnService(settings, logger);
+            var cdnService = new CdnService(settings, logger, HttpContext);
 
             if (!cdnService.IsConfigured())
             {

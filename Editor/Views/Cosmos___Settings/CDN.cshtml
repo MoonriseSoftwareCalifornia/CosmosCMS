@@ -3,7 +3,7 @@
 @model CdnService
 
 @{
-    ViewData["Title"] = "CDN Setup";
+    ViewData["Title"] = "Editor Setup";
     var testResult = (CdnResult)ViewData["Operation"];
 
     var openTop = string.IsNullOrEmpty(Model.EndPointName)
@@ -32,10 +32,10 @@
                 <div class="card-header">
                     <h3 class="card-title">@ViewData["Title"]</h3>
                     <p>For help in setting up CDN integration, see our <a class="text-light" href="https://cosmos.moonrise.net/cdn_setup">documentation</a>.</p>
-
+                    <a class="btn btn-sm btn-primary" asp-action="Index" asp-controller="Cosmos___Settings">Settings <i class="fa-solid fa-circle-arrow-right"></i></a>
                 </div>
                 <div class="card-body">
-                    <form id="registerForm" method="post" asp-action="Index" asp-controller="Cosmos___Cdn">
+                    <form id="registerForm" method="post" asp-action="CDN" asp-controller="Cosmos___Settings">
                         <h2>Configuration Settings</h2>
                         <hr />
                         <div asp-validation-summary="All" class="text-danger"></div>

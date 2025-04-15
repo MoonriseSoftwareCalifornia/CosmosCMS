@@ -12,8 +12,7 @@ namespace Cosmos.Common.Data
     using System.Threading.Tasks;
     using Azure.Identity;
     using Cosmos.Cms.Common.Services.Configurations;
-    using Cosmos.Common.Services;
-    using Cosmos.ConnectionStrings;
+    using Cosmos.DynamicConfig;
     using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.EntityFrameworkCore;
@@ -127,14 +126,11 @@ namespace Cosmos.Common.Data
         {
             if (!optionsBuilder.IsConfigured)
             {
-                var connectionStringProvider = services.GetRequiredService<IConnectionStringProvider>();
+                var connectionStringProvider = services.GetRequiredService<IDynamicConfigurationProvider>();
 
-                var connectionString = cosmosOptions.Value.SiteSettings.MultiTenantEditor ?
-                    connectionStringProvider.GetDatabaseConnectionStringByDomain() :
-                    connectionStringProvider.GetConnectionStringByName("ApplicationDbContextConnection");
+                var connectionString = connectionStringProvider.GetDatabaseConnectionString();
 
-                var databaseName =
-                    connectionStringProvider.GetDatabaseNameByDomain();
+                var databaseName = connectionStringProvider.GetDatabaseName();
 
                 if (connectionString.Contains("AccountKey=AccessToken", StringComparison.CurrentCultureIgnoreCase))
                 {
@@ -247,6 +243,5 @@ namespace Cosmos.Common.Data
 
             base.OnModelCreating(modelBuilder);
         }
-
     }
 }

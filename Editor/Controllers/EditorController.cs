@@ -14,7 +14,6 @@ namespace Cosmos.Cms.Controllers
     using System.Threading.Tasks;
     using System.Web;
     using Cosmos.BlobService;
-    using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Cms.Hubs;
     using Cosmos.Cms.Models;
     using Cosmos.Cms.Services;
@@ -29,7 +28,6 @@ namespace Cosmos.Cms.Controllers
     using Cosmos.Editor.Services;
     using HtmlAgilityPack;
     using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Components.Forms;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
@@ -38,7 +36,6 @@ namespace Cosmos.Cms.Controllers
     using Microsoft.Azure.Cosmos.Serialization.HybridRow;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Options;
     using SendGrid.Helpers.Errors.Model;
 
     /// <summary>
@@ -51,7 +48,7 @@ namespace Cosmos.Cms.Controllers
         private readonly ArticleEditLogic articleLogic;
         private readonly ApplicationDbContext dbContext;
         private readonly ILogger<EditorController> logger;
-        private readonly IOptions<CosmosConfig> options;
+        private readonly IEditorSettings options;
         private readonly RoleManager<IdentityRole> roleManager;
         private readonly UserManager<IdentityUser> userManager;
         private readonly Uri blobPublicAbsoluteUrl;
@@ -77,7 +74,7 @@ namespace Cosmos.Cms.Controllers
             UserManager<IdentityUser> userManager,
             RoleManager<IdentityRole> roleManager,
             ArticleEditLogic articleLogic,
-            IOptions<CosmosConfig> options,
+            IEditorSettings options,
             IViewRenderService viewRenderService,
             StorageContext storageContext,
             IHubContext<LiveEditorHub> hub)
@@ -93,13 +90,13 @@ namespace Cosmos.Cms.Controllers
             this.hub = hub;
             var htmlUtilities = new HtmlUtilities();
 
-            if (htmlUtilities.IsAbsoluteUri(options.Value.SiteSettings.BlobPublicUrl))
+            if (htmlUtilities.IsAbsoluteUri(options.BlobPublicUrl))
             {
-                blobPublicAbsoluteUrl = new Uri(options.Value.SiteSettings.BlobPublicUrl);
+                blobPublicAbsoluteUrl = new Uri(options.BlobPublicUrl);
             }
             else
             {
-                blobPublicAbsoluteUrl = new Uri($"{options.Value.SiteSettings.PublisherUrl.TrimEnd('/')}/{options.Value.SiteSettings.BlobPublicUrl.TrimStart('/')}");
+                blobPublicAbsoluteUrl = new Uri($"{options.PublisherUrl.TrimEnd('/')}/{options.BlobPublicUrl.TrimStart('/')}");
             }
 
             this.viewRenderService = viewRenderService;
@@ -1419,7 +1416,7 @@ namespace Cosmos.Cms.Controllers
             }
 
             // Web browser may ask for favicon.ico, so if the ID is not a number, just skip the response.
-            ViewData["BlobEndpointUrl"] = options.Value.SiteSettings.BlobPublicUrl;
+            ViewData["BlobEndpointUrl"] = options.BlobPublicUrl;
 
             // Get an article, or a template based on the controller name.
             var model = await articleLogic.GetArticleByArticleNumber(id, null);
@@ -2218,8 +2215,8 @@ namespace Cosmos.Cms.Controllers
                 return Ok();
             }
 
-            var settings = await Cosmos___CdnController.GetCdnConfiguration(dbContext);
-            var cdnService = new Editor.Services.CdnService(settings, logger);
+            var settings = await Cosmos___SettingsController.GetCdnConfiguration(dbContext);
+            var cdnService = new CdnService(settings, logger, HttpContext);
             var result = await cdnService.PurgeCdn(new List<string>() { "/" });
             return Json(result);
         }

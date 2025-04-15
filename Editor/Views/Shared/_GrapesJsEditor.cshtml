@@ -206,7 +206,7 @@
     }
 
     async function cosmos__designerLoadAssets() {
-        const url = "/FileManager/GetImageAssets?path=" + cosmos__designerDataEndpoint + "&exclude=" + cosmos__designerAssetsExclude;
+        const url = "/FileManager/GetImageAssets?path=" + cosmos__designerAssetsEndPoint + "&exclude=" + cosmos__designerAssetsExclude;
         const response = await fetch(url, {
             method: 'GET'
         });

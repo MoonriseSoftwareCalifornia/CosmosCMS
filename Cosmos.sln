@@ -18,7 +18,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.Publisher", "Publish
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.Api", "Cosmos.Api\Cosmos.Api.csproj", "{FC9AB050-4561-457B-981A-436588EE4DB3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.ConnectionStrings", "Cosmos.ConnectionStrings\Cosmos.ConnectionStrings.csproj", "{70D8E9EA-B453-2994-F298-2710D7C54110}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.DynamicConfig", "Cosmos.ConnectionStrings\Cosmos.DynamicConfig.csproj", "{70D8E9EA-B453-2994-F298-2710D7C54110}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.BlobService", "Cosmos.BlobService\Cosmos.BlobService.csproj", "{64FDAA1C-34E7-7934-3DB2-CEC111894009}"
 EndProject

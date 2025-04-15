@@ -15,7 +15,7 @@ namespace Cosmos.Common.Services.Configurations
         /// <summary>
         /// Gets or sets the instance of the Azure AD service (if needed).
         /// </summary>
-        /// <example>https://login.microsoftonline.com/</example>
+        /// <example>https://login.microsoftonline.com/.</example>
         public string Instance { get; set; } = string.Empty;
 
         /// <summary>

@@ -4,33 +4,33 @@
 // See https://github.com/MoonriseSoftwareCalifornia/CosmosCMS
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
-namespace Cosmos.ConnectionStrings
+namespace Cosmos.DynamicConfig
 {
     /// <summary>
     /// Connection string provider interface.
     /// </summary>
-    public interface IConnectionStringProvider
+    public interface IDynamicConfigurationProvider
     {
         /// <summary>
         /// Get database name by domain name.
         /// </summary>
         /// <param name="domain">Domain name.</param>
         /// <returns>Database name.</returns>
-        string? GetDatabaseNameByDomain();
+        string? GetDatabaseName();
 
         /// <summary>
         /// Get database connection string based on domain.
         /// </summary>
         /// <param name="domain">domain name.</param>
         /// <returns>Connection string.</returns>
-        string? GetDatabaseConnectionStringByDomain();
+        string? GetDatabaseConnectionString();
 
         /// <summary>
         /// Get storage connection string based on domain.
         /// </summary>
         /// <param name="domain">Domain name.</param>
         /// <returns>Connection string.</returns>
-        string? GetStorageConnectionStringByDomain();
+        string? GetStorageConnectionString();
 
         /// <summary>
         /// Get configuration value.

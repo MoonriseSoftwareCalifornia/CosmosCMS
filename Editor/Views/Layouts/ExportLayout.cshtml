@@ -2,8 +2,6 @@
 @using Microsoft.Extensions.Options;
 @using Cosmos.Cms.Common.Services.Configurations
 @using Cosmos.Cms.Controllers
-
-@inject IOptions<CosmosConfig> options
 @model ArticleViewModel
 @{
     Layout = "_LayoutPreview";
@@ -27,10 +25,3 @@
     ADD YOUR POST FOOTER/END OF BODY CONTENT HERE 
     Note: This comment block can be removed.
 -->
-
-@if (ViewData["UseGoogleTranslate"] != null && (bool) ViewData["UseGoogleTranslate"])
-{
-@Html.Raw(PageImportConstants.COSMOS_GOOGLE_TRANSLATE_START)
-<script src="@options.Value.EditorUrls.FirstOrDefault().Url/ccms/js/GoogleTranslations.js" id="ccms-lang-script" data-lang="@Model.LanguageName"></script>
-@Html.Raw(PageImportConstants.COSMOS_GOOGLE_TRANSLATE_END)
-}

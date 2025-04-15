@@ -1,7 +1,8 @@
 ﻿@model ArticleViewModel
-@inject IOptions<CosmosConfig> options
+@inject IEditorSettings options
 @using System.Reflection
 @using Cosmos.Cms.Common.Services.Configurations;
+@using Cosmos.Editor.Data.Logic
 @using Microsoft.Extensions.Options;
 @{
     var assemblyName = Assembly.GetExecutingAssembly().GetName();
@@ -81,10 +82,13 @@
                                     <a class="dropdown-item" title="Manage user accounts." asp-action="Index" asp-controller="Users">Users</a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" title="CDN integration." asp-action="Index" asp-controller="Cosmos___Cdn">CDN Setup</a>
-                                </li>
-                                <li>
                                     <a id="btnPublicWebsite" class="dropdown-item" title="Open public (publisher) website" href="" target="_blank">Public Website</a>
+                                </li>
+                            }
+                            @if (isAdministrator)
+                            {
+                                <li>
+                                    <a class="dropdown-item" title="Website settings." asp-action="Index" asp-controller="Cosmos___Settings">Settings</a>
                                 </li>
                             }
                             <li><hr class="dropdown-divider"></li>
@@ -226,7 +230,7 @@
 
     function setPublicSiteUrl() {
 
-        let publicBaseUrl = "@options.Value.SiteSettings.PublisherUrl.TrimEnd('/')";
+        let publicBaseUrl = "@options.PublisherUrl.TrimEnd('/')";
 
         const iframe = document.getElementById("iFrameWebPage");
 
