@@ -72,7 +72,10 @@ namespace Cosmos.DynamicConfig
                 var connString = configuration.GetConnectionString($"{Domain}-db");
                 if (string.IsNullOrEmpty(connString))
                 {
-                    throw new Exception($"Connection string for domain connection string '{Domain}-db' not found.");
+                    var keys = configuration.AsEnumerable().Select(keys => keys.Key).Where(w => w.StartsWith("ConnectionStrings", StringComparison.CurrentCultureIgnoreCase)).ToArray();
+                    var keyString = string.Join(", ", keys);
+
+                    throw new Exception($"Connection string for domain connection string '{Domain}-db' not found. These keys were found: ${keyString}");
                 }
                 return connString;
             }
