@@ -47,7 +47,10 @@ namespace Cosmos.Editor.Controllers
         /// <param name="dbContext">Sets the database context.</param>
         /// <param name="logger">Log service.</param>
         /// <param name="settings">Editor settings.</param>
-        public Cosmos___SettingsController(ApplicationDbContext dbContext, ILogger<Cosmos___SettingsController> logger, IEditorSettings settings)
+        public Cosmos___SettingsController(
+            ApplicationDbContext dbContext,
+            ILogger<Cosmos___SettingsController> logger,
+            IEditorSettings settings)
         {
             this.dbContext = dbContext;
             this.logger = logger;
