@@ -1,0 +1,65 @@
+﻿@model IEnumerable<Cosmos.DynamicConfig.Connection>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.DomainName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.DbConn)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.DbName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.StorageConn)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Customer)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.WebsiteUrl)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.DomainName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DbConn)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DbName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.StorageConn)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Customer)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.WebsiteUrl)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

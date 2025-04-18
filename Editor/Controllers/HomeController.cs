@@ -15,10 +15,10 @@ namespace Cosmos.Cms.Controllers
     using Cosmos.BlobService;
     using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Cms.Models;
-    using Cosmos.Common;
     using Cosmos.Common.Data;
     using Cosmos.Common.Models;
     using Cosmos.Common.Services.PowerBI;
+    using Cosmos.DynamicConfig;
     using Cosmos.Editor.Data.Logic;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
@@ -34,13 +34,14 @@ namespace Cosmos.Cms.Controllers
     /// </summary>
     [Authorize]
     [ResponseCache(NoStore = true)]
-    public class HomeController : HomeControllerBase
+    public class HomeController : Controller
     {
         private readonly ArticleEditLogic articleLogic;
         private readonly IEditorSettings options;
         private readonly ApplicationDbContext dbContext;
         private readonly UserManager<IdentityUser> userManager;
         private readonly StorageContext storageContext;
+        private readonly IDynamicConfigurationProvider dynamicConfigurationProvider;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HomeController"/> class.
@@ -53,6 +54,7 @@ namespace Cosmos.Cms.Controllers
         /// <param name="storageContext"><see cref="StorageContext">File storage context</see>.</param>
         /// <param name="powerBiTokenService">Service used to get tokens from Power BI.</param>
         /// <param name="emailSender">Email service.</param>
+        /// <param name="dynamicConfigurationProvider">Multi-tenant configuration provider.</param>
         public HomeController(
             ILogger<HomeController> logger,
             IEditorSettings options,
@@ -61,9 +63,12 @@ namespace Cosmos.Cms.Controllers
             UserManager<IdentityUser> userManager,
             StorageContext storageContext,
             PowerBiTokenService powerBiTokenService,
-            IEmailSender emailSender)
-            : base(articleLogic, dbContext, storageContext, logger, powerBiTokenService, emailSender)
+            IEmailSender emailSender,
+            IDynamicConfigurationProvider dynamicConfigurationProvider)
         {
+            // This handles injection manually to make sure everything is setup.
+            this.dynamicConfigurationProvider = dynamicConfigurationProvider;
+
             this.options = options;
             this.articleLogic = articleLogic;
             this.dbContext = dbContext;
@@ -135,6 +140,11 @@ namespace Cosmos.Cms.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Index(string lang = "", string mode = "")
         {
+            if (options.IsMultiTenantEditor && !EnsureMultiTenantConfigured())
+            {
+                return RedirectToAction("SetupConnections", "Cosmos___Settings");
+            }
+
             if (!ModelState.IsValid) 
             {
                 return BadRequest(ModelState);
@@ -350,6 +360,15 @@ namespace Cosmos.Cms.Controllers
         private async Task<bool> EnsureArticleExists()
         {
             return await dbContext.Articles.CosmosAnyAsync();
+        }
+
+        /// <summary>
+        /// Ensures the multi-tenant configuration is set up.
+        /// </summary>
+        /// <returns>Success or not.</returns>
+        private bool EnsureMultiTenantConfigured()
+        {
+            return dynamicConfigurationProvider.IsMultiTenantConfigured;
         }
     }
 }

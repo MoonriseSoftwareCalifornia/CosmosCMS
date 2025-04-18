@@ -78,8 +78,13 @@ namespace Cosmos.BlobService
         /// <exception cref="ArgumentNullException">Returns error if no connection string found.</exception>
         public static void AddCosmosCmsDataProtection(this IServiceCollection services, IConfiguration config, DefaultAzureCredential defaultAzureCredential)
         {
-            var connectionString = config.GetConnectionString("AzureBlobStorageConnectionString") ??
-                config.GetConnectionString("DataProtectionStorage");
+            var connectionString = config.GetConnectionString("DataProtectionStorage");
+
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                config.GetConnectionString("AzureBlobStorageConnectionString");
+            }
+
 
             if (string.IsNullOrWhiteSpace(connectionString))
             {

@@ -11,36 +11,30 @@ namespace Cosmos.Common.Data
     using System.Linq;
     using System.Threading.Tasks;
     using Azure.Identity;
-    using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.DynamicConfig;
     using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Diagnostics;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Options;
 
     /// <summary>
     ///     Database Context for Cosmos CMS.
     /// </summary>
     public class ApplicationDbContext : AspNetCore.Identity.CosmosDb.CosmosIdentityDbContext<IdentityUser, IdentityRole, string>, IDataProtectionKeyContext
     {
-        private readonly IOptions<CosmosConfig> cosmosOptions;
         private readonly IServiceProvider services;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ApplicationDbContext"/> class.
         /// </summary>
         /// <param name="options">Database context options.</param>
-        /// <param name="cosmosOptions">Cosmos configuration options.</param>
         /// <param name="services">Service provider.</param>
         public ApplicationDbContext(
             DbContextOptions<ApplicationDbContext> options,
-            IOptions<CosmosConfig> cosmosOptions,
             IServiceProvider services)
             : base(options, true)
         {
-            this.cosmosOptions = cosmosOptions;
             this.services = services;
         }
 
@@ -132,22 +126,22 @@ namespace Cosmos.Common.Data
 
                 var databaseName = connectionStringProvider.GetDatabaseName();
 
-                if (connectionString.Contains("AccountKey=AccessToken", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    var conpartsDict =
-                        connectionString.Split(";").Where(w =>
-                        !string.IsNullOrEmpty(w)).Select(part => part.Split('='))
-                        .ToDictionary(sp => sp[0], sp => sp[1], StringComparer.OrdinalIgnoreCase);
+                    if (connectionString.Contains("AccountKey=AccessToken", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        var conpartsDict =
+                            connectionString.Split(";").Where(w =>
+                            !string.IsNullOrEmpty(w)).Select(part => part.Split('='))
+                            .ToDictionary(sp => sp[0], sp => sp[1], StringComparer.OrdinalIgnoreCase);
 
-                    var defaultAzureCredential = services.GetRequiredService<DefaultAzureCredential>();
-                    var endpoint = conpartsDict["AccountEndpoint"];
-                    optionsBuilder.UseCosmos(accountEndpoint: endpoint, defaultAzureCredential, databaseName);
+                        var defaultAzureCredential = services.GetRequiredService<DefaultAzureCredential>();
+                        var endpoint = conpartsDict["AccountEndpoint"];
+                        optionsBuilder.UseCosmos(accountEndpoint: endpoint, defaultAzureCredential, databaseName);
+                    }
+                    else
+                    {
+                        optionsBuilder.UseCosmos(connectionString, databaseName: databaseName);
+                    }
                 }
-                else
-                {
-                    optionsBuilder.UseCosmos(connectionString, databaseName: databaseName);
-                }
-            }
 
             // Synchronous blocking on asynchronous methods can result in deadlock, and the
             // Azure Cosmos DB SDK only supports async methods.

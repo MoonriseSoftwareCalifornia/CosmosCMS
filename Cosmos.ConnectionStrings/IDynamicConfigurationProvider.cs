@@ -12,6 +12,11 @@ namespace Cosmos.DynamicConfig
     public interface IDynamicConfigurationProvider
     {
         /// <summary>
+        /// Gets a value indicating if the service is configured.
+        /// </summary>
+        bool IsMultiTenantConfigured { get; }
+
+        /// <summary>
         /// Get database name by domain name.
         /// </summary>
         /// <param name="domain">Domain name.</param>
@@ -45,6 +50,12 @@ namespace Cosmos.DynamicConfig
         /// <param name="name">Connection string name.</param>
         /// <returns>Connection string.</returns>
         string? GetConnectionStringByName(string name);
+
+        /// <summary>
+        /// Saves connection information for the current domain.
+        /// </summary>
+        /// <param name="connection"></param>
+        void SaveConnection(Connection connection);
     }
 }
 

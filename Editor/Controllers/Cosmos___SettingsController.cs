@@ -91,7 +91,7 @@ namespace Cosmos.Editor.Controllers
                 var model = new EditorConfig((EditorSettings)settings);
                 model.IsMultiTenantEditor = false; // This is set by environment variables and cannot be changed.
                 return View(model);
-            }  
+            }
         }
 
         /// <summary>

@@ -170,11 +170,24 @@ namespace Cosmos.Editor.Data.Logic
 
             if (this.isMultiTenantEditor)
             {
-                var setting = dbContext.Settings.FirstOrDefaultAsync(f => f.Group == EDITORSETGROUPNAME);
-                setting.Wait();
-                var settingResult = setting.Result;
+                try
+                {
+                    var setting = dbContext.Settings.FirstOrDefaultAsync(f => f.Group == EDITORSETGROUPNAME);
+                    setting.Wait();
+                    var settingResult = setting.Result;
 
-                if (settingResult == null || string.IsNullOrWhiteSpace(settingResult.Value))
+                    if (settingResult == null || string.IsNullOrWhiteSpace(settingResult.Value))
+                    {
+                        return new EditorConfig()
+                        {
+                            AllowSetup = true,
+                            IsMultiTenantEditor = this.isMultiTenantEditor,
+                        };
+                    }
+
+                    config = new EditorConfig(settingResult.Value);
+                }
+                catch
                 {
                     return new EditorConfig()
                     {
@@ -182,8 +195,6 @@ namespace Cosmos.Editor.Data.Logic
                         IsMultiTenantEditor = this.isMultiTenantEditor,
                     };
                 }
-
-                config = new EditorConfig(settingResult.Value);
             }
             else
             {
