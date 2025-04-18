@@ -270,6 +270,12 @@
         "resolved": "2.1.0",
         "contentHash": "G70cCeAOYCk/uTuFw5PBGpYY9kmBZyzld7tphachvyU514PowMRDYyKwTefxIHNGWrhXY2d1DV5B1tDEnTtY3A=="
       },
+      "RestSharp": {
+        "type": "Direct",
+        "requested": "[112.1.0, )",
+        "resolved": "112.1.0",
+        "contentHash": "bOUGNZqhhv/QeCXHTKEUil846yBjwWXpzPKjO67kFvaAOoF361z7jLY5BMnuZ6WD2WQRA750sNMcK7MSPCQ5Mg=="
+      },
       "SixLabors.ImageSharp": {
         "type": "Direct",
         "requested": "[3.1.6, )",

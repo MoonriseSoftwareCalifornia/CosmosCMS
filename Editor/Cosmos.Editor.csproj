@@ -107,6 +107,7 @@
 		<PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="9.0.0" />
 		<PackageReference Include="NUglify" Version="1.21.13" />
 		<PackageReference Include="PasswordGenerator" Version="2.1.0" />
+		<PackageReference Include="RestSharp" Version="112.1.0" />
 		<PackageReference Include="SixLabors.ImageSharp" Version="3.1.6" />
 		<PackageReference Include="MimeTypeMapOfficial" Version="1.0.17" />
 		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
