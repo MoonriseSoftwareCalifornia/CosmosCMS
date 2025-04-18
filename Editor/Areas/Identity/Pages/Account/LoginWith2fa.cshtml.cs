@@ -10,10 +10,12 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     using System;
     using System.ComponentModel.DataAnnotations;
     using System.Threading.Tasks;
+    using Cosmos.Common.Data;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.RazorPages;
+    using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
 
     /// <summary>
@@ -24,17 +26,20 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     {
         private readonly ILogger<LoginWith2faModel> logger;
         private readonly SignInManager<IdentityUser> signInManager;
+        private readonly ApplicationDbContext dbContext;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LoginWith2faModel"/> class.
         /// Constructor.
         /// </summary>
-        /// <param name="signInManager"></param>
-        /// <param name="logger"></param>
-        public LoginWith2faModel(SignInManager<IdentityUser> signInManager, ILogger<LoginWith2faModel> logger)
+        /// <param name="signInManager">Sign in manager service.</param>
+        /// <param name="logger">Log service.</param>
+        /// <param name="dbContext"></param>
+        public LoginWith2faModel(SignInManager<IdentityUser> signInManager, ILogger<LoginWith2faModel> logger, ApplicationDbContext dbContext)
         {
             this.signInManager = signInManager;
             this.logger = logger;
+            this.dbContext = dbContext;
         }
 
         /// <summary>
@@ -70,7 +75,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                 throw new InvalidOperationException("Unable to load two-factor authentication user.");
             }
 
-            ReturnUrl = returnUrl;
+            ReturnUrl = await GetReturnUrl(returnUrl);
             RememberMe = rememberMe;
 
             return Page();
@@ -90,7 +95,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                 return Page();
             }
 
-            returnUrl = returnUrl ?? Url.Content("~/");
+            returnUrl = await GetReturnUrl(returnUrl);
 
             var user = await signInManager.GetTwoFactorAuthenticationUserAsync();
             if (user == null)
@@ -119,6 +124,20 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
             logger.LogWarning("Invalid authenticator code entered for user with ID '{UserId}'.", user.Id);
             ModelState.AddModelError(string.Empty, "Invalid authenticator code.");
             return Page();
+        }
+
+        /// <summary>
+        /// Gets the return URL.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        private async Task<string> GetReturnUrl(string returnUrl)
+        {
+            if (!await dbContext.Articles.CosmosAnyAsync())
+            {
+                return "/";
+            }
+
+            return string.IsNullOrWhiteSpace(returnUrl) ? "/" : returnUrl.Replace("http://", "https://");
         }
 
         /// <summary>

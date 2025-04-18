@@ -88,23 +88,12 @@ namespace Cosmos.Cms.Common.Services.Configurations
         {
             var cosmosConfig = new CosmosConfig();
 
+            // Disable AllowSetup if the database is using token authentication.
+            cosmosConfig.SiteSettings.MultiTenantEditor = GetValue<bool?>("MultiTenantEditor") ?? false;
+
             // SETUP VALUES
             var allowSetup = GetValue<bool?>("CosmosAllowSetup");
-
-            // Disable AllowSetup if the database is using token authentication.
-            var dbUsingTokenAuth = configuration.GetConnectionString("ApplicationDbContextConnection").Contains("accesstoken", StringComparison.CurrentCultureIgnoreCase);
-
-            if (allowSetup.HasValue)
-            {
-                if (dbUsingTokenAuth)
-                {
-                    cosmosConfig.SiteSettings.AllowSetup = false;
-                }
-                else
-                {
-                    cosmosConfig.SiteSettings.AllowSetup = allowSetup.Value;
-                }
-            }
+            cosmosConfig.SiteSettings.AllowSetup = allowSetup ?? false;
 
             cosmosConfig.SiteSettings.AllowConfigEdit = GetValue<bool>("CosmosAllowConfigEdit");
             cosmosConfig.SiteSettings.AllowReset = GetValue<bool>("CosmosAllowReset");
@@ -123,7 +112,9 @@ namespace Cosmos.Cms.Common.Services.Configurations
             // Microsoft App ID
             cosmosConfig.SecretName = GetValue<string>("CosmosSecretName");
 
-            var microsoftAuth = configuration.GetSection("MicrosoftOAuth").Get<OAuth>();
+            var microsoftAuth = configuration.GetSection("MicrosoftOAuth").Get<AzureAD>()
+                                ?? configuration.GetSection("AzureAD").Get<AzureAD>();
+
             if (microsoftAuth != null)
             {
                 cosmosConfig.MicrosoftAppId = microsoftAuth.ClientId;
@@ -133,18 +124,20 @@ namespace Cosmos.Cms.Common.Services.Configurations
             cosmosConfig.SendGridConfig.SendGridKey = GetValue<string>("CosmosSendGridApiKey");
 
             // Publish static web pages?
-            cosmosConfig.SiteSettings.StaticWebPages = GetValue<bool>("CosmosStaticWebPages");
+            cosmosConfig.SiteSettings.StaticWebPages = GetValue<bool?>("CosmosStaticWebPages") ?? false;
 
-            // Cosmos Endpoints
+            // Cosmos storage Endpoints
             cosmosConfig.SiteSettings.BlobPublicUrl = GetValue<string>("AzureBlobStorageEndPoint");
 
             // With static website, the public website is the blob storage static website.
             cosmosConfig.SiteSettings.PublisherUrl = GetValue<string>("CosmosPublisherUrl");
 
-            cosmosConfig.SiteSettings.BlobPublicUrl = cosmosConfig.SiteSettings.BlobPublicUrl?.TrimEnd('/');
-
+            // Set the blob storage endpoint based on settings or configuration.
+            cosmosConfig.SiteSettings.BlobPublicUrl = (cosmosConfig.SiteSettings.MultiTenantEditor || cosmosConfig.SiteSettings.StaticWebPages) ? "/" :
+                cosmosConfig.SiteSettings.BlobPublicUrl?.TrimEnd('/');
 
             var editorUrl = GetValue<string>("CosmosEditorUrl");
+
             if (!string.IsNullOrEmpty(editorUrl))
             {
                 cosmosConfig.EditorUrls.Add(new EditorUrl() { CloudName = "Azure", Url = editorUrl });

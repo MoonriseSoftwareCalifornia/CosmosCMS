@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 import { AccessTokenHttpClient } from "./AccessTokenHttpClient";
 import { DefaultHttpClient } from "./DefaultHttpClient";
-import { getEventSource, getWS } from "./DynamicImports";
 import { AggregateErrors, DisabledTransportError, FailedToNegotiateWithServerError, FailedToStartTransportError, HttpError, UnsupportedTransportError, AbortError } from "./Errors";
 import { LogLevel } from "./ILogger";
 import { HttpTransportType, TransferFormat } from "./ITransport";
@@ -32,8 +31,11 @@ export class HttpConnection {
         let webSocketModule = null;
         let eventSourceModule = null;
         if (Platform.isNode && typeof require !== "undefined") {
-            webSocketModule = getWS();
-            eventSourceModule = getEventSource();
+            // In order to ignore the dynamic require in webpack builds we need to do this magic
+            // @ts-ignore: TS doesn't know about these names
+            const requireFunc = typeof __webpack_require__ === "function" ? __non_webpack_require__ : require;
+            webSocketModule = requireFunc("ws");
+            eventSourceModule = requireFunc("eventsource");
         }
         if (!Platform.isNode && typeof WebSocket !== "undefined" && !options.WebSocket) {
             options.WebSocket = WebSocket;

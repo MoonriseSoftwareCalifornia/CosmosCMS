@@ -5,7 +5,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.TransportSendQueue = exports.HttpConnection = void 0;
 const AccessTokenHttpClient_1 = require("./AccessTokenHttpClient");
 const DefaultHttpClient_1 = require("./DefaultHttpClient");
-const DynamicImports_1 = require("./DynamicImports");
 const Errors_1 = require("./Errors");
 const ILogger_1 = require("./ILogger");
 const ITransport_1 = require("./ITransport");
@@ -35,8 +34,11 @@ class HttpConnection {
         let webSocketModule = null;
         let eventSourceModule = null;
         if (Utils_1.Platform.isNode && typeof require !== "undefined") {
-            webSocketModule = (0, DynamicImports_1.getWS)();
-            eventSourceModule = (0, DynamicImports_1.getEventSource)();
+            // In order to ignore the dynamic require in webpack builds we need to do this magic
+            // @ts-ignore: TS doesn't know about these names
+            const requireFunc = typeof __webpack_require__ === "function" ? __non_webpack_require__ : require;
+            webSocketModule = requireFunc("ws");
+            eventSourceModule = requireFunc("eventsource");
         }
         if (!Utils_1.Platform.isNode && typeof WebSocket !== "undefined" && !options.WebSocket) {
             options.WebSocket = WebSocket;

@@ -310,7 +310,7 @@ NullLogger.instance = new NullLogger();
 
 // Version token that will be replaced by the prepack command
 /** The version of the SignalR client. */
-const VERSION = "8.0.0";
+const VERSION = "8.0.7";
 /** @private */
 class Arg {
     static isRequired(val, name) {
@@ -552,30 +552,9 @@ function getGlobalThis() {
     throw new Error("could not find global");
 }
 
-;// CONCATENATED MODULE: ./src/DynamicImports.browser.ts
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-/** @private */
-function configureFetch() {
-    return false;
-}
-/** @private */
-function configureAbortController() {
-    return false;
-}
-/** @private */
-function getWS() {
-    throw new Error("Trying to import 'ws' in the browser.");
-}
-/** @private */
-function getEventSource() {
-    throw new Error("Trying to import 'eventsource' in the browser.");
-}
-
 ;// CONCATENATED MODULE: ./src/FetchHttpClient.ts
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
-
 
 
 
@@ -584,19 +563,37 @@ class FetchHttpClient extends HttpClient {
     constructor(logger) {
         super();
         this._logger = logger;
-        // This is how you do "reference" arguments
-        const fetchObj = { _fetchType: undefined, _jar: undefined };
-        if (configureFetch(fetchObj)) {
-            this._fetchType = fetchObj._fetchType;
-            this._jar = fetchObj._jar;
+        // Node added a fetch implementation to the global scope starting in v18.
+        // We need to add a cookie jar in node to be able to share cookies with WebSocket
+        if (typeof fetch === "undefined" || Platform.isNode) {
+            // In order to ignore the dynamic require in webpack builds we need to do this magic
+            // @ts-ignore: TS doesn't know about these names
+            const requireFunc =  true ? require : 0;
+            // Cookies aren't automatically handled in Node so we need to add a CookieJar to preserve cookies across requests
+            this._jar = new (requireFunc("tough-cookie")).CookieJar();
+            if (typeof fetch === "undefined") {
+                this._fetchType = requireFunc("node-fetch");
+            }
+            else {
+                // Use fetch from Node if available
+                this._fetchType = fetch;
+            }
+            // node-fetch doesn't have a nice API for getting and setting cookies
+            // fetch-cookie will wrap a fetch implementation with a default CookieJar or a provided one
+            this._fetchType = requireFunc("fetch-cookie")(this._fetchType, this._jar);
         }
         else {
             this._fetchType = fetch.bind(getGlobalThis());
         }
-        this._abortControllerType = AbortController;
-        const abortObj = { _abortControllerType: this._abortControllerType };
-        if (configureAbortController(abortObj)) {
-            this._abortControllerType = abortObj._abortControllerType;
+        if (typeof AbortController === "undefined") {
+            // In order to ignore the dynamic require in webpack builds we need to do this magic
+            // @ts-ignore: TS doesn't know about these names
+            const requireFunc =  true ? require : 0;
+            // Node needs EventListener methods on AbortController which our custom polyfill doesn't provide
+            this._abortControllerType = requireFunc("abort-controller");
+        }
+        else {
+            this._abortControllerType = AbortController;
         }
     }
     /** @inheritDoc */
@@ -1615,8 +1612,10 @@ class HubConnection {
                 }
                 switch (message.type) {
                     case MessageType.Invocation:
-                        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                        this._invokeClientMethod(message);
+                        this._invokeClientMethod(message)
+                            .catch((e) => {
+                            this._logger.log(LogLevel.Error, `Invoke client method threw error: ${getErrorString(e)}`);
+                        });
                         break;
                     case MessageType.StreamItem:
                     case MessageType.Completion: {
@@ -2682,7 +2681,6 @@ class WebSocketTransport {
 
 
 
-
 const MAX_REDIRECTS = 100;
 /** @private */
 class HttpConnection {
@@ -2705,8 +2703,11 @@ class HttpConnection {
         let webSocketModule = null;
         let eventSourceModule = null;
         if (Platform.isNode && "function" !== "undefined") {
-            webSocketModule = getWS();
-            eventSourceModule = getEventSource();
+            // In order to ignore the dynamic require in webpack builds we need to do this magic
+            // @ts-ignore: TS doesn't know about these names
+            const requireFunc =  true ? require : 0;
+            webSocketModule = requireFunc("ws");
+            eventSourceModule = requireFunc("eventsource");
         }
         if (!Platform.isNode && typeof WebSocket !== "undefined" && !options.WebSocket) {
             options.WebSocket = WebSocket;

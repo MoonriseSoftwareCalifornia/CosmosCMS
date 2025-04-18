@@ -88,7 +88,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> OnGetAsync(string returnUrl = null)
         {
-            returnUrl = returnUrl ?? Url.Content("~/");
+            returnUrl = await GetReturnUrl(returnUrl);
 
             if (!string.IsNullOrEmpty(ErrorMessage))
             {
@@ -104,8 +104,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 
             ExternalLogins = (await signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
-
-            ReturnUrl = returnUrl.Replace("http:", "https:");
 
             // If there are no users yet, go strait to the register page.
             if (options.Value.AllowSetup)
@@ -126,11 +124,11 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         /// <summary>
         /// On post method handler.
         /// </summary>
-        /// <param name="returnUrl"></param>
+        /// <param name="returnUrl">Return to page.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
-            returnUrl = returnUrl ?? Url.Content("/");
+            returnUrl = await GetReturnUrl(returnUrl);
 
             ExternalLogins = (await signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 
@@ -163,6 +161,20 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
 
             // If we got this far, something failed, redisplay form
             return Page();
+        }
+
+        /// <summary>
+        /// Gets the return URL.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        private async Task<string> GetReturnUrl(string returnUrl)
+        {
+            if (!await dbContext.Articles.CosmosAnyAsync())
+            {
+                return "/";
+            }
+
+            return string.IsNullOrWhiteSpace(returnUrl) ? "/" : returnUrl.Replace("http://", "https://");   
         }
 
         /// <summary>

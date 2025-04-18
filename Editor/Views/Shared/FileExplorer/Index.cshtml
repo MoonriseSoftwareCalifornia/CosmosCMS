@@ -1,11 +1,12 @@
 ﻿@using Cosmos.Cms.Common.Services.Configurations
+@using Cosmos.Editor.Data.Logic
 @using Microsoft.Extensions.Options
-@inject IOptions<CosmosConfig> options
+@inject IEditorSettings options
 @model List<Cosmos.BlobService.FileManagerEntry>
 @{
     var selectOne = (bool)ViewData["SelectOne"];
     var publisherUrl = ViewData["PublisherUrl"];
-    var blobStaticWebsiteUrl = options.Value.SiteSettings.BlobPublicUrl;
+    var blobStaticWebsiteUrl = options.BlobPublicUrl;
     var directoryOnly = (bool)ViewData["DirectoryOnly"];
     var editorExtensions = Cosmos.Cms.Controllers.FileManagerController.ValidEditorExtensions;
     var imageEditorExtensions = new string[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
@@ -60,7 +61,7 @@
         font-weight: 900;
     }
 </style>
-<link href="https://unpkg.com/filepond@4/dist/filepond.css" rel="stylesheet" />
+<link href="~/lib/filepond/filepond.css" rel="stylesheet" />
 <partial name="_ValidationScriptsPartial" />
 <div class="container mt-3">
     <div class="row">
@@ -271,7 +272,7 @@
                                     <p class="card-text">Created: <span class='toLocalTimeZone'>@row.CreatedUtc</span> </p>
                                     <div class="btn-group" role="group">
                                         <a class="btn btn-sm btn-secondary" href="javascript:download('@row.Path')">Download</a>
-                                        <button class="btn btn-sm btn-secondary ccms-clip-board" title="Copy URL to clipbard" data-clipboard-text="@options.Value.SiteSettings.BlobPublicUrl.TrimEnd('/')/@row.Path"><i class="fa-regular fa-clipboard"></i></button>
+                                        <button class="btn btn-sm btn-secondary ccms-clip-board" title="Copy URL to clipbard" data-clipboard-text="@options.BlobPublicUrl.TrimEnd('/')/@row.Path"><i class="fa-regular fa-clipboard"></i></button>
                                         <a class='btn btn-sm btn-secondary' title='Filerobot image editor' href='/FileManager/EditImage?target=@row.Path'><img src="/images/filerobot-icon.png" height="22" /></a>
                                     </div>
                                 </div>
@@ -352,7 +353,7 @@
                                         <div class='btn-group' role='group'>
                                             @if (row.IsDirectory == false)
                                             {
-                                                <button class="btn btn-sm btn-secondary ccms-clip-board" title="Copy URL to clipbard" data-clipboard-text="@options.Value.SiteSettings.BlobPublicUrl.TrimEnd('/')/@row.Path"><i class="fa-regular fa-clipboard"></i></button>
+                                                <button class="btn btn-sm btn-secondary ccms-clip-board" title="Copy URL to clipbard" data-clipboard-text="@options.BlobPublicUrl.TrimEnd('/')/@row.Path"><i class="fa-regular fa-clipboard"></i></button>
                                                 @if (editorExtensions.Contains(row.Extension))
                                                 {
                                                     <a class='btn btn-sm btn-secondary' title='Monaco/VS Code editor' href='/FileManager/EditCode?path=@row.Path'><img src="/images/monaco-vscode-logo.png" height="22" /></a>

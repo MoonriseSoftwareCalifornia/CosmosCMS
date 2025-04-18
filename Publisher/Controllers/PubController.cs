@@ -26,7 +26,7 @@ namespace Cosmos.Publisher.Controllers
         /// <param name="dbContext">Database context.</param>
         /// <param name="storageContext">Storage context.</param>
         public PubController(IOptions<CosmosConfig> options, ApplicationDbContext dbContext, StorageContext storageContext)
-            : base(options, dbContext, storageContext)
+            : base(dbContext, storageContext, options.Value.SiteSettings.CosmosRequiresAuthentication)
         {
         }
     }

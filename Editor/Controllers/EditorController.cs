@@ -10,12 +10,10 @@ namespace Cosmos.Cms.Controllers
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Runtime.CompilerServices;
     using System.Text;
     using System.Threading.Tasks;
     using System.Web;
     using Cosmos.BlobService;
-    using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Cms.Hubs;
     using Cosmos.Cms.Models;
     using Cosmos.Cms.Services;
@@ -30,7 +28,6 @@ namespace Cosmos.Cms.Controllers
     using Cosmos.Editor.Services;
     using HtmlAgilityPack;
     using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Components.Forms;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
@@ -38,12 +35,8 @@ namespace Cosmos.Cms.Controllers
     using Microsoft.AspNetCore.SignalR;
     using Microsoft.Azure.Cosmos.Serialization.HybridRow;
     using Microsoft.EntityFrameworkCore;
-    using Microsoft.EntityFrameworkCore.Cosmos;
     using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Options;
     using SendGrid.Helpers.Errors.Model;
-    using static System.Runtime.InteropServices.JavaScript.JSType;
-    using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
     /// <summary>
     /// Editor controller.
@@ -55,7 +48,7 @@ namespace Cosmos.Cms.Controllers
         private readonly ArticleEditLogic articleLogic;
         private readonly ApplicationDbContext dbContext;
         private readonly ILogger<EditorController> logger;
-        private readonly IOptions<CosmosConfig> options;
+        private readonly IEditorSettings options;
         private readonly RoleManager<IdentityRole> roleManager;
         private readonly UserManager<IdentityUser> userManager;
         private readonly Uri blobPublicAbsoluteUrl;
@@ -81,7 +74,7 @@ namespace Cosmos.Cms.Controllers
             UserManager<IdentityUser> userManager,
             RoleManager<IdentityRole> roleManager,
             ArticleEditLogic articleLogic,
-            IOptions<CosmosConfig> options,
+            IEditorSettings options,
             IViewRenderService viewRenderService,
             StorageContext storageContext,
             IHubContext<LiveEditorHub> hub)
@@ -97,13 +90,13 @@ namespace Cosmos.Cms.Controllers
             this.hub = hub;
             var htmlUtilities = new HtmlUtilities();
 
-            if (htmlUtilities.IsAbsoluteUri(options.Value.SiteSettings.BlobPublicUrl))
+            if (htmlUtilities.IsAbsoluteUri(options.BlobPublicUrl))
             {
-                blobPublicAbsoluteUrl = new Uri(options.Value.SiteSettings.BlobPublicUrl);
+                blobPublicAbsoluteUrl = new Uri(options.BlobPublicUrl);
             }
             else
             {
-                blobPublicAbsoluteUrl = new Uri($"{options.Value.SiteSettings.PublisherUrl.TrimEnd('/')}/{options.Value.SiteSettings.BlobPublicUrl.TrimStart('/')}");
+                blobPublicAbsoluteUrl = new Uri($"{options.PublisherUrl.TrimEnd('/')}/{options.BlobPublicUrl.TrimStart('/')}");
             }
 
             this.viewRenderService = viewRenderService;
@@ -217,6 +210,11 @@ namespace Cosmos.Cms.Controllers
         [HttpPost]
         public async Task<IActionResult> Designer(ArticleDesignerDataViewModel model)
         {
+            if (model == null)
+            {
+                return Json(new { success = false, message = "No data sent." });
+            }
+
             model.HtmlContent = CryptoJsDecryption.Decrypt(model.HtmlContent);
             model.CssContent = CryptoJsDecryption.Decrypt(model.CssContent);
 
@@ -1418,7 +1416,7 @@ namespace Cosmos.Cms.Controllers
             }
 
             // Web browser may ask for favicon.ico, so if the ID is not a number, just skip the response.
-            ViewData["BlobEndpointUrl"] = options.Value.SiteSettings.BlobPublicUrl;
+            ViewData["BlobEndpointUrl"] = options.BlobPublicUrl;
 
             // Get an article, or a template based on the controller name.
             var model = await articleLogic.GetArticleByArticleNumber(id, null);
@@ -1445,7 +1443,7 @@ namespace Cosmos.Cms.Controllers
         }
 
         /// <summary>
-        /// Saves live editor data.
+        /// Saves article properties.
         /// </summary>
         /// <param name="model">Live editor post model.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
@@ -1474,27 +1472,10 @@ namespace Cosmos.Cms.Controllers
                 throw new NotFoundException($"CScould not find artile with #: {model.ArticleNumber}.");
             }
 
-            // Update an editor area if we are given an editor.
             if (!string.IsNullOrWhiteSpace(model.EditorId))
             {
-                // Get the editable regions from the original document.
-                var originalHtmlDoc = new HtmlDocument();
-                originalHtmlDoc.LoadHtml(article.Content);
-                var originalEditableDivs = originalHtmlDoc.DocumentNode.SelectNodes("//*[@data-ccms-ceid]");
-
-                // Find the region we are updating
-                var target = originalEditableDivs.FirstOrDefault(w => w.Attributes["data-ccms-ceid"].Value == model.EditorId);
-                if (target != null)
-                {
-                    // Decrypt the data being sent in.
-                    model.Data = CryptoJsDecryption.Decrypt(model.Data);
-
-                    // Update the region now
-                    target.InnerHtml = model.Data;
-                }
-
                 // Now carry over what's being UPDATED to the original.
-                article.Content = originalHtmlDoc.DocumentNode.OuterHtml;
+                article.Content = UpdateRegionInDocument(model.EditorId, article.Content, CryptoJsDecryption.Decrypt(model.Data));
             }
 
             // Banner image
@@ -1511,15 +1492,61 @@ namespace Cosmos.Cms.Controllers
             var result = await articleLogic.SaveArticle(article, model.UserId);
 
             // Notify others of the changes.
-            await hub.Clients.All.SendCoreAsync("UpdateEditors", [model.Id, model.Data]);
-
-            if (article.Published.HasValue)
+            if (!string.IsNullOrWhiteSpace(model.EditorId))
             {
-                await articleLogic.CreateStaticTableOfContentsJsonFile("/");
+                await hub.Clients.All.SendCoreAsync("UpdateEditors", [model.Id, model.Data]);
             }
 
-
             return Json(result);
+        }
+
+        /// <summary>
+        /// Updates a single region in an editable document.
+        /// </summary>
+        /// <param name="model">Editor view model.</param>
+        /// <returns>Returns OK on success.</returns>
+        public async Task<IActionResult> EditSaveRegion(EditorRegionViewModel model)
+        {
+            var article = await dbContext.Articles.Where(w => w.ArticleNumber == model.ArticleNumber).OrderBy(o => o.VersionNumber).LastOrDefaultAsync();
+
+            var decryptedData = CryptoJsDecryption.Decrypt(model.Data);
+
+            // Now carry over what's being UPDATED to the original.
+            var content = UpdateRegionInDocument(model.EditorId, article.Content, decryptedData);
+
+            if (article.Content != content)
+            {
+                article.Content = content;
+                article.Updated = DateTimeOffset.UtcNow;
+                await dbContext.SaveChangesAsync();
+                await hub.Clients.All.SendCoreAsync("UpdateEditors", [model.EditorId, model.Data]);
+            }
+
+            return Ok();
+        }
+
+
+        /// <summary>
+        /// Updates the entire body of a web page.
+        /// </summary>
+        /// <param name="model">Editor view model.</param>
+        /// <returns>Returns OK on success.</returns>
+        public async Task<IActionResult> EditSaveBody(EditorRegionViewModel model)
+        {
+            var article = await dbContext.Articles.Where(w => w.ArticleNumber == model.ArticleNumber).OrderBy(o => o.VersionNumber).LastOrDefaultAsync();
+
+            var decryptedData = CryptoJsDecryption.Decrypt(model.Data);
+
+            if (article.Content != decryptedData)
+            {
+                article.Content = decryptedData;
+                article.Updated = DateTimeOffset.UtcNow;
+                await dbContext.SaveChangesAsync();
+
+                // await hub.Clients.All.SendCoreAsync("UpdateEditors", [model.EditorId, model.Data]);
+            }
+
+            return Ok();
         }
 
         /// <summary>
@@ -1616,112 +1643,101 @@ namespace Cosmos.Cms.Controllers
             model.Content = CryptoJsDecryption.Decrypt(model.Content);
             model.HeadJavaScript = CryptoJsDecryption.Decrypt(model.HeadJavaScript);
             model.FooterJavaScript = CryptoJsDecryption.Decrypt(model.FooterJavaScript);
-
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
-
             var saveError = new StringBuilder();
 
-            if (string.IsNullOrEmpty(model.Title))
-            {
-                throw new ArgumentException("Title cannot be null or empty.");
-            }
-
-            if (model == null)
-            {
-                return NotFound();
-            }
-
-            // Check for nested editable regions.
-            if (!NestedEditableRegionValidation.Validate(model.Content))
-            {
-                ModelState.AddModelError("Content", "Cannot have nested editable regions.");
-            }
-
-            // Next pull the original. This is a view model, not tracked by DbContext.
-            // var article = await articleLogic.GetArticleByArticleNumber(model.ArticleNumber, null);
-            var article = await dbContext.Articles.Where(w => w.ArticleNumber == model.ArticleNumber).LastOrDefaultAsync();
-            var entry = await articleLogic.GetCatalogEntry(article);
-
-            if (article == null)
-            {
-                return NotFound();
-            }
-
-            var jsonModel = new SaveCodeResultJsonModel();
-
+            // Validate the model as it comes in.
             if (ModelState.IsValid)
             {
-                try
+                if (model == null)
                 {
-                    var result = await articleLogic.SaveArticle(
-                        new ArticleViewModel()
-                        {
-                            Id = model.Id,
-                            ArticleNumber = article.ArticleNumber,
-                            BannerImage = article.BannerImage,
-                            Content = model.Content,
-                            Title = model.Title,
-                            Published = model.Published,
-                            Expires = article.Expires,
-                            FooterJavaScript = model.FooterJavaScript,
-                            HeadJavaScript = model.HeadJavaScript,
-                            StatusCode = (StatusCodeEnum)article.StatusCode,
-                            UrlPath = article.UrlPath,
-                            VersionNumber = article.VersionNumber,
-                            Updated = model.Updated.Value
-                        }, await GetUserEmail());
+                    return NotFound();
+                }
 
-                    if (model.Published.HasValue)
+                // Check for nested editable regions.
+                if (!NestedEditableRegionValidation.Validate(model.Content))
+                {
+                    ModelState.AddModelError("Content", "Cannot have nested editable regions.");
+                }
+
+                // Next pull the original. This is a view model, not tracked by DbContext.
+                // var article = await articleLogic.GetArticleByArticleNumber(model.ArticleNumber, null);
+                var article = await dbContext.Articles.Where(w => w.ArticleNumber == model.ArticleNumber).OrderBy(o => o.VersionNumber).LastOrDefaultAsync();
+                var entry = await articleLogic.GetCatalogEntry(article);
+
+                if (article == null)
+                {
+                    return NotFound();
+                }
+
+                var jsonModel = new SaveCodeResultJsonModel();
+
+                // If still valid, continue processing.
+                if (ModelState.IsValid)
+                {
+                    try
                     {
-                        await articleLogic.CreateStaticTableOfContentsJsonFile("/");
+                        var result = await articleLogic.SaveArticle(
+                            new ArticleViewModel()
+                            {
+                                Id = model.Id,
+                                ArticleNumber = article.ArticleNumber,
+                                BannerImage = article.BannerImage,
+                                Content = model.Content,
+                                Title = model.Title,
+                                Published = model.Published,
+                                Expires = article.Expires,
+                                FooterJavaScript = model.FooterJavaScript,
+                                HeadJavaScript = model.HeadJavaScript,
+                                StatusCode = (StatusCodeEnum)article.StatusCode,
+                                UrlPath = article.UrlPath,
+                                VersionNumber = article.VersionNumber,
+                                Updated = model.Updated.Value
+                            }, await GetUserEmail());
+
+                        jsonModel.Model = new EditCodePostModel()
+                        {
+                            Id = result.Model.Id,
+                            ArticleNumber = result.Model.ArticleNumber,
+                            VersionNumber = result.Model.VersionNumber,
+                            BannerImage = result.Model.BannerImage,
+                            Content = result.Model.Content,
+                            EditingField = model.EditingField,
+                            CustomButtons = model.CustomButtons,
+                            EditorMode = model.EditorMode,
+                            EditorFields = model.EditorFields,
+                            EditorTitle = model.EditorTitle,
+                            EditorType = model.EditorType,
+                            FooterJavaScript = result.Model.FooterJavaScript,
+                            HeadJavaScript = result.Model.HeadJavaScript,
+                            UrlPath = result.Model.UrlPath,
+                            Published = result.Model.Published,
+                            Title = result.Model.Title,
+                            Updated = result.Model.Updated,
+                            ArticlePermissions = entry.ArticlePermissions
+                        };
+
+                        jsonModel.CdnResults = result.CdnResults;
+                    }
+                    catch (Exception e)
+                    {
+                        ViewData["Version"] = article.VersionNumber;
+                        var provider = new EmptyModelMetadataProvider();
+                        ModelState.AddModelError("Save", e, provider.GetMetadataForType(typeof(string)));
+                        logger.LogError(e, e.Message);
                     }
 
-                    jsonModel.Model = new EditCodePostModel()
-                    {
-                        Id = result.Model.Id,
-                        ArticleNumber = result.Model.ArticleNumber,
-                        VersionNumber = result.Model.VersionNumber,
-                        BannerImage = result.Model.BannerImage,
-                        Content = result.Model.Content,
-                        EditingField = model.EditingField,
-                        CustomButtons = model.CustomButtons,
-                        EditorMode = model.EditorMode,
-                        EditorFields = model.EditorFields,
-                        EditorTitle = model.EditorTitle,
-                        EditorType = model.EditorType,
-                        FooterJavaScript = result.Model.FooterJavaScript,
-                        HeadJavaScript = result.Model.HeadJavaScript,
-                        UrlPath = result.Model.UrlPath,
-                        Published = result.Model.Published,
-                        Title = result.Model.Title,
-                        Updated = result.Model.Updated,
-                        ArticlePermissions = entry.ArticlePermissions
-                    };
+                    jsonModel.ErrorCount = ModelState.ErrorCount;
+                    jsonModel.IsValid = ModelState.IsValid;
 
-                    jsonModel.CdnResults = result.CdnResults;
+                    jsonModel.Errors.AddRange(ModelState.Values
+                        .Where(w => w.ValidationState == ModelValidationState.Invalid)
+                        .ToList());
+                    jsonModel.ValidationState = ModelState.ValidationState;
+
+                    ViewData["Version"] = jsonModel.Model.VersionNumber;
+
+                    return Json(jsonModel);
                 }
-                catch (Exception e)
-                {
-                    ViewData["Version"] = article.VersionNumber;
-                    var provider = new EmptyModelMetadataProvider();
-                    ModelState.AddModelError("Save", e, provider.GetMetadataForType(typeof(string)));
-                    logger.LogError(e, e.Message);
-                }
-
-                jsonModel.ErrorCount = ModelState.ErrorCount;
-                jsonModel.IsValid = ModelState.IsValid;
-
-                jsonModel.Errors.AddRange(ModelState.Values
-                    .Where(w => w.ValidationState == ModelValidationState.Invalid)
-                    .ToList());
-                jsonModel.ValidationState = ModelState.ValidationState;
-
-                ViewData["Version"] = jsonModel.Model.VersionNumber;
-
-                return Json(jsonModel);
             }
 
             saveError.AppendLine("Error(s):");
@@ -1859,30 +1875,56 @@ namespace Cosmos.Cms.Controllers
                 return BadRequest(ModelState);
             }
 
-            await articleLogic.UpdateArticleCatalog();
+            var query = $"SELECT c.ArticleNumber, c.Title, c.UrlPath, MAX(c.Published) as Published, MAX(c.Updated) as Updated FROM Articles c WHERE c.StatusCode = {(int)StatusCodeEnum.Active} GROUP BY c.ArticleNumber, c.Title, c.UrlPath";
+            var client = dbContext.Database.GetCosmosClient();
+            var queryService = new CosmosDbService(client, dbContext.Database.GetCosmosDatabaseId(), "Articles");
 
-            var data = await dbContext.ArticleCatalog.Select(s => new ArticleListViewItem
-            {
-                ArticleNumber = s.ArticleNumber,
-                Title = s.Title,
-                Published = s.Published,
-                UrlPath = s.UrlPath,
-                Status = s.Status,
-                Updated = s.Updated
-            }).ToListAsync();
+            var data = await queryService.QueryWithGroupByAsync<ArticleListViewItem>(query);
 
             var model = data.Select(s => new
             {
                 s.ArticleNumber,
                 s.Title,
                 IsDefault = s.UrlPath == "root",
-                LastPublished = s.Published.HasValue ? s.Published.Value.UtcDateTime.ToString("o") : string.Empty,
+                LastPublished = s.Published.HasValue ? s.Published.Value.UtcDateTime.ToString("o") : null,
                 UrlPath = HttpUtility.UrlEncode(s.UrlPath).Replace("%2f", "/"),
-                s.Status,
                 Updated = s.Updated.UtcDateTime.ToString("o")
             }).OrderBy(o => o.Title).ToList();
 
             return Json(model);
+        }
+
+        /// <summary>
+        /// Gets an encryption key.
+        /// </summary>
+        /// <returns>Key.</returns>
+        public async Task<IActionResult> GetEncryptionKey()
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var setting = await dbContext.Settings.Where(w => w.Description == "EncryptionKey").FirstOrDefaultAsync();
+            if (setting == null)
+            {
+                var random = new Random();
+                var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+                var value = new string(Enumerable.Repeat(chars, 16)
+                                            .Select(s => s[random.Next(s.Length)])
+                                            .ToArray());
+
+                setting = new Setting()
+                {
+                    Description = "EncryptionKey",
+                    Value = value
+                };
+
+                dbContext.Settings.Add(setting);
+                await dbContext.SaveChangesAsync();
+            }
+
+            return Json(setting.Value);
         }
 
         /// <summary>
@@ -1923,7 +1965,7 @@ namespace Cosmos.Cms.Controllers
         }
 
         /// <summary>
-        /// Publishes a table of contents.
+        /// Publishes a table of contents and new site map file.
         /// </summary>
         /// <param name="path">TOC root path.</param>
         /// <returns>IActionResult.</returns>
@@ -1932,7 +1974,6 @@ namespace Cosmos.Cms.Controllers
         public async Task<IActionResult> PublishTOC(string path = "/")
         {
             await articleLogic.CreateStaticTableOfContentsJsonFile(path);
-            await articleLogic.CreateSiteMapFile();
             return Ok();
         }
 
@@ -2168,8 +2209,8 @@ namespace Cosmos.Cms.Controllers
                 return Ok();
             }
 
-            var settings = await Cosmos___CdnController.GetCdnConfiguration(dbContext);
-            var cdnService = new Editor.Services.CdnService(settings, logger);
+            var settings = await Cosmos___SettingsController.GetCdnConfiguration(dbContext);
+            var cdnService = new CdnService(settings, logger, HttpContext);
             var result = await cdnService.PurgeCdn(new List<string>() { "/" });
             return Json(result);
         }
@@ -2181,6 +2222,32 @@ namespace Cosmos.Cms.Controllers
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
+        }
+
+        /// <summary>
+        /// Updates the HTML within an editor region no a web page.
+        /// </summary>
+        /// <param name="editorId">Editor ID on page.</param>
+        /// <param name="pageBody">Page body.</param>
+        /// <param name="updatedContent">Updated content.</param>
+        /// <returns>Revised page body.</returns>
+        private string UpdateRegionInDocument(string editorId, string pageBody, string updatedContent)
+        {
+            // Get the editable regions from the original document.
+            var originalHtmlDoc = new HtmlDocument();
+            originalHtmlDoc.LoadHtml(pageBody);
+            var originalEditableDivs = originalHtmlDoc.DocumentNode.SelectNodes("//*[@data-ccms-ceid]");
+
+            // Find the region we are updating
+            var target = originalEditableDivs.FirstOrDefault(w => w.Attributes["data-ccms-ceid"].Value == editorId);
+            if (target != null)
+            {
+                // Update the region now
+                target.InnerHtml = updatedContent;
+            }
+
+            // Now carry over what's being UPDATED to the original.
+            return originalHtmlDoc.DocumentNode.OuterHtml;
         }
     }
 }

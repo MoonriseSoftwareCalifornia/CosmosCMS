@@ -22,20 +22,20 @@ namespace Cosmos.Publisher.Controllers
     /// </summary>
     public class PubControllerBase : Controller
     {
-        private readonly IOptions<CosmosConfig> options;
         private readonly ApplicationDbContext dbContext;
         private readonly StorageContext storageContext;
+        private readonly bool requiresAuthentication;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PubControllerBase"/> class.
         /// Constructor.
         /// </summary>
-        /// <param name="options">Cosmos options.</param>
         /// <param name="dbContext">Database context.</param>
         /// <param name="storageContext">Storage context.</param>
-        public PubControllerBase(IOptions<CosmosConfig> options, ApplicationDbContext dbContext, StorageContext storageContext)
+        /// <param name="requiresAuthentication">Indicates if authentication is required for the publisher.</param>
+        public PubControllerBase(ApplicationDbContext dbContext, StorageContext storageContext, bool requiresAuthentication)
         {
-            this.options = options;
+            this.requiresAuthentication = requiresAuthentication;
             this.dbContext = dbContext;
             this.storageContext = storageContext;
         }
@@ -46,7 +46,7 @@ namespace Cosmos.Publisher.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public virtual async Task<IActionResult> Index()
         {
-            if (options.Value.SiteSettings.CosmosRequiresAuthentication)
+            if (requiresAuthentication)
             {
                 // If the user is not logged in, have them login first.
                 if (User.Identity == null || User.Identity?.IsAuthenticated == false)

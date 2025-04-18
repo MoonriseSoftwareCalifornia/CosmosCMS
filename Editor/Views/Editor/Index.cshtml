@@ -1,7 +1,8 @@
 @using Cosmos.Cms.Common.Services.Configurations;
 @using Cosmos.Cms.Services
+@using Cosmos.Editor.Data.Logic
 @using Microsoft.Extensions.Options;
-@inject IOptions<CosmosConfig> options
+@inject IEditorSettings options
 @model List<ArticleListItem>
 @{
     ViewData["Title"] = "Web Page Inventory";
@@ -63,9 +64,9 @@
                 <div id="pagelist-table" class="table-dark"></div>
                 <script>
 
-                    const publisherUrl = "@options.Value.SiteSettings.PublisherUrl.TrimEnd('/')";
+                    const publisherUrl = "@options.PublisherUrl.TrimEnd('/')";
                     const tblHeight = window.innerHeight - 200;
-                    let pageSize = Math.round(tblHeight / 50);
+                    let pageSize = Math.round(tblHeight / 50) + 1;
 
                     function dateTime(cell, formatterParams, onRendered){
                         //cell - the cell component
@@ -146,6 +147,7 @@
                     };
 
                     const pageTable = new Tabulator("#pagelist-table", {
+                        height:tblHeight + "px",
                         pagination:true, //enable pagination
                         paginationMode:"local", //enable local pagination
                         paginationSize:pageSize, //optional parameter to request a certain number of rows per page
@@ -174,14 +176,18 @@
                         columns:[
                             {title:"UrlPath", field:"UrlPath", visible: false },
                             {title:"No.", field:"ArticleNumber", visible: false },
-                            {title:"Status", field:"Status", sorter:"string", visible: false },
 
                             {title:"Actions", field:"IsDefault", formatter:menuBar, width:176, headerSort:false },
 
-                            {title:"Published", field:"LastPublished", sorter:"date", headerFilter:"date", headerFilterFunc:dateFilterFunction, cellClick:openArticleVersions, width:180,
+                            {title:"Published",
+                                field:"LastPublished",
+                                headerFilter:"date",
+                                headerFilterFunc:dateFilterFunction,
+                                cellClick:openArticleVersions,
+                                width:180,
                                 sorter:"datetime",
                                 sorterParams:{
-                                    format:"iso", alignEmptyValues:"top", },
+                                    format:"iso" },
                                 formatter:"datetime",
                                 formatterParams:{
                                     inputFormat:"iso",
@@ -190,10 +196,15 @@
                                 }
                             },
 
-                            {title:"Updated", field:"Updated", headerFilter:"date", headerFilterFunc:dateFilterFunction, cellClick:openArticleVersions, width:180,
+                            {title:"Updated",
+                                field:"Updated",
+                                headerFilter:"date",
+                                headerFilterFunc:dateFilterFunction,
+                                cellClick:openArticleVersions,
+                                width:180,
                                 sorter:"datetime",
                                 sorterParams:{
-                                    format:"iso", alignEmptyValues:"top", },
+                                    format:"iso" },
                                 formatter:"datetime",
                                 formatterParams:{
                                     inputFormat:"iso",

@@ -69,6 +69,35 @@ namespace Cosmos.Common.Data.Logic
         public static bool GetPublisherHealth() => true;
 
         /// <summary>
+        ///     Deserializes an object using <see cref="Newtonsoft.Json.JsonConvert.DeserializeObject(string)" />
+        ///     and <see cref="System.Text.Encoding.UTF32" />.
+        /// </summary>
+        /// <param name="bytes">Byte array.</param>
+        /// <typeparam name="T">The generic type to convert the bytes to.</typeparam>
+        /// <returns>Returns the bytes as an object.</returns>
+        public static T Deserialize<T>(byte[] bytes)
+        {
+            var data = Encoding.UTF32.GetString(bytes);
+            return JsonConvert.DeserializeObject<T>(data);
+        }
+
+        /// <summary>
+        ///     Serializes an object using <see cref="Newtonsoft.Json.JsonConvert.SerializeObject(object)" />
+        ///     and <see cref="System.Text.Encoding.UTF32" />.
+        /// </summary>
+        /// <param name="obj">Object to serialize into a byte array.</param>
+        /// <returns>Returns a <see cref="byte"/> array.</returns>
+        public static byte[] Serialize(object obj)
+        {
+            if (obj == null)
+            {
+                return null;
+            }
+
+            return Encoding.UTF32.GetBytes(JsonConvert.SerializeObject(obj));
+        }
+
+        /// <summary>
         /// Gets the sitemap for a website.
         /// </summary>
         /// <returns>Sitemap.</returns>
@@ -92,19 +121,23 @@ namespace Cosmos.Common.Data.Logic
 
             var sitemap = new Sitemap();
 
-            sitemap.Add(new Url
+            var url = new Url
             {
                 Location = publicUrl,
                 LastMod = home.Updated.ToString("u"),
                 Priority = 1.0,
-                Images = new List<Image>
+                Images = new List<Image>()
+            };
+
+            if (!string.IsNullOrWhiteSpace(home.BannerImage))
+            {
+                url.Images.Add(new Image
                 {
-                    new Image
-                    {
-                        Location = home.BannerImage.ToLower().StartsWith("http") ? home.BannerImage : $"{publicUrl}/{home.BannerImage.TrimStart('/')}",
-                    }
-                }
-            });
+                    Location = $"{publicUrl}/images/logo.png"
+                });
+            }
+
+            sitemap.Add(url);
 
             foreach (var item in others)
             {
@@ -128,35 +161,6 @@ namespace Cosmos.Common.Data.Logic
             }
 
             return sitemap;
-        }
-
-        /// <summary>
-        ///     Serializes an object using <see cref="Newtonsoft.Json.JsonConvert.SerializeObject(object)" />
-        ///     and <see cref="System.Text.Encoding.UTF32" />.
-        /// </summary>
-        /// <param name="obj">Object to serialize into a byte array.</param>
-        /// <returns>Returns a <see cref="byte"/> array.</returns>
-        public static byte[] Serialize(object obj)
-        {
-            if (obj == null)
-            {
-                return null;
-            }
-
-            return Encoding.UTF32.GetBytes(JsonConvert.SerializeObject(obj));
-        }
-
-        /// <summary>
-        ///     Deserializes an object using <see cref="Newtonsoft.Json.JsonConvert.DeserializeObject(string)" />
-        ///     and <see cref="System.Text.Encoding.UTF32" />.
-        /// </summary>
-        /// <param name="bytes">Byte array.</param>
-        /// <typeparam name="T">The generic type to convert the bytes to.</typeparam>
-        /// <returns>Returns the bytes as an object.</returns>
-        public static T Deserialize<T>(byte[] bytes)
-        {
-            var data = Encoding.UTF32.GetString(bytes);
-            return JsonConvert.DeserializeObject<T>(data);
         }
 
         /// <summary>
@@ -258,7 +262,6 @@ namespace Cosmos.Common.Data.Logic
         /// <param name="lang">Language to return content as.</param>
         /// <param name="cacheSpan">Length of time for cache to exist.</param>
         /// <param name="layoutCache">Layout cache duration.</param>
-        /// <param name="headRequest">Is this a head request?.</param>
         /// <param name="includeLayout">Include layout with request.</param>
         /// <returns>
         ///     <see cref="ArticleViewModel" />.
@@ -276,7 +279,7 @@ namespace Cosmos.Common.Data.Logic
         ///     </para>
         ///     <para>NOTE: Cannot access articles that have been deleted.</para>
         /// </remarks>
-        public virtual async Task<ArticleViewModel> GetPublishedPageByUrl(string urlPath, string lang = "", TimeSpan? cacheSpan = null, TimeSpan? layoutCache = null, bool headRequest = false, bool includeLayout = true)
+        public virtual async Task<ArticleViewModel> GetPublishedPageByUrl(string urlPath, string lang = "", TimeSpan? cacheSpan = null, TimeSpan? layoutCache = null, bool includeLayout = true)
         {
             urlPath = urlPath?.ToLower().Trim(new char[] { ' ', '/' });
             if (string.IsNullOrEmpty(urlPath) || urlPath.Trim() == "/")
@@ -286,29 +289,6 @@ namespace Cosmos.Common.Data.Logic
 
             if (memoryCache == null || cacheSpan == null)
             {
-                if (headRequest)
-                {
-                    var header = await DbContext.Pages.WithPartitionKey(urlPath)
-                        .Where(a => a.Published.HasValue && a.Published <= DateTimeOffset.UtcNow)
-                        .Select(s => new
-                        {
-                            s.ArticleNumber,
-                            s.Id,
-                            s.Expires,
-                            s.Updated,
-                            s.VersionNumber
-                        })
-                        .OrderByDescending(o => o.VersionNumber).AsNoTracking().FirstOrDefaultAsync();
-                    return new ArticleViewModel()
-                    {
-                        Expires = header.Expires,
-                        Updated = header.Updated,
-                        VersionNumber = header.VersionNumber,
-                        Id = header.Id,
-                        ArticleNumber = header.ArticleNumber
-                    };
-                }
-
                 var entity = await DbContext.Pages.WithPartitionKey(urlPath)
                .Where(a => a.Published <= DateTimeOffset.UtcNow)
                .OrderByDescending(o => o.VersionNumber).AsNoTracking().FirstOrDefaultAsync();
@@ -340,6 +320,32 @@ namespace Cosmos.Common.Data.Logic
             }
 
             return model;
+        }
+
+        /// <summary>
+        ///    Gets the header of the current *published* version of an article.  Gets the home page if ID is null.
+        /// </summary>
+        /// <param name="urlPath">Path to article.</param>
+        /// <returns>ArticleViewModel.</returns>
+        public virtual async Task<ArticleViewModel> GetPublishedPageHeaderByUrl(string urlPath)
+        {
+            urlPath = urlPath?.ToLower().Trim(new char[] { ' ', '/' });
+            if (string.IsNullOrEmpty(urlPath) || urlPath.Trim() == "/")
+            {
+                urlPath = "root";
+            }
+
+            return await DbContext.Pages.WithPartitionKey(urlPath)
+                       .Where(a => a.Published.HasValue && a.Published <= DateTimeOffset.UtcNow)
+                       .Select(s => new ArticleViewModel
+                       {
+                           ArticleNumber = s.ArticleNumber,
+                           Id = s.Id,
+                           Expires = s.Expires,
+                           Updated = s.Updated,
+                           VersionNumber = s.VersionNumber
+                       })
+                       .OrderByDescending(o => o.VersionNumber).AsNoTracking().FirstOrDefaultAsync();
         }
 
         /// <summary>
@@ -519,8 +525,18 @@ namespace Cosmos.Common.Data.Logic
                 AuthorInfo = article.AuthorInfo,
                 OGDescription = string.Empty,
                 OGImage = string.IsNullOrEmpty(article.BannerImage) ? string.Empty : article.BannerImage.StartsWith("http") ? article.BannerImage : CosmosOptions.Value.SiteSettings.PublisherUrl.TrimEnd('/') + "/" + article.BannerImage.TrimStart('/'),
-                OGUrl = CosmosOptions.Value.SiteSettings.PublisherUrl.TrimEnd('/') + "/" + article.UrlPath.Replace("root", string.Empty).TrimStart('/'),
+                OGUrl = GetOGUrl(article.UrlPath),
             };
+        }
+
+        private string GetOGUrl(string urlPath)
+        {
+            if (string.IsNullOrWhiteSpace(CosmosOptions.Value.SiteSettings.PublisherUrl))
+            {
+                return urlPath;
+            }
+
+            return CosmosOptions.Value.SiteSettings.PublisherUrl.TrimEnd('/') + "/" + urlPath.TrimStart('/');
         }
     }
 }

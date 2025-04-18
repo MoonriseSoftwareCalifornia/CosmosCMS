@@ -44,32 +44,47 @@ namespace Cosmos.Editor.Models.GrapesJs
             Scripts.AddRange(designerUtils.ExtractScriptReferences(layout.Head));
             Scripts.AddRange(designerUtils.ExtractScriptReferences(layout.FooterHtmlContent));
 
-            //if (Styles.Any(a => a.Contains("bootstrap", System.StringComparison.OrdinalIgnoreCase) && a.Contains("5")))
-            //{
-            //    Plugins.Add(new DesignerPlugin
-            //    {
-            //        Name = "grapesjs-blocks-bootstrap-5",
-            //        Url = "/lib/grapesjs-blocks-bootstrap-5/grapesjs-blocks-bootstrap-5.min.js",
-            //        Options = "'grapesjs-blocks-bootstrap-5': { blocks: {}, blockCategories: {}, labels: {}, gridDevicesPanel: true, formPredefinedActions: [ {name: 'Contact', value: '/contact'}, {name: 'landing', value: '/landing'}, ] }"
-            //    });
-            //}
-            //else if (Styles.Any(a => a.Contains("bootstrap", System.StringComparison.OrdinalIgnoreCase) && a.Contains("4")))
-            //{
-            //    Plugins.Add(new DesignerPlugin
-            //    {
-            //        Name = "grapesjs-blocks-bootstrap4",
-            //        Url = "/lib/grapesjs-blocks-bootstrap4/grapesjs-blocks-bootstrap4.min.js",
-            //        Options = "'grapesjs-blocks-bootstrap4': { blocks: {}, blockCategories: {}, labels: {}, gridDevicesPanel: true, formPredefinedActions: [ {name: 'Contact', value: '/contact'}, {name: 'landing', value: '/landing'}, ] }"
-            //    });
-            //}
-
-            if (layout.Head.Contains("cdn.tailwindcss.com", System.StringComparison.OrdinalIgnoreCase))
+            if (Styles.Any(a => a.Contains("bootstrap", System.StringComparison.OrdinalIgnoreCase) && a.Contains("5")))
+            {
+                Plugins.Add(new DesignerPlugin
+                {
+                    Name = "grapesjs-blocks-bootstrap-5",
+                    Url = "/lib/grapesjs-blocks-bootstrap-5/grapesjs-blocks-bootstrap-5.min.js",
+                    Options = "'grapesjs-blocks-bootstrap-5': { blocks: {}, blockCategories: {}, labels: {}, gridDevicesPanel: true, formPredefinedActions: [ {name: 'Contact', value: '/contact'}, {name: 'landing', value: '/landing'}, ] }"
+                });
+            }
+            else if (Styles.Any(a => a.Contains("bootstrap", System.StringComparison.OrdinalIgnoreCase) && a.Contains("4")))
+            {
+                Plugins.Add(new DesignerPlugin
+                {
+                    Name = "grapesjs-blocks-bootstrap4",
+                    Url = "/lib/grapesjs-blocks-bootstrap4/grapesjs-blocks-bootstrap4.min.js",
+                    Options = "'grapesjs-blocks-bootstrap4': { blocks: {}, blockCategories: {}, labels: {}, gridDevicesPanel: true, formPredefinedActions: [ {name: 'Contact', value: '/contact'}, {name: 'landing', value: '/landing'}, ] }"
+                });
+            }
+            else if (layout.Head.Contains("cdn.tailwindcss.com", System.StringComparison.OrdinalIgnoreCase))
             {
                 Plugins.Add(new DesignerPlugin
                 {
                     Name = "grapesjs-tailwind",
                     Url = "https://unpkg.com/grapesjs-tailwind",
                     Options = "'grapesjs-tailwind': { }"
+                });
+            }
+            else
+            {
+                Plugins.Add(new DesignerPlugin
+                {
+                    Name = "gjs-blocks-basic",
+                    Url = "/lib/grapesjs-blocks-basic/index.js",
+                    Options = "'gjs-blocks-basic': { flexGrid: true }"
+                });
+
+                Plugins.Add(new DesignerPlugin
+                {
+                    Name = "grapesjs-plugin-forms",
+                    Url = "/lib/grapesjs-plugin-forms/index.js",
+                    Options = "'gjs-blocks-basic': { flexGrid: true }"
                 });
             }
 

@@ -7,9 +7,9 @@
 		<EnableNETAnalyzers>false</EnableNETAnalyzers>
 		<RepositoryUrl>https://github.com/CosmosSoftware/CosmosCms</RepositoryUrl>
 		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-		<Version>9.0.3.61</Version>
-		<AssemblyVersion>9.0.3.61</AssemblyVersion>
-		<FileVersion>9.0.3.61</FileVersion>
+		<Version>9.0.7.8</Version>
+		<AssemblyVersion>9.0.7.8</AssemblyVersion>
+		<FileVersion>9.0.7.8</FileVersion>
 		<RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
 		<Authors></Authors>
 		<ApplicationInsightsResourceId>/subscriptions/9bdb8e29-156f-4fc9-a1fe-1bb6a915a4f0/resourceGroups/CosmosCMS/providers/microsoft.insights/components/edit-cosmos-cms202107021426</ApplicationInsightsResourceId>
@@ -32,26 +32,7 @@
 	
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
 	</PropertyGroup>
-	
-	<ItemGroup>
-		<Compile Remove="Areas\MicrosoftIdentity\**" />
-		<Compile Remove="wwwroot\images\video\**" />
-		<Compile Remove="wwwroot\lib\ckeditor\build_20230104.01\**" />
-		<Compile Remove="wwwroot\lib\ckeditor\build_20230209.01\**" />
-		<Content Remove="Areas\MicrosoftIdentity\**" />
-		<Content Remove="wwwroot\images\video\**" />
-		<Content Remove="wwwroot\lib\ckeditor\build_20230104.01\**" />
-		<Content Remove="wwwroot\lib\ckeditor\build_20230209.01\**" />
-		<EmbeddedResource Remove="Areas\MicrosoftIdentity\**" />
-		<EmbeddedResource Remove="wwwroot\images\video\**" />
-		<EmbeddedResource Remove="wwwroot\lib\ckeditor\build_20230104.01\**" />
-		<EmbeddedResource Remove="wwwroot\lib\ckeditor\build_20230209.01\**" />
-		<None Remove="Areas\MicrosoftIdentity\**" />
-		<None Remove="wwwroot\images\video\**" />
-		<None Remove="wwwroot\lib\ckeditor\build_20230104.01\**" />
-		<None Remove="wwwroot\lib\ckeditor\build_20230209.01\**" />
-	</ItemGroup>
-	
+
 	<ItemGroup>
 	  <Content Remove="C:\Users\toiya\.nuget\packages\cdt.cosmos.cms.common\2021.6.23.6\contentFiles\any\net5.0\Views\CCMS_Examples\Index.cshtml" />
 	  <Content Remove="C:\Users\toiya\.nuget\packages\cdt.cosmos.cms.common\2021.6.23.6\contentFiles\any\net5.0\Views\CCMS_Examples\TextFile1.txt" />
@@ -85,49 +66,41 @@
 		<PackageReference Include="Azure.Extensions.AspNetCore.DataProtection.Blobs" Version="1.5.0" />
 		<PackageReference Include="Azure.Identity" Version="1.13.2" />
 		<PackageReference Include="Azure.ResourceManager" Version="1.13.0" />
-		<PackageReference Include="Azure.ResourceManager.Cdn" Version="1.3.0" />
-		<PackageReference Include="Azure.ResourceManager.FrontDoor" Version="1.3.0" />
-		<PackageReference Include="Cosmos.BlobService" Version="9.0.3.33" />
+		<PackageReference Include="Azure.ResourceManager.Cdn" Version="1.3.1" />
+		<PackageReference Include="Azure.ResourceManager.FrontDoor" Version="1.3.1" />
 		<PackageReference Include="CsvHelper" Version="33.0.1" />
-		<PackageReference Include="MailChimp.Net.V3" Version="5.5.0" />
 		<PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.23.0" />
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="9.0.2" />
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.2" />
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.MicrosoftAccount" Version="9.0.2" />
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.2" />
-		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="9.0.2" />
-		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="9.0.2" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="9.0.4" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.4" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.MicrosoftAccount" Version="9.0.4" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.4" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="9.0.4" />
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="9.0.4" />
 		<PackageReference Include="Microsoft.Azure.SignalR" Version="1.30.2" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Cosmos" Version="9.0.2" />
-		<PackageReference Include="Microsoft.Extensions.Azure" Version="1.10.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Cosmos" Version="9.0.4" />
+		<PackageReference Include="Microsoft.Extensions.Azure" Version="1.11.0" />
 		<PackageReference Include="Microsoft.Extensions.Caching.Cosmos" Version="1.7.0" />
 		
-		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.2" />
+		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.0" />
 		
 		<PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="9.0.0" />
-		<PackageReference Include="NUglify" Version="1.21.13" />
+		<PackageReference Include="NUglify" Version="1.21.15" />
 		<PackageReference Include="PasswordGenerator" Version="2.1.0" />
-		<PackageReference Include="RestSharp" Version="112.1.0" />
 		<PackageReference Include="SixLabors.ImageSharp" Version="3.1.6" />
 		<PackageReference Include="MimeTypeMapOfficial" Version="1.0.17" />
 		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="System.Drawing.Common" Version="9.0.2" />
-		<PackageReference Include="System.Formats.Asn1" Version="9.0.2" />
+		<PackageReference Include="System.Drawing.Common" Version="9.0.4" />
+		<PackageReference Include="System.Formats.Asn1" Version="9.0.4" />
 		<PackageReference Include="System.Private.Uri" Version="4.3.2" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<Content Update="wwwroot\*">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		<Content Update="wwwroot\**\*">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="wwwroot\lib\grapesjs-blocks-bootstrap-5\" />
-	  <Folder Include="wwwroot\lib\grapesjs-blocks-bootstrap4\" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -143,6 +116,5 @@
 			<UserProperties libman_1json__JsonSchema="" />
 		</VisualStudio>
 	</ProjectExtensions>
-
 
 </Project>

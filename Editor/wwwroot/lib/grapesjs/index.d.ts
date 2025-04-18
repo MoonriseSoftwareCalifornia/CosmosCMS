@@ -1,5 +1,5 @@
 import Backbone from 'backbone';
-import { _StringKey } from 'backbone';
+import { ModelDestroyOptions, _StringKey } from 'backbone';
 
 export interface DomComponentsConfig {
 	stylePrefix?: string;
@@ -730,6 +730,11 @@ declare class Sorter<T, NodeType extends SortableTreeNode<T>> {
 		element?: HTMLElement;
 		dragSource?: DragSource<T>;
 	}[]): void;
+	validTarget(targetEl: HTMLElement | undefined, sources: {
+		element?: HTMLElement;
+		dragSource?: DragSource<T>;
+	}[], index: number): boolean;
+	private getSourceNodes;
 	/**
 	 * This method is should be called when the user scrolls within the container.
 	 */
@@ -782,8 +787,225 @@ declare class Sorter<T, NodeType extends SortableTreeNode<T>> {
 	private rollback;
 	protected triggerNullOnEndMove(dragIsCancelled: boolean): void;
 }
+export interface CategoryViewConfig {
+	em: EditorModel;
+	pStylePrefix?: string;
+	stylePrefix?: string;
+}
+declare class CategoryView extends View<Category> {
+	em: EditorModel;
+	config: CategoryViewConfig;
+	pfx: string;
+	caretR: string;
+	caretD: string;
+	iconClass: string;
+	activeClass: string;
+	iconEl?: HTMLElement;
+	typeEl?: HTMLElement;
+	catName: string;
+	events(): {
+		"click [data-title]": string;
+	};
+	template({ pfx, label, catName }: {
+		pfx: string;
+		label: string;
+		catName: string;
+	}): string;
+	/** @ts-ignore */
+	attributes(): Record<string, any>;
+	constructor(o: any, config: CategoryViewConfig, catName: string);
+	updateVisibility(): void;
+	open(): void;
+	close(): void;
+	toggle(): void;
+	getIconEl(): HTMLElement;
+	getTypeEl(): HTMLElement;
+	append(el: HTMLElement): void;
+	render(): this;
+}
+interface CategoryProperties {
+	/**
+	 * Category id.
+	 */
+	id: string;
+	/**
+	 * Category label.
+	 */
+	label: string;
+	/**
+	 * Category open state.
+	 * @default true
+	 */
+	open?: boolean;
+	/**
+	 * Category order.
+	 */
+	order?: string | number;
+	/**
+	 * Category attributes.
+	 * @default {}
+	 */
+	attributes?: Record<string, any>;
+}
+export interface ItemsByCategory<T> {
+	category?: Category;
+	items: T[];
+}
+export declare class Category extends Model<CategoryProperties> {
+	view?: CategoryView;
+	defaults(): {
+		id: string;
+		label: string;
+		open: boolean;
+		attributes: {};
+	};
+	getId(): string;
+	getLabel(): string;
+}
+export type CategoryCollectionParams = ConstructorParameters<typeof Collection<Category>>;
+export interface CategoryOptions {
+	events?: {
+		update?: string;
+	};
+	em?: EditorModel;
+}
+export declare class Categories extends Collection<Category> {
+	constructor(models?: CategoryCollectionParams[0], opts?: CategoryOptions);
+	/** @ts-ignore */
+	add(model: (CategoryProperties | Category)[] | CategoryProperties | Category, opts?: AddOptions): Category;
+	get(id: string | Category): Category;
+}
+export interface ModelWithCategoryProps {
+	category?: string | CategoryProperties;
+}
+declare abstract class CollectionWithCategories<T extends Model<ModelWithCategoryProps>> extends Collection<T> {
+	abstract getCategories(): Categories;
+	initCategory(model: T): Category | undefined;
+}
+export declare class Blocks extends CollectionWithCategories<Block> {
+	em: EditorModel;
+	constructor(coll: any[], options: {
+		em: EditorModel;
+	});
+	getCategories(): Categories;
+	handleAdd(model: Block): void;
+}
+/** @private */
+export interface BlockProperties extends DraggableContent {
+	/**
+	 * Block label, eg. `My block`
+	 */
+	label: string;
+	/**
+	 * HTML string for the media/icon of the block, eg. `<svg ...`, `<img ...`, etc.
+	 * @default ''
+	 */
+	media?: string;
+	/**
+	 * Block category, eg. `Basic blocks`
+	 * @default ''
+	 */
+	category?: string | CategoryProperties;
+	/**
+	 * If true, triggers the `active` event on the dropped component.
+	 * @default false
+	 */
+	activate?: boolean;
+	/**
+	 * If true, the dropped component will be selected.
+	 * @default false
+	 */
+	select?: boolean;
+	/**
+	 * If true, all IDs of dropped components and their styles will be changed.
+	 * @default false
+	 */
+	resetId?: boolean;
+	/**
+	 * Disable the block from being interacted.
+	 * @default false
+	 */
+	disable?: boolean;
+	/**
+	 * Custom behavior on click.
+	 * @example
+	 * onClick: (block, editor) => editor.getWrapper().append(block.get('content'))
+	 */
+	onClick?: (block: Block, editor: Editor) => void;
+	/**
+	 * Block attributes
+	 */
+	attributes?: Record<string, any>;
+	id?: string;
+	/**
+	 * @deprecated
+	 */
+	activeOnRender?: boolean;
+}
+/**
+ * @property {String} label Block label, eg. `My block`
+ * @property {String|Object} content The content of the block. Might be an HTML string or a [Component Defintion](/modules/Components.html#component-definition)
+ * @property {String} [media=''] HTML string for the media/icon of the block, eg. `<svg ...`, `<img ...`, etc.
+ * @property {String} [category=''] Block category, eg. `Basic blocks`
+ * @property {Boolean} [activate=false] If true, triggers the `active` event on the dropped component.
+ * @property {Boolean} [select=false] If true, the dropped component will be selected.
+ * @property {Boolean} [resetId=false] If true, all IDs of dropped components and their styles will be changed.
+ * @property {Boolean} [disable=false] Disable the block from being interacted
+ * @property {Function} [onClick] Custom behavior on click, eg. `(block, editor) => editor.getWrapper().append(block.get('content'))`
+ * @property {Object} [attributes={}] Block attributes to apply in the view element
+ *
+ * @module docsjs.Block
+ */
+export declare class Block extends Model<BlockProperties> {
+	defaults(): {
+		label: string;
+		content: string;
+		media: string;
+		category: string;
+		activate: boolean;
+		select: undefined;
+		resetId: boolean;
+		disable: boolean;
+		onClick: undefined;
+		attributes: {};
+		dragDef: {};
+	};
+	get category(): Category | undefined;
+	get parent(): Blocks;
+	/**
+	 * Get block id
+	 * @returns {String}
+	 */
+	getId(): string;
+	/**
+	 * Get block label
+	 * @returns {String}
+	 */
+	getLabel(): string;
+	/**
+	 * Get block media
+	 * @returns {String}
+	 */
+	getMedia(): string | undefined;
+	/**
+	 * Get block content
+	 * @returns {Object|String|Array<Object|String>}
+	 */
+	getContent(): ContentType | (() => ContentType) | undefined;
+	/**
+	 * Get block component dragDef
+	 * @returns {ComponentDefinition}
+	 */
+	getDragDef(): ComponentDefinition | undefined;
+	/**
+	 * Get block category label
+	 * @returns {String}
+	 */
+	getCategoryLabel(): string;
+}
 declare class ComponentSorter<NodeType extends BaseComponentNode> extends Sorter<Component, NodeType> {
 	targetIsText: boolean;
+	__currentBlock?: Block;
 	constructor({ em, treeClass, containerContext, dragBehavior, positionOptions, eventHandlers, }: {
 		em: EditorModel;
 		treeClass: new (model: Component, dragSource?: DragSource<Component>) => NodeType;
@@ -1552,7 +1774,7 @@ declare class CanvasView extends ModuleView<Canvas> {
 	 * @param {ModuleView} view Component's View
 	 * @private
 	 */
-	updateScript(view: any): void;
+	updateScript(view: ComponentView): void;
 	/**
 	 * Get javascript container
 	 * @private
@@ -2926,81 +3148,6 @@ export declare class Frame extends ModuleModel<CanvasModule> {
 	hasAutoHeight(): boolean;
 	toJSON(opts?: any): any;
 }
-export interface CategoryViewConfig {
-	em: EditorModel;
-	pStylePrefix?: string;
-	stylePrefix?: string;
-}
-declare class CategoryView extends View<Category> {
-	em: EditorModel;
-	config: CategoryViewConfig;
-	pfx: string;
-	caretR: string;
-	caretD: string;
-	iconClass: string;
-	activeClass: string;
-	iconEl?: HTMLElement;
-	typeEl?: HTMLElement;
-	catName: string;
-	events(): {
-		"click [data-title]": string;
-	};
-	template({ pfx, label, catName }: {
-		pfx: string;
-		label: string;
-		catName: string;
-	}): string;
-	/** @ts-ignore */
-	attributes(): Record<string, any>;
-	constructor(o: any, config: CategoryViewConfig, catName: string);
-	updateVisibility(): void;
-	open(): void;
-	close(): void;
-	toggle(): void;
-	getIconEl(): HTMLElement;
-	getTypeEl(): HTMLElement;
-	append(el: HTMLElement): void;
-	render(): this;
-}
-interface CategoryProperties {
-	/**
-	 * Category id.
-	 */
-	id: string;
-	/**
-	 * Category label.
-	 */
-	label: string;
-	/**
-	 * Category open state.
-	 * @default true
-	 */
-	open?: boolean;
-	/**
-	 * Category order.
-	 */
-	order?: string | number;
-	/**
-	 * Category attributes.
-	 * @default {}
-	 */
-	attributes?: Record<string, any>;
-}
-export interface ItemsByCategory<T> {
-	category?: Category;
-	items: T[];
-}
-export declare class Category extends Model<CategoryProperties> {
-	view?: CategoryView;
-	defaults(): {
-		id: string;
-		label: string;
-		open: boolean;
-		attributes: {};
-	};
-	getId(): string;
-	getLabel(): string;
-}
 export interface TraitManagerConfig {
 	/**
 	 * Style prefix.
@@ -3033,7 +3180,9 @@ declare enum StringOperation {
 	contains = "contains",
 	startsWith = "startsWith",
 	endsWith = "endsWith",
-	matchesRegex = "matchesRegex"
+	matchesRegex = "matchesRegex",
+	equalsIgnoreCase = "equalsIgnoreCase",
+	trimEquals = "trimEquals"
 }
 declare enum GenericOperation {
 	equals = "equals",
@@ -3075,7 +3224,7 @@ declare class DataVariable extends Model {
 declare class Condition extends Model {
 	private condition;
 	private em;
-	constructor(condition: Expression | LogicGroup | boolean, opts: {
+	constructor(condition: ExpressionDefinition | LogicGroupDefinition | boolean, opts: {
 		em: EditorModel;
 	});
 	evaluate(): boolean;
@@ -3109,22 +3258,29 @@ declare class Condition extends Model {
 	private isOperatorInEnum;
 }
 declare const ConditionalVariableType = "conditional-variable";
-export type Expression = {
+export type ExpressionDefinition = {
 	left: any;
 	operator: GenericOperation | StringOperation | NumberOperation;
 	right: any;
 };
-export type LogicGroup = {
+export type LogicGroupDefinition = {
 	logicalOperator: LogicalOperation;
-	statements: (Expression | LogicGroup | boolean)[];
+	statements: (ExpressionDefinition | LogicGroupDefinition | boolean)[];
 };
+export type ConditionDefinition = ExpressionDefinition | LogicGroupDefinition | boolean;
 export type ConditionalVariableDefinition = {
 	type: typeof ConditionalVariableType;
-	condition: Expression | LogicGroup | boolean;
+	condition: ConditionDefinition;
 	ifTrue: any;
 	ifFalse: any;
 };
-declare class DataCondition extends Model {
+export type DataConditionType = {
+	type: typeof ConditionalVariableType;
+	condition: Condition;
+	ifTrue: any;
+	ifFalse: any;
+};
+declare class DataCondition extends Model<DataConditionType> {
 	ifTrue: any;
 	ifFalse: any;
 	lastEvaluationResult: boolean;
@@ -3132,11 +3288,7 @@ declare class DataCondition extends Model {
 	private em;
 	private variableListeners;
 	private _onValueChange?;
-	defaults(): {
-		type: string;
-		condition: boolean;
-	};
-	constructor(condition: Expression | LogicGroup | boolean, ifTrue: any, ifFalse: any, opts: {
+	constructor(condition: ExpressionDefinition | LogicGroupDefinition | boolean, ifTrue: any, ifFalse: any, opts: {
 		em: EditorModel;
 		onValueChange?: () => void;
 	});
@@ -3406,26 +3558,6 @@ declare class TraitManager extends Module<TraitManagerConfigModule> {
 	__upSel(): void;
 	__onUp(): void;
 }
-export type CategoryCollectionParams = ConstructorParameters<typeof Collection<Category>>;
-export interface CategoryOptions {
-	events?: {
-		update?: string;
-	};
-	em?: EditorModel;
-}
-export declare class Categories extends Collection<Category> {
-	constructor(models?: CategoryCollectionParams[0], opts?: CategoryOptions);
-	/** @ts-ignore */
-	add(model: (CategoryProperties | Category)[] | CategoryProperties | Category, opts?: AddOptions): Category;
-	get(id: string | Category): Category;
-}
-export interface ModelWithCategoryProps {
-	category?: string | CategoryProperties;
-}
-declare abstract class CollectionWithCategories<T extends Model<ModelWithCategoryProps>> extends Collection<T> {
-	abstract getCategories(): Categories;
-	initCategory(model: T): Category | undefined;
-}
 declare class TraitFactory {
 	config: Partial<TraitManagerConfig>;
 	constructor(config?: Partial<TraitManagerConfig>);
@@ -3475,7 +3607,7 @@ export interface DataSourceOptions extends CombinedModelConstructorOptions<{
 	em: EditorModel;
 }, DataSource> {
 }
-export declare class DataSource extends Model<DataSourceProps> {
+export declare class DataSource<DRProps extends DataRecordProps = DataRecordProps> extends Model<DataSourceType<DRProps>> {
 	transformers: DataSourceTransformers;
 	/**
 	 * Returns the default properties for the data source.
@@ -3484,27 +3616,24 @@ export declare class DataSource extends Model<DataSourceProps> {
 	 * @returns {Object} The default attributes for the data source.
 	 * @name defaults
 	 */
-	defaults(): {
-		records: never[];
-		transformers: {};
-	};
+	defaults(): DataSourceType<DRProps>;
 	/**
 	 * Initializes a new instance of the `DataSource` class.
 	 * It sets up the transformers and initializes the collection of records.
 	 * If the `records` property is not an instance of `DataRecords`, it will be converted into one.
 	 *
-	 * @param {DataSourceProps} props - Properties to initialize the data source.
+	 * @param {DataSourceProps<DRProps>} props - Properties to initialize the data source.
 	 * @param {DataSourceOptions} opts - Options to initialize the data source.
 	 * @name constructor
 	 */
-	constructor(props: DataSourceProps, opts: DataSourceOptions);
+	constructor(props: DataSourceProps<DRProps>, opts: DataSourceOptions);
 	/**
 	 * Retrieves the collection of records associated with this data source.
 	 *
-	 * @returns {DataRecords} The collection of data records.
+	 * @returns {DataRecords<DRProps>} The collection of data records.
 	 * @name records
 	 */
-	get records(): DataRecords;
+	get records(): NonNullable<DataRecords<DRProps>>;
 	/**
 	 * Retrieves the editor model associated with this data source.
 	 *
@@ -3516,25 +3645,25 @@ export declare class DataSource extends Model<DataSourceProps> {
 	 * Handles the `add` event for records in the data source.
 	 * This method triggers a change event on the newly added record.
 	 *
-	 * @param {DataRecord} dr - The data record that was added.
+	 * @param {DataRecord<DRProps>} dr - The data record that was added.
 	 * @private
 	 * @name onAdd
 	 */
-	onAdd(dr: DataRecord): void;
+	onAdd(dr: DataRecord<DRProps>): void;
 	/**
 	 * Adds a new record to the data source.
 	 *
-	 * @param {DataRecordProps} record - The properties of the record to add.
+	 * @param {DRProps} record - The properties of the record to add.
 	 * @param {AddOptions} [opts] - Options to apply when adding the record.
 	 * @returns {DataRecord} The added data record.
 	 * @name addRecord
 	 */
-	addRecord(record: DataRecordProps, opts?: AddOptions): DataRecord<DataRecordProps>;
+	addRecord(record: DRProps, opts?: AddOptions): DataRecord<DRProps>;
 	/**
 	 * Retrieves a record from the data source by its ID.
 	 *
 	 * @param {string | number} id - The ID of the record to retrieve.
-	 * @returns {DataRecord | undefined} The data record, or `undefined` if no record is found with the given ID.
+	 * @returns {DataRecord<DRProps> | undefined} The data record, or `undefined` if no record is found with the given ID.
 	 * @name getRecord
 	 */
 	getRecord(id: string | number): DataRecord | undefined;
@@ -3542,30 +3671,30 @@ export declare class DataSource extends Model<DataSourceProps> {
 	 * Retrieves all records from the data source.
 	 * Each record is processed with the `getRecord` method to apply any read transformers.
 	 *
-	 * @returns {Array<DataRecord | undefined>} An array of data records.
+	 * @returns {Array<DataRecord<DRProps> | undefined>} An array of data records.
 	 * @name getRecords
 	 */
-	getRecords(): (DataRecord<DataRecordProps> | undefined)[];
+	getRecords(): DataRecord<DataRecordProps>[];
 	/**
 	 * Removes a record from the data source by its ID.
 	 *
 	 * @param {string | number} id - The ID of the record to remove.
 	 * @param {RemoveOptions} [opts] - Options to apply when removing the record.
-	 * @returns {DataRecord | undefined} The removed data record, or `undefined` if no record is found with the given ID.
+	 * @returns {DataRecord<DRProps> | undefined} The removed data record, or `undefined` if no record is found with the given ID.
 	 * @name removeRecord
 	 */
-	removeRecord(id: string | number, opts?: RemoveOptions): DataRecord | undefined;
+	removeRecord(id: string | number, opts?: RemoveOptions): DataRecord<DRProps>;
 	/**
 	 * Replaces the existing records in the data source with a new set of records.
 	 *
-	 * @param {Array<DataRecordProps>} records - An array of data record properties to set.
+	 * @param {Array<DRProps>} records - An array of data record properties to set.
 	 * @returns {Array<DataRecord>} An array of the added data records.
 	 * @name setRecords
 	 */
-	setRecords(records: Array<DataRecordProps>): void;
+	setRecords(records: DRProps[]): void;
 	private handleChanges;
 }
-export declare class DataRecords extends Collection<DataRecord> {
+export declare class DataRecords<T extends DataRecordProps = DataRecordProps> extends Collection<DataRecord<T>> {
 	dataSource: DataSource;
 	constructor(models: DataRecord[] | DataRecordProps[], options: {
 		dataSource: DataSource;
@@ -3639,7 +3768,7 @@ export declare class DataRecord<T extends DataRecordProps = DataRecordProps> ext
 	 * record.set('name', 'newValue');
 	 * // Sets 'name' property to 'newValue'
 	 */
-	set<A extends _StringKey<T>>(attributeName: Partial<T> | A, value?: SetOptions | T[A] | undefined, options?: SetOptions | undefined): this;
+	set<A extends _StringKey<T>>(attributeName: DeepPartialDot<T> | A, value?: SetOptions | T[A] | undefined, options?: SetOptions | undefined): this;
 }
 export type DynamicValue = DataVariable | ComponentDataVariable | DataCondition;
 export interface DataRecordProps extends ObjectAny {
@@ -3651,16 +3780,13 @@ export interface DataRecordProps extends ObjectAny {
 	 * Specifies if the record is mutable. Defaults to `true`.
 	 */
 	mutable?: boolean;
+	[key: string]: any;
 }
-export interface DataSourceProps {
+export interface BaseDataSource {
 	/**
 	 * DataSource id.
 	 */
 	id: string;
-	/**
-	 * DataSource records.
-	 */
-	records?: DataRecords | DataRecord[] | DataRecordProps[];
 	/**
 	 * DataSource validation and transformation factories.
 	 */
@@ -3669,6 +3795,12 @@ export interface DataSourceProps {
 	 * If true will store the data source in the GrapesJS project.json file.
 	 */
 	skipFromStorage?: boolean;
+}
+export interface DataSourceType<DR extends DataRecordProps> extends BaseDataSource {
+	records: DataRecords<DR>;
+}
+export interface DataSourceProps<DR extends DataRecordProps> extends BaseDataSource {
+	records?: DataRecords<DR> | DataRecord<DR>[] | DR[];
 }
 export interface DataSourceTransformers {
 	onRecordSetValue?: (args: {
@@ -3711,8 +3843,14 @@ declare enum DataSourcesEvents {
 	 */
 	all = "data"
 }
+/**{END_EVENTS}*/
+export type DotSeparatedKeys<T> = T extends object ? {
+	[K in keyof T]: K extends string ? T[K] extends object ? `${K}` | `${K}.${DotSeparatedKeys<T[K]>}` : `${K}` : never;
+}[keyof T] : never;
+export type DeepPartialDot<T> = {
+	[P in DotSeparatedKeys<T>]?: P extends `${infer K}.${infer Rest}` ? K extends keyof T ? Rest extends DotSeparatedKeys<T[K]> ? DeepPartialDot<T[K]>[Rest] : never : never : P extends keyof T ? T[P] : never;
+};
 export interface DynamicVariableListenerManagerOptions {
-	model: Model | ComponentView;
 	em: EditorModel;
 	dataVariable: DynamicValue;
 	updateValueFromDataVariable: (value: any) => void;
@@ -3720,9 +3858,9 @@ export interface DynamicVariableListenerManagerOptions {
 declare class DynamicVariableListenerManager {
 	private dataListeners;
 	private em;
-	private model;
-	private dynamicVariable;
+	dynamicVariable: DynamicValue;
 	private updateValueFromDynamicVariable;
+	private model;
 	constructor(options: DynamicVariableListenerManagerOptions);
 	private onChange;
 	listenToDynamicVariable(): void;
@@ -3770,7 +3908,6 @@ export declare class Trait extends Model<TraitProperties> {
 	get component(): Component;
 	get changeProp(): boolean;
 	setTarget(component: Component): void;
-	updateValueFromDataVariable(value: string): void;
 	/**
 	 * Get the trait id.
 	 * @returns {String}
@@ -4616,11 +4753,7 @@ export interface ComponentProperties {
 	 * Component default style, eg. `{ width: '100px', height: '100px', 'background-color': 'red' }`
 	 * @default {}
 	 */
-	style?: string | Record<string, any | {
-		type: typeof DataVariableType;
-		path: string;
-		value: string;
-	}>;
+	style?: string | Record<string, any>;
 	/**
 	 * Component related styles, eg. `.my-component-class { color: red }`
 	 * @default ''
@@ -4812,6 +4945,19 @@ declare enum ComponentsEvents {
 	select = "component:select",
 	selectBefore = "component:select:before",
 	/**
+	 * @event `component:script:mount` Component with script is mounted.
+	 * @example
+	 * editor.on('component:script:mount', ({ component, view, el }) => { ... });
+	 */
+	scriptMount = "component:script:mount",
+	scriptMountBefore = "component:script:mount:before",
+	/**
+	 * @event `component:script:unmount` Component with script is unmounted. This is triggered when the component is removed or the script execution has to be refreshed. This event might be useful to clean up resources.
+	 * @example
+	 * editor.on('component:script:unmount', ({ component, view, el }) => { ... });
+	 */
+	scriptUnmount = "component:script:unmount",
+	/**
 	 * @event `symbol:main:add` Added new main symbol.
 	 * @example
 	 * editor.on('symbol:main:add', ({ component }) => { ... });
@@ -4875,127 +5021,6 @@ declare class Symbols extends Components {
 	onUpdateDeep(props: PropsComponentUpdate): void;
 	refresh(): void;
 	__trgEvent(event: string, props: ObjectAny, isInstance?: boolean): void;
-}
-export declare class Blocks extends CollectionWithCategories<Block> {
-	em: EditorModel;
-	constructor(coll: any[], options: {
-		em: EditorModel;
-	});
-	getCategories(): Categories;
-	handleAdd(model: Block): void;
-}
-/** @private */
-export interface BlockProperties extends DraggableContent {
-	/**
-	 * Block label, eg. `My block`
-	 */
-	label: string;
-	/**
-	 * HTML string for the media/icon of the block, eg. `<svg ...`, `<img ...`, etc.
-	 * @default ''
-	 */
-	media?: string;
-	/**
-	 * Block category, eg. `Basic blocks`
-	 * @default ''
-	 */
-	category?: string | CategoryProperties;
-	/**
-	 * If true, triggers the `active` event on the dropped component.
-	 * @default false
-	 */
-	activate?: boolean;
-	/**
-	 * If true, the dropped component will be selected.
-	 * @default false
-	 */
-	select?: boolean;
-	/**
-	 * If true, all IDs of dropped components and their styles will be changed.
-	 * @default false
-	 */
-	resetId?: boolean;
-	/**
-	 * Disable the block from being interacted.
-	 * @default false
-	 */
-	disable?: boolean;
-	/**
-	 * Custom behavior on click.
-	 * @example
-	 * onClick: (block, editor) => editor.getWrapper().append(block.get('content'))
-	 */
-	onClick?: (block: Block, editor: Editor) => void;
-	/**
-	 * Block attributes
-	 */
-	attributes?: Record<string, any>;
-	id?: string;
-	/**
-	 * @deprecated
-	 */
-	activeOnRender?: boolean;
-}
-/**
- * @property {String} label Block label, eg. `My block`
- * @property {String|Object} content The content of the block. Might be an HTML string or a [Component Defintion](/modules/Components.html#component-definition)
- * @property {String} [media=''] HTML string for the media/icon of the block, eg. `<svg ...`, `<img ...`, etc.
- * @property {String} [category=''] Block category, eg. `Basic blocks`
- * @property {Boolean} [activate=false] If true, triggers the `active` event on the dropped component.
- * @property {Boolean} [select=false] If true, the dropped component will be selected.
- * @property {Boolean} [resetId=false] If true, all IDs of dropped components and their styles will be changed.
- * @property {Boolean} [disable=false] Disable the block from being interacted
- * @property {Function} [onClick] Custom behavior on click, eg. `(block, editor) => editor.getWrapper().append(block.get('content'))`
- * @property {Object} [attributes={}] Block attributes to apply in the view element
- *
- * @module docsjs.Block
- */
-export declare class Block extends Model<BlockProperties> {
-	defaults(): {
-		label: string;
-		content: string;
-		media: string;
-		category: string;
-		activate: boolean;
-		select: undefined;
-		resetId: boolean;
-		disable: boolean;
-		onClick: undefined;
-		attributes: {};
-		dragDef: {};
-	};
-	get category(): Category | undefined;
-	get parent(): Blocks;
-	/**
-	 * Get block id
-	 * @returns {String}
-	 */
-	getId(): string;
-	/**
-	 * Get block label
-	 * @returns {String}
-	 */
-	getLabel(): string;
-	/**
-	 * Get block media
-	 * @returns {String}
-	 */
-	getMedia(): string | undefined;
-	/**
-	 * Get block content
-	 * @returns {Object|String|Array<Object|String>}
-	 */
-	getContent(): ContentType | (() => ContentType) | undefined;
-	/**
-	 * Get block component dragDef
-	 * @returns {ComponentDefinition}
-	 */
-	getDragDef(): ComponentDefinition | undefined;
-	/**
-	 * Get block category label
-	 * @returns {String}
-	 */
-	getCategoryLabel(): string;
 }
 export type ComponentEvent = "component:create" | "component:mount" | "component:add" | "component:remove" | "component:remove:before" | "component:clone" | "component:update" | "component:styleUpdate" | "component:selected" | "component:deselected" | "component:toggled" | "component:type:add" | "component:type:update" | "component:drag:start" | "component:drag" | "component:drag:end" | "component:resize";
 export interface ComponentModelDefinition extends IComponent {
@@ -5730,9 +5755,36 @@ declare class ItemView extends View {
 	render(): this;
 	__render(): void;
 }
+declare class ComponentDynamicValueWatcher {
+	private component;
+	private propertyWatcher;
+	private attributeWatcher;
+	constructor(component: Component, em: EditorModel);
+	private createPropertyUpdater;
+	private createAttributeUpdater;
+	addProps(props: ObjectAny): void;
+	addAttributes(attributes: ObjectAny): void;
+	setAttributes(attributes: ObjectAny): void;
+	removeAttributes(attributes: string[]): void;
+	getDynamicPropsDefs(): ObjectAny;
+	getDynamicAttributesDefs(): ObjectAny;
+	getAttributesDefsOrValues(attributes: ObjectAny): {
+		[x: string]: any;
+	};
+	getPropsDefsOrValues(props: ObjectAny): {
+		[x: string]: any;
+	};
+	destroy(): void;
+}
 export interface IComponent extends ExtractMethods<Component> {
 }
-export interface SetAttrOptions extends SetOptions, UpdateStyleOptions {
+export interface DynamicWatchersOptions {
+	skipWatcherUpdates?: boolean;
+	fromDataSource?: boolean;
+}
+export interface SetAttrOptions extends SetOptions, UpdateStyleOptions, DynamicWatchersOptions {
+}
+export interface ComponentSetOptions extends SetOptions, DynamicWatchersOptions {
 }
 /**
  * The Component object represents a single node of our template structure, so when you update its properties the changes are
@@ -5842,7 +5894,9 @@ export declare class Component extends StyleableModel<ComponentProperties> {
 	 * @private
 	 * @ts-ignore */
 	collection: Components;
+	componentDVListener: ComponentDynamicValueWatcher;
 	constructor(props: ComponentProperties | undefined, opt: ComponentOptions);
+	set<A extends string>(keyOrAttributes: A | Partial<ComponentProperties>, valueOrOptions?: ComponentProperties[A] | ComponentSetOptions, optionsOrUndefined?: ComponentSetOptions): this;
 	__postAdd(opts?: {
 		recursive?: boolean;
 	}): void;
@@ -6361,6 +6415,7 @@ export declare class Component extends StyleableModel<ComponentProperties> {
 	 */
 	getScriptString(script?: string | Function): string;
 	emitUpdate(property?: string, ...args: any[]): void;
+	emitWithEitor(event: string, data?: Record<string, any>): void;
 	/**
 	 * Execute callback function on itself and all inner components
 	 * @param  {Function} clb Callback function, the model is passed as an argument
@@ -6385,6 +6440,7 @@ export declare class Component extends StyleableModel<ComponentProperties> {
 	 * @return {this}
 	 */
 	remove(opts?: any): this;
+	destroy(options?: ModelDestroyOptions | undefined): false | JQueryXHR;
 	/**
 	 * Move the component to another destination component
 	 * @param {Component} component Destination component (so the current one will be appended as a child)
@@ -7105,9 +7161,104 @@ export interface PanelsConfig {
 	 */
 	defaults?: PanelProps[];
 }
+export interface RichTextEditorAction {
+	name: string;
+	icon: string | HTMLElement;
+	event?: string;
+	attributes?: Record<string, any>;
+	result: (rte: RichTextEditor, action: RichTextEditorAction) => void;
+	update?: (rte: RichTextEditor, action: RichTextEditorAction) => number;
+	state?: (rte: RichTextEditor, doc: Document) => number;
+	btn?: HTMLElement;
+	currentState?: RichTextEditorActionState;
+}
+declare enum RichTextEditorActionState {
+	ACTIVE = 1,
+	INACTIVE = 0,
+	DISABLED = -1
+}
+export interface RichTextEditorOptions {
+	actions?: (RichTextEditorAction | string)[];
+	classes?: Record<string, string>;
+	actionbar?: HTMLElement;
+	actionbarContainer?: HTMLElement;
+	styleWithCSS?: boolean;
+	module?: RichTextEditorModule;
+}
+export type EffectOptions = {
+	event?: Event;
+};
+declare class RichTextEditor {
+	em: EditorModel;
+	settings: RichTextEditorOptions;
+	classes: Record<string, string>;
+	actionbar?: HTMLElement;
+	actions: RichTextEditorAction[];
+	el: HTMLElement;
+	doc: Document;
+	enabled?: boolean;
+	getContent?: () => string;
+	constructor(em: EditorModel, el: HTMLElement & {
+		_rte?: RichTextEditor;
+	}, settings?: RichTextEditorOptions);
+	isCustom(module?: RichTextEditorModule): boolean;
+	destroy(): void;
+	setEl(el: HTMLElement): void;
+	updateActiveActions(): void;
+	enable(opts: EffectOptions): this;
+	disable(): this;
+	__toggleEffects(enable?: boolean, opts?: EffectOptions): this;
+	__onKeydown(ev: KeyboardEvent): void;
+	__onPaste(ev: ClipboardEvent): void;
+	/**
+	 * Sync actions with the current RTE
+	 */
+	syncActions(): void;
+	/**
+	 * Add new action to the actionbar
+	 * @param {Object} action
+	 * @param {Object} [opts={}]
+	 */
+	addAction(action: RichTextEditorAction, opts?: {
+		sync?: boolean;
+	}): void;
+	/**
+	 * Get the array of current actions
+	 * @return {Array}
+	 */
+	getActions(): RichTextEditorAction[];
+	/**
+	 * Returns the Selection instance
+	 * @return {Selection}
+	 */
+	selection(): Selection | null;
+	/**
+	 * Wrapper around [execCommand](https://developer.mozilla.org/en-US/docs/Web/API/Document/execCommand) to allow
+	 * you to perform operations like `insertText`
+	 * @param  {string} command Command name
+	 * @param  {any} [value=null Command's arguments
+	 */
+	exec(command: string, value?: string): void;
+	/**
+	 * Get the actionbar element
+	 * @return {HTMLElement}
+	 */
+	actionbarEl(): HTMLElement | undefined;
+	/**
+	 * Set custom HTML to the selection, useful as the default 'insertHTML' command
+	 * doesn't work in the same way on all browsers
+	 * @param  {string} value HTML string
+	 */
+	insertHTML(value: string | HTMLElement, { select }?: {
+		select?: boolean;
+	}): void;
+}
 export type RichTextEditorEvent = "rte:enable" | "rte:disable" | "rte:custom";
 export interface ModelRTE {
-	currentView?: ComponentView;
+	currentView?: ComponentTextView;
+}
+export interface RteDisableResult {
+	forceSync?: boolean;
 }
 declare class RichTextEditorModule extends Module<RichTextEditorConfig & {
 	pStylePrefix?: string;
@@ -7258,8 +7409,8 @@ declare class RichTextEditorModule extends Module<RichTextEditorConfig & {
 	 * @param {Object} rte The instance of already defined RTE
 	 * @private
 	 * */
-	enable(view: ComponentView, rte: RichTextEditor, opts?: any): Promise<any>;
-	getContent(view: ComponentView, rte: RichTextEditor): Promise<string>;
+	enable(view: ComponentTextView, rte: RichTextEditor, opts: CustomRteOptions): Promise<any>;
+	getContent(view: ComponentTextView, rte: RichTextEditor): Promise<string>;
 	hideToolbar(): void;
 	/**
 	 * Unbind rich text editor from the element
@@ -7267,99 +7418,79 @@ declare class RichTextEditorModule extends Module<RichTextEditorConfig & {
 	 * @param {Object} rte The instance of already defined RTE
 	 * @private
 	 * */
-	disable(view: ComponentView, rte?: RichTextEditor, opts?: DisableOptions): void;
+	disable(view: ComponentTextView, rte?: RichTextEditor, opts?: DisableOptions): Promise<RteDisableResult>;
 }
-export interface RichTextEditorAction {
-	name: string;
-	icon: string | HTMLElement;
-	event?: string;
-	attributes?: Record<string, any>;
-	result: (rte: RichTextEditor, action: RichTextEditorAction) => void;
-	update?: (rte: RichTextEditor, action: RichTextEditorAction) => number;
-	state?: (rte: RichTextEditor, doc: Document) => number;
-	btn?: HTMLElement;
-	currentState?: RichTextEditorActionState;
+declare class ComponentText extends Component {
+	get defaults(): {
+		type: string;
+		droppable: boolean;
+		editable: boolean;
+		components?: ComponentDefinitionDefined[] | ComponentDefinitionDefined;
+		traits?: (Partial<TraitProperties> | string)[];
+	};
+	constructor(props: ComponentProperties | undefined, opt: ComponentOptions);
+	__checkInnerChilds(): void;
 }
-declare enum RichTextEditorActionState {
-	ACTIVE = 1,
-	INACTIVE = 0,
-	DISABLED = -1
-}
-export interface RichTextEditorOptions {
-	actions?: (RichTextEditorAction | string)[];
-	classes?: Record<string, string>;
-	actionbar?: HTMLElement;
-	actionbarContainer?: HTMLElement;
-	styleWithCSS?: boolean;
-	module?: RichTextEditorModule;
-}
-export type EffectOptions = {
-	event?: Event;
-};
-declare class RichTextEditor {
-	em: EditorModel;
-	settings: RichTextEditorOptions;
-	classes: Record<string, string>;
-	actionbar?: HTMLElement;
-	actions: RichTextEditorAction[];
-	el: HTMLElement;
-	doc: Document;
-	enabled?: boolean;
-	getContent?: () => string;
-	constructor(em: EditorModel, el: HTMLElement & {
-		_rte?: RichTextEditor;
-	}, settings?: RichTextEditorOptions);
-	isCustom(module?: RichTextEditorModule): boolean;
-	destroy(): void;
-	setEl(el: HTMLElement): void;
-	updateActiveActions(): void;
-	enable(opts: EffectOptions): this;
-	disable(): this;
-	__toggleEffects(enable?: boolean, opts?: EffectOptions): this;
-	__onKeydown(ev: KeyboardEvent): void;
-	__onPaste(ev: ClipboardEvent): void;
-	/**
-	 * Sync actions with the current RTE
-	 */
-	syncActions(): void;
-	/**
-	 * Add new action to the actionbar
-	 * @param {Object} action
-	 * @param {Object} [opts={}]
-	 */
-	addAction(action: RichTextEditorAction, opts?: {
-		sync?: boolean;
+declare class ComponentTextView<TComp extends ComponentText = ComponentText> extends ComponentView<TComp> {
+	rte?: RichTextEditorModule;
+	rteEnabled?: boolean;
+	activeRte?: RichTextEditor;
+	lastContent?: string;
+	events(): {
+		dblclick: string;
+		input: string;
+	};
+	initialize(props: any): void;
+	updateContentText(m: any, v: any, opts?: {
+		fromDisable?: boolean;
 	}): void;
+	canActivate(): {
+		result: boolean;
+		delegate: Component | undefined;
+	};
 	/**
-	 * Get the array of current actions
-	 * @return {Array}
-	 */
-	getActions(): RichTextEditorAction[];
+	 * Enable element content editing
+	 * @private
+	 * */
+	onActive(ev: MouseEvent): Promise<void>;
+	onDisable(opts?: DisableOptions): void;
 	/**
-	 * Returns the Selection instance
-	 * @return {Selection}
-	 */
-	selection(): Selection | null;
+	 * Disable element content editing
+	 * @private
+	 * */
+	disableEditing(opts?: DisableOptions & WithHTMLParserOptions): Promise<void>;
 	/**
-	 * Wrapper around [execCommand](https://developer.mozilla.org/en-US/docs/Web/API/Document/execCommand) to allow
-	 * you to perform operations like `insertText`
-	 * @param  {string} command Command name
-	 * @param  {any} [value=null Command's arguments
+	 * get content from RTE
+	 * @return string
 	 */
-	exec(command: string, value?: string): void;
+	getContent(): Promise<string>;
 	/**
-	 * Get the actionbar element
-	 * @return {HTMLElement}
+	 * Merge content from the DOM to the model
 	 */
-	actionbarEl(): HTMLElement | undefined;
+	syncContent(opts?: ObjectAny): Promise<void>;
+	insertComponent(content: ComponentDefinition, opts?: AddOptions & {
+		useDomContent?: boolean;
+	}): Component | Component[];
 	/**
-	 * Set custom HTML to the selection, useful as the default 'insertHTML' command
-	 * doesn't work in the same way on all browsers
-	 * @param  {string} value HTML string
+	 * Callback on input event
+	 * @param  {Event} e
 	 */
-	insertHTML(value: string | HTMLElement, { select }?: {
-		select?: boolean;
-	}): void;
+	onInput(): void;
+	/**
+	 * Isolate disable propagation method
+	 * @param {Event}
+	 * @private
+	 * */
+	disablePropagation(e: Event): void;
+	/**
+	 * Enable/Disable events
+	 * @param {Boolean} enable
+	 */
+	toggleEvents(enable?: boolean): void;
+}
+export interface CustomRteOptions {
+	event?: MouseEvent;
+	view: ComponentTextView;
 }
 export interface CustomRTE<T = any> {
 	/**
@@ -7371,16 +7502,16 @@ export interface CustomRTE<T = any> {
 	/**
 	 * Create or enable the custom RTE.
 	 */
-	enable: (el: HTMLElement, rte: T | undefined) => T | Promise<T>;
+	enable: (el: HTMLElement, rte: T | undefined, opts: CustomRteOptions) => T | Promise<T>;
 	/**
 	 * Disable the custom RTE.
 	 */
-	disable: (el: HTMLElement, rte: T) => any | Promise<any>;
+	disable: (el: HTMLElement, rte: T, opts: CustomRteOptions) => any | Promise<any>;
 	/**
 	 * Get HTML content from the custom RTE.
 	 * If not specified, it will use the innerHTML of the element (passed also as `content` in options).
 	 */
-	getContent?: (el: HTMLElement, rte: T | undefined) => string | Promise<string>;
+	getContent?: (el: HTMLElement, rte: T | undefined, opts: CustomRteOptions) => string | Promise<string>;
 	/**
 	 * Destroy the custom RTE.
 	 * Will be triggered on editor destroy.
@@ -10626,7 +10757,9 @@ declare const ParserCss: (em?: EditorModel, config?: ParserConfig) => {
 	 * @param  {String} input CSS string
 	 * @return {Array<Object>}
 	 */
-	parse(input: string): CssRuleJSON[];
+	parse(input: string, opts?: {
+		throwOnError?: boolean;
+	}): CssRuleJSON[];
 	/**
 	 * Check the returned node from a custom parser and transforms it to
 	 * a valid object for the CSS composer
@@ -10691,11 +10824,33 @@ declare const ParserHtml: (em?: EditorModel, config?: ParserConfig & {
 	__sanitizeNode(node: HTMLElement, opts: HTMLParserOptions): void;
 	__checkAsDocument(str: string, opts: HTMLParserOptions): boolean | undefined;
 };
+declare enum ParserEvents {
+	/**
+	 * @event `parse:html` On HTML parse, an object containing the input and the output of the parser is passed as an argument.
+	 * @example
+	 * editor.on('parse:html', ({ input, output }) => { ... });
+	 */
+	html = "parse:html",
+	htmlRoot = "parse:html:root",
+	/**
+	 * @event `parse:css` On CSS parse, an object containing the input and the output of the parser is passed as an argument.
+	 * @example
+	 * editor.on('parse:css', ({ input, output }) => { ... });
+	 */
+	css = "parse:css",
+	/**
+	 * @event `parse` Catch-all event for all the events mentioned above. An object containing all the available data about the triggered event is passed as an argument to the callback.
+	 * @example
+	 * editor.on('parse', ({ event, ... }) => { ... });
+	 */
+	all = "parse"
+}
 declare class ParserModule extends Module<ParserConfig & {
 	name?: string;
 }> {
 	parserHtml: ReturnType<typeof ParserHtml>;
 	parserCss: ReturnType<typeof ParserCss>;
+	events: typeof ParserEvents;
 	constructor(em: EditorModel);
 	/**
 	 * Get configuration object
@@ -10732,6 +10887,7 @@ declare class ParserModule extends Module<ParserConfig & {
 	 * // [{ ... }]
 	 */
 	parseCss(input: string): CssRuleJSON[];
+	__emitEvent(event: string, data: ObjectAny): void;
 	destroy(): void;
 }
 declare enum StorageEvents {
@@ -12571,7 +12727,7 @@ declare class CommandsModule extends Module<CommandsConfig & {
 }
 export declare class DataSources extends Collection<DataSource> {
 	em: EditorModel;
-	constructor(models: DataSource[] | DataSourceProps[], em: EditorModel);
+	constructor(models: DataSource[] | DataSourceProps<DataRecordProps>[], em: EditorModel);
 }
 export declare class DataSourceManager extends ItemManagerModule<ModuleConfig, DataSources> {
 	storageKey: string;
@@ -12591,7 +12747,7 @@ export declare class DataSourceManager extends ItemManagerModule<ModuleConfig, D
 	 *  ]
 	 * });
 	 */
-	add(props: DataSourceProps, opts?: AddOptions): DataSource;
+	add<DRProps extends DataRecordProps>(props: DataSourceProps<DRProps>, opts?: AddOptions): DataSource<DRProps>;
 	/**
 	 * Get data source.
 	 * @param {String} id Data source id.
@@ -12599,7 +12755,7 @@ export declare class DataSourceManager extends ItemManagerModule<ModuleConfig, D
 	 * @example
 	 * const ds = dsm.get('my_data_source_id');
 	 */
-	get(id: string): DataSource;
+	get(id: string): DataSource<DataRecordProps>;
 	/**
 	 * Get value from data sources by key
 	 * @param {String} key Path to value.
@@ -12631,7 +12787,7 @@ export declare class DataSourceManager extends ItemManagerModule<ModuleConfig, D
 	 * // e.g., [DataSource, DataRecord, 'myProp']
 	 */
 	fromPath(path: string): [
-		(DataSource | undefined)?,
+		(DataSource<DataRecordProps> | undefined)?,
 		(DataRecord<DataRecordProps> | undefined)?,
 		(string | undefined)?
 	];
@@ -12653,6 +12809,7 @@ export declare class DataSourceManager extends ItemManagerModule<ModuleConfig, D
 export interface EditorLoadOptions {
 	/** Clear the editor state (eg. dirty counter, undo manager, etc.). */
 	clear?: boolean;
+	initial?: boolean;
 }
 declare class EditorModel extends Model {
 	defaults(): {
@@ -12896,7 +13053,7 @@ declare class EditorModel extends Model {
 	 */
 	load<T extends StorageOptions>(options?: T, loadOptions?: EditorLoadOptions): Promise<ProjectData>;
 	storeData(): ProjectData;
-	loadData(data?: ProjectData): ProjectData;
+	loadData(project?: ProjectData, opts?: EditorLoadOptions): ProjectData;
 	/**
 	 * Returns device model by name
 	 * @return {Device|null}
@@ -13640,6 +13797,62 @@ declare abstract class ItemManagerModule<TConf extends ModuleConfig = ModuleConf
 	__destroy(): void;
 }
 declare function html(literals: TemplateStringsArray, ...substs: string[]): string;
+declare enum EditorEvents {
+	/**
+	 * @event `update` Event triggered on any change of the project (eg. component added/removed, style changes, etc.)
+	 * @example
+	 * editor.on('update', () => { ... });
+	 */
+	update = "update",
+	/**
+	 * @event `undo` Undo executed.
+	 * @example
+	 * editor.on('undo', () => { ... });
+	 */
+	undo = "undo",
+	/**
+	 * @event `redo` Redo executed.
+	 * @example
+	 * editor.on('redo', () => { ... });
+	 */
+	redo = "redo",
+	/**
+	 * @event `load` Editor is loaded. At this stage, the project is loaded in the editor and elements in the canvas are rendered.
+	 * @example
+	 * editor.on('load', () => { ... });
+	 */
+	load = "load",
+	/**
+	 * @event `project:load` Project JSON loaded in the editor. The event is triggered on the initial load and on the `editor.loadProjectData` method.
+	 * @example
+	 * editor.on('project:load', ({ project, initial }) => { ... });
+	 */
+	projectLoad = "project:load",
+	/**
+	 * @event `log` Log message triggered.
+	 * @example
+	 * editor.on('log', (msg, opts) => { ... });
+	 */
+	log = "log",
+	/**
+	 * @event `telemetry:init` Initial telemetry data are sent.
+	 * @example
+	 * editor.on('telemetry:init', () => { ... });
+	 */
+	telemetryInit = "telemetry:init",
+	/**
+	 * @event `destroy` Editor started destroy (on `editor.destroy()`).
+	 * @example
+	 * editor.on('destroy', () => { ... });
+	 */
+	destroy = "destroy",
+	/**
+	 * @event `destroyed` Editor destroyed.
+	 * @example
+	 * editor.on('destroyed', () => { ... });
+	 */
+	destroyed = "destroyed"
+}
 export type GeneralEvent = "canvasScroll" | "undo" | "redo" | "load" | "update";
 export type EditorBuiltInEvents = ComponentEvent | BlockEvent | AssetEvent | KeymapEvent | StyleManagerEvent | StorageEvent | CanvasEvent | SelectorEvent | RichTextEditorEvent | ModalEvent | CommandEvent | GeneralEvent;
 export type EditorEvent = LiteralUnion<EditorBuiltInEvents, string>;
@@ -13653,6 +13866,7 @@ export declare class Editor implements IBaseModule<EditorConfig> {
 	$: any;
 	em: EditorModel;
 	config: EditorConfigType;
+	events: typeof EditorEvents;
 	constructor(config?: EditorConfig, opts?: any);
 	get Config(): InitEditorConfig;
 	get I18n(): I18nModule;

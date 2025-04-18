@@ -1,5 +1,4 @@
 using Azure.Identity;
-using Azure.Storage.Blobs;
 using Cosmos.BlobService;
 using Cosmos.Cms.Common.Services.Configurations;
 using Cosmos.Common.Data;
@@ -8,11 +7,9 @@ using Cosmos.EmailServices;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
-using Azure.Extensions.AspNetCore.DataProtection.Blobs;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Azure.Cosmos.Fluent;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Azure;
 using Newtonsoft.Json.Serialization;
 using System.Threading.RateLimiting;
 
@@ -98,16 +95,16 @@ builder.Services.AddDbContext<ApplicationDbContext>(
 builder.Services.AddCosmosStorageContext(builder.Configuration);
 
 // Add shared data protection here
-var containerClient = Cosmos.BlobService.ServiceCollectionExtensions.GetBlobContainerClient(builder.Configuration, new DefaultAzureCredential(), "dataprotection");
-containerClient.CreateIfNotExists();
-builder.Services.AddDataProtection()
-    .UseCryptographicAlgorithms(
-    new AuthenticatedEncryptorConfiguration
-    {
-        EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
-        ValidationAlgorithm = ValidationAlgorithm.HMACSHA256
-    })
-    .PersistKeysToAzureBlobStorage(containerClient.GetBlobClient("apikeys.xml"));
+//var containerClient = Cosmos.BlobService.ServiceCollectionExtensions.GetBlobContainerClient(builder.Configuration, new DefaultAzureCredential(), "dataprotection");
+//containerClient.CreateIfNotExists();
+//builder.Services.AddDataProtection()
+//    .UseCryptographicAlgorithms(
+//    new AuthenticatedEncryptorConfiguration
+//    {
+//        EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
+//        ValidationAlgorithm = ValidationAlgorithm.HMACSHA256
+//    })
+//    .PersistKeysToAzureBlobStorage(containerClient.GetBlobClient("apikeys.xml"));
 
 // Add services to the container.
 builder.Services.AddControllers()

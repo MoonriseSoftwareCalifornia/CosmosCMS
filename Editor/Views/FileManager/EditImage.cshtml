@@ -1,11 +1,13 @@
 ﻿@using Cosmos.Cms.Common.Services.Configurations
+@using Cosmos.Editor.Data.Logic
 @using Microsoft.Extensions.Options
 @using Newtonsoft.Json
 @using System.IO
-@inject IOptions<CosmosConfig> options
+@inject IEditorSettings options
 @{
     Layout = "_LayoutEditor";
     ViewData["Title"] = "Image Editor";
+    var host = "https://" + this.Context.Request.Host.ToString();
 }
 <style>
     #divAutoSave, #spinLoading {
@@ -30,10 +32,9 @@
 <script src="https://scaleflex.cloudimg.io/v7/plugins/filerobot-image-editor/latest/filerobot-image-editor.min.js" crossorigin="anonymous"></script>
 
 <script>
-    const publicBlobBaseUrl = '@options.Value.SiteSettings.BlobPublicUrl';
+    const publicBlobBaseUrl = '@host';
     const imagePath = '@ViewData["ImageTarget"]';
     const folder = '@System.IO.Path.GetDirectoryName((string)ViewData["ImageTarget"]).Replace("\\", "/")';
-    const isAuthor = @User.IsInRole("Authors").ToString().ToLower();
 
     const { TABS, TOOLS } = window.FilerobotImageEditor;
     const config = {

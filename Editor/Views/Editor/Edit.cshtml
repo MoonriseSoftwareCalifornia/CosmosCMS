@@ -102,6 +102,7 @@
         </div>
     </div>
 }
+
 <!-- Before the end of the body tag -->
 @* <script src="https://unpkg.com/filepond-plugin-file-metadata/dist/filepond-plugin-file-metadata.js"></script>
 <script src="https://unpkg.com/filepond@4/dist/filepond.js"></script> *@
@@ -110,9 +111,8 @@
 
     // Global variables
     var ccms_editor_userid = "@this.Context.User.Identity.Name";
-    var isAuthor = @User.IsInRole("Authors").ToString().ToLower();
-    var isReviewer = @User.IsInRole("Reviewers").ToString().ToLower();
     var hasModel = @((Model != null).ToString().ToLower());
+
     // This needs global scope, so using var
     var hasPermissionsSet = @hasPermissionsSet.ToString().ToLower();
 
@@ -130,9 +130,8 @@
 
     // CK Editor
     let ckeditor = null;
-    // Indicates a save is in progress - used to deconflict simultaneous saves
-    var saveInProgress = false;
     var enableAutoSave = true;
+
     // Modals
     const vsCodeModal = new bootstrap.Modal(document.getElementById('modalVsCode'));
     const linksToast = new bootstrap.Toast(document.getElementById('linksToast'));
@@ -180,9 +179,9 @@
                 linksToast.show();
             });
 
-            var editors = contents.find("[data-ccms-ceid]");
+            //var editors = contents.find("[data-ccms-ceid]");
 
-            $(editors).css("border", "dashed 1px #dadada");
+            //$(editors).css("border", "dashed 1px #dadada");
 
         }
 
@@ -195,7 +194,35 @@
         $("#btnSavingStatus").show();
     };
 
+    function restoreBackup() {
+        var storageItem = localStorage.getItem("ccms_article_" + $("#ArticleNumber").val());
+        if (typeof storageItem !== "undefined" && storageItem !== null) {
+            var model = JSON.parse(storageItem);
+            if ($("#Id").val() == model.Id && typeof model.EditorId !== "undefined" && model.EditorId !== null && model.EditorId !== "") {
+                const ckeditor = findEditor(model.EditorId);
+                const data = decryptData(model.Data);
+                ckeditor.setData(data);
+            }
+
+            deleteBackup();
+        }
+    }
+
+    function deleteBackup() {
+        localStorage.removeItem("ccms_article_" + $("#ArticleNumber").val());
+    }
+
     $(document).ready(function (e) {
+
+        // Check for unsaved data
+        var storageItem = localStorage.getItem("ccms_article_" + $("#ArticleNumber").val());
+
+        if (typeof storageItem !== "undefined" && storageItem !== null) {
+            var model = JSON.parse(storageItem);
+            if ($("#Id").val() == model.Id && typeof model.EditorId !== "undefined" && model.EditorId !== null && model.EditorId !== "") {
+                modalRecoverData.show();
+            }
+        }
 
         $("#btnOtherPages").show();
 
@@ -212,7 +239,7 @@
 
         $("#btnVersions").attr("href", "/Editor/Versions/" + $("#ArticleNumber").val() + "?versionNumber=" + $("#VersionNumber").val());
 
-        setWorkingVersion($("#VersionNumber").val());
+        $("#spanWorkingVersionNo").html("Working Version: " + $("#VersionNumber").val());
 
         $("#btnApply").click(function (e) {
             var data = editor.getValue();
@@ -280,7 +307,7 @@
                 case "saved":
                     $("#Id").val(model.Id);
                     $("#VersionNumber").val(model.VersionNumber);
-                    setWorkingVersion(model.VersionNumber);
+                    $("#spanWorkingVersionNo").html("Working Version: " + model.VersionNumber);
 
                     savePageProperties(model);
 
@@ -289,7 +316,6 @@
                     ckeditor.data.set(model.Data);
                     // Renable auto save
                     enableAutoSave = true;
-                    saveInProgress = false;
                     doneSaving();
                     break;
                 case "keydown":
@@ -306,9 +332,8 @@
                 case "PropertiesSaved":
                     $("#Id").val(model.Id);
                     $("#VersionNumber").val(model.VersionNumber);
-                    setWorkingVersion(model.VersionNumber);
+                    $("#spanWorkingVersionNo").html("Working Version: " + model.VersionNumber);
                     savePageProperties(model);
-                    saveInProgress = false;
                     doneSaving();
                     if (next) {
                         next();
@@ -396,7 +421,6 @@
     }
 
     function handle_error(xhr, status, error) {
-        saveInProgress = false;
         doneSaving();
         $("#divErrorLog").html(xhr.responseText);
         errorModal.show();
@@ -418,25 +442,9 @@
         }
     });
 
-    // Capture change to visibility
-    document.addEventListener("visibilitychange", function() {
-        // Check if tab content is visible
-        if (document.visibilityState) {
-            console.log("Tab is visible!")
-        }
-
-        // Check if tab is active
-        if (!document.hasFocus()) {
-            const iframe = document.getElementById("ccmsContFrame");
-            iframe.contentWindow.blur();
-            iframe.contentWindow.blurEditors();
-        }
-    });
-
-    // Close all dropdowns
-    window.addEventListener("click", function () {
+    window.addEventListener('pagehide', function() {
+        console.log('Page is being hidden');
         const iframe = document.getElementById("ccmsContFrame");
-        iframe.contentWindow.blur();
         iframe.contentWindow.blurEditors();
     });
 
@@ -571,7 +579,6 @@
             ckeditor.editing.view.focus();
         });
 
-        saveChanges();
     }
 
     function insertFileLink(path) {
@@ -611,49 +618,6 @@
         }
 
         checkBannerImage();
-    }
-
-    // Methods for live editor (child page)
-    function ccms_updateArea(editor) {
-        return new Promise(resolve => {
-
-            // Let others editing this item know where this user is focused
-            ccms_signal_focus_others(editor, "save");
-
-            const sourceElement = editor.sourceElement;
-            const id = sourceElement.getAttribute("data-ccms-ceid");
-
-            const item = { Id: id, Html: editor.getData() };
-
-            if (ccms_editibleAreas.length === 0) {
-                // First entry in the array
-                ccms_editibleAreas.push(item);
-            } else {
-                // Append or update the array
-                const i = ccms_editibleAreas.findIndex((ed => ed.Id == id));
-
-                if (i === -1) {
-                    // Append
-                    const item = { Id: id, Html: editor.getData() };
-                    ccms_editibleAreas.push(item);
-
-                } else {
-                    // Update
-                    ccms_editibleAreas[i].Html = editor.getData();
-                }
-            }
-
-            // Push to server if autosave is turned on.
-            if (getAutoSave()) {
-                const data = [];
-                data.push(item);
-                saveChanges();
-                ccms_signal_focus_others(editor, "updateEditors", editor.getData());
-            }
-            else {
-                resolve();
-            }
-        });
     }
 
     function addCkeditorSession(id, email) {
@@ -725,104 +689,184 @@
     }
 
     // Saves changes to page.
-    async function saveChanges(html, editorId) {
+    let saveChangesStatus = {
+        saveInProgress: false,
+        savePublishDateTime: new Date(),
+        source: ""
+    };
 
-        // If a save is already underway, skip this.
-        if (saveInProgress) {
-            return;
-        }
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
 
-        return new Promise((resolve, reject) => {
-            if (validatePermissions() === false) {
-                // Need permissions set before going any further.
+    async function savePageBody(html) {
+        
+        if (saveChangesStatus.saveInProgress) {
+            // Wait 3 seconds.
+            await sleep(3000);
+
+            // Still stuck? Cancel save.
+            if (saveChangesStatus.saveInProgress){
                 return;
             }
+        }
 
-            // Signal to the user that saving has started.
-            saving();
-            saveInProgress = true;
+        saveChangesStatus.saveInProgress = true;
+        saveChangesStatus.savePublishDateTime = new Date();
+        saveChangesStatus.source = "body";
 
-            // Get the latest date
-            savePublishDateTime();
+        // Signal to the user that saving has started.
+        saving();
 
-            // Build the post payload
-            const id = $("#Id").val();
-            const published = $("#Published").val();
-            const updated = $("#Updated").val();
 
-            let model = {
-                Id: id,
-                ArticleNumber: $("#ArticleNumber").val(),
-                BannerImage: $("#BannerImage").val(),
-                EditorId: editorId,
-                UserId: ccms_editor_userid,
-                Published: published,
-                Updated: updated,
-                Title: $("#Title").val(),
-                Offset: -1,
-                Command: "SavePageProperties",
-                IsFocused: false,
-                VersionNumber: $("#VersionNumber").val(),
-                Data: encryptData(html)
-            };
+        // Build the post payload
+        const id = $("#Id").val();
+        const model = {
+            ArticleNumber: $("#ArticleNumber").val(),
+            EditorId: "body",
+            Data: encryptData(html)
+        }
 
-            $.post("@Url.Action("Edit", "Editor")", model, function (data){
-                saveInProgress = false;
-                doneSaving();
-            }).done(function (data) {
-                setWorkingVersion(data.Model.VersionNumber);
-                if (data.CdnResults !== null) {
-                    setCdnResults(data.CdnResults);
-                }
-
-                if (next !== null && typeof next  === 'function') {
-                    next();
-                    next = null;
-                }
-            }).fail(function(error){
-                alert("Problem!");
-                reject(error);
-            });
+        $.post("@Url.Action("EditSaveBody", "Editor")", model, function (data) {
+        }).fail(function(jqXHR, textStatus, errorThrown){
+            if (jqXHR.status === 403) {
+                // Handle permission denied
+                alert('Permission Denied: Please sign out and log in again to continue.');
+            } else {
+                alert("There was a problem saving data.");
+            }
+        }).always(function() {
+            saveChangesStatus.saveInProgress = false;
+            doneSaving();
         });
     }
 
-    function cosmosSignalOthers(editor, command) {
+    // this is a quick save for an editor region.
+    async function saveEditorRegion(html, editorId)
+    {
+        if (saveChangesStatus.saveInProgress) {
+            // Wait 3 seconds.
+            await sleep(3000);
 
-        const sourceElement = editor.sourceElement;
-        const id = sourceElement.getAttribute("data-ccms-ceid");
+            // Still stuck? Cancel save.
+            if (saveChangesStatus.saveInProgress){
+                return;
+            }
+        }
 
-        // Make sure this editor isn't locked
-        if (lockedEditors.includes(id)) {
+        saveChangesStatus.saveInProgress = true;
+        saveChangesStatus.savePublishDateTime = new Date();
+        saveChangesStatus.source = editorId;
+
+        // Signal to the user that saving has started.
+        saving();
+
+        if (validatePermissions() === false) {
+            // Need permissions set before going any further.
             return;
         }
 
-        let offset = -1;
-        let isFocused = false;
-
-        if (editor.editing.view.document.isFocused) {
-            const position = editor.editing.view.document.selection.getFirstPosition();
-            offset = position.offset;
-            isFocused = true;
+        // Build the post payload
+        const id = $("#Id").val();
+        const model = {
+            ArticleNumber: $("#ArticleNumber").val(),
+            EditorId: editorId,
+            Data: encryptData(html)
         }
 
-        if (command === "save") {
-            saveChanges(editor.getData(), id);
-        }
-        else {
-            let model = {
-                Id: $("#Id").val(),
-                ArticleNumber: $("#ArticleNumber").val(),
-                EditorId: id,
-                UserId: ccms_editor_userid,
-                Offset: offset,
-                Command: command,
-                IsFocused: isFocused,
-                VersionNumber: $("#VersionNumber").val(),
-                Data: encryptData(editor.getData())
-            };
+        $.post("@Url.Action("EditSaveRegion", "Editor")", model, function (data) {
+        }).fail(function(jqXHR, textStatus, errorThrown){
+            if (jqXHR.status === 403) {
+                // Handle permission denied
+                alert('Permission Denied: Please sign out and log in again to continue.');
+            } else {
+                alert("There was a problem saving data.");
+            }
+        }).always(function() {
+            saveChangesStatus.saveInProgress = false;
+            doneSaving();
+        });
 
-            signalRConnection.invoke("Notification", JSON.stringify(model));
+    }
+
+    async function saveChanges(html, editorId) {
+
+        if (saveChangesStatus.saveInProgress) {
+            // Wait 3 seconds.
+            await sleep(3000);
+
+            // Still stuck? Cancel save.
+            if (saveChangesStatus.saveInProgress){
+                return;
+            }
         }
+
+        // Set saving.
+        saveChangesStatus.saveInProgress = true;
+        saveChangesStatus.savePublishDateTime = new Date();
+        saveChangesStatus.source = editorId;
+
+        // Signal to the user that saving has started.
+        saving();
+
+        if (validatePermissions() === false) {
+            // Need permissions set before going any further.
+            return;
+        }
+
+        // Get the latest date
+        savePublishDateTime();
+
+        // Build the post payload
+        const id = $("#Id").val();
+        const published = $("#Published").val();
+        const updated = $("#Updated").val();
+
+        let model = {
+            Id: id,
+            ArticleNumber: $("#ArticleNumber").val(),
+            BannerImage: $("#BannerImage").val(),
+            EditorId: editorId,
+            UserId: ccms_editor_userid,
+            Published: published,
+            Updated: updated,
+            Title: $("#Title").val(),
+            Offset: -1,
+            Command: "SavePageProperties",
+            IsFocused: false,
+            VersionNumber: $("#VersionNumber").val(),
+            Data: encryptData(html)
+        };
+
+        localStorage.setItem("ccms_article_" + model.ArticleNumber, JSON.stringify(model));
+
+        $.post("@Url.Action("Edit", "Editor")", model, function (data){
+
+            // Refresh things here
+            savePageProperties(data.Model);
+
+            deleteBackup();
+
+            if (data.CdnResults !== null) {
+                setCdnResults(data.CdnResults);
+            }
+
+            if (next !== null && typeof next  === 'function') {
+                next();
+                next = null;
+            }
+
+        }).fail(function(jqXHR, textStatus, errorThrown){
+            if (jqXHR.status === 403) {
+                // Handle permission denied
+                alert('Permission Denied: Please sign out and log in again to continue.');
+            } else {
+                alert("There was a problem saving data. A backup copy has been saved.");
+            }
+        }).always(function() {
+            saveChangesStatus.saveInProgress = false;
+            doneSaving();
+        });
     }
 
     function cosmosSignalUpdateEditor(data) {
@@ -859,8 +903,8 @@
         $("#Updated").val(model.Updated);
         $("#BannerImage").val(model.BannerImage);
         $("#RoleList").val(model.RoleList);
-
-        setWorkingVersion(model.VersionNumber);
+        $("VersionNumber").val(model.VersionNumber);
+        $("#spanWorkingVersionNo").html("Working Version: " + model.VersionNumber);
 
     }
 

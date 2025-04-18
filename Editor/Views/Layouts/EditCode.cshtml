@@ -41,8 +41,6 @@
     var fieldId;
     var ccmsEditorIsLocked = false;
 
-    let isAuthor = false;
-
     $("#frmSave").submit(function (e) {
         e.preventDefault();
         saveChanges(null, null);
@@ -80,7 +78,7 @@
         $("#EditingField").val(null);
 
         // Monaco AMD Editor  - https://microsoft.github.io/monaco-editor/
-        require.config({ paths: { 'vs': '/lib/monaco-editor/min/vs' } });
+        require.config({ paths: { 'vs': window.location.origin + '/lib/monaco-editor/min/vs' } });
 
         //require.config({ paths: { vs: '/lib/node_modules/monaco-editor/dist' } }); // Emmet Abbr.
         require(['vs/editor/editor.main'],

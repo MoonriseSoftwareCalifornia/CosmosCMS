@@ -18803,6 +18803,19 @@ var ComponentsEvents;
     ComponentsEvents["select"] = "component:select";
     ComponentsEvents["selectBefore"] = "component:select:before";
     /**
+     * @event `component:script:mount` Component with script is mounted.
+     * @example
+     * editor.on('component:script:mount', ({ component, view, el }) => { ... });
+     */
+    ComponentsEvents["scriptMount"] = "component:script:mount";
+    ComponentsEvents["scriptMountBefore"] = "component:script:mount:before";
+    /**
+     * @event `component:script:unmount` Component with script is unmounted. This is triggered when the component is removed or the script execution has to be refreshed. This event might be useful to clean up resources.
+     * @example
+     * editor.on('component:script:unmount', ({ component, view, el }) => { ... });
+     */
+    ComponentsEvents["scriptUnmount"] = "component:script:unmount";
+    /**
      * @event `symbol:main:add` Added new main symbol.
      * @example
      * editor.on('symbol:main:add', ({ component }) => { ... });
@@ -26973,6 +26986,32 @@ export default (str, config = {}) => {
 };
  */
 
+;// CONCATENATED MODULE: ./src/parser/types.ts
+/**{START_EVENTS}*/
+var ParserEvents;
+(function (ParserEvents) {
+    /**
+     * @event `parse:html` On HTML parse, an object containing the input and the output of the parser is passed as an argument.
+     * @example
+     * editor.on('parse:html', ({ input, output }) => { ... });
+     */
+    ParserEvents["html"] = "parse:html";
+    ParserEvents["htmlRoot"] = "parse:html:root";
+    /**
+     * @event `parse:css` On CSS parse, an object containing the input and the output of the parser is passed as an argument.
+     * @example
+     * editor.on('parse:css', ({ input, output }) => { ... });
+     */
+    ParserEvents["css"] = "parse:css";
+    /**
+     * @event `parse` Catch-all event for all the events mentioned above. An object containing all the available data about the triggered event is passed as an argument to the callback.
+     * @example
+     * editor.on('parse', ({ event, ... }) => { ... });
+     */
+    ParserEvents["all"] = "parse";
+})(ParserEvents || (ParserEvents = {}));
+/**{END_EVENTS}*/
+
 ;// CONCATENATED MODULE: ./src/parser/model/ParserHtml.ts
 var ParserHtml_assign = (undefined && undefined.__assign) || function () {
     ParserHtml_assign = Object.assign || function(t) {
@@ -26989,8 +27028,8 @@ var ParserHtml_assign = (undefined && undefined.__assign) || function () {
 
 
 
+
 var modelAttrStart = 'data-gjs-';
-var ParserHtml_event = 'parse:html';
 var ParserHtml = function (em, config) {
     if (config === void 0) { config = {}; }
     return {
@@ -27261,7 +27300,7 @@ var ParserHtml = function (em, config) {
          * @return {Object}
          */
         parse: function (str, parserCss, opts) {
-            var _a, _b, _c;
+            var _a, _b, _c, _d, _e;
             if (opts === void 0) { opts = {}; }
             var conf = (em === null || em === void 0 ? void 0 : em.get('Config')) || {};
             var res = { html: [] };
@@ -27304,7 +27343,7 @@ var ParserHtml = function (em, config) {
                 if (styleStr)
                     res.css = parserCss.parse(styleStr);
             }
-            em === null || em === void 0 ? void 0 : em.trigger("".concat(ParserHtml_event, ":root"), { input: input, root: root });
+            (_d = em === null || em === void 0 ? void 0 : em.Parser) === null || _d === void 0 ? void 0 : _d.__emitEvent(ParserEvents.htmlRoot, { input: input, root: root });
             var resHtml = [];
             if (asDocument) {
                 res.head = this.parseNode(docEl.head, cf);
@@ -27317,7 +27356,7 @@ var ParserHtml = function (em, config) {
                 resHtml = result.length === 1 && !cf.returnArray ? result[0] : result;
             }
             res.html = resHtml;
-            em === null || em === void 0 ? void 0 : em.trigger(ParserHtml_event, { input: input, output: res, options: options });
+            (_e = em === null || em === void 0 ? void 0 : em.Parser) === null || _e === void 0 ? void 0 : _e.__emitEvent(ParserEvents.html, { input: input, output: res, options: options });
             return res;
         },
         __sanitizeNode: function (node, opts) {
@@ -27484,13 +27523,12 @@ var DataSourcesEvents;
      */
     DataSourcesEvents["all"] = "data";
 })(DataSourcesEvents || (DataSourcesEvents = {}));
-/**{END_EVENTS}*/
 
 ;// CONCATENATED MODULE: ./src/data_sources/model/utils.ts
 
 
 function isDynamicValueDefinition(value) {
-    return typeof value === 'object' && [DataVariableType, DataCondition_ConditionalVariableType].includes(value.type);
+    return typeof value === 'object' && [DataVariableType, DataCondition_ConditionalVariableType].includes(value === null || value === void 0 ? void 0 : value.type);
 }
 function isDynamicValue(value) {
     return value instanceof model_DataVariable || value instanceof DataCondition;
@@ -27503,6 +27541,27 @@ function isDataCondition(variable) {
 }
 function evaluateVariable(variable, em) {
     return isDataVariable(variable) ? new model_DataVariable(variable, { em: em }).getDataValue() : variable;
+}
+function getDynamicValueInstance(valueDefinition, em) {
+    var dynamicType = valueDefinition.type;
+    var dynamicVariable;
+    switch (dynamicType) {
+        case DataVariableType:
+            dynamicVariable = new model_DataVariable(valueDefinition, { em: em });
+            break;
+        case DataCondition_ConditionalVariableType: {
+            var condition = valueDefinition.condition, ifTrue = valueDefinition.ifTrue, ifFalse = valueDefinition.ifFalse;
+            dynamicVariable = new DataCondition(condition, ifTrue, ifFalse, { em: em });
+            break;
+        }
+        default:
+            throw new Error("Unsupported dynamic type: ".concat(dynamicType));
+    }
+    return dynamicVariable;
+}
+function evaluateDynamicValueDefinition(valueDefinition, em) {
+    var dynamicVariable = getDynamicValueInstance(valueDefinition, em);
+    return { variable: dynamicVariable, value: dynamicVariable.getDataValue() };
 }
 
 ;// CONCATENATED MODULE: ./src/data_sources/model/conditional_variables/LogicalGroupStatement.ts
@@ -27733,6 +27792,8 @@ var StringOperation;
     StringOperation["startsWith"] = "startsWith";
     StringOperation["endsWith"] = "endsWith";
     StringOperation["matchesRegex"] = "matchesRegex";
+    StringOperation["equalsIgnoreCase"] = "equalsIgnoreCase";
+    StringOperation["trimEquals"] = "trimEquals";
 })(StringOperation || (StringOperation = {}));
 var StringOperator = /** @class */ (function (_super) {
     StringOperations_extends(StringOperator, _super);
@@ -27750,7 +27811,13 @@ var StringOperator = /** @class */ (function (_super) {
             case StringOperation.endsWith:
                 return left.endsWith(right);
             case StringOperation.matchesRegex:
+                if (!right)
+                    throw new Error('Regex pattern must be provided.');
                 return new RegExp(right).test(left);
+            case StringOperation.equalsIgnoreCase:
+                return left.toLowerCase() === right.toLowerCase();
+            case StringOperation.trimEquals:
+                return left.trim() === right.trim();
             default:
                 throw new Error("Unsupported string operator: ".concat(this.operator));
         }
@@ -27904,23 +27971,23 @@ var DataCondition = /** @class */ (function (_super) {
         if (typeof condition === 'undefined') {
             throw new MissingConditionError();
         }
-        _this = _super.call(this) || this;
+        var conditionInstance = new Condition(condition, { em: opts.em });
+        _this = _super.call(this, {
+            type: DataCondition_ConditionalVariableType,
+            condition: conditionInstance,
+            ifTrue: ifTrue,
+            ifFalse: ifFalse,
+        }) || this;
         _this.ifTrue = ifTrue;
         _this.ifFalse = ifFalse;
         _this.variableListeners = [];
-        _this.condition = new Condition(condition, { em: opts.em });
+        _this.condition = conditionInstance;
         _this.em = opts.em;
         _this.lastEvaluationResult = _this.evaluate();
         _this.listenToDataVariables();
         _this._onValueChange = opts.onValueChange;
         return _this;
     }
-    DataCondition.prototype.defaults = function () {
-        return {
-            type: DataCondition_ConditionalVariableType,
-            condition: false,
-        };
-    };
     DataCondition.prototype.evaluate = function () {
         return this.condition.evaluate();
     };
@@ -27948,7 +28015,6 @@ var DataCondition = /** @class */ (function (_super) {
         dataVariables.forEach(function (variable) {
             var variableInstance = new model_DataVariable(variable, { em: _this.em });
             var listener = new DataVariableListenerManager({
-                model: _this,
                 em: _this.em,
                 dataVariable: variableInstance,
                 updateValueFromDataVariable: (function () {
@@ -27997,24 +28063,26 @@ var MissingConditionError = /** @class */ (function (_super) {
 
 
 
+
 var DynamicVariableListenerManager = /** @class */ (function () {
     function DynamicVariableListenerManager(options) {
         var _this = this;
         this.dataListeners = [];
+        this.model = new common/* Model */.Kx();
         this.onChange = function () {
             var value = _this.dynamicVariable.getDataValue();
             _this.updateValueFromDynamicVariable(value);
         };
         this.em = options.em;
-        this.model = options.model;
         this.dynamicVariable = options.dataVariable;
         this.updateValueFromDynamicVariable = options.updateValueFromDataVariable;
         this.listenToDynamicVariable();
     }
     DynamicVariableListenerManager.prototype.listenToDynamicVariable = function () {
         var _this = this;
-        var _a = this, em = _a.em, dynamicVariable = _a.dynamicVariable, model = _a.model;
+        var _a = this, em = _a.em, dynamicVariable = _a.dynamicVariable;
         this.removeListeners();
+        // @ts-ignore
         var type = dynamicVariable.get('type');
         var dataListeners = [];
         switch (type) {
@@ -28025,7 +28093,7 @@ var DynamicVariableListenerManager = /** @class */ (function () {
                 dataListeners = this.listenToConditionalVariable(dynamicVariable, em);
                 break;
         }
-        dataListeners.forEach(function (ls) { return model.listenTo(ls.obj, ls.event, _this.onChange); });
+        dataListeners.forEach(function (ls) { return _this.model.listenTo(ls.obj, ls.event, _this.onChange); });
         this.dataListeners = dataListeners;
     };
     DynamicVariableListenerManager.prototype.listenToConditionalVariable = function (dataVariable, em) {
@@ -28047,8 +28115,7 @@ var DynamicVariableListenerManager = /** @class */ (function () {
     };
     DynamicVariableListenerManager.prototype.removeListeners = function () {
         var _this = this;
-        var model = this.model;
-        this.dataListeners.forEach(function (ls) { return model.stopListening(ls.obj, ls.event, _this.onChange); });
+        this.dataListeners.forEach(function (ls) { return _this.model.stopListening(ls.obj, ls.event, _this.onChange); });
         this.dataListeners = [];
     };
     DynamicVariableListenerManager.prototype.destroy = function () {
@@ -28219,7 +28286,6 @@ var StyleableModel = /** @class */ (function (_super) {
         }
         else {
             this.dynamicVariableListeners[styleProp] = new DataVariableListenerManager({
-                model: this,
                 em: this.em,
                 dataVariable: dataVar,
                 updateValueFromDataVariable: function () { return _this.updateView(); },
@@ -28680,10 +28746,10 @@ var getComponentsFromDefs = function (items, all, opts) {
                 // Update the component if exists already
                 if (all[id]) {
                     result = all[id];
-                    var cmp = result;
-                    tagName && cmp.set({ tagName: tagName }, Components_assign(Components_assign({}, opts), { silent: true }));
-                    (0,index_all.keys)(restAttr).length && cmp.addAttributes(restAttr, Components_assign({}, opts));
-                    (0,index_all.keys)(style).length && cmp.addStyle(style, opts);
+                    var cmp_1 = result;
+                    tagName && cmp_1.set({ tagName: tagName }, Components_assign(Components_assign({}, opts), { silent: true }));
+                    (0,index_all.keys)(restAttr).length && cmp_1.addAttributes(restAttr, Components_assign({}, opts));
+                    (0,index_all.keys)(style).length && cmp_1.addStyle(style, opts);
                 }
             }
             else {
@@ -28693,15 +28759,20 @@ var getComponentsFromDefs = function (items, all, opts) {
                 result.attributes.id = id;
             }
         }
+        // Here `result` might be a Component
+        var cmp = (0,index_all.isFunction)(result.components) ? result : null;
         if (components) {
-            var newComponents = getComponentsFromDefs(components, all);
-            if ((0,index_all.isFunction)(result.components)) {
-                var cmps = result.components();
-                cmps.length > 0 && cmps.reset(newComponents, opts);
+            var newComponents = getComponentsFromDefs(components, all, opts);
+            if (cmp) {
+                cmp.components().reset(newComponents, opts);
             }
             else {
                 result.components = newComponents;
             }
+        }
+        else if (cmp) {
+            // The component already exists but the parsed one is without components
+            cmp.components().reset([], opts);
         }
         return result;
     });
@@ -28800,6 +28871,10 @@ var Components = /** @class */ (function (_super) {
             sels.remove(rulesRemoved.map(function (rule) { return rule.getSelectors().at(0); }));
             if (!removed.opt.temporary) {
                 em.Commands.run('core:component-style-clear', { target: removed });
+                removed.views.forEach(function (view) {
+                    view.scriptContainer &&
+                        removed.emitWithEitor(dom_components_types/* ComponentsEvents */.I.scriptUnmount, { component: removed, view: view, el: view.el });
+                });
                 removed.removed();
                 removed.trigger('removed');
                 em.trigger(dom_components_types/* ComponentsEvents */.I.remove, removed);
@@ -28859,8 +28934,8 @@ var Components = /** @class */ (function (_super) {
         var components = parsed.html;
         if (isWrapper && parsed.doctype) {
             var root = parent;
-            var _b = parsed.html || {}, bodyCmps = _b.components, restBody = __rest(_b, ["components"]);
-            var _c = parsed.head || {}, headCmps = _c.components, restHead = __rest(_c, ["components"]);
+            var _b = parsed.html || {}, _c = _b.components, bodyCmps = _c === void 0 ? [] : _c, restBody = __rest(_b, ["components"]);
+            var _d = parsed.head || {}, headCmps = _d.components, restHead = __rest(_d, ["components"]);
             components = bodyCmps;
             root.set(restBody, opt);
             root.head.set(restHead, opt);
@@ -29445,39 +29520,6 @@ var TraitsEvents;
 // need this to avoid the TS documentation generator to break
 /* harmony default export */ const trait_manager_types = (TraitsEvents);
 
-;// CONCATENATED MODULE: ./src/data_sources/model/TraitDataVariable.ts
-var TraitDataVariable_extends = (undefined && undefined.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        if (typeof b !== "function" && b !== null)
-            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-
-var TraitDataVariable = /** @class */ (function (_super) {
-    TraitDataVariable_extends(TraitDataVariable, _super);
-    function TraitDataVariable(attrs, options) {
-        var _this = _super.call(this, attrs, options) || this;
-        _this.trait = options.trait;
-        return _this;
-    }
-    TraitDataVariable.prototype.onDataSourceChange = function () {
-        var _a;
-        var newValue = this.getDataValue();
-        (_a = this.trait) === null || _a === void 0 ? void 0 : _a.setTargetValue(newValue);
-    };
-    return TraitDataVariable;
-}(model_DataVariable));
-/* harmony default export */ const model_TraitDataVariable = (TraitDataVariable);
-
 ;// CONCATENATED MODULE: ./src/trait_manager/model/Trait.ts
 var Trait_extends = (undefined && undefined.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -29510,11 +29552,6 @@ var Trait_assign = (undefined && undefined.__assign) || function () {
 
 
 
-
-
-
-
-
 /**
  * @property {String} id Trait id, eg. `my-trait-id`.
  * @property {String} type Trait type, defines how the trait should be rendered. Possible values: `text` (default), `number`, `select`, `checkbox`, `color`, `button`
@@ -29538,28 +29575,6 @@ var Trait = /** @class */ (function (_super) {
             _this.setTarget(target);
         }
         _this.em = em;
-        if (isDynamicValueDefinition(_this.attributes.value)) {
-            var dataType = _this.attributes.value.type;
-            switch (dataType) {
-                case DataVariableType:
-                    _this.dynamicVariable = new model_TraitDataVariable(_this.attributes.value, { em: _this.em, trait: _this });
-                    break;
-                case DataCondition_ConditionalVariableType: {
-                    var _b = _this.attributes.value, condition = _b.condition, ifTrue = _b.ifTrue, ifFalse = _b.ifFalse;
-                    _this.dynamicVariable = new DataCondition(condition, ifTrue, ifFalse, { em: _this.em });
-                    break;
-                }
-                default: return _this;
-            }
-            var dv = _this.dynamicVariable.getDataValue();
-            _this.set({ value: dv });
-            _this.dynamicVariableListener = new DataVariableListenerManager({
-                model: _this,
-                em: _this.em,
-                dataVariable: _this.dynamicVariable,
-                updateValueFromDataVariable: _this.updateValueFromDataVariable.bind(_this),
-            });
-        }
         return _this;
     }
     Trait.prototype.defaults = function () {
@@ -29619,10 +29634,6 @@ var Trait = /** @class */ (function (_super) {
             !(0,index_all.isUndefined)(value) && this.set({ value: value }, { silent: true });
         }
     };
-    Trait.prototype.updateValueFromDataVariable = function (value) {
-        this.setValue(value);
-        this.trigger('change:value');
-    };
     /**
      * Get the trait id.
      * @returns {String}
@@ -29666,10 +29677,6 @@ var Trait = /** @class */ (function (_super) {
      * @returns {any}
      */
     Trait.prototype.getValue = function (opts) {
-        if (this.dynamicVariable) {
-            var dValue = this.dynamicVariable.getDataValue();
-            return dValue;
-        }
         return this.getTargetValue(opts);
     };
     /**
@@ -30003,6 +30010,182 @@ var Traits = /** @class */ (function (_super) {
 }(CollectionWithCategories));
 /* harmony default export */ const model_Traits = (Traits);
 
+;// CONCATENATED MODULE: ./src/dom_components/model/DynamicValueWatcher.ts
+var DynamicValueWatcher_assign = (undefined && undefined.__assign) || function () {
+    DynamicValueWatcher_assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return DynamicValueWatcher_assign.apply(this, arguments);
+};
+
+
+var DynamicValueWatcher = /** @class */ (function () {
+    function DynamicValueWatcher(updateFn, em) {
+        this.updateFn = updateFn;
+        this.em = em;
+        this.dynamicVariableListeners = {};
+    }
+    DynamicValueWatcher.getStaticValues = function (values, em) {
+        if (!values)
+            return {};
+        var evaluatedValues = DynamicValueWatcher_assign({}, values);
+        var propsKeys = Object.keys(values);
+        for (var _i = 0, propsKeys_1 = propsKeys; _i < propsKeys_1.length; _i++) {
+            var key = propsKeys_1[_i];
+            var valueDefinition = values[key];
+            if (!isDynamicValueDefinition(valueDefinition))
+                continue;
+            var value = evaluateDynamicValueDefinition(valueDefinition, em).value;
+            evaluatedValues[key] = value;
+        }
+        return evaluatedValues;
+    };
+    DynamicValueWatcher.areStaticValues = function (values) {
+        if (!values)
+            return true;
+        return Object.keys(values).every(function (key) {
+            return !isDynamicValueDefinition(values[key]);
+        });
+    };
+    DynamicValueWatcher.prototype.setDynamicValues = function (values) {
+        this.removeListeners();
+        return this.addDynamicValues(values);
+    };
+    DynamicValueWatcher.prototype.addDynamicValues = function (values) {
+        var _this = this;
+        if (!values)
+            return {};
+        this.removeListeners(Object.keys(values));
+        var dynamicProps = this.getDynamicValues(values);
+        var propsKeys = Object.keys(dynamicProps);
+        var _loop_1 = function (index) {
+            var key = propsKeys[index];
+            this_1.dynamicVariableListeners[key] = new DataVariableListenerManager({
+                em: this_1.em,
+                dataVariable: dynamicProps[key],
+                updateValueFromDataVariable: function (value) {
+                    _this.updateFn.bind(_this)(key, value);
+                },
+            });
+        };
+        var this_1 = this;
+        for (var index = 0; index < propsKeys.length; index++) {
+            _loop_1(index);
+        }
+        return dynamicProps;
+    };
+    DynamicValueWatcher.prototype.getDynamicValues = function (values) {
+        var dynamicValues = {};
+        var propsKeys = Object.keys(values);
+        for (var index = 0; index < propsKeys.length; index++) {
+            var key = propsKeys[index];
+            if (!isDynamicValueDefinition(values[key])) {
+                continue;
+            }
+            var variable = evaluateDynamicValueDefinition(values[key], this.em).variable;
+            dynamicValues[key] = variable;
+        }
+        return dynamicValues;
+    };
+    /**
+     * removes listeners to stop watching for changes,
+     * if keys argument is omitted, remove all listeners
+     * @argument keys
+     */
+    DynamicValueWatcher.prototype.removeListeners = function (keys) {
+        var _this = this;
+        var propsKeys = keys ? keys : Object.keys(this.dynamicVariableListeners);
+        propsKeys.forEach(function (key) {
+            if (_this.dynamicVariableListeners[key]) {
+                _this.dynamicVariableListeners[key].destroy();
+                delete _this.dynamicVariableListeners[key];
+            }
+        });
+    };
+    DynamicValueWatcher.prototype.getSerializableValues = function (values) {
+        if (!values)
+            return {};
+        var serializableValues = DynamicValueWatcher_assign({}, values);
+        var propsKeys = Object.keys(serializableValues);
+        for (var index = 0; index < propsKeys.length; index++) {
+            var key = propsKeys[index];
+            if (this.dynamicVariableListeners[key]) {
+                serializableValues[key] = this.dynamicVariableListeners[key].dynamicVariable.toJSON();
+            }
+        }
+        return serializableValues;
+    };
+    DynamicValueWatcher.prototype.getAllSerializableValues = function () {
+        var serializableValues = {};
+        var propsKeys = Object.keys(this.dynamicVariableListeners);
+        for (var index = 0; index < propsKeys.length; index++) {
+            var key = propsKeys[index];
+            serializableValues[key] = this.dynamicVariableListeners[key].dynamicVariable.toJSON();
+        }
+        return serializableValues;
+    };
+    return DynamicValueWatcher;
+}());
+
+
+;// CONCATENATED MODULE: ./src/dom_components/model/ComponentDynamicValueWatcher.ts
+
+var ComponentDynamicValueWatcher = /** @class */ (function () {
+    function ComponentDynamicValueWatcher(component, em) {
+        this.component = component;
+        this.propertyWatcher = new DynamicValueWatcher(this.createPropertyUpdater(), em);
+        this.attributeWatcher = new DynamicValueWatcher(this.createAttributeUpdater(), em);
+    }
+    ComponentDynamicValueWatcher.prototype.createPropertyUpdater = function () {
+        var _this = this;
+        return function (key, value) {
+            _this.component.set(key, value, { fromDataSource: true, avoidStore: true });
+        };
+    };
+    ComponentDynamicValueWatcher.prototype.createAttributeUpdater = function () {
+        var _this = this;
+        return function (key, value) {
+            var _a;
+            _this.component.addAttributes((_a = {}, _a[key] = value, _a), { fromDataSource: true, avoidStore: true });
+        };
+    };
+    ComponentDynamicValueWatcher.prototype.addProps = function (props) {
+        this.propertyWatcher.addDynamicValues(props);
+    };
+    ComponentDynamicValueWatcher.prototype.addAttributes = function (attributes) {
+        this.attributeWatcher.addDynamicValues(attributes);
+    };
+    ComponentDynamicValueWatcher.prototype.setAttributes = function (attributes) {
+        this.attributeWatcher.setDynamicValues(attributes);
+    };
+    ComponentDynamicValueWatcher.prototype.removeAttributes = function (attributes) {
+        this.attributeWatcher.removeListeners(attributes);
+    };
+    ComponentDynamicValueWatcher.prototype.getDynamicPropsDefs = function () {
+        return this.propertyWatcher.getAllSerializableValues();
+    };
+    ComponentDynamicValueWatcher.prototype.getDynamicAttributesDefs = function () {
+        return this.attributeWatcher.getAllSerializableValues();
+    };
+    ComponentDynamicValueWatcher.prototype.getAttributesDefsOrValues = function (attributes) {
+        return this.attributeWatcher.getSerializableValues(attributes);
+    };
+    ComponentDynamicValueWatcher.prototype.getPropsDefsOrValues = function (props) {
+        return this.propertyWatcher.getSerializableValues(props);
+    };
+    ComponentDynamicValueWatcher.prototype.destroy = function () {
+        this.propertyWatcher.removeListeners();
+        this.attributeWatcher.removeListeners();
+    };
+    return ComponentDynamicValueWatcher;
+}());
+
+
 ;// CONCATENATED MODULE: ./src/dom_components/model/Component.ts
 var Component_extends = (undefined && undefined.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -30062,7 +30245,6 @@ var Component_spreadArray = (undefined && undefined.__spreadArray) || function (
 
 
 
-
 var escapeRegExp = function (str) {
     return str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&');
 };
@@ -30073,7 +30255,6 @@ var keySymbol = '__symbol';
 var keySymbolOvrd = '__symbol_ovrd';
 var keyUpdate = dom_components_types/* ComponentsEvents */.I.update;
 var keyUpdateInside = dom_components_types/* ComponentsEvents */.I.updateInside;
-var dynamicAttrKey = 'attributes-dynamic-value';
 /**
  * The Component object represents a single node of our template structure, so when you update its properties the changes are
  * immediately reflected on the canvas and in the code to export (indeed, when you ask to export the code we just go through all
@@ -30141,6 +30322,8 @@ var Component = /** @class */ (function (_super) {
     function Component(props, opt) {
         if (props === void 0) { props = {}; }
         var _this = _super.call(this, props, opt) || this;
+        _this.componentDVListener = new ComponentDynamicValueWatcher(_this, opt.em);
+        _this.componentDVListener.addProps(props);
         (0,index_all.bindAll)(_this, '__upSymbProps', '__upSymbCls', '__upSymbComps');
         var em = opt.em;
         // Propagate properties from parent if indicated
@@ -30163,7 +30346,7 @@ var Component = /** @class */ (function (_super) {
         _this.opt = opt;
         _this.em = em;
         _this.config = opt.config || {};
-        _this.set('attributes', Component_assign(Component_assign({}, ((0,index_all.result)(_this, 'defaults').attributes || {})), (_this.get('attributes') || {})));
+        _this.setAttributes(Component_assign(Component_assign({}, ((0,index_all.result)(_this, 'defaults').attributes || {})), (_this.get('attributes') || {})));
         _this.ccid = Component.createId(_this, opt);
         _this.preInit();
         _this.initClasses();
@@ -30346,6 +30529,32 @@ var Component = /** @class */ (function (_super) {
      * Hook method, called once the model has been removed
      */
     Component.prototype.removed = function () { };
+    Component.prototype.set = function (keyOrAttributes, valueOrOptions, optionsOrUndefined) {
+        var _a;
+        var _b;
+        var attributes;
+        var options = { skipWatcherUpdates: false, fromDataSource: false };
+        if (typeof keyOrAttributes === 'object') {
+            attributes = keyOrAttributes;
+            options = valueOrOptions || options;
+        }
+        else if (typeof keyOrAttributes === 'string') {
+            attributes = (_a = {}, _a[keyOrAttributes] = valueOrOptions, _a);
+            options = optionsOrUndefined || options;
+        }
+        else {
+            attributes = {};
+            options = optionsOrUndefined || options;
+        }
+        // @ts-ignore
+        var em = this.em || options.em;
+        var evaluatedAttributes = DynamicValueWatcher.getStaticValues(attributes, em);
+        var shouldSkipWatcherUpdates = options.skipWatcherUpdates || options.fromDataSource;
+        if (!shouldSkipWatcherUpdates) {
+            (_b = this.componentDVListener) === null || _b === void 0 ? void 0 : _b.addProps(attributes);
+        }
+        return _super.prototype.set.call(this, evaluatedAttributes, options);
+    };
     Component.prototype.__postAdd = function (opts) {
         if (opts === void 0) { opts = {}; }
         var em = this.em;
@@ -30645,8 +30854,15 @@ var Component = /** @class */ (function (_super) {
      * component.setAttributes({ id: 'test', 'data-key': 'value' });
      */
     Component.prototype.setAttributes = function (attrs, opts) {
-        if (opts === void 0) { opts = {}; }
-        this.set('attributes', Component_assign({}, attrs), opts);
+        if (opts === void 0) { opts = { skipWatcherUpdates: false, fromDataSource: false }; }
+        // @ts-ignore
+        var em = this.em || opts.em;
+        var evaluatedAttributes = DynamicValueWatcher.getStaticValues(attrs, em);
+        var shouldSkipWatcherUpdates = opts.skipWatcherUpdates || opts.fromDataSource;
+        if (!shouldSkipWatcherUpdates) {
+            this.componentDVListener.setAttributes(attrs);
+        }
+        this.set('attributes', Component_assign({}, evaluatedAttributes), opts);
         return this;
     };
     /**
@@ -30659,7 +30875,8 @@ var Component = /** @class */ (function (_super) {
      */
     Component.prototype.addAttributes = function (attrs, opts) {
         if (opts === void 0) { opts = {}; }
-        return this.setAttributes(Component_assign(Component_assign({}, this.getAttributes({ noClass: true })), attrs), opts);
+        var dynamicAttributes = this.componentDVListener.getDynamicAttributesDefs();
+        return this.setAttributes(Component_assign(Component_assign(Component_assign({}, this.getAttributes({ noClass: true })), dynamicAttributes), attrs), opts);
     };
     /**
      * Remove attributes from the component
@@ -30674,6 +30891,7 @@ var Component = /** @class */ (function (_super) {
         if (attrs === void 0) { attrs = []; }
         if (opts === void 0) { opts = {}; }
         var attrArr = Array.isArray(attrs) ? attrs : [attrs];
+        this.componentDVListener.removeAttributes(attrArr);
         var compAttr = this.getAttributes();
         attrArr.map(function (i) { return delete compAttr[i]; });
         return this.setAttributes(compAttr, opts);
@@ -30759,27 +30977,6 @@ var Component = /** @class */ (function (_super) {
             if ((0,mixins.isObject)(style) && !(0,mixins.isEmptyObj)(style)) {
                 attributes.style = this.styleToString({ inline: true });
             }
-        }
-        var attrDataVariable = this.get(dynamicAttrKey);
-        if (attrDataVariable) {
-            Object.entries(attrDataVariable).forEach(function (_a) {
-                var key = _a[0], value = _a[1];
-                var dataVariable;
-                if (isDynamicValue(value)) {
-                    dataVariable = value;
-                }
-                else if (isDynamicValueDefinition(value)) {
-                    var type = value.type;
-                    if (type === DataCondition_ConditionalVariableType) {
-                        var condition = value.condition, ifTrue = value.ifTrue, ifFalse = value.ifFalse;
-                        dataVariable = new DataCondition(condition, ifTrue, ifFalse, { em: em });
-                    }
-                    else {
-                        dataVariable = new model_TraitDataVariable(value, { em: em });
-                    }
-                }
-                attributes[key] = dataVariable.getDataValue();
-            });
         }
         // Check if we need an ID on the component
         if (!(0,index_all.has)(attributes, 'id')) {
@@ -30907,7 +31104,6 @@ var Component = /** @class */ (function (_super) {
         this.off(event, this.initTraits);
         this.__loadTraits();
         var attrs = Component_assign({}, this.get('attributes'));
-        var traitDynamicValueAttr = {};
         var traits = this.traits;
         traits.each(function (trait) {
             var name = trait.getName();
@@ -30919,12 +31115,10 @@ var Component = /** @class */ (function (_super) {
                 if (name && value)
                     attrs[name] = value;
             }
-            if (trait.dynamicVariable) {
-                traitDynamicValueAttr[name] = trait.dynamicVariable;
-            }
         });
-        traits.length && this.set('attributes', attrs);
-        Object.keys(traitDynamicValueAttr).length && this.set(dynamicAttrKey, traitDynamicValueAttr);
+        var dynamicAttributes = this.componentDVListener.getDynamicAttributesDefs();
+        traits.length &&
+            this.setAttributes(Component_assign(Component_assign({}, attrs), dynamicAttributes));
         this.on(event, this.initTraits);
         changed && em && em.trigger('component:toggled');
         return this;
@@ -31108,7 +31302,6 @@ var Component = /** @class */ (function (_super) {
             var traits = new model_Traits([], this.opt);
             traits.setTarget(this);
             if (traitsI.length) {
-                traitsI.forEach(function (tr) { return tr.attributes && delete tr.attributes.value; });
                 traits.add(traitsI);
             }
             this.set({ traits: traits }, opts);
@@ -31250,12 +31443,11 @@ var Component = /** @class */ (function (_super) {
     Component.prototype.clone = function (opt) {
         if (opt === void 0) { opt = {}; }
         var em = this.em;
-        var attr = Component_assign({}, this.attributes);
+        var attr = Component_assign({}, this.componentDVListener.getPropsDefsOrValues(this.attributes));
         var opts = Component_assign({}, this.opt);
         var id = this.getId();
         var cssc = em === null || em === void 0 ? void 0 : em.Css;
-        attr.attributes = Component_assign({}, attr.attributes);
-        delete attr.attributes.id;
+        attr.attributes = Component_assign({}, (attr.attributes ? this.componentDVListener.getAttributesDefsOrValues(attr.attributes) : undefined));
         // @ts-ignore
         attr.components = [];
         // @ts-ignore
@@ -31495,7 +31687,9 @@ var Component = /** @class */ (function (_super) {
     Component.prototype.toJSON = function (opts) {
         if (opts === void 0) { opts = {}; }
         var obj = backbone.Model.prototype.toJSON.call(this, opts);
-        obj.attributes = this.getAttributes();
+        obj = Component_assign(Component_assign({}, obj), this.componentDVListener.getDynamicPropsDefs());
+        obj.attributes = this.componentDVListener.getAttributesDefsOrValues(this.getAttributes());
+        delete obj.componentDVListener;
         delete obj.attributes.class;
         delete obj.toolbar;
         delete obj.traits;
@@ -31658,6 +31852,9 @@ var Component = /** @class */ (function (_super) {
                 options: args[2] || args[1] || {},
             });
     };
+    Component.prototype.emitWithEitor = function (event, data) {
+        [this.em, this].forEach(function (item) { return item === null || item === void 0 ? void 0 : item.trigger(event, data); });
+    };
     /**
      * Execute callback function on itself and all inner components
      * @param  {Function} clb Callback function, the model is passed as an argument
@@ -31711,6 +31908,10 @@ var Component = /** @class */ (function (_super) {
         [this, em].map(function (i) { return i.trigger(dom_components_types/* ComponentsEvents */.I.removeBefore, _this, remove, rmOpts); });
         !rmOpts.abort && remove();
         return this;
+    };
+    Component.prototype.destroy = function (options) {
+        this.componentDVListener.destroy();
+        return _super.prototype.destroy.call(this, options);
     };
     /**
      * Move the component to another destination component
@@ -33146,6 +33347,7 @@ var CanvasView_assign = (undefined && undefined.__assign) || function () {
 
 
 
+
 var CanvasView = /** @class */ (function (_super) {
     CanvasView_extends(CanvasView, _super);
     function CanvasView(model) {
@@ -33596,8 +33798,9 @@ var CanvasView = /** @class */ (function (_super) {
      */
     //TODO change type after the ComponentView was updated to ts
     CanvasView.prototype.updateScript = function (view) {
-        var model = view.model;
-        var id = model.getId();
+        var component = view.model;
+        var id = component.getId();
+        var dataToEmit = { component: component, view: view, el: view.el };
         if (!view.scriptContainer) {
             view.scriptContainer = (0,dom/* createEl */.a_)('div', { 'data-id': id });
             var jsEl = this.getJsContainer();
@@ -33608,15 +33811,16 @@ var CanvasView = /** @class */ (function (_super) {
         // In editor, I make use of setTimeout as during the append process of elements
         // those will not be available immediately, therefore 'item' variable
         var script = document.createElement('script');
-        var scriptFn = model.getScriptString();
-        var scriptFnStr = model.get('script-props') ? scriptFn : "function(){\n".concat(scriptFn, "\n;}");
-        var scriptProps = JSON.stringify(model.__getScriptProps());
-        script.innerHTML = "\n      setTimeout(function() {\n        var item = document.getElementById('".concat(id, "');\n        if (!item) return;\n        var script = (").concat(scriptFnStr, ").bind(item);\n        script(").concat(scriptProps, ");\n      }, 1);");
-        // #873
-        // Adding setTimeout will make js components work on init of the editor
+        var scriptFn = component.getScriptString();
+        var scriptFnStr = component.get('script-props') ? scriptFn : "function(){\n".concat(scriptFn, "\n;}");
+        var scriptProps = JSON.stringify(component.__getScriptProps());
+        script.innerHTML = "\n      setTimeout(function() {\n        var item = document.getElementById('".concat(id, "');\n        if (!item) return;\n        var script = (").concat(scriptFnStr, ").bind(item);\n        script(").concat(scriptProps, ", { el: item });\n      }, 1);");
+        // #873 Adding setTimeout will make js components work on init of the editor
         setTimeout(function () {
+            component.emitWithEitor(dom_components_types/* ComponentsEvents */.I.scriptMountBefore, dataToEmit);
             var scr = view.scriptContainer;
             scr === null || scr === void 0 ? void 0 : scr.appendChild(script);
+            component.emitWithEitor(dom_components_types/* ComponentsEvents */.I.scriptMount, dataToEmit);
         }, 0);
     };
     /**
@@ -36354,6 +36558,7 @@ var ComponentView_assign = (undefined && undefined.__assign) || function () {
 
 
 
+
 var ComponentView = /** @class */ (function (_super) {
     ComponentView_extends(ComponentView, _super);
     function ComponentView() {
@@ -36556,7 +36761,7 @@ var ComponentView = /** @class */ (function (_super) {
         var hoveredCls = "".concat(ppfx, "hovered");
         var noPointerCls = "".concat(ppfx, "no-pointer");
         var pointerInitCls = "".concat(ppfx, "pointer-init");
-        var toRemove = [selectedCls, selectedParentCls, freezedCls, hoveredCls, noPointerCls];
+        var toRemove = [selectedCls, selectedParentCls, freezedCls, hoveredCls, noPointerCls, pointerInitCls];
         var selCls = extHl && !opts.noExtHl ? '' : selectedCls;
         this.$el.removeClass(toRemove.join(' '));
         var actualCls = el.getAttribute('class') || '';
@@ -36792,7 +36997,9 @@ var ComponentView = /** @class */ (function (_super) {
      * Recreate the element of the view
      */
     ComponentView.prototype.reset = function () {
-        var el = this.el;
+        var view = this;
+        var el = view.el, model = view.model;
+        view.scriptContainer && model.emitWithEitor(dom_components_types/* ComponentsEvents */.I.scriptUnmount, { component: model, view: view, el: el });
         // @ts-ignore
         this.el = '';
         this._ensureElement();
@@ -37085,9 +37292,13 @@ var ComponentImageView = /** @class */ (function (_super) {
         }
     };
     ComponentImageView.prototype.onError = function () {
-        var fallback = this.model.getSrcResult({ fallback: true });
+        var _a = this, model = _a.model, el = _a.el;
+        var fallback = model.getSrcResult({ fallback: true });
         if (fallback) {
-            this.el.src = fallback;
+            // Remove srcset to prevent error loop on src update #6332
+            if (el.srcset)
+                el.srcset = '';
+            el.src = fallback;
         }
     };
     ComponentImageView.prototype.onLoad = function () {
@@ -37237,7 +37448,7 @@ var ComponentTextView = /** @class */ (function (_super) {
      * */
     ComponentTextView.prototype.onActive = function (ev) {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, rte, em, _b, result, delegate, _c, _d, err_1;
+            var _a, rte, em, _b, result, delegate, _c, view, _d, err_1;
             var _e, _f;
             return __generator(this, function (_g) {
                 switch (_g.label) {
@@ -37263,8 +37474,9 @@ var ComponentTextView = /** @class */ (function (_super) {
                         _g.label = 2;
                     case 2:
                         _g.trys.push([2, 4, , 5]);
+                        view = this;
                         _d = this;
-                        return [4 /*yield*/, rte.enable(this, this.activeRte, { event: ev })];
+                        return [4 /*yield*/, rte.enable(view, this.activeRte, { event: ev, view: view })];
                     case 3:
                         _d.activeRte = _g.sent();
                         return [3 /*break*/, 5];
@@ -37288,40 +37500,37 @@ var ComponentTextView = /** @class */ (function (_super) {
      * */
     ComponentTextView.prototype.disableEditing = function () {
         return __awaiter(this, arguments, void 0, function (opts) {
-            var _a, model, rte, activeRte, em, editable, err_2, _b;
+            var _a, model, rte, activeRte, em, editable, disableRes, content, err_2;
             if (opts === void 0) { opts = {}; }
-            return __generator(this, function (_c) {
-                switch (_c.label) {
+            return __generator(this, function (_b) {
+                switch (_b.label) {
                     case 0:
                         _a = this, model = _a.model, rte = _a.rte, activeRte = _a.activeRte, em = _a.em;
                         editable = model && model.get('editable');
-                        if (!rte) return [3 /*break*/, 8];
-                        _c.label = 1;
-                    case 1:
-                        _c.trys.push([1, 3, , 4]);
-                        return [4 /*yield*/, rte.disable(this, activeRte, opts)];
-                    case 2:
-                        _c.sent();
-                        return [3 /*break*/, 4];
-                    case 3:
-                        err_2 = _c.sent();
-                        em.logError(err_2);
-                        return [3 /*break*/, 4];
-                    case 4:
-                        _b = editable;
-                        if (!_b) return [3 /*break*/, 6];
+                        if (!rte) return [3 /*break*/, 7];
+                        disableRes = {};
                         return [4 /*yield*/, this.getContent()];
+                    case 1:
+                        content = _b.sent();
+                        _b.label = 2;
+                    case 2:
+                        _b.trys.push([2, 4, , 5]);
+                        return [4 /*yield*/, rte.disable(this, activeRte, opts)];
+                    case 3:
+                        disableRes = _b.sent();
+                        return [3 /*break*/, 5];
+                    case 4:
+                        err_2 = _b.sent();
+                        em.logError(err_2);
+                        return [3 /*break*/, 5];
                     case 5:
-                        _b = (_c.sent()) !== this.lastContent;
-                        _c.label = 6;
+                        if (!(editable && (content !== this.lastContent || disableRes.forceSync))) return [3 /*break*/, 7];
+                        return [4 /*yield*/, this.syncContent(ComponentTextView_assign(ComponentTextView_assign({}, opts), { content: content }))];
                     case 6:
-                        if (!_b) return [3 /*break*/, 8];
-                        return [4 /*yield*/, this.syncContent(opts)];
-                    case 7:
-                        _c.sent();
+                        _b.sent();
                         this.lastContent = '';
-                        _c.label = 8;
-                    case 8:
+                        _b.label = 7;
+                    case 7:
                         this.toggleEvents();
                         return [2 /*return*/];
                 }
@@ -37355,17 +37564,24 @@ var ComponentTextView = /** @class */ (function (_super) {
      */
     ComponentTextView.prototype.syncContent = function () {
         return __awaiter(this, arguments, void 0, function (opts) {
-            var _a, model, rte, rteEnabled, content, comps, contentOpt;
+            var _a, model, rte, rteEnabled, content, _b, comps, contentOpt;
+            var _c;
             if (opts === void 0) { opts = {}; }
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            return __generator(this, function (_d) {
+                switch (_d.label) {
                     case 0:
                         _a = this, model = _a.model, rte = _a.rte, rteEnabled = _a.rteEnabled;
                         if (!rteEnabled && !opts.force)
                             return [2 /*return*/];
-                        return [4 /*yield*/, this.getContent()];
-                    case 1:
-                        content = _b.sent();
+                        if (!((_c = opts.content) !== null && _c !== void 0)) return [3 /*break*/, 1];
+                        _b = _c;
+                        return [3 /*break*/, 3];
+                    case 1: return [4 /*yield*/, this.getContent()];
+                    case 2:
+                        _b = (_d.sent());
+                        _d.label = 3;
+                    case 3:
+                        content = _b;
                         comps = model.components();
                         contentOpt = ComponentTextView_assign({ fromDisable: 1 }, opts);
                         model.set('content', '', contentOpt);
@@ -37425,11 +37641,11 @@ var ComponentTextView = /** @class */ (function (_super) {
      * @param  {Event} e
      */
     ComponentTextView.prototype.onInput = function () {
-        var em = this.em;
+        var _a;
         var evPfx = 'component';
         var ev = ["".concat(evPfx, ":update"), "".concat(evPfx, ":input")].join(' ');
         // Update toolbars
-        em && em.trigger(ev, this.model);
+        (_a = this.em) === null || _a === void 0 ? void 0 : _a.trigger(ev, this.model);
     };
     /**
      * Isolate disable propagation method
@@ -38177,7 +38393,6 @@ var ComponentDataVariableView = /** @class */ (function (_super) {
         if (opt === void 0) { opt = {}; }
         _super.prototype.initialize.call(this, opt);
         this.dynamicVariableListener = new DataVariableListenerManager({
-            model: this,
             em: this.em,
             dataVariable: this.model,
             updateValueFromDataVariable: function () { return _this.postRender(); },
@@ -39052,7 +39267,7 @@ var ComponentManager = /** @class */ (function (_super) {
         var srcModel = (0,mixins.isComponent)(source) ? source : null;
         if (!srcModel) {
             var wrapper = this.getShallowWrapper();
-            srcModel = (wrapper === null || wrapper === void 0 ? void 0 : wrapper.append(source)[0]) || null;
+            srcModel = (wrapper === null || wrapper === void 0 ? void 0 : wrapper.append(source, { temporary: true })[0]) || null;
         }
         result.source = srcModel;
         if (!srcModel)
@@ -40506,6 +40721,17 @@ var BlockView_extends = (undefined && undefined.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var BlockView_assign = (undefined && undefined.__assign) || function () {
+    BlockView_assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return BlockView_assign.apply(this, arguments);
+};
 
 
 
@@ -40537,7 +40763,8 @@ var BlockView = /** @class */ (function (_super) {
         return this.em.Blocks;
     };
     BlockView.prototype.handleClick = function (ev) {
-        var _a = this, config = _a.config, model = _a.model, em = _a.em;
+        var _a, _b;
+        var _c = this, config = _c.config, model = _c.model, em = _c.em;
         var onClick = model.get('onClick') || config.appendOnClick;
         em.trigger('block:click', model, ev);
         if (!onClick) {
@@ -40546,23 +40773,27 @@ var BlockView = /** @class */ (function (_super) {
         else if ((0,index_all.isFunction)(onClick)) {
             return onClick(model, em === null || em === void 0 ? void 0 : em.getEditor(), { event: ev });
         }
-        var sorter = config.getSorter();
+        var sorter = (_a = config.getSorter) === null || _a === void 0 ? void 0 : _a.call(config);
+        if (!sorter)
+            return;
         var content = model.get('content');
+        var dropModel = this.getTempDropModel(content);
+        var el = (_b = dropModel.view) === null || _b === void 0 ? void 0 : _b.el;
+        var sources = el ? [{ element: el, dragSource: { content: content } }] : [];
         var selected = em.getSelected();
-        sorter.setDropContent(content);
-        var target, valid, insertAt;
+        var target, valid, insertAt, index = 0;
         // If there is a selected component, try first to append
         // the block inside, otherwise, try to place it as a next sibling
         if (selected) {
-            valid = sorter.validTarget(selected.getEl(), content);
-            if (valid.valid) {
+            valid = sorter.validTarget(selected.getEl(), sources, index);
+            if (valid) {
                 target = selected;
             }
             else {
                 var parent_1 = selected.parent();
                 if (parent_1) {
-                    valid = sorter.validTarget(parent_1.getEl(), content);
-                    if (valid.valid) {
+                    valid = sorter.validTarget(parent_1.getEl(), sources, index);
+                    if (valid) {
                         target = parent_1;
                         insertAt = parent_1.components().indexOf(selected) + 1;
                     }
@@ -40572,8 +40803,8 @@ var BlockView = /** @class */ (function (_super) {
         // If no target found yet, try to append the block to the wrapper
         if (!target) {
             var wrapper = em.getWrapper();
-            valid = sorter.validTarget(wrapper.getEl(), content);
-            if (valid.valid)
+            valid = sorter.validTarget(wrapper.getEl(), sources, index);
+            if (valid)
                 target = wrapper;
         }
         var result = target && target.append(content, { at: insertAt })[0];
@@ -40584,7 +40815,8 @@ var BlockView = /** @class */ (function (_super) {
      * @private
      */
     BlockView.prototype.startDrag = function (e) {
-        var _a = this, config = _a.config, em = _a.em, model = _a.model;
+        var _a;
+        var _b = this, config = _b.config, em = _b.em, model = _b.model;
         var disable = model.get('disable');
         //Right or middel click
         if (e.button !== 0 || !config.getSorter || this.el.draggable || disable)
@@ -40592,9 +40824,11 @@ var BlockView = /** @class */ (function (_super) {
         em.refreshCanvas();
         var sorter = config.getSorter();
         sorter.__currentBlock = model;
-        sorter.setDragHelper(this.el, e);
-        sorter.setDropContent(this.model.get('content'));
-        sorter.startSort([this.el]);
+        var content = this.model.get('content');
+        var dropModel = this.getTempDropModel(content);
+        var el = (_a = dropModel.view) === null || _a === void 0 ? void 0 : _a.el;
+        var sources = el ? [{ element: el, dragSource: { content: content } }] : [];
+        sorter.startSort(sources);
         (0,dom.on)(document, 'mouseup', this.endDrag);
     };
     BlockView.prototype.handleDragStart = function (ev) {
@@ -40611,9 +40845,31 @@ var BlockView = /** @class */ (function (_super) {
      * @private
      */
     BlockView.prototype.endDrag = function () {
+        var _a, _b;
         (0,dom/* off */.AU)(document, 'mouseup', this.endDrag);
-        var sorter = this.config.getSorter();
-        sorter.cancelDrag();
+        var sorter = (_b = (_a = this.config).getSorter) === null || _b === void 0 ? void 0 : _b.call(_a);
+        if (sorter) {
+            sorter.endDrag();
+        }
+    };
+    /**
+     * Generates a temporary model of the content being dragged for use with the sorter.
+     * @returns The temporary model representing the dragged content.
+     */
+    BlockView.prototype.getTempDropModel = function (content) {
+        var _a;
+        var comps = this.em.Components.getComponents();
+        var opts = {
+            avoidChildren: 1,
+            avoidStore: 1,
+            avoidUpdateStyle: 1,
+        };
+        var tempModel = comps.add(content, BlockView_assign(BlockView_assign({}, opts), { temporary: true }));
+        var dropModel = comps.remove(tempModel, BlockView_assign(BlockView_assign({}, opts), { temporary: true }));
+        // @ts-ignore
+        dropModel = dropModel instanceof Array ? dropModel[0] : dropModel;
+        (_a = dropModel.view) === null || _a === void 0 ? void 0 : _a.$el.data('model', dropModel);
+        return dropModel;
     };
     BlockView.prototype.render = function () {
         var _a;
@@ -40775,6 +41031,8 @@ var BlocksView_assign = (undefined && undefined.__assign) || function () {
 
 
 
+
+
 var BlocksView = /** @class */ (function (_super) {
     BlocksView_extends(BlocksView, _super);
     function BlocksView(opts, config) {
@@ -40815,22 +41073,30 @@ var BlocksView = /** @class */ (function (_super) {
         if (!this.sorter) {
             var utils = em.Utils;
             var canvas = em.Canvas;
-            this.sorter = new utils.Sorter({
-                // @ts-ignore
-                container: canvas.getBody(),
-                placer: canvas.getPlacerEl(),
-                containerSel: '*',
-                itemSel: '*',
-                pfx: this.ppfx,
-                onStart: this.onDrag,
-                onEndMove: this.onDrop,
-                onMove: this.onMove,
-                document: canvas.getFrameEl().contentDocument,
-                direction: 'a',
-                wmargin: 1,
-                nested: 1,
+            this.sorter = new utils.ComponentSorter({
                 em: em,
-                canvasRelative: 1,
+                treeClass: sorter_CanvasNewComponentNode,
+                containerContext: {
+                    container: canvas.getBody(),
+                    containerSel: '*',
+                    itemSel: '*',
+                    pfx: this.ppfx,
+                    placeholderElement: canvas.getPlacerEl(),
+                    document: canvas.getBody().ownerDocument,
+                },
+                dragBehavior: {
+                    dragDirection: sorter_types/* DragDirection */.A.BothDirections,
+                    nested: true,
+                },
+                positionOptions: {
+                    windowMargin: 1,
+                    canvasRelative: true,
+                },
+                eventHandlers: {
+                    legacyOnStartSort: this.onDrag,
+                    legacyOnEndMove: this.onDrop,
+                    legacyOnMoveClb: this.onMove,
+                },
             });
         }
         return this.sorter;
@@ -42674,6 +42940,7 @@ var parseNode = function (el) {
 ;// CONCATENATED MODULE: ./src/parser/model/ParserCss.ts
 
 
+
 var ParserCss = function (em, config) {
     if (config === void 0) { config = {}; }
     return ({
@@ -42682,14 +42949,25 @@ var ParserCss = function (em, config) {
          * @param  {String} input CSS string
          * @return {Array<Object>}
          */
-        parse: function (input) {
+        parse: function (input, opts) {
             var _this = this;
+            var _a;
+            if (opts === void 0) { opts = {}; }
             var output = [];
             var parserCss = config.parserCss;
             var editor = em === null || em === void 0 ? void 0 : em.Editor;
-            var nodes = parserCss ? parserCss(input, editor) : BrowserParserCss(input);
+            var nodes = [];
+            var error;
+            try {
+                nodes = parserCss ? parserCss(input, editor) : BrowserParserCss(input);
+            }
+            catch (err) {
+                error = err;
+                if (opts.throwOnError)
+                    throw err;
+            }
             nodes.forEach(function (node) { return (output = output.concat(_this.checkNode(node))); });
-            em === null || em === void 0 ? void 0 : em.trigger('parse:css', { input: input, output: output, nodes: nodes });
+            (_a = em === null || em === void 0 ? void 0 : em.Parser) === null || _a === void 0 ? void 0 : _a.__emitEvent(ParserEvents.css, { input: input, output: output, nodes: nodes, error: error });
             return output;
         },
         /**
@@ -42743,6 +43021,17 @@ var parser_extends = (undefined && undefined.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var parser_assign = (undefined && undefined.__assign) || function () {
+    parser_assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return parser_assign.apply(this, arguments);
+};
 /**
  * You can customize the initial state of the module from the editor initialization, by passing the following [Configuration Object](https://github.com/GrapesJS/grapesjs/blob/master/src/parser/config/config.ts)
  * ```js
@@ -42758,9 +43047,8 @@ var parser_extends = (undefined && undefined.__extends) || (function () {
  * ```js
  * const { Parser } = editor;
  * ```
- * ## Available Events
- * * `parse:html` - On HTML parse, an object containing the input and the output of the parser is passed as an argument
- * * `parse:css` - On CSS parse, an object containing the input and the output of the parser is passed as an argument
+ *
+ * {REPLACE_EVENTS}
  *
  * ## Methods
  * * [getConfig](#getconfig)
@@ -42773,10 +43061,12 @@ var parser_extends = (undefined && undefined.__extends) || (function () {
 
 
 
+
 var ParserModule = /** @class */ (function (_super) {
     parser_extends(ParserModule, _super);
     function ParserModule(em) {
         var _this = _super.call(this, em, 'Parser', parser_config_config()) || this;
+        _this.events = ParserEvents;
         var config = _this.config;
         _this.parserCss = model_ParserCss(em, config);
         _this.parserHtml = model_ParserHtml(em, config);
@@ -42823,6 +43113,11 @@ var ParserModule = /** @class */ (function (_super) {
      */
     ParserModule.prototype.parseCss = function (input) {
         return this.parserCss.parse(input);
+    };
+    ParserModule.prototype.__emitEvent = function (event, data) {
+        var _a = this, em = _a.em, events = _a.events;
+        em.trigger(event, data);
+        em.trigger(events.all, parser_assign({ event: event }, data));
     };
     ParserModule.prototype.destroy = function () { };
     return ParserModule;
@@ -53087,20 +53382,8 @@ var Sorter = /** @class */ (function () {
      * @param {HTMLElement[]} sources[]
      * */
     Sorter.prototype.startSort = function (sources) {
-        var _this = this;
         var _a, _b, _c, _d, _e, _f, _g;
-        var validSources = sources.filter(function (source) { return !!source.dragSource || _this.findValidSourceElement(source.element); });
-        var sourcesWithModel = validSources.map(function (source) {
-            var _a;
-            return {
-                model: (_a = (0,cash_dom["default"])(source.element)) === null || _a === void 0 ? void 0 : _a.data('model'),
-                content: source.dragSource,
-            };
-        });
-        var sortedSources = sourcesWithModel.sort(function (a, b) {
-            return sortDom(a.model, b.model);
-        });
-        var sourceNodes = sortedSources.map(function (source) { return new _this.treeClass(source.model, source.content); });
+        var _h = this.getSourceNodes(sources), sourceNodes = _h.sourceNodes, sourcesWithModel = _h.sourcesWithModel;
         this.sourceNodes = sourceNodes;
         this.dropLocationDeterminer.startSort(sourceNodes);
         this.bindDragEventHandlers();
@@ -53117,6 +53400,33 @@ var Sorter = /** @class */ (function () {
         });
         // For backward compatibility, leave it to a single node
         this.em.trigger('sorter:drag:start', sources[0], sourcesWithModel[0]);
+    };
+    Sorter.prototype.validTarget = function (targetEl, sources, index) {
+        if (!targetEl)
+            return false;
+        var targetModel = (0,cash_dom["default"])(targetEl).data('model');
+        if (!targetModel)
+            return false;
+        var targetNode = new this.treeClass(targetModel);
+        var sourceNodes = this.getSourceNodes(sources).sourceNodes;
+        var canMove = sourceNodes.some(function (node) { return targetNode.canMove(node, index); });
+        return canMove;
+    };
+    Sorter.prototype.getSourceNodes = function (sources) {
+        var _this = this;
+        var validSources = sources.filter(function (source) { return !!source.dragSource || _this.findValidSourceElement(source.element); });
+        var sourcesWithModel = validSources.map(function (source) {
+            var _a;
+            return {
+                model: (_a = (0,cash_dom["default"])(source.element)) === null || _a === void 0 ? void 0 : _a.data('model'),
+                content: source.dragSource,
+            };
+        });
+        var sortedSources = sourcesWithModel.sort(function (a, b) {
+            return sortDom(a.model, b.model);
+        });
+        var sourceNodes = sortedSources.map(function (source) { return new _this.treeClass(source.model, source.content); });
+        return { sourceNodes: sourceNodes, sourcesWithModel: sourcesWithModel };
     };
     /**
      * This method is should be called when the user scrolls within the container.
@@ -56694,6 +57004,67 @@ var undo_manager_config_config = function () { return ({
 }); };
 /* harmony default export */ const undo_manager_config = (undo_manager_config_config);
 
+;// CONCATENATED MODULE: ./src/editor/types.ts
+/**{START_EVENTS}*/
+var EditorEvents;
+(function (EditorEvents) {
+    /**
+     * @event `update` Event triggered on any change of the project (eg. component added/removed, style changes, etc.)
+     * @example
+     * editor.on('update', () => { ... });
+     */
+    EditorEvents["update"] = "update";
+    /**
+     * @event `undo` Undo executed.
+     * @example
+     * editor.on('undo', () => { ... });
+     */
+    EditorEvents["undo"] = "undo";
+    /**
+     * @event `redo` Redo executed.
+     * @example
+     * editor.on('redo', () => { ... });
+     */
+    EditorEvents["redo"] = "redo";
+    /**
+     * @event `load` Editor is loaded. At this stage, the project is loaded in the editor and elements in the canvas are rendered.
+     * @example
+     * editor.on('load', () => { ... });
+     */
+    EditorEvents["load"] = "load";
+    /**
+     * @event `project:load` Project JSON loaded in the editor. The event is triggered on the initial load and on the `editor.loadProjectData` method.
+     * @example
+     * editor.on('project:load', ({ project, initial }) => { ... });
+     */
+    EditorEvents["projectLoad"] = "project:load";
+    /**
+     * @event `log` Log message triggered.
+     * @example
+     * editor.on('log', (msg, opts) => { ... });
+     */
+    EditorEvents["log"] = "log";
+    /**
+     * @event `telemetry:init` Initial telemetry data are sent.
+     * @example
+     * editor.on('telemetry:init', () => { ... });
+     */
+    EditorEvents["telemetryInit"] = "telemetry:init";
+    /**
+     * @event `destroy` Editor started destroy (on `editor.destroy()`).
+     * @example
+     * editor.on('destroy', () => { ... });
+     */
+    EditorEvents["destroy"] = "destroy";
+    /**
+     * @event `destroyed` Editor destroyed.
+     * @example
+     * editor.on('destroyed', () => { ... });
+     */
+    EditorEvents["destroyed"] = "destroyed";
+})(EditorEvents || (EditorEvents = {}));
+/**{END_EVENTS}*/
+
 ;// CONCATENATED MODULE: ./src/undo_manager/index.ts
 var undo_manager_extends = (undefined && undefined.__extends) || (function () {
     var extendStatics = function (d, b) {
@@ -56756,6 +57127,7 @@ var undo_manager_spreadArray = (undefined && undefined.__spreadArray) || functio
  * @module UndoManager
  */
 // @ts-ignore
+
 
 
 
@@ -56868,7 +57240,7 @@ var UndoManagerModule = /** @class */ (function (_super) {
         _this.um.on('undo redo', function () {
             em.getSelectedAll().map(function (c) { return c.trigger('rerender:layer'); });
         });
-        ['undo', 'redo'].forEach(function (ev) { return _this.um.on(ev, function () { return em.trigger(ev); }); });
+        [EditorEvents.undo, EditorEvents.redo].forEach(function (ev) { return _this.um.on(ev, function () { return em.trigger(ev); }); });
         return _this;
     }
     UndoManagerModule.prototype.postLoad = function () {
@@ -57574,6 +57946,17 @@ var rich_text_editor_extends = (undefined && undefined.__extends) || (function (
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var rich_text_editor_assign = (undefined && undefined.__assign) || function () {
+    rich_text_editor_assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return rich_text_editor_assign.apply(this, arguments);
+};
 var rich_text_editor_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -57902,10 +58285,9 @@ var RichTextEditorModule = /** @class */ (function (_super) {
      * @param {Object} rte The instance of already defined RTE
      * @private
      * */
-    RichTextEditorModule.prototype.enable = function (view_1, rte_1) {
-        return rich_text_editor_awaiter(this, arguments, void 0, function (view, rte, opts) {
+    RichTextEditorModule.prototype.enable = function (view, rte, opts) {
+        return rich_text_editor_awaiter(this, void 0, void 0, function () {
             var _a, customRte, em, el, rteInst;
-            if (opts === void 0) { opts = {}; }
             return rich_text_editor_generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -57913,7 +58295,7 @@ var RichTextEditorModule = /** @class */ (function (_super) {
                         _a = this, customRte = _a.customRte, em = _a.em;
                         el = view.getChildrenContainer();
                         this.toolbar.style.display = '';
-                        return [4 /*yield*/, (customRte ? customRte.enable(el, rte) : this.initRte(el).enable(opts))];
+                        return [4 /*yield*/, (customRte ? customRte.enable(el, rte, opts) : this.initRte(el).enable(opts))];
                     case 1:
                         rteInst = _b.sent();
                         if (em) {
@@ -57930,15 +58312,16 @@ var RichTextEditorModule = /** @class */ (function (_super) {
     };
     RichTextEditorModule.prototype.getContent = function (view, rte) {
         return rich_text_editor_awaiter(this, void 0, void 0, function () {
-            var customRte;
+            var customRte, el;
             return rich_text_editor_generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         customRte = this.customRte;
+                        el = view.getChildrenContainer();
                         if (!(customRte && rte && (0,index_all.isFunction)(customRte.getContent))) return [3 /*break*/, 2];
-                        return [4 /*yield*/, customRte.getContent(view.el, rte)];
+                        return [4 /*yield*/, customRte.getContent(el, rte, { view: view })];
                     case 1: return [2 /*return*/, _a.sent()];
-                    case 2: return [2 /*return*/, view.getChildrenContainer().innerHTML];
+                    case 2: return [2 /*return*/, el.innerHTML];
                 }
             });
         });
@@ -57956,24 +58339,38 @@ var RichTextEditorModule = /** @class */ (function (_super) {
      * @param {Object} rte The instance of already defined RTE
      * @private
      * */
-    RichTextEditorModule.prototype.disable = function (view, rte, opts) {
-        if (opts === void 0) { opts = {}; }
-        var em = this.em;
-        var customRte = this.customRte;
-        // @ts-ignore
-        var el = view.getChildrenContainer();
-        if (customRte) {
-            customRte.disable(el, rte);
-        }
-        else {
-            rte && rte.disable();
-        }
-        this.hideToolbar();
-        if (em) {
-            em.off(eventsUp, this.updatePosition, this);
-            !opts.fromMove && em.trigger('rte:disable', view, rte);
-        }
-        this.model.unset('currentView');
+    RichTextEditorModule.prototype.disable = function (view_1, rte_1) {
+        return rich_text_editor_awaiter(this, arguments, void 0, function (view, rte, opts) {
+            var result, em, customRte, res;
+            if (opts === void 0) { opts = {}; }
+            return rich_text_editor_generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        result = {};
+                        em = this.em;
+                        customRte = this.customRte;
+                        if (!customRte) return [3 /*break*/, 2];
+                        return [4 /*yield*/, customRte.disable(view.getChildrenContainer(), rte, rich_text_editor_assign(rich_text_editor_assign({}, opts), { view: view }))];
+                    case 1:
+                        res = _a.sent();
+                        if (res) {
+                            result = res;
+                        }
+                        return [3 /*break*/, 3];
+                    case 2:
+                        rte && rte.disable();
+                        _a.label = 3;
+                    case 3:
+                        this.hideToolbar();
+                        if (em) {
+                            em.off(eventsUp, this.updatePosition, this);
+                            !opts.fromMove && em.trigger('rte:disable', view, rte);
+                        }
+                        this.model.unset('currentView');
+                        return [2 /*return*/, result];
+                }
+            });
+        });
     };
     return RichTextEditorModule;
 }(abstract_Module));
@@ -63244,6 +63641,17 @@ var DataSource_extends = (undefined && undefined.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var DataSource_assign = (undefined && undefined.__assign) || function () {
+    DataSource_assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return DataSource_assign.apply(this, arguments);
+};
 var DataSource_spreadArray = (undefined && undefined.__spreadArray) || function (to, from, pack) {
     if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
         if (ar || !(i in from)) {
@@ -63262,12 +63670,12 @@ var DataSource = /** @class */ (function (_super) {
      * It sets up the transformers and initializes the collection of records.
      * If the `records` property is not an instance of `DataRecords`, it will be converted into one.
      *
-     * @param {DataSourceProps} props - Properties to initialize the data source.
+     * @param {DataSourceProps<DRProps>} props - Properties to initialize the data source.
      * @param {DataSourceOptions} opts - Options to initialize the data source.
      * @name constructor
      */
     function DataSource(props, opts) {
-        var _this = _super.call(this, props, opts) || this;
+        var _this = _super.call(this, DataSource_assign(DataSource_assign({}, props), { records: [] }), opts) || this;
         var records = props.records, transformers = props.transformers;
         _this.transformers = transformers || {};
         if (!(records instanceof model_DataRecords)) {
@@ -63294,7 +63702,7 @@ var DataSource = /** @class */ (function (_super) {
         /**
          * Retrieves the collection of records associated with this data source.
          *
-         * @returns {DataRecords} The collection of data records.
+         * @returns {DataRecords<DRProps>} The collection of data records.
          * @name records
          */
         get: function () {
@@ -63320,7 +63728,7 @@ var DataSource = /** @class */ (function (_super) {
      * Handles the `add` event for records in the data source.
      * This method triggers a change event on the newly added record.
      *
-     * @param {DataRecord} dr - The data record that was added.
+     * @param {DataRecord<DRProps>} dr - The data record that was added.
      * @private
      * @name onAdd
      */
@@ -63330,7 +63738,7 @@ var DataSource = /** @class */ (function (_super) {
     /**
      * Adds a new record to the data source.
      *
-     * @param {DataRecordProps} record - The properties of the record to add.
+     * @param {DRProps} record - The properties of the record to add.
      * @param {AddOptions} [opts] - Options to apply when adding the record.
      * @returns {DataRecord} The added data record.
      * @name addRecord
@@ -63342,18 +63750,17 @@ var DataSource = /** @class */ (function (_super) {
      * Retrieves a record from the data source by its ID.
      *
      * @param {string | number} id - The ID of the record to retrieve.
-     * @returns {DataRecord | undefined} The data record, or `undefined` if no record is found with the given ID.
+     * @returns {DataRecord<DRProps> | undefined} The data record, or `undefined` if no record is found with the given ID.
      * @name getRecord
      */
     DataSource.prototype.getRecord = function (id) {
-        var record = this.records.get(id);
-        return record;
+        return this.records.get(id);
     };
     /**
      * Retrieves all records from the data source.
      * Each record is processed with the `getRecord` method to apply any read transformers.
      *
-     * @returns {Array<DataRecord | undefined>} An array of data records.
+     * @returns {Array<DataRecord<DRProps> | undefined>} An array of data records.
      * @name getRecords
      */
     DataSource.prototype.getRecords = function () {
@@ -63365,7 +63772,7 @@ var DataSource = /** @class */ (function (_super) {
      *
      * @param {string | number} id - The ID of the record to remove.
      * @param {RemoveOptions} [opts] - Options to apply when removing the record.
-     * @returns {DataRecord | undefined} The removed data record, or `undefined` if no record is found with the given ID.
+     * @returns {DataRecord<DRProps> | undefined} The removed data record, or `undefined` if no record is found with the given ID.
      * @name removeRecord
      */
     DataSource.prototype.removeRecord = function (id, opts) {
@@ -63378,7 +63785,7 @@ var DataSource = /** @class */ (function (_super) {
     /**
      * Replaces the existing records in the data source with a new set of records.
      *
-     * @param {Array<DataRecordProps>} records - An array of data record properties to set.
+     * @param {Array<DRProps>} records - An array of data record properties to set.
      * @returns {Array<DataRecord>} An array of the added data records.
      * @name setRecords
      */
@@ -63712,6 +64119,7 @@ var Editor_spreadArray = (undefined && undefined.__spreadArray) || function (to,
     }
     return to.concat(ar || Array.prototype.slice.call(from));
 };
+
 
 
 
@@ -64100,6 +64508,7 @@ var EditorModel = /** @class */ (function (_super) {
     EditorModel.prototype.loadOnStart = function () {
         var _this = this;
         var _a = this.config, projectData = _a.projectData, headless = _a.headless;
+        var loadOpts = { initial: true };
         var sm = this.Storage;
         // In `onLoad`, the module will try to load the data from its configurations.
         this.toLoad.reverse().forEach(function (mdl) { return mdl.onLoad(); });
@@ -64109,7 +64518,7 @@ var EditorModel = /** @class */ (function (_super) {
             _this.set('readyLoad', 1);
         };
         if (headless) {
-            projectData && this.loadData(projectData);
+            projectData && this.loadData(projectData, loadOpts);
             postLoad();
         }
         else {
@@ -64120,14 +64529,14 @@ var EditorModel = /** @class */ (function (_super) {
                     switch (_a.label) {
                         case 0:
                             if (!projectData) return [3 /*break*/, 1];
-                            this.loadData(projectData);
+                            this.loadData(projectData, loadOpts);
                             return [3 /*break*/, 5];
                         case 1:
                             if (!(sm === null || sm === void 0 ? void 0 : sm.canAutoload())) return [3 /*break*/, 5];
                             _a.label = 2;
                         case 2:
                             _a.trys.push([2, 4, , 5]);
-                            return [4 /*yield*/, this.load()];
+                            return [4 /*yield*/, this.load({}, loadOpts)];
                         case 3:
                             _a.sent();
                             return [3 /*break*/, 5];
@@ -64166,7 +64575,7 @@ var EditorModel = /** @class */ (function (_super) {
         var changes = this.getDirtyCount();
         if (!opts.isClear) {
             this.updateItr && clearTimeout(this.updateItr);
-            this.updateItr = setTimeout(function () { return _this.trigger('update'); });
+            this.updateItr = setTimeout(function () { return _this.trigger(EditorEvents.update); });
         }
         if (this.config.noticeOnUnload) {
             window.onbeforeunload = changes ? function () { return true; } : null;
@@ -64323,17 +64732,17 @@ var EditorModel = /** @class */ (function (_super) {
                 });
                 if (!(0,index_all.isUndefined)(min_1)) {
                     while (min_1 !== index_1) {
-                        _this.addSelected(coll_1.at(min_1));
+                        _this.addSelected(coll_1.at(min_1), opts);
                         min_1++;
                     }
                 }
                 if (!(0,index_all.isUndefined)(max_1)) {
                     while (max_1 !== index_1) {
-                        _this.addSelected(coll_1.at(max_1));
+                        _this.addSelected(coll_1.at(max_1), opts);
                         max_1--;
                     }
                 }
-                return _this.addSelected(model);
+                return _this.addSelected(model, opts);
             }
             !multiple && _this.removeSelected(selected.filter(function (s) { return s !== model; }));
             _this.addSelected(model, opts);
@@ -64612,7 +65021,7 @@ var EditorModel = /** @class */ (function (_super) {
                     case 0: return [4 /*yield*/, this.Storage.load(options)];
                     case 1:
                         result = _a.sent();
-                        this.loadData(result);
+                        this.loadData(result, loadOptions);
                         // Wait in order to properly update the dirty counter (#5385)
                         return [4 /*yield*/, (0,mixins.wait)()];
                     case 2:
@@ -64637,13 +65046,17 @@ var EditorModel = /** @class */ (function (_super) {
         });
         return JSON.parse(JSON.stringify(result));
     };
-    EditorModel.prototype.loadData = function (data) {
-        if (data === void 0) { data = {}; }
-        if (!(0,mixins.isEmptyObj)(data)) {
+    EditorModel.prototype.loadData = function (project, opts) {
+        if (project === void 0) { project = {}; }
+        if (opts === void 0) { opts = {}; }
+        var loaded = false;
+        if (!(0,mixins.isEmptyObj)(project)) {
             this.storables.forEach(function (module) { return module.clear(); });
-            this.storables.forEach(function (module) { return module.load(data); });
+            this.storables.forEach(function (module) { return module.load(project); });
+            loaded = true;
         }
-        return data;
+        this.trigger(EditorEvents.projectLoad, { project: project, loaded: loaded, initial: !!opts.initial });
+        return project;
     };
     /**
      * Returns device model by name
@@ -64781,7 +65194,7 @@ var EditorModel = /** @class */ (function (_super) {
     EditorModel.prototype.destroyAll = function () {
         var _this = this;
         var _a = this, config = _a.config, view = _a.view;
-        this.trigger('destroy');
+        this.trigger(EditorEvents.destroy);
         var editor = this.getEditor();
         // @ts-ignore
         var _b = (config.grapesjs || {}).editors, editors = _b === void 0 ? [] : _b;
@@ -64803,7 +65216,7 @@ var EditorModel = /** @class */ (function (_super) {
         editors.splice(editors.indexOf(editor), 1);
         //@ts-ignore
         (0,mixins.hasWin)() && (0,cash_dom["default"])(config.el).empty().attr(this.attrsOrig);
-        this.trigger('destroyed');
+        this.trigger(EditorEvents.destroyed);
     };
     EditorModel.prototype.getEditing = function () {
         var res = this.get('editing');
@@ -64818,11 +65231,12 @@ var EditorModel = /** @class */ (function (_super) {
     };
     EditorModel.prototype.log = function (msg, opts) {
         if (opts === void 0) { opts = {}; }
+        var logEvent = EditorEvents.log;
         var ns = opts.ns, _a = opts.level, level = _a === void 0 ? 'debug' : _a;
-        this.trigger('log', msg, opts);
-        level && this.trigger("log:".concat(level), msg, opts);
+        this.trigger(logEvent, msg, opts);
+        level && this.trigger("".concat(logEvent, ":").concat(level), msg, opts);
         if (ns) {
-            var logNs = "log-".concat(ns);
+            var logNs = "".concat(logEvent, "-").concat(ns);
             this.trigger(logNs, msg, opts);
             level && this.trigger("".concat(logNs, ":").concat(level), msg, opts);
         }
@@ -64940,6 +65354,7 @@ var EditorView_generator = (undefined && undefined.__generator) || function (thi
 
 
 
+
 var EditorView_EditorView = /** @class */ (function (_super) {
     view_EditorView_extends(EditorView, _super);
     function EditorView(model) {
@@ -64956,7 +65371,7 @@ var EditorView_EditorView = /** @class */ (function (_super) {
                 });
             }
             setTimeout(function () {
-                model.trigger('load', model.Editor);
+                model.trigger(EditorEvents.load, model.Editor);
                 model.clearDirtyCount();
             });
         });
@@ -65023,7 +65438,7 @@ var EditorView_EditorView = /** @class */ (function (_super) {
                                 sessionStorage.removeItem(key);
                             }
                         });
-                        this.trigger('telemetry:sent');
+                        this.trigger(EditorEvents.telemetryInit);
                         return [2 /*return*/];
                 }
             });
@@ -65094,11 +65509,13 @@ var editor_spreadArray = (undefined && undefined.__spreadArray) || function (to,
 
 
 
+
 var Editor = /** @class */ (function () {
     function Editor(config, opts) {
         if (config === void 0) { config = {}; }
         if (opts === void 0) { opts = {}; }
         var _a;
+        this.events = EditorEvents;
         /**
          * Print safe HTML by using ES6 tagged template strings.
          * @param {Array<String>} literals
@@ -66073,7 +66490,7 @@ var grapesjs = {
     plugins: plugins,
     usePlugin: usePlugin,
     // @ts-ignore Will be replaced on build
-    version: '0.22.3',
+    version: '0.22.5',
     /**
      * Initialize the editor with passed options
      * @param {Object} config Configuration object

@@ -9,7 +9,6 @@ namespace Cosmos.Common
 {
     using System;
     using System.Linq;
-    using System.Text;
     using System.Threading.Tasks;
     using Cosmos.BlobService;
     using Cosmos.Cms.Common.Services.Configurations;
@@ -25,12 +24,10 @@ namespace Cosmos.Common
     using Microsoft.AspNetCore.Identity.UI.Services;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.RateLimiting;
-    using Microsoft.Azure.Cosmos.Core;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Microsoft.PowerBI.Api.Models;
-    using X.Web.Sitemap.Extensions;
 
     /// <summary>
     /// Methods common to both the editor and publisher home controllers.
@@ -43,7 +40,6 @@ namespace Cosmos.Common
         private readonly ILogger logger;
         private readonly PowerBiTokenService powerBiTokenService;
         private readonly IEmailSender emailSender;
-        private readonly IOptions<CosmosConfig> options;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HomeControllerBase"/> class.
@@ -54,15 +50,13 @@ namespace Cosmos.Common
         /// <param name="logger">Logger service.</param>
         /// <param name="powerBiTokenService">Power BI Token Service.</param>
         /// <param name="emailSender">Email sender service.</param>
-        /// <param name="options">Cosmos startup options.</param>
         public HomeControllerBase(
             ArticleLogic articleLogic,
             ApplicationDbContext dbContext,
             StorageContext storageContext,
             ILogger logger,
             PowerBiTokenService powerBiTokenService,
-            IEmailSender emailSender,
-            IOptions<CosmosConfig> options)
+            IEmailSender emailSender)
         {
             this.articleLogic = articleLogic;
             this.dbContext = dbContext;
@@ -70,7 +64,6 @@ namespace Cosmos.Common
             this.logger = logger;
             this.powerBiTokenService = powerBiTokenService;
             this.emailSender = emailSender;
-            this.options = options;
         }
 
         /// <summary>
@@ -192,7 +185,7 @@ namespace Cosmos.Common
 
                     var subject = "New Contact Information";
                     var body = $"<p>New contact information received from {model.FirstName} {model.LastName} at {model.Email} on website '{HttpContext.Request.Host}.'</p>";
-                    body += $"<p><a title='Download contacts list.' href='{options.Value.EditorUrls.FirstOrDefault().Url}/Cosmos___Contacts'>Click here</a> to open your contact list. You can download the list from there.</p>";
+                    body += $"<p>Open your editor to view and download the contact list.</p>";
 
                     foreach (var e in admins)
                     {

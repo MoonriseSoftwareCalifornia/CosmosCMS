@@ -13,14 +13,10 @@ using Cosmos.BlobService;
 using Cosmos.Cms.Common.Services.Configurations;
 using Cosmos.Common.Data;
 using Cosmos.Common.Data.Logic;
-using Cosmos.Common.Services.Configurations;
 using Cosmos.Common.Services.PowerBI;
 using Cosmos.EmailServices;
 using Cosmos.MicrosoftGraph;
 using Microsoft.AspNetCore.Antiforgery;
-using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
-using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
@@ -36,10 +32,6 @@ builder.Services.AddMemoryCache();
 // Create one instance of the DefaultAzureCredential to be used throughout the application.
 var defaultAzureCredential = new DefaultAzureCredential();
 builder.Services.AddSingleton(defaultAzureCredential);
-
-// Add Graph services
-builder.Services.AddScoped<MsGraphService>();
-builder.Services.AddScoped<MsGraphClaimsTransformation>();
 
 builder.Services.AddApplicationInsightsTelemetry();
 
@@ -68,7 +60,9 @@ else
 var connectionString = builder.Configuration.GetConnectionString("ApplicationDbContextConnection");
 if (string.IsNullOrEmpty(connectionString))
 {
-    throw new InvalidOperationException("Connection string is missing.");
+    var keys = builder.Configuration.AsEnumerable().Select(keys => keys.Key).Where(w => w.StartsWith("ConnectionStrings", StringComparison.CurrentCultureIgnoreCase)).ToArray();
+    var keyString = string.Join(", ", keys);
+    throw new InvalidOperationException("Connection string is missing. Found keys: " + keyString);
 }
 
 // Name of the Cosmos database to use
@@ -79,35 +73,10 @@ if (string.IsNullOrEmpty(cosmosIdentityDbName))
 }
 
 // Add the Cosmos database context here
-var cosmosRegionName = builder.Configuration.GetValue<string>("CosmosRegionName");
-var conpartsDict = connectionString.Split(";").Where(w => !string.IsNullOrEmpty(w)).Select(part => part.Split('=')).ToDictionary(sp => sp[0], sp => sp[1]);
-var endpoint = conpartsDict["AccountEndpoint"];
-builder.Services.AddDbContext<ApplicationDbContext>(
-    options =>
-    {
-        if (string.IsNullOrEmpty(cosmosRegionName))
-        {
-            if (conpartsDict["AccountKey"] == "AccessToken")
-            {
-                options.UseCosmos(endpoint, defaultAzureCredential, cosmosIdentityDbName);
-            }
-            else
-            {
-                options.UseCosmos(connectionString, cosmosIdentityDbName);
-            }
-        }
-        else
-        {
-            if (conpartsDict["AccountKey"] == "AccessToken")
-            {
-                options.UseCosmos(endpoint, defaultAzureCredential, cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
-            }
-            else
-            {
-                options.UseCosmos(connectionString, cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
-            }
-        }
-    }, optionsLifetime: ServiceLifetime.Singleton);
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+{
+    options.UseCosmos(connectionString, cosmosIdentityDbName);
+});
 
 // Add the BLOB and File Storage contexts for Cosmos
 builder.Services.AddCosmosStorageContext(builder.Configuration);
@@ -115,23 +84,9 @@ builder.Services.AddCosmosStorageContext(builder.Configuration);
 // Add shared data protection here
 var containerClient = Cosmos.BlobService.ServiceCollectionExtensions.GetBlobContainerClient(builder.Configuration, new DefaultAzureCredential(), "dataprotection");
 containerClient.CreateIfNotExists();
-builder.Services.AddDataProtection()
-    .UseCryptographicAlgorithms(
-    new AuthenticatedEncryptorConfiguration
-    {
-        EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
-        ValidationAlgorithm = ValidationAlgorithm.HMACSHA256
-    })
-    .PersistKeysToAzureBlobStorage(containerClient.GetBlobClient("publisherkeys.xml"));
 
 // Add shared data protection here
-builder.Services.AddDataProtection()
-    .SetApplicationName("publisher").UseCryptographicAlgorithms(
-    new AuthenticatedEncryptorConfiguration
-    {
-        EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
-        ValidationAlgorithm = ValidationAlgorithm.HMACSHA256
-    }).PersistKeysToDbContext<ApplicationDbContext>();
+builder.Services.AddCosmosCmsDataProtection(builder.Configuration, defaultAzureCredential);
 
 builder.Services.AddMvc()
                 .AddNewtonsoftJson(options =>
@@ -147,7 +102,7 @@ builder.Services.AddCosmosIdentity<ApplicationDbContext, IdentityUser, IdentityR
 // SUPPORTED OAuth Providers
 //-------------------------------
 // Add Google if keys are present
-var googleOAuth = builder.Configuration.GetSection("GoogleOAuth").Get<OAuth>();
+var googleOAuth = builder.Configuration.GetSection("GoogleOAuth").Get<Cosmos.Common.Services.Configurations.OAuth>();
 
 if (googleOAuth != null && googleOAuth.IsConfigured())
 {
@@ -160,10 +115,14 @@ if (googleOAuth != null && googleOAuth.IsConfigured())
 
 // ---------------------------------
 // Add Microsoft if keys are present
-var entraIdOAuth = builder.Configuration.GetSection("MicrosoftOAuth").Get<OAuth>();
+var entraIdOAuth = builder.Configuration.GetSection("MicrosoftOAuth").Get<Cosmos.Common.Services.Configurations.OAuth>();
 
 if (entraIdOAuth != null && entraIdOAuth.IsConfigured())
 {
+    // Add Graph services
+    builder.Services.AddScoped<MsGraphService>();
+    builder.Services.AddScoped<MsGraphClaimsTransformation>();
+
     builder.Services.AddAuthentication().AddMicrosoftAccount(options =>
     {
         options.ClientId = entraIdOAuth.ClientId;

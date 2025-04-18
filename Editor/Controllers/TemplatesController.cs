@@ -37,7 +37,7 @@ namespace Cosmos.Cms.Controllers
     {
         private readonly ArticleEditLogic articleLogic;
         private readonly ApplicationDbContext dbContext;
-        private readonly IOptions<CosmosConfig> options;
+        private readonly IEditorSettings options;
         private readonly StorageContext storageContext;
 
         /// <summary>
@@ -54,7 +54,7 @@ namespace Cosmos.Cms.Controllers
             UserManager<IdentityUser> userManager,
             StorageContext storageContext,
             ArticleEditLogic articleLogic,
-            IOptions<CosmosConfig> options)
+            IEditorSettings options)
             : base(dbContext, userManager)
         {
             this.dbContext = dbContext;
@@ -179,7 +179,7 @@ namespace Cosmos.Cms.Controllers
 
             ViewData["Filter"] = filter;
 
-            ViewData["PublisherUrl"] = options.Value.SiteSettings.PublisherUrl;
+            ViewData["PublisherUrl"] = options.PublisherUrl;
 
             ViewData["ShowNotFoundBtn"] = !await dbContext.ArticleCatalog.Where(w => w.UrlPath == "not_found").CosmosAnyAsync();
 
@@ -348,7 +348,7 @@ namespace Cosmos.Cms.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> Edit(Guid Id)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }

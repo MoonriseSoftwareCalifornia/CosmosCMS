@@ -1,0 +1,115 @@
+﻿@using Cosmos.Editor.Controllers
+@using Cosmos.Editor.Models
+@using Cosmos.Editor.Services
+@model EditorConfig
+
+@{
+    ViewData["Title"] = "Editor Setup";
+}
+<style>
+    .text-danger {
+        color: white !important;
+        font-style: italic !important;
+        font-weight: bold !important;
+    }
+
+    .accordion-button:not(.collapsed) {
+        background-color: #dadada !important;
+        color: black !important;
+    }
+</style>
+<div class="pt-3">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card pb-4 bg-dark text-light">
+                <div class="card-header">
+                    <h3 class="card-title">@ViewData["Title"]</h3>
+                    <p>Website configuration settings.</p>
+                    <a class="btn btn-sm btn-primary" asp-action="CDN" asp-controller="Cosmos___Settings">CDN Settings <i class="fa-solid fa-circle-arrow-right"></i></a>
+                </div>
+                <div class="card-body">
+                    <form id="form1" method="post" asp-action="Index" asp-controller="Cosmos___Settings">
+                        @Html.AntiForgeryToken()
+                        <h2>Configuration Settings</h2>
+                        <hr />
+                        @if (!Model.IsMultiTenantEditor)
+                        {
+                            <span class="badge rounded-pill text-bg-primary mb-4">The following comes from the app service environment variables and cannot be edited here.</span>
+                        }
+                        <div class="mb-3 form-check">
+                            <input class="form-check-input" asp-for="AllowSetup" type="checkbox" class="form-check-input" readonly="@Model.IsMultiTenantEditor" />
+                            <label asp-for="AllowSetup" class="form-check-label"></label>
+                            <span class="text-muted">This is the static asset storage for your website.</span>
+                            <span asp-validation-for="AllowSetup" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input class="form-check-input" asp-for="StaticWebPages" type="checkbox" class="form-check-input" readonly="@Model.IsMultiTenantEditor" />
+                            <label asp-for="StaticWebPages" class="form-check-label"></label>
+                            <span class="text-muted">Indicates if static mode is being used.</span>
+                            <span asp-validation-for="StaticWebPages" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input class="form-check-input" asp-for="CosmosRequiresAuthentication" type="checkbox" class="form-check-input" readonly="" />
+                            <label asp-for="CosmosRequiresAuthentication" class="form-check-label"></label>
+                            <span class="text-muted">For static mode this always is set to false.</span>
+                            <span asp-validation-for="CosmosRequiresAuthentication" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="PublisherUrl"></label>
+                            <input asp-for="PublisherUrl" class="form-control" aria-required="true" />
+                            <span class="text-muted">This is your website's URL on the web.</span>
+                            <span asp-validation-for="PublisherUrl" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3" id="blobUrlBlock">
+                            <label asp-for="BlobPublicUrl"></label>
+                            <input class="form-control" asp-for="BlobPublicUrl" aria-required="true" />
+                            <span asp-validation-for="BlobPublicUrl" class="text-danger"></span>
+                            <span class="text-muted">This is the static asset storage URL for your website.</span>
+                            <span asp-validation-for="BlobPublicUrl" class="text-danger"></span>
+                        </div>
+
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                        @if (@Model.IsMultiTenantEditor)
+                        {
+                            <button id="btnSave" type="submit" class="btn btn-sm btn-primary">Save settings <i class="fa-solid fa-circle-arrow-right"></i></button>
+                        }
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const isReadOnly = @((Model.IsMultiTenantEditor == false).ToString().ToLower());
+    const isMultiTenant = @(Model.IsMultiTenantEditor.ToString().ToLower());
+
+    $(document).ready(function () {
+        $("body").addClass("cwps-editor-container");
+
+        if (isReadOnly) {
+            $('#form1 input').attr('readonly', 'readonly');
+            $('#form1 input').prop('disabled', true);
+        }
+
+        if (isMultiTenant) {
+            $('#blobUrlBlock').hide();
+        }
+
+        $('#StaticWebPages').on('click', function () {
+            if ($(this).is(':checked')) {
+                $('#blobUrlBlock').hide();
+                $('#BlobPublicUrl').val('/');
+            } else {
+                $('#blobUrlBlock').show();
+            }
+        });
+    });
+</script>
+
+<partial name="_ValidationScriptsPartial" />

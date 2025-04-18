@@ -1,7 +1,8 @@
 ﻿@using Cosmos.Cms.Common.Services.Configurations;
 @using Cosmos.Cms.Services
+@using Cosmos.Editor.Data.Logic
 @using Microsoft.Extensions.Options;
-@inject IOptions<CosmosConfig> options
+@inject IEditorSettings options
 @model List<ArticleListItem>
 @{
     var template = (Template)ViewData["template"];
@@ -101,7 +102,7 @@
                                                 <span class="badge badge-secondary">- DRAFT -</span>
                                             </small>
                                         }
-                                        @if (options.Value.SiteSettings.CosmosRequiresAuthentication)
+                                        @if (options.CosmosRequiresAuthentication)
                                         {
                                             <small class="d-block">
                                                 @if (row.Permissions.Any())

@@ -30,23 +30,19 @@ namespace Cosmos.IdentityManagement.Website.Controllers
         private readonly RoleManager<IdentityRole> roleManager;
         private readonly UserManager<IdentityUser> userManager;
         private readonly ApplicationDbContext dbContext;
-        private readonly IOptions<CosmosConfig> options;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RolesController"/> class.
         /// </summary>
-        /// <param name="options">Cosmos options.</param>
         /// <param name="userManager">User manager service.</param>
         /// <param name="roleManager">Role manager service.</param>
         /// <param name="dbContext">Database context.</param>
         public RolesController(
             UserManager<IdentityUser> userManager,
             RoleManager<IdentityRole> roleManager,
-            IOptions<CosmosConfig> options,
             ApplicationDbContext dbContext
             )
         {
-            this.options = options;
             this.userManager = userManager;
             this.roleManager = roleManager;
             this.dbContext = dbContext;

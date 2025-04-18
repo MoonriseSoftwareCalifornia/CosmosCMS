@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "identityapp1": {
+      "connectionInfo": "App registration: Cosmos CMS Customers, Tenant: Moonrise Software, LLC. (moonrise.net - Microsoft Entra ID)",
+      "secretStore": "LocalSecretsFile",
+      "type": "identityapp.secretStore",
+      "connectionId": "AzureAD:ClientSecret"
+    }
+  }
+}

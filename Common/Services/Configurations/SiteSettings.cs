@@ -106,6 +106,11 @@ namespace Cosmos.Cms.Common.Services.Configurations
         public bool CosmosRequiresAuthentication { get; set; } = false;
 
         /// <summary>
+        /// Gets or sets a value indicating whether the editor supports multiple websites.
+        /// </summary>
+        public bool MultiTenantEditor { get; set; } = false;
+
+        /// <summary>
         /// Gets or sets x-Frame-Options.
         /// </summary>
         /// <remarks>

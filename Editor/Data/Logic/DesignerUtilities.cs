@@ -99,7 +99,9 @@ namespace Cosmos.Editor.Data.Logic
         {
             var styles = new List<string>
             {
-                "/lib/ckeditor/ckeditor5-content.css"
+                "/lib/ckeditor/ckeditor5-content.css",
+                "/lib/cosmos/image-widget/image-widget.css",
+                "/lib/filepond/filepond.css"
             };
 
             htmlEditor.LoadHtml(html);
@@ -120,14 +122,22 @@ namespace Cosmos.Editor.Data.Logic
         /// <returns>List of script references.</returns>
         public List<string> ExtractScriptReferences(string html)
         {
+            var scripts = new List<string>()
+                {
+                    "https://unpkg.com/filepond-plugin-file-metadata/dist/filepond-plugin-file-metadata.js",
+                    "https://unpkg.com/filepond/dist/filepond.js",
+                    "/lib/cosmos/image-widget/image-widget.js"
+                };
+
             htmlEditor.LoadHtml(html);
             var nodes = htmlEditor.DocumentNode.SelectNodes("//script[@src]");
-            if (nodes == null)
+
+            if (nodes != null)
             {
-                return new List<string>();
+                scripts.AddRange(nodes.Select(n => n.Attributes["src"].Value).ToList());
             }
 
-            return nodes.Select(n => n.Attributes["src"].Value).ToList();
+            return scripts;
         }
     }
 }

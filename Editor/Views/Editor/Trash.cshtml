@@ -1,7 +1,8 @@
 ﻿@using Cosmos.Cms.Common.Services.Configurations;
 @using Cosmos.Cms.Services
+@using Cosmos.Editor.Data.Logic
 @using Microsoft.Extensions.Options;
-@inject IOptions<CosmosConfig> options
+@inject IEditorSettings options
 @model List<ArticleListItem>
 @{
     var canEdit = User.IsInRole("Administrators") || User.IsInRole("Editors") || User.IsInRole("Authors");
@@ -43,7 +44,7 @@
                 <div id="pagelist-table" class="table-dark"></div>
                 <script>
 
-                    const publisherUrl = "@options.Value.SiteSettings.PublisherUrl.TrimEnd('/')";
+                    const publisherUrl = "@options.PublisherUrl.TrimEnd('/')";
                     const tblHeight = window.innerHeight - 200;
                     const canEdit = @canEdit.ToString().ToLower();
                     let pageSize = Math.round(tblHeight / 50);

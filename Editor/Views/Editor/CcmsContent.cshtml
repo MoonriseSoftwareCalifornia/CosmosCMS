@@ -46,14 +46,21 @@
             border: 3px solid blue !important;
         }
 
+        div.img-block:hover {
+            border: 1px solid blue !important; /* Change border on hover */
+        }
+
     </style>
     @Html.Raw(Model.Layout.Head)
-    <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/44.1.0/ckeditor5.css" />
-    <link href="https://unpkg.com/filepond@4/dist/filepond.css" rel="stylesheet" />
-    <link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css" rel="stylesheet" />
-    <link href="https://unpkg.com/filepond-plugin-image-edit/dist/filepond-plugin-image-edit.css" rel="stylesheet" />
+    <link asp-append-version="true" rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/44.1.0/ckeditor5.css" />
+    <link asp-append-version="true" href="~/lib/filepond/filepond.css" rel="stylesheet" />
     @Html.Raw(Model.HeadJavaScript)
     @Html.Raw(JavaScriptSnippet.FullScript)
+    <link asp-append-version="true" href="~/lib/cosmos/image-widget/image-widget.css" rel="stylesheet" />
+    <script asp-append-version="true" src="~/lib/filepond-plugin-file-metadata/dist/filepond-plugin-file-metadata.js"></script>
+    <script asp-append-version="true" src="~/lib/filepond/filepond.js"></script>
+    <script asp-append-version="true" src="~/lib/cosmos/dublicator/componets/components.js"></script>
+    <script asp-append-version="true" src="~/lib/cosmos/dublicator/dublicator.js"></script>
 </head>
 <body>
     @Html.Raw(Model.Layout.HtmlHeader)
@@ -67,14 +74,6 @@
     </script>
     <link href="~/lib/cropperjs/cropper.min.css" rel="stylesheet" asp-append-version="true" />
     <script src="~/lib/cropperjs/cropper.min.js" asp-append-version="true"></script>
-    <script src="https://unpkg.com/filepond-plugin-file-metadata/dist/filepond-plugin-file-metadata.js"></script>
-    <script src="https://unpkg.com/filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.js"></script>
-    <script src="https://unpkg.com/filepond-plugin-image-edit/dist/filepond-plugin-image-edit.js"></script>
-    <script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.js"></script>
-    <script src="https://unpkg.com/filepond-plugin-image-exif-orientation/dist/filepond-plugin-image-exif-orientation.js"></script>
-    <script src="https://unpkg.com/filepond-plugin-image-validate-size/dist/filepond-plugin-image-validate-size.js"></script>
-    <script src="https://unpkg.com/filepond-plugin-image-crop/dist/filepond-plugin-image-crop.js"></script>
-    <script src="https://unpkg.com/filepond/dist/filepond.js"></script>
     <script>
 
         // Create editors
@@ -83,6 +82,8 @@
         var focusedEditor;
         var unmoutCkBox;
         var articleNumber = @Model.ArticleNumber;
+        var articleId = "@Model.Id";
+
         let autosaveTimeout = null;
 
         // Blur editors
@@ -92,35 +93,20 @@
 
         // Blur editors
         function blurEditors() {
-            ccms_editors.forEach(function (editor, index) {
-                // To remove focus
-                editor.editing.view.document.isFocused = false;
-                editor.editing.view.document.fire('blur');
-            });
-        }
-
-        function blurOthers(editor) {
-            const guid = editor.sourceElement.getAttribute("data-ccms-ceid");
-            ccms_editors.forEach(function (editor, index) {
-                if (editor.sourceElement.getAttribute("data-ccms-ceid") !== guid) {
-                    // To remove focus
-                    editor.editing.view.document.isFocused = false;
-                    editor.editing.view.document.fire('blur');
-                }
-            });
+            // Make sure UI is closed for last editor that was active.
+            const focused = document.querySelector('.ck-focused');
+            if (focused) {
+                focused.classList.remove('ck-focused');
+            }
+            const element = document.querySelector('.ck-balloon-panel_visible');
+            if (element) {
+                element.classList.remove('ck-balloon-panel_visible');
+            }
         }
 
         // Close all dropdowns
         window.addEventListener("click", function () {
             parent.closeDropDowns();
-        });
-
-        // Click outside of the editor, force blur of editors.
-        document.addEventListener('click', function(event) {
-            // Check if the clicked element is outside the div with the class 'my-div'
-            if (!event.target.closest('.ck-content')) {
-               blurEditors();
-            }
         });
 
         window.addEventListener("keydown", (event) => {
@@ -133,25 +119,22 @@
                 switch (String.fromCharCode(event.which).toLowerCase()) {
                     case 's':
                         event.preventDefault();
-
-                        parent.saving();
-
                         if (editor === null) {
                             parent.saveChanges();
                         } else {
-                            const data = editor.getData();
-                            parent.saveChanges(data, editor.sourceElement.getAttribute("data-ccms-ceid"));
+                            parent.SaveEditorRegion(editor.getData(), editor.sourceElement.getAttribute("data-ccms-ceid"));
                         }
                         break;
                 }
             }
         });
+
     </script>
 
-    <script src="@Html.Raw("https://unpkg.com/@popperjs/core@2")"></script>
-    <script src="@Html.Raw("https://unpkg.com/tippy.js@6")"></script>
-
-    <script type="module" src="~/lib/cosmos/ckeditor/main.js" asp-append-version="true"></script>
+    <script asp-append-version="true" src="~/lib/popper/umd/popper.min.js"></script>
+    <script asp-append-version="true" src="~/lib/tippy/tippy.umd.min.js"></script>
+    <script asp-append-version="true" type="module" src="~/lib/cosmos/ckeditor/ckeditor-widget.js"></script>
+    <script asp-append-version="true" src="/lib/cosmos/image-widget/image-widget.js"></script>
 
     <script>
         const elements = document.querySelectorAll('[data-ccms-ceid]');
@@ -164,76 +147,11 @@
             placement: "right-start",
             inlinePositioning: true,
         }); //data-ccms-ceid
-
-        // We want to preview images, so we register
-        // the Image Preview plugin, We also register
-        // exif orientation (to correct mobile image
-        // orientation) and size validation, to prevent
-        // large files from being added
-        FilePond.registerPlugin(
-          FilePondPluginFileMetadata,
-          FilePondPluginImagePreview,
-          FilePondPluginImageExifOrientation,
-          FilePondPluginImageValidateSize,
-          FilePondPluginImageEdit
-        );
-
-        function getImageDimensions(blob, callback) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    const dimensions = {
-                        width: img.naturalWidth,
-                        height: img.naturalHeight
-                    };
-                    callback(dimensions);
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(blob);
-        }
-
-        const imgholders = document.querySelectorAll(".imgholder");
-
-        const ponds = document.querySelectorAll('.filepond');
-
-        ponds.forEach(function (el, index) {
-
-            let pond = FilePond.create(el,
-                {
-                    acceptedFileTypes: ['image/*']
-                });
-
-            pond.setOptions({
-                server: "@Url.Action("UploadImage", "FileManager")"
-            });
-
-            pond.on('addfile', (error, file) => {
-                file.setMetadata("Path", "/pub/articles/@Model.ArticleNumber/");
-                file.setMetadata("RelativePath", "");
-                file.setMetadata("fileName", file.filename.toLowerCase());
-                getImageDimensions(file.file, function(dimensions) {
-                    file.setMetadata('imageWidth', dimensions.width);
-                    file.setMetadata('imageHeight', dimensions.height);
-                });
-            });
-
-            pond.on('processfilestart', (e) => {
-                const metadata = e.getMetadata();
-            });
-
-            pond.on('processfile', (error, file) => {
-                const f = file;
-                const fileName = file.getMetadata("fileName");
-                const relativePath = "/pub/articles/@Model.ArticleNumber/" + fileName;
-                const img = document.getElementById("image-1");
-                img.src = relativePath;
-            });
-
-
-            pond.on('removefile', (file) => {
-                const f = file;
+        
+        document.addEventListener('DOMContentLoaded', function () {
+            const wineItems = document.querySelectorAll('.ccms-clone');
+            wineItems.forEach(function (element) {
+                Duplicator.create(element)
             });
         });
     </script>

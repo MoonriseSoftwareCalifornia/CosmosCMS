@@ -1,8 +1,8 @@
-﻿@using Microsoft.Extensions.Options
+﻿@using Cosmos.Editor.Data.Logic
+@using Microsoft.Extensions.Options
 @using Cosmos.Cms.Services
 @using Cosmos.Cms.Common.Services.Configurations
 @using Cosmos.Cms.Controllers
-@inject IOptions<CosmosConfig> options
 @model ArticleViewModel
 <!--
     READ ME:
@@ -44,13 +44,6 @@
 <body>
 @RenderBody()
 
-@if (ViewData["UseGoogleTranslate"] != null && (bool) ViewData["UseGoogleTranslate"])
-{
-@Html.Raw(PageImportConstants.COSMOS_GOOGLE_TRANSLATE_START)
-<!-- Cosmos will inject this section automatically if configured. -->
-<script src="@options.Value.EditorUrls.FirstOrDefault().Url/ccms/js/GoogleTranslations.js" id="ccms-lang-script" data-lang="@Model.LanguageName"></script>
-@Html.Raw(PageImportConstants.COSMOS_GOOGLE_TRANSLATE_END)
-}
 @Html.Raw(PageImportConstants.COSMOS_BODY_END_SCRIPTS_START)
 <!-- Cosmos will inject this section automatically as needed. -->
 @await RenderSectionAsync("Scripts", false)

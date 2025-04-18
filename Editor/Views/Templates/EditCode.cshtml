@@ -36,8 +36,6 @@
 
     // Current user
     const ccms_editor_userid = "@this.Context.User.Identity.Name";
-    const isAuthor = @User.IsInRole("Authors").ToString().ToLower();
-    const isReviewer = @User.IsInRole("Reviewers").ToString().ToLower();
     const hasModel = @((Model != null).ToString().ToLower());
     // This needs global scope, so using var
     var hasPermissionsSet = false;
@@ -75,7 +73,7 @@
         $("#EditingField").val(null);
 
         // Monaco AMD Editor  - https://microsoft.github.io/monaco-editor/
-        require.config({ paths: { 'vs': '/lib/monaco-editor/min/vs' } });
+        require.config({ paths: { 'vs': window.location.origin + '/lib/monaco-editor/min/vs' } });
 
         //require.config({ paths: { vs: '/lib/node_modules/monaco-editor/dist' } }); // Emmet Abbr.
         require(['vs/editor/editor.main'],

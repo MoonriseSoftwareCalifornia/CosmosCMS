@@ -11,13 +11,11 @@ namespace Cosmos.Cms.Controllers
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Security.Cryptography;
     using System.Text;
     using System.Threading.Tasks;
     using System.Web;
     using Cosmos.BlobService;
     using Cosmos.BlobService.Models;
-    using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Cms.Models;
     using Cosmos.Cms.Services;
     using Cosmos.Common.Data;
@@ -31,12 +29,9 @@ namespace Cosmos.Cms.Controllers
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
-    using Microsoft.EntityFrameworkCore.Metadata.Internal;
     using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Options;
     using MimeTypes;
     using Newtonsoft.Json;
-    using NuGet.Packaging.Signing;
     using SixLabors.ImageSharp;
     using SixLabors.ImageSharp.Processing;
 
@@ -56,7 +51,7 @@ namespace Cosmos.Cms.Controllers
         private readonly ILogger<FileManagerController> logger;
         private readonly StorageContext storageContext;
         private readonly IWebHostEnvironment hostEnvironment;
-        private readonly IOptions<CosmosConfig> options;
+        private readonly IEditorSettings options;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FileManagerController"/> class.
@@ -70,7 +65,7 @@ namespace Cosmos.Cms.Controllers
         /// <param name="hostEnvironment">Host environment.</param>
         /// <param name="viewRenderService">View rendering service.</param>
         public FileManagerController(
-            IOptions<CosmosConfig> options,
+            IEditorSettings options,
             ILogger<FileManagerController> logger,
             ApplicationDbContext dbContext,
             StorageContext storageContext,
@@ -85,7 +80,6 @@ namespace Cosmos.Cms.Controllers
             this.options = options;
             this.logger = logger;
             this.storageContext = storageContext;
-            this.storageContext.SetContainerName("$web");
 
             this.hostEnvironment = hostEnvironment;
             this.userManager = userManager;
@@ -94,13 +88,13 @@ namespace Cosmos.Cms.Controllers
 
             var htmlUtilities = new HtmlUtilities();
 
-            if (htmlUtilities.IsAbsoluteUri(options.Value.SiteSettings.BlobPublicUrl))
+            if (htmlUtilities.IsAbsoluteUri(options.BlobPublicUrl))
             {
-                blobPublicAbsoluteUrl = new Uri(options.Value.SiteSettings.BlobPublicUrl);
+                blobPublicAbsoluteUrl = new Uri(options.BlobPublicUrl);
             }
             else
             {
-                blobPublicAbsoluteUrl = new Uri(options.Value.SiteSettings.PublisherUrl.TrimEnd('/') + "/" + options.Value.SiteSettings.BlobPublicUrl.TrimStart('/'));
+                blobPublicAbsoluteUrl = new Uri(options.PublisherUrl.TrimEnd('/') + "/" + options.BlobPublicUrl.TrimStart('/'));
             }
 
             this.viewRenderService = viewRenderService;
@@ -523,7 +517,7 @@ namespace Cosmos.Cms.Controllers
             }
 
             var extension = Path.GetExtension(file.FileName).ToLower();
-            var blobEndPoint = options.Value.SiteSettings.BlobPublicUrl.TrimEnd('/');
+            var blobEndPoint = options.BlobPublicUrl.TrimEnd('/');
             var directory = parsed.Path.TrimEnd('/');
             var fileName = file.FileName.ToLower();
 
@@ -551,7 +545,7 @@ namespace Cosmos.Cms.Controllers
 
             storageContext.AppendBlob(memoryStream, metaData);
 
-            return Ok();
+            return Content(blobEndPoint + "/" + relativePath);
         }
 
         /// <summary>
@@ -676,7 +670,7 @@ namespace Cosmos.Cms.Controllers
 
             var extension = Path.GetExtension(file.FileName).ToLower();
             var directory = $"/pub/{entityType}/{id}/";
-            var blobEndPoint = options.Value.SiteSettings.BlobPublicUrl.TrimEnd('/');
+            var blobEndPoint = options.BlobPublicUrl.TrimEnd('/');
             var fileName = $"{Guid.NewGuid().ToString().ToLower()}{extension}";
 
             var image = await Image.LoadAsync(file.OpenReadStream());
@@ -926,8 +920,8 @@ namespace Cosmos.Cms.Controllers
                     metaData.RelativePath
                 };
 
-                var settings = await Cosmos___CdnController.GetCdnConfiguration(dbContext);
-                var cdnService = new CdnService(settings, logger);
+                var settings = await Cosmos___SettingsController.GetCdnConfiguration(dbContext);
+                var cdnService = new CdnService(settings, logger, HttpContext);
                 _ = await cdnService.PurgeCdn(purgeUrls);
             }
         }
@@ -1372,7 +1366,7 @@ namespace Cosmos.Cms.Controllers
             {
                 var extension = Path.GetExtension(path.ToLower());
 
-                var filter = options.Value.SiteSettings.AllowedFileTypes.Split(',');
+                var filter = options.AllowedFileTypes.Split(',');
                 var editorField = new EditorField
                 {
                     FieldId = "Content",
@@ -1469,7 +1463,7 @@ namespace Cosmos.Cms.Controllers
 
             var extension = Path.GetExtension(model.Path.ToLower());
 
-            var filter = options.Value.SiteSettings.AllowedFileTypes.Split(',');
+            var filter = options.AllowedFileTypes.Split(',');
             var editorField = new EditorField
             {
                 FieldId = "Content",

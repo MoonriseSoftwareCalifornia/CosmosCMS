@@ -12,8 +12,6 @@
     <input type="hidden" id="CssContent" name="CssContent" />
 </form>
 
-<partial name="_GrapesJsEditor" model="Model" />
-
 <script>
     /*
       Cosmos Configuration.
@@ -21,8 +19,6 @@
     var ccmsEditorIsLocked = false;
     // Current user
     const ccms_editor_userid = "@this.Context.User.Identity.Name";
-    const isAuthor = @User.IsInRole("Authors").ToString().ToLower();
-    const isReviewer = @User.IsInRole("Reviewers").ToString().ToLower();
     const hasModel = @((Model != null).ToString().ToLower());
     // This needs global scope, so using var
     var hasPermissionsSet = false;
@@ -36,20 +32,6 @@
         event.preventDefault(); // Prevents the default form submission
         saveChanges();
     });
-
-    function cosmos__designerPostData() {
-        $.post(cosmos__designerDataEndpoint,
-            $("#frmSave").serialize(),
-            function(response) {
-                saveInProgress = false;
-                doneSaving();
-                if (next !== null && typeof next  === 'function') {
-                    next();
-                    next = null;
-                }
-            }
-        );
-    }
 
     $(document).ready(function () {
 
@@ -96,11 +78,13 @@
     const cosmos__designerAssetsEndPoint = "/pub";
     const cosmos__designerAssetsExclude = "/pub/articles";
     const cosmos__designerDataEndpoint = "/Templates/DesignerData";
+    const cosmos__designerPostEndpoint = "/Templates/DesignerData";
     const cosmos__designerUploadEndpoint = "/FileManager/SimpleUpload?id=" + cosmos__id + "&entityType=templates&editorType=grapesjs";
 
     let grapesjs__canvas__styles = @Html.Raw(JsonConvert.SerializeObject(Model.Styles));
     let grapesjs__canvas__scripts = @Html.Raw(JsonConvert.SerializeObject(Model.Scripts));
-    let grapesjs__assets = preloadImages();
+    //let grapesjs__assets = preloadImages();
 
 </script>
-<script src="~/lib/grapesjs/build_20241212/designer.js"></script>
+
+<partial name="_GrapesJsEditor" model="Model" />

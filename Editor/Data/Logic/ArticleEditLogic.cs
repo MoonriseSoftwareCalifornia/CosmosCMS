@@ -11,7 +11,6 @@ namespace Cosmos.Editor.Data.Logic
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Runtime.CompilerServices;
     using System.Text;
     using System.Threading.Tasks;
     using System.Web;
@@ -26,12 +25,12 @@ namespace Cosmos.Editor.Data.Logic
     using Cosmos.Common.Models;
     using Cosmos.Editor.Controllers;
     using Cosmos.Editor.Services;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Newtonsoft.Json;
-    using NUglify;
     using SendGrid.Helpers.Errors.Model;
     using X.Web.Sitemap.Extensions;
 
@@ -46,6 +45,7 @@ namespace Cosmos.Editor.Data.Logic
         private readonly IViewRenderService viewRenderService;
         private readonly StorageContext storageContext;
         private readonly ILogger<ArticleEditLogic> logger;
+        private readonly IHttpContextAccessor accessor;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ArticleEditLogic"/> class.
@@ -57,13 +57,15 @@ namespace Cosmos.Editor.Data.Logic
         /// <param name="viewRenderService">View rendering service used to save static web pages.</param>
         /// <param name="storageContext">Storage service used to manage static website blobs.</param>
         /// <param name="logger">Log service.</param>
+        /// <param name="accessor">Http context access.</param>
         public ArticleEditLogic(
             ApplicationDbContext dbContext,
             IMemoryCache memoryCache,
             IOptions<CosmosConfig> config,
             IViewRenderService viewRenderService,
             StorageContext storageContext,
-            ILogger<ArticleEditLogic> logger)
+            ILogger<ArticleEditLogic> logger,
+            IHttpContextAccessor accessor)
             : base(
                 dbContext,
                 config,
@@ -73,6 +75,7 @@ namespace Cosmos.Editor.Data.Logic
             this.viewRenderService = viewRenderService;
             this.storageContext = storageContext;
             this.logger = logger;
+            this.accessor = accessor;
         }
 
         /// <summary>
@@ -252,7 +255,7 @@ namespace Cosmos.Editor.Data.Logic
         public async Task<CatalogEntry> GetCatalogEntry(ArticleViewModel model)
         {
             var article = await DbContext.Articles.FirstOrDefaultAsync(f => f.Id == model.Id);
-            
+
             return await GetCatalogEntry(article);
         }
 
@@ -467,7 +470,7 @@ namespace Cosmos.Editor.Data.Logic
             // Retrieve the article that we will be using.
             // This will either be used to create a new version (detached then added as new),
             // or updated in place.
-           var article = await DbContext.Articles.OrderByDescending(o => o.VersionNumber).FirstOrDefaultAsync(a => a.ArticleNumber == model.ArticleNumber);
+            var article = await DbContext.Articles.OrderByDescending(o => o.VersionNumber).FirstOrDefaultAsync(a => a.ArticleNumber == model.ArticleNumber);
 
             if (article == null)
             {
@@ -477,42 +480,21 @@ namespace Cosmos.Editor.Data.Logic
             // Keep track of the old title--used below if title has changed.
             string oldTitle = article.Title;
 
-            // If an article version is not published and the model is not published, then update the existing version
-            var updateOnly = !article.Published.HasValue && !model.Published.HasValue;
-
-            // =======================================================
-            // Don't track this for now
-            if (!updateOnly)
-            {
-                // Detach so we can create a new verion.
-                DbContext.Entry(article).State = EntityState.Detached;
-            }
+            // A change in publish status triggers a new version.
+            var isNewVersion = article.Published != model.Published;
 
             // =======================================================
             // BEGIN: MAKE CONTENT CHANGES HERE
             // =======================================================
             model.Content = Ensure_ContentEditable_IsMarked(model.Content);
 
-            Ensure_Oembed_Handled(model);
+            //Ensure_Oembed_Handled(model);
 
             // Make sure base tag is set properly.
             UpdateHeadBaseTag(model);
 
-            // Article article = new Article()
-            if (!updateOnly)
-            {
-                // Ensure a user ID is set for creator
-                article.UserId = userId;
-
-                // New version, gets a new ID.
-                article.Id = Guid.NewGuid();
-                article.VersionNumber = article.VersionNumber + 1;
-                model.VersionNumber = article.VersionNumber;
-            }
-
             // Minify the HTML content.
             article.Content = model.Content;
-
             article.Published = model.Published;
             article.Title = model.Title;
             article.Updated = DateTimeOffset.UtcNow;
@@ -525,8 +507,17 @@ namespace Cosmos.Editor.Data.Logic
             // =======================================================
             UpdateHeadBaseTag(article);
 
-            if (!updateOnly)
+            if (isNewVersion)
             {
+                DbContext.Entry(article).State = EntityState.Detached;
+
+                // Ensure a user ID is set for creator
+                article.UserId = userId;
+
+                // New version, gets a new ID.
+                article.Id = Guid.NewGuid();
+                article.VersionNumber = article.VersionNumber + 1;
+                model.VersionNumber = article.VersionNumber;
                 DbContext.Articles.Add(article);
             }
 
@@ -544,12 +535,12 @@ namespace Cosmos.Editor.Data.Logic
             // Handle title (and URL) changes for existing 
             await SaveTitleChange(article, oldTitle);
 
+            // Update the catalog entry -- happens before publishing.
+            await CreateCatalogEntry(article);
+
             // HANDLE PUBLISHING OF AN ARTICLE
             // This can be a new or existing article.
             var results = await PublishArticle(article);
-
-            // Finally update the catalog entry
-            await CreateCatalogEntry(article);
 
             var result = new ArticleUpdateResult
             {
@@ -590,7 +581,7 @@ namespace Cosmos.Editor.Data.Logic
             var htmlDoc = new HtmlAgilityPack.HtmlDocument();
             htmlDoc.LoadHtml(content);
 
-            var elements = htmlDoc.DocumentNode.SelectNodes("//*[@contenteditable='true']|//*[@contenteditable='']|//*[@crx]|//*[@data-ccms-ceid]");
+            var elements = htmlDoc.DocumentNode.SelectNodes("//*[@contenteditable='true']|//*[@contenteditable='']|//*[@data-ccms-new]|//*[@data-ccms-ceid]");
 
             if (elements == null)
             {
@@ -621,9 +612,9 @@ namespace Cosmos.Editor.Data.Logic
                         element.Attributes.Remove("contenteditable");
                     }
 
-                    if (element.Attributes.Contains("crx"))
+                    if (element.Attributes.Contains("data-ccms-new"))
                     {
-                        element.Attributes.Remove("crx");
+                        element.Attributes.Remove("data-ccms-new");
                     }
                 }
                 else
@@ -818,16 +809,14 @@ namespace Cosmos.Editor.Data.Logic
                 article = await DbContext.Articles
                 .FirstOrDefaultAsync(
                     a => a.ArticleNumber == articleNumber &&
-                         a.VersionNumber == versionNumber &&
-                         a.StatusCode != 2);
+                         a.VersionNumber == versionNumber);
             }
             else
             {
                 // Get the latest version
                 article = await DbContext.Articles.OrderByDescending(v => v.VersionNumber)
                 .FirstOrDefaultAsync(
-                    a => a.ArticleNumber == articleNumber &&
-                         a.StatusCode != 2);
+                    a => a.ArticleNumber == articleNumber);
             }
 
             if (article == null)
@@ -944,7 +933,7 @@ namespace Cosmos.Editor.Data.Logic
             {
                 // Will search unpublished and published articles
                 var article = await DbContext.Articles
-                    .Where(a => a.UrlPath == urlPath && activeStatusCodes.Contains(a.StatusCode))
+                    .Where(a => a.UrlPath == urlPath)
                     .OrderByDescending(o => o.VersionNumber)
                     .FirstOrDefaultAsync();
                 return await BuildArticleViewModel(article, lang);
@@ -1323,7 +1312,7 @@ namespace Cosmos.Editor.Data.Logic
         }
 
         /// <summary>
-        /// Publishes the table of contents starting at the root.
+        /// Publishes the table of contents starting at the root and site map file.
         /// </summary>
         /// <param name="path">Path to start from.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
@@ -1356,25 +1345,25 @@ namespace Cosmos.Editor.Data.Logic
                 UploadUid = Guid.NewGuid().ToString(),
                 CacheControl = "max-age=300;must-revalidate"
             });
+
+            await CreateSiteMapFile();
         }
 
         /// <summary>
         ///   Makes sure the article catalog isn't missing anything.
         /// </summary>
         /// <returns>Task.</returns>
-        public async Task UpdateArticleCatalog()
+        public async Task CheckCatalogEntries()
         {
-            var deletedStatus = (int)StatusCodeEnum.Deleted;
-            var articleNumbers = await DbContext.Articles.Where(w => w.StatusCode != deletedStatus).Select(s => s.ArticleNumber).Distinct().ToListAsync();
+            var articleNumbers = await DbContext.Pages.Select(s => s.ArticleNumber).Distinct().ToListAsync();
             var catalogArticleNumbers = await DbContext.ArticleCatalog.Select(s => s.ArticleNumber).Distinct().ToListAsync();
 
-            foreach (var articleNumber in articleNumbers)
+            var missing = catalogArticleNumbers.Except(catalogArticleNumbers).ToList();
+
+            foreach (var articleNumber in missing)
             {
-                if (!catalogArticleNumbers.Contains(articleNumber))
-                {
-                    var last = await DbContext.Articles.Where(w => w.ArticleNumber == articleNumber).OrderBy(o => o.VersionNumber).LastOrDefaultAsync();
-                    await CreateCatalogEntry(last);
-                }
+                var last = await DbContext.Articles.Where(w => w.ArticleNumber == articleNumber  && w.Published != null).OrderBy(o => o.VersionNumber).LastOrDefaultAsync();
+                await CreateCatalogEntry(last);
             }
         }
 
@@ -1390,73 +1379,6 @@ namespace Cosmos.Editor.Data.Logic
         private static string NormailizeArticleUrl(string title)
         {
             return title.Trim().Replace(" ", "_").ToLower();
-        }
-
-        /// <summary>
-        /// If an OEMBED element is present, ensures the necessary JavaScript is injected.
-        /// </summary>
-        /// <param name="model">Article view model.</param>
-        private static void Ensure_Oembed_Handled(ArticleViewModel model)
-        {
-            var htmlDoc = new HtmlAgilityPack.HtmlDocument();
-            var footerDoc = new HtmlAgilityPack.HtmlDocument();
-
-            htmlDoc.LoadHtml(string.IsNullOrEmpty(model.Content) ? string.Empty : model.Content);
-            footerDoc.LoadHtml(string.IsNullOrEmpty(model.FooterJavaScript) ? string.Empty : model.FooterJavaScript);
-
-            var oembed = htmlDoc.DocumentNode.SelectNodes("//oembed[@url]");
-            var hasOembed = oembed != null && oembed.Any();
-
-            var embedlyElements = footerDoc.DocumentNode.SelectNodes("//script[@id='cwps_embedly']");
-            var scriptElements = footerDoc.DocumentNode.SelectNodes("//script[@id='cwps_embedly_launch']");
-
-            // Now add or remove supporting JavaScript as  needed
-            if (hasOembed)
-            {
-                // There are OEmbeds, so add supporting JavaScript injects below
-                if (embedlyElements == null || !embedlyElements.Any())
-                {
-                    var embedly = footerDoc.CreateElement("script");
-                    embedly.Id = "cwps_embedly";
-                    embedly.Attributes.Append("async");
-                    embedly.Attributes.Append("charset", "utf-8");
-                    embedly.Attributes.Append("src", "//cdn.embedly.com/widgets/platform.js");
-
-                    footerDoc.DocumentNode.AppendChild(embedly);
-                }
-
-                if (scriptElements == null || !scriptElements.Any())
-                {
-                    var addon = footerDoc.CreateElement("script");
-                    addon.Id = "cwps_embedly_launch";
-                    addon.InnerHtml = "document.querySelectorAll( 'oembed[url]' ).forEach( element => { const anchor = document.createElement( 'a' ); anchor.setAttribute( 'href', element.getAttribute( 'url' ) ); anchor.className = 'embedly-card'; element.appendChild( anchor ); });";
-
-                    footerDoc.DocumentNode.AppendChild(addon);
-                }
-
-                model.FooterJavaScript = footerDoc.DocumentNode.OuterHtml;
-            }
-            else
-            {
-                // There are NO OEmbeds, so REMOVE supporting JavaScript injects below
-                if (embedlyElements != null && embedlyElements.Any())
-                {
-                    foreach (var el in embedlyElements)
-                    {
-                        el.Remove();
-                    }
-                }
-
-                if (scriptElements != null && scriptElements.Any())
-                {
-                    foreach (var el in scriptElements)
-                    {
-                        el.Remove();
-                    }
-                }
-
-                model.FooterJavaScript = footerDoc.DocumentNode.OuterHtml;
-            }
         }
 
         /// <summary>
@@ -1520,6 +1442,9 @@ namespace Cosmos.Editor.Data.Logic
                 // Update the published pages collection
                 return await UpsertPublishedPage(article.ArticleNumber);
             }
+
+            // Make sure the catalog is up to date.
+            await CheckCatalogEntries();
 
             return null;
         }
@@ -1714,10 +1639,13 @@ namespace Cosmos.Editor.Data.Logic
                 }
             }
 
+            // Update TOC file.
+            await CreateStaticTableOfContentsJsonFile("/");
+
             if (purgePaths.Count > 0)
             {
-                var settings = await Cosmos___CdnController.GetCdnConfiguration(DbContext);
-                var cdnService = new CdnService(settings, logger);
+                var settings = await Cosmos___SettingsController.GetCdnConfiguration(DbContext);
+                var cdnService = new CdnService(settings, logger, accessor.HttpContext);
                 try
                 {
                     return await cdnService.PurgeCdn(purgePaths.Select(s => "/" + s.Trim('/')).Distinct().ToList());

@@ -1,9 +1,9 @@
 ﻿@using Cosmos.Cms.Services
+@using Cosmos.Editor.Data.Logic
 @using Microsoft.Extensions.Options;
 @using Cosmos.Cms.Common.Services.Configurations
 @using Cosmos.Cms.Controllers
 
-@inject IOptions<CosmosConfig> options
 @model ArticleViewModel
 @{
     Layout = "_LayoutPreview";
@@ -21,10 +21,3 @@
 @Html.Raw(PageImportConstants.COSMOS_BODY_FOOTER_END)
 
 @Html.Raw(Model.FooterJavaScript)
-
-@if (ViewData["UseGoogleTranslate"] != null && (bool) ViewData["UseGoogleTranslate"])
-{
-@Html.Raw(PageImportConstants.COSMOS_GOOGLE_TRANSLATE_START)
-<script src="@options.Value.EditorUrls.FirstOrDefault().Url/ccms/js/GoogleTranslations.js" id="ccms-lang-script" data-lang="@Model.LanguageName"></script>
-@Html.Raw(PageImportConstants.COSMOS_GOOGLE_TRANSLATE_END)
-}

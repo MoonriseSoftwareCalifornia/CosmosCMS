@@ -21,6 +21,7 @@ namespace Cosmos.Editor.Services
     using Azure.ResourceManager.Cdn.Models;
     using Cosmos.Common.Data;
     using Cosmos.Editor.Controllers;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Logging;
 
     /// <summary>
@@ -29,11 +30,12 @@ namespace Cosmos.Editor.Services
     public class CdnService
     {
         private readonly ILogger logger;
+        private readonly HttpContext context;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CdnService"/> class.
         /// </summary>
-        public CdnService() 
+        public CdnService()
         {
         }
 
@@ -42,7 +44,8 @@ namespace Cosmos.Editor.Services
         /// </summary>
         /// <param name="settings">CDN Settings.</param>
         /// <param name="logger">Log service.</param>
-        public CdnService(List<Setting> settings, ILogger logger)
+        /// <param name="context">Access to http request.</param>
+        public CdnService(List<Setting> settings, ILogger logger, HttpContext context)
         {
             var guidValue = settings.Find(f => f.Name == "SubscriptionId");
 
@@ -67,6 +70,7 @@ namespace Cosmos.Editor.Services
             SucuriApiKey = settings.Find(f => f.Name == "SucuriApiKey")?.Value;
             SucuriApiSecret = settings.Find(f => f.Name == "SucuriApiSecret")?.Value;
             this.logger = logger;
+            this.context = context;
         }
 
         /// <summary>
@@ -173,9 +177,26 @@ namespace Cosmos.Editor.Services
         {
             var results = new List<CdnResult>();
 
+            // Since this uses the default azure credential, we need to check if the host is localhost.
+            // If it is, then we don't need to do anything.
+            if (context.Request.Host.Host.Equals("localhost", StringComparison.InvariantCultureIgnoreCase))
+            {
+                results.Add(new CdnResult
+                {
+                    Status = HttpStatusCode.OK,
+                    ReasonPhrase = "Localhost",
+                    IsSuccessStatusCode = true,
+                    ClientRequestId = Guid.NewGuid().ToString(),
+                    Id = Guid.NewGuid().ToString(),
+                    EstimatedFlushDateTime = DateTimeOffset.UtcNow.AddMinutes(10),
+                    Message = "Localhost CDN purge request.",
+                });
+                return results;
+            }
+
             purgeUrls = purgeUrls.Distinct().Select(s => s.Trim('/')).Select(s => s.Equals("root") ? "/" : "/" + s).ToList();
 
-            logger.LogInformation($"Purge requested for: { string.Join(",", purgeUrls.Select(s => s))} URLs from CDN.");
+            logger.LogInformation($"Purge requested for: {string.Join(",", purgeUrls.Select(s => s))} URLs from CDN.");
 
             ArmClient client = new ArmClient(new DefaultAzureCredential());
 
@@ -310,7 +331,7 @@ namespace Cosmos.Editor.Services
     }
 
     /// <summary>
-    /// Type pof CDN to use.
+    /// Type of CDN to use.
     /// </summary>
     public enum CdnType
     {

@@ -12,45 +12,211 @@
         pluginOptions.AppendLine(plugin.Options.TrimEnd(',') + ",");
     }
 }
-<style>
-    body {
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
+
+<link rel="stylesheet" href="~/lib/grapesjsui/stylesheets/toastr.min.css">
+<link rel="stylesheet" href="~/lib/grapesjs/css/grapes.min.css" />
+<link rel="stylesheet" href="~/lib/grapesjsui/stylesheets/grapesjs-preset-webpage.min.css">
+<link rel="stylesheet" href="~/lib/grapesjsui/stylesheets/tooltip.css">
+<link rel="stylesheet" href="~/lib/grapesjsui/stylesheets/demos.css?v3.1">
+<link href="~/lib/grapick/grapick.min.css" rel="stylesheet" />
+<link href="~/lib/grapesjs/build_20241212/ccms-designer.css" rel="stylesheet" />
+<link href="~/lib/filepond/filepond.css" rel="stylesheet" />
+
+
+<script src="~/lib/grapesjs-blocks-basic/index.js"></script>
+<script src="~/lib/grapesjs-plugin-forms/index.js"></script>
+
+<script src="~/lib/grapesjsui/js/toastr.min.js"></script>
+<script src="~/lib/grapesjs/grapes.min.js"></script>
+<script src="~/lib/grapesjs-preset-webpage/index.js"></script>
+<script src="~/lib/grapesjs-component-countdown/index.js"></script>
+<script src="~/lib/grapesjs-plugin-export/index.js"></script>
+<script src="~/lib/grapesjs-tabs/grapesjs-tabs.min.js"></script>
+<script src="~/lib/grapesjs-custom-code/index.js"></script>
+<script src="~/lib/grapesjs-custom-code/index.js"></script>
+<script src="~/lib/grapesjs-touch/grapesjs-touch.min.js"></script>
+<script src="~/lib/grapesjs-parser-postcss/index.js"></script>
+<script src="~/lib/grapesjs-tooltip/index.js"></script>
+<script src="~/lib/grapesjs-tui-image-editor/index.js"></script>
+<script src="~/lib/grapesjs-typed/index.js"></script>
+<script src="~/lib/grapesjs-style-bg/index.js"></script>
+<script src="~/lib/grapesjs-navbar/index.js"></script>
+
+<!-- Cosmos Plugins -->
+<script asp-append-version="true" src="~/lib/cosmos/grapesjs/component-constants.js"></script>
+<script asp-append-version="true" src="~/lib/cosmos/grapesjs/articleblockplugin.js"></script>
+<script asp-append-version="true" src="~/lib/cosmos/grapesjs/generateguid.js"></script>
+<script asp-append-version="true" src="~/lib/cosmos/grapesjs/ckeditorblockplugin.js"></script>
+<script asp-append-version="true" src="~/lib/cosmos/grapesjs/imagecontainerplugin.js"></script>
+
+<style type="text/css">
+    .icons-flex {
+        background-size: 70% 65% !important;
+        height: 15px;
+        width: 17px;
+        opacity: 0.9;
     }
 
-    .cwps-body {
-        background-color: white !important;
-        height: 100% !important;
+    .icon-dir-row {
+        background: url("./lib/grapesjsui/img/flex-dir-row.png") no-repeat center;
     }
 
-    .perm {
+    .icon-dir-row-rev {
+        background: url("./lib/grapesjsui/img/flex-dir-row-rev.png") no-repeat center;
+    }
+
+    .icon-dir-col {
+        background: url("./lib/grapesjsui/img/flex-dir-col.png") no-repeat center;
+    }
+
+    .icon-dir-col-rev {
+        background: url("./lib/grapesjsui/img/flex-dir-col-rev.png") no-repeat center;
+    }
+
+    .icon-just-start {
+        background: url("./lib/grapesjsui/img/flex-just-start.png") no-repeat center;
+    }
+
+    .icon-just-end {
+        background: url("./lib/grapesjsui/img/flex-just-end.png") no-repeat center;
+    }
+
+    .icon-just-sp-bet {
+        background: url("./lib/grapesjsui/img/flex-just-sp-bet.png") no-repeat center;
+    }
+
+    .icon-just-sp-ar {
+        background: url("./lib/grapesjsui/img/flex-just-sp-ar.png") no-repeat center;
+    }
+
+    .icon-just-sp-cent {
+        background: url("./lib/grapesjsui/img/flex-just-sp-cent.png") no-repeat center;
+    }
+
+    .icon-al-start {
+        background: url("./lib/grapesjsui/img/flex-al-start.png") no-repeat center;
+    }
+
+    .icon-al-end {
+        background: url("./lib/grapesjsui/img/flex-al-end.png") no-repeat center;
+    }
+
+    .icon-al-str {
+        background: url("./lib/grapesjsui/img/flex-al-str.png") no-repeat center;
+    }
+
+    .icon-al-center {
+        background: url("./lib/grapesjsui/img/flex-al-center.png") no-repeat center;
+    }
+
+    [data-tooltip]::after {
+        background: rgba(51, 51, 51, 0.9);
+    }
+
+    .gjs-pn-commands {
+        min-height: 40px;
+    }
+
+    #gjs-sm-float {
         display: none;
     }
 
-    @if (Model.Plugins.Any(a => a.Name == "grapesjs-tailwind"))
-    {
-        <text>
-            .change-theme-button {
-              width: 40px;
-              height: 40px;
-              border-radius: 50%;
-              margin: 5px;
-            }
+    .gjs-logo-version {
+        background-color: #756467;
+    }
 
-            .change-theme-button:focus {
-              /* background-color: yellow; */
-              outline: none;
-              box-shadow: 0 0 0 2pt #c5c5c575;
-            }
-        </text>
+    .gjs-pn-btn.gjs-pn-active {
+        box-shadow: none;
+    }
+
+    .CodeMirror {
+        min-height: 450px;
+        margin-bottom: 8px;
+    }
+
+    .grp-handler-close {
+        background-color: transparent;
+        color: #ddd;
+    }
+
+    .grp-handler-cp-wrap {
+        border-color: transparent;
     }
 </style>
 
+
 @Html.Raw(pluginScripts.ToString())
 
+<div style="display: none">
+    <div class="gjs-logo-cont">
+        <a href="https://grapesjs.com"><img class="gjs-logo" src="~/lib/grapesjsui/img/grapesjs-logo-cl.png"></a>
+        <div class="gjs-logo-version"></div>
+    </div>
+</div>
+<div id="gjs" style="height:0px; overflow:hidden">
+    <!-- CONTENT GOES HERE -->
+</div>
+<div id="info-panel" style="display:none">
+    <br />
+    <svg class="info-panel-logo" xmlns="https://www.w3.org/2000/svg" version="1">
+        <g id="gjs-logo">
+            <path d="M40 5l-12.9 7.4 -12.9 7.4c-1.4 0.8-2.7 2.3-3.7 3.9 -0.9 1.6-1.5 3.5-1.5 5.1v14.9 14.9c0 1.7 0.6 3.5 1.5 5.1 0.9 1.6 2.2 3.1 3.7 3.9l12.9 7.4 12.9 7.4c1.4 0.8 3.3 1.2 5.2 1.2 1.9 0 3.8-0.4 5.2-1.2l12.9-7.4 12.9-7.4c1.4-0.8 2.7-2.2 3.7-3.9 0.9-1.6 1.5-3.5 1.5-5.1v-14.9 -12.7c0-4.6-3.8-6-6.8-4.2l-28 16.2" style="fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-width:10;stroke:#fff" />
+        </g>
+    </svg>
+    <br />
+    <div class="info-panel-label">
+        <b>GrapesJS Webpage Builder</b> is a simple showcase of what is possible to achieve with the
+        <a class="info-panel-link gjs-four-color" target="_blank" href="https://github.com/artf/grapesjs">GrapesJS</a>
+        core library
+        <br /><br />
+        For any hint about the demo check the
+        <a class="info-panel-link gjs-four-color" target="_blank" href="https://github.com/artf/grapesjs-preset-webpage">Webpage Preset repository</a>
+        and open an issue. For problems with the builder itself, open an issue on the main
+        <a class="info-panel-link gjs-four-color" target="_blank" href="https://github.com/artf/grapesjs">GrapesJS repository</a>
+        <br /><br />
+        Being a free and open source project contributors and supporters are extremely welcome.
+        If you like the project support it with a donation of your choice or become a backer/sponsor via
+        <a class="info-panel-link gjs-four-color" target="_blank" href="https://opencollective.com/grapesjs">Open Collective</a>
+    </div>
+</div>
+
+
 <script>
-    const  sessionStoragePlugin = (editor) => {
+
+    function ccms___generateGUID() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = Math.random() * 16 | 0,
+                v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
+
+    function cosmos__designerPostData() {
+        $.post(cosmos__designerPostEndpoint,
+            $("#frmSave").serialize(),
+            function(response) {
+                saveInProgress = false;
+                doneSaving();
+                if (next !== null && typeof next  === 'function') {
+                    next();
+                    next = null;
+                }
+            }
+        );
+    }
+
+    async function cosmos__designerLoadAssets() {
+        const url = "/FileManager/GetImageAssets?path=" + cosmos__designerAssetsEndPoint + "&exclude=" + cosmos__designerAssetsExclude;
+        const response = await fetch(url, {
+            method: 'GET'
+        });
+        const json = await response.json();
+        editor.BlockManager.getCategories().each(ctg => ctg.set('open', false));
+        editor.AssetManager.add(json);
+        editor.AssetManager.render();
+    }
+
+    const sessionStoragePlugin = (editor) => {
         editor.Storage.add('cosmos', {
             async load(options = {}) {
                 const response = await fetch(cosmos__designerDataEndpoint + "/" + cosmos__id);
@@ -70,8 +236,12 @@
     };
 
     let grapesJsPlugins = [
-        'gjs-blocks-basic',
-        'grapesjs-plugin-forms',
+        ckeditorBlockPlugin,
+        cosmosImageWidgetPlugin,
+    @foreach (var plugin in Model.Plugins)
+    {
+        <text>'@plugin.Name',</text>
+    }
         'grapesjs-component-countdown',
         'grapesjs-plugin-export',
         'grapesjs-tabs',
@@ -85,10 +255,6 @@
         'grapesjs-preset-webpage',
         'grapesjs-navbar',
         sessionStoragePlugin,
-        @foreach (var plugin in Model.Plugins)
-        {
-        <text>        '@plugin.Name',</text>
-        }
     ];
 
     const pluginOptions = {
@@ -130,10 +296,7 @@
             },
         },
         'grapesjs-navbar': {/* ...options */ },
-        @foreach (var plugin in Model.Plugins)
-        {
-         <text>        @Html.Raw(plugin.Options),</text>
-        }
+
     };
 
     function preloadImages() {
@@ -144,36 +307,458 @@
         });
         return imageUrls;
     }
+
+    window.onload = () => {
+        var editor = grapesjs.init({
+            // Indicate where to init the editor. You can also pass an HTMLElement
+            container: '#gjs',
+            // Get the content for the canvas directly from the element
+            // As an alternative we could use: `components: '<h1>Hello World Component!</h1>,
+            // Size of the editor
+            height: "100%",
+            width: 'auto',
+            canvas: {
+                styles: grapesjs__canvas__styles,
+                scripts: grapesjs__canvas__scripts
+            },
+            assetManager: {
+                upload: cosmos__designerUploadEndpoint,
+                embedAsBase64: false,
+                /*assets: preloadImages(),*/
+            },
+            selectorManager: {
+                selectorManager: { componentFirst: true },
+            },
+            styleManager: {
+                sectors: [{
+                    name: 'General',
+                    properties: [
+                        {
+                            extend: 'float',
+                            type: 'radio',
+                            default: 'none',
+                            options: [
+                                { value: 'none', className: 'fa fa-times' },
+                                { value: 'left', className: 'fa fa-align-left' },
+                                { value: 'right', className: 'fa fa-align-right' }
+                            ],
+                        },
+                        'display',
+                        { extend: 'position', type: 'select' },
+                        'top',
+                        'right',
+                        'left',
+                        'bottom',
+                    ],
+                }, {
+                    name: 'Dimension',
+                    open: false,
+                    properties: [
+                        'width',
+                        {
+                            id: 'flex-width',
+                            type: 'integer',
+                            name: 'Width',
+                            units: ['px', '%'],
+                            property: 'flex-basis',
+                            toRequire: 1,
+                        },
+                        'height',
+                        'max-width',
+                        'min-height',
+                        'margin',
+                        'padding'
+                    ],
+                }, {
+                    name: 'Typography',
+                    open: false,
+                    properties: [
+                        'font-family',
+                        'font-size',
+                        'font-weight',
+                        'letter-spacing',
+                        'color',
+                        'line-height',
+                        {
+                            extend: 'text-align',
+                            options: [
+                                { id: 'left', label: 'Left', className: 'fa fa-align-left' },
+                                { id: 'center', label: 'Center', className: 'fa fa-align-center' },
+                                { id: 'right', label: 'Right', className: 'fa fa-align-right' },
+                                { id: 'justify', label: 'Justify', className: 'fa fa-align-justify' }
+                            ],
+                        },
+                        {
+                            property: 'text-decoration',
+                            type: 'radio',
+                            default: 'none',
+                            options: [
+                                { id: 'none', label: 'None', className: 'fa fa-times' },
+                                { id: 'underline', label: 'underline', className: 'fa fa-underline' },
+                                { id: 'line-through', label: 'Line-through', className: 'fa fa-strikethrough' }
+                            ],
+                        },
+                        'text-shadow'
+                    ],
+                }, {
+                    name: 'Decorations',
+                    open: false,
+                    properties: [
+                        'opacity',
+                        'border-radius',
+                        'border',
+                        'box-shadow',
+                        'background', // { id: 'background-bg', property: 'background', type: 'bg' }
+                    ],
+                }, {
+                    name: 'Extra',
+                    open: false,
+                    buildProps: [
+                        'transition',
+                        'perspective',
+                        'transform'
+                    ],
+                }, {
+                    name: 'Flex',
+                    open: false,
+                    properties: [{
+                        name: 'Flex Container',
+                        property: 'display',
+                        type: 'select',
+                        defaults: 'block',
+                        list: [
+                            { value: 'block', name: 'Disable' },
+                            { value: 'flex', name: 'Enable' }
+                        ],
+                    }, {
+                        name: 'Flex Parent',
+                        property: 'label-parent-flex',
+                        type: 'integer',
+                    }, {
+                        name: 'Direction',
+                        property: 'flex-direction',
+                        type: 'radio',
+                        defaults: 'row',
+                        list: [{
+                            value: 'row',
+                            name: 'Row',
+                            className: 'icons-flex icon-dir-row',
+                            title: 'Row',
+                        }, {
+                            value: 'row-reverse',
+                            name: 'Row reverse',
+                            className: 'icons-flex icon-dir-row-rev',
+                            title: 'Row reverse',
+                        }, {
+                            value: 'column',
+                            name: 'Column',
+                            title: 'Column',
+                            className: 'icons-flex icon-dir-col',
+                        }, {
+                            value: 'column-reverse',
+                            name: 'Column reverse',
+                            title: 'Column reverse',
+                            className: 'icons-flex icon-dir-col-rev',
+                        }],
+                    }, {
+                        name: 'Justify',
+                        property: 'justify-content',
+                        type: 'radio',
+                        defaults: 'flex-start',
+                        list: [{
+                            value: 'flex-start',
+                            className: 'icons-flex icon-just-start',
+                            title: 'Start',
+                        }, {
+                            value: 'flex-end',
+                            title: 'End',
+                            className: 'icons-flex icon-just-end',
+                        }, {
+                            value: 'space-between',
+                            title: 'Space between',
+                            className: 'icons-flex icon-just-sp-bet',
+                        }, {
+                            value: 'space-around',
+                            title: 'Space around',
+                            className: 'icons-flex icon-just-sp-ar',
+                        }, {
+                            value: 'center',
+                            title: 'Center',
+                            className: 'icons-flex icon-just-sp-cent',
+                        }],
+                    }, {
+                        name: 'Align',
+                        property: 'align-items',
+                        type: 'radio',
+                        defaults: 'center',
+                        list: [{
+                            value: 'flex-start',
+                            title: 'Start',
+                            className: 'icons-flex icon-al-start',
+                        }, {
+                            value: 'flex-end',
+                            title: 'End',
+                            className: 'icons-flex icon-al-end',
+                        }, {
+                            value: 'stretch',
+                            title: 'Stretch',
+                            className: 'icons-flex icon-al-str',
+                        }, {
+                            value: 'center',
+                            title: 'Center',
+                            className: 'icons-flex icon-al-center',
+                        }],
+                    }, {
+                        name: 'Flex Children',
+                        property: 'label-parent-flex',
+                        type: 'integer',
+                    }, {
+                        name: 'Order',
+                        property: 'order',
+                        type: 'integer',
+                        defaults: 0,
+                        min: 0
+                    }, {
+                        name: 'Flex',
+                        property: 'flex',
+                        type: 'composite',
+                        properties: [{
+                            name: 'Grow',
+                            property: 'flex-grow',
+                            type: 'integer',
+                            defaults: 0,
+                            min: 0
+                        }, {
+                            name: 'Shrink',
+                            property: 'flex-shrink',
+                            type: 'integer',
+                            defaults: 0,
+                            min: 0
+                        }, {
+                            name: 'Basis',
+                            property: 'flex-basis',
+                            type: 'integer',
+                            units: ['px', '%', ''],
+                            unit: '',
+                            defaults: 'auto',
+                        }],
+                    }, {
+                        name: 'Align',
+                        property: 'align-self',
+                        type: 'radio',
+                        defaults: 'auto',
+                        list: [{
+                            value: 'auto',
+                            name: 'Auto',
+                        }, {
+                            value: 'flex-start',
+                            title: 'Start',
+                            className: 'icons-flex icon-al-start',
+                        }, {
+                            value: 'flex-end',
+                            title: 'End',
+                            className: 'icons-flex icon-al-end',
+                        }, {
+                            value: 'stretch',
+                            title: 'Stretch',
+                            className: 'icons-flex icon-al-str',
+                        }, {
+                            value: 'center',
+                            title: 'Center',
+                            className: 'icons-flex icon-al-center',
+                        }],
+                    }]
+                }
+                ],
+            },
+            plugins: grapesJsPlugins,
+            pluginsOpts: pluginOptions,
+            storageManager: {
+                type: 'cosmos', // Storage type. Available: local | remote
+            },
+        });
+
+        var pn = editor.Panels;
+        var modal = editor.Modal;
+        var cmdm = editor.Commands;
+
+        // Update canvas-clear command
+        cmdm.add('canvas-clear', function () {
+            if (confirm('Are you sure to clean the canvas?')) {
+                editor.runCommand('core:canvas-clear')
+                setTimeout(function () { localStorage.clear() }, 0)
+            }
+        });
+
+        // Add info command
+        var mdlClass = 'gjs-mdl-dialog-sm';
+        var infoContainer = document.getElementById('info-panel');
+        cmdm.add('open-info', function () {
+            var mdlDialog = document.querySelector('.gjs-mdl-dialog');
+            mdlDialog.className += ' ' + mdlClass;
+            infoContainer.style.display = 'block';
+            modal.setTitle('About the designer');
+            modal.setContent(infoContainer);
+            modal.open();
+            modal.getModel().once('change:open', function () {
+                mdlDialog.className = mdlDialog.className.replace(mdlClass, '');
+            })
+        });
+
+        pn.addButton('options', {
+            id: 'open-info',
+            className: 'fa fa-question-circle',
+            command: function () { editor.runCommand('open-info') },
+            attributes: {
+                'title': 'About',
+                'data-tooltip-pos': 'bottom',
+            },
+        });
+
+        let displayViews = true;
+
+        pn.addButton('views', {
+            id: 'toggle-views',
+            className: 'fa-solid fa-toggle-on',
+            command: function () {
+                const btn = pn.getButton('views', 'toggle-views');
+                if (displayViews) {
+                    document.querySelector('.gjs-pn-views-container').style.display = 'none';
+                    displayViews = false;
+                    btn.attributes.className = 'fa-solid fa-toggle-off';
+                } else {
+                    document.querySelector('.gjs-pn-views-container').style.display = 'block';
+                    editor.runCommand('open-blocks');
+                    displayViews = true;
+                    btn.attributes.className = 'fa-solid fa-toggle-on';
+                }
+            },
+            attributes: {
+                'title': 'Toggle design pannel display.',
+                'data-tooltip-pos': 'bottom',
+            },
+        });
+
+        // Simple warn notifier
+        var origWarn = console.warn;
+        toastr.options = {
+            closeButton: true,
+            preventDuplicates: true,
+            showDuration: 250,
+            hideDuration: 150
+        };
+        console.warn = function (msg) {
+            if (msg.indexOf('[undefined]') == -1) {
+                toastr.warning(msg);
+            }
+            origWarn(msg);
+        };
+
+        // Add and beautify tooltips
+        [['sw-visibility', 'Show Borders'], ['preview', 'Preview'], ['fullscreen', 'Fullscreen'],
+        ['export-template', 'Export'], ['undo', 'Undo'], ['redo', 'Redo'],
+        ['gjs-open-import-webpage', 'Import'], ['canvas-clear', 'Clear canvas']]
+            .forEach(function (item) {
+                pn.getButton('options', item[0]).set('attributes', { title: item[1], 'data-tooltip-pos': 'bottom' });
+            });
+        [['open-sm', 'Style Manager'], ['open-layers', 'Layers'], ['open-blocks', 'Blocks']]
+            .forEach(function (item) {
+                pn.getButton('views', item[0]).set('attributes', { title: item[1], 'data-tooltip-pos': 'bottom' });
+            });
+        var titles = document.querySelectorAll('*[title]');
+
+        for (var i = 0; i < titles.length; i++) {
+            var el = titles[i];
+            var title = el.getAttribute('title');
+            title = title ? title.trim() : '';
+            if (!title)
+                break;
+            el.setAttribute('data-tooltip', title);
+            el.setAttribute('title', '');
+        }
+
+        editor.DomComponents.addType('ccms-layout-body', {
+            model: {
+                defaults: {
+                    attributes: { class: 'ccms-layout-body' },
+                    removable: true,
+                    draggable: true,
+                    droppable: true,
+                    badgable: true,
+                    stylable: true,
+                    highlightable: true,
+                    copyable: true,
+                    resizable: false,
+                    editable: false
+                }
+            }});
+
+        // Store and load events
+        editor.on('storage:load', function (e) {
+            if (typeof checkDisplayLiveEditorButton !== "undefined") {
+               checkDisplayLiveEditorButton('HtmlContent');
+            }
+            cosmos__designerLoadAssets();
+            console.log('Loaded ', e)
+        });
+
+        editor.on('storage:start:load', () => {
+            $("#spinLoading").show();
+        });
+
+        editor.on('storage:load', (data, res) => {
+            $("#spinLoading").hide();
+        });
+
+        // End load
+        // Do stuff on load
+        editor.on('load', function () {
+            var $ = grapesjs.$;
+
+            // Show borders by default
+            pn.getButton('options', 'sw-visibility').set({
+                command: 'core:component-outline',
+                'active': true,
+            });
+
+            // Show logo with the version
+            var logoCont = document.querySelector('.gjs-logo-cont');
+            document.querySelector('.gjs-logo-version').innerHTML = 'v' + grapesjs.version;
+            var logoPanel = document.querySelector('.gjs-pn-commands');
+            logoPanel.appendChild(logoCont);
+
+            // Load and show settings and style manager
+            var openTmBtn = pn.getButton('views', 'open-tm');
+            openTmBtn && openTmBtn.set('active', 1);
+            var openSm = pn.getButton('views', 'open-sm');
+            openSm && openSm.set('active', 1);
+
+            // Remove trait view
+            pn.removeButton('views', 'open-tm');
+
+            // Add Settings Sector
+            var traitsSector = $('<div class="gjs-sm-sector no-select">' +
+                '<div class="gjs-sm-sector-title"><span class="icon-settings fa fa-cog"></span> <span class="gjs-sm-sector-label">Settings</span></div>' +
+                '<div class="gjs-sm-properties" style="display: none;"></div></div>');
+            var traitsProps = traitsSector.find('.gjs-sm-properties');
+            traitsProps.append($('.gjs-traits-cs'));
+            $('.gjs-sm-sectors').before(traitsSector);
+            traitsSector.find('.gjs-sm-sector-title').on('click', function () {
+                var traitStyle = traitsProps.get(0).style;
+                var hidden = traitStyle.display == 'none';
+                if (hidden) {
+                    traitStyle.display = 'block';
+                } else {
+                    traitStyle.display = 'none';
+                }
+            });
+
+            // Open block manager
+            var openBlocksBtn = editor.Panels.getButton('views', 'open-blocks');
+            openBlocksBtn && openBlocksBtn.set('active', 1);
+
+        });
+    }
+
+    //data-ccms-ceid: ccms___generateGUID(), class: 'ck-content'
 </script>
-<div style="display: none">
-    <div class="gjs-logo-cont">
-        <a href="https://grapesjs.com"><img class="gjs-logo" src="~/lib/grapesjsui/img/grapesjs-logo-cl.png"></a>
-        <div class="gjs-logo-version"></div>
-    </div>
-</div>
-<div id="gjs" style="height:0px; overflow:hidden">
-    <!-- CONTENT GOES HERE -->
-</div>
-<div id="info-panel" style="display:none">
-    <br />
-    <svg class="info-panel-logo" xmlns="https://www.w3.org/2000/svg" version="1">
-        <g id="gjs-logo">
-            <path d="M40 5l-12.9 7.4 -12.9 7.4c-1.4 0.8-2.7 2.3-3.7 3.9 -0.9 1.6-1.5 3.5-1.5 5.1v14.9 14.9c0 1.7 0.6 3.5 1.5 5.1 0.9 1.6 2.2 3.1 3.7 3.9l12.9 7.4 12.9 7.4c1.4 0.8 3.3 1.2 5.2 1.2 1.9 0 3.8-0.4 5.2-1.2l12.9-7.4 12.9-7.4c1.4-0.8 2.7-2.2 3.7-3.9 0.9-1.6 1.5-3.5 1.5-5.1v-14.9 -12.7c0-4.6-3.8-6-6.8-4.2l-28 16.2" style="fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-width:10;stroke:#fff" />
-        </g>
-    </svg>
-    <br />
-    <div class="info-panel-label">
-        <b>GrapesJS Webpage Builder</b> is a simple showcase of what is possible to achieve with the
-        <a class="info-panel-link gjs-four-color" target="_blank" href="https://github.com/artf/grapesjs">GrapesJS</a>
-        core library
-        <br /><br />
-        For any hint about the demo check the
-        <a class="info-panel-link gjs-four-color" target="_blank" href="https://github.com/artf/grapesjs-preset-webpage">Webpage Preset repository</a>
-        and open an issue. For problems with the builder itself, open an issue on the main
-        <a class="info-panel-link gjs-four-color" target="_blank" href="https://github.com/artf/grapesjs">GrapesJS repository</a>
-        <br /><br />
-        Being a free and open source project contributors and supporters are extremely welcome.
-        If you like the project support it with a donation of your choice or become a backer/sponsor via
-        <a class="info-panel-link gjs-four-color" target="_blank" href="https://opencollective.com/grapesjs">Open Collective</a>
-    </div>
-</div>

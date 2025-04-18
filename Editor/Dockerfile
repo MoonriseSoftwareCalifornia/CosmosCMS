@@ -14,7 +14,7 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["Editor/Cosmos.Editor.csproj", "Editor/"]
 COPY ["Common/Cosmos.Common.csproj", "Common/"]
-RUN dotnet restore "Editor/Cosmos.Editor.csproj"
+RUN dotnet restore "./Editor/Cosmos.Editor.csproj"
 COPY . .
 WORKDIR "/src/Editor"
 RUN dotnet build "./Cosmos.Editor.csproj" -c $BUILD_CONFIGURATION -o /app/build

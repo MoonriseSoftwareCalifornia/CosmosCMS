@@ -7,25 +7,35 @@
 
 namespace Cosmos.Common.Data
 {
+    using System;
+    using System.Linq;
     using System.Threading.Tasks;
+    using Azure.Identity;
+    using Cosmos.DynamicConfig;
     using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Diagnostics;
+    using Microsoft.Extensions.DependencyInjection;
 
     /// <summary>
     ///     Database Context for Cosmos CMS.
     /// </summary>
     public class ApplicationDbContext : AspNetCore.Identity.CosmosDb.CosmosIdentityDbContext<IdentityUser, IdentityRole, string>, IDataProtectionKeyContext
     {
+        private readonly IServiceProvider services;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ApplicationDbContext"/> class.
         /// </summary>
         /// <param name="options">Database context options.</param>
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+        /// <param name="services">Service provider.</param>
+        public ApplicationDbContext(
+            DbContextOptions<ApplicationDbContext> options,
+            IServiceProvider services)
             : base(options, true)
         {
-            // Adding true to base constructor to enable CosmosDB provider is backward compatible with the previous version.
+            this.services = services;
         }
 
         /// <summary>
@@ -108,6 +118,31 @@ namespace Cosmos.Common.Data
         /// <param name="optionsBuilder">DbContextOptionsBuilder.</param>
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
+            if (!optionsBuilder.IsConfigured)
+            {
+                var connectionStringProvider = services.GetRequiredService<IDynamicConfigurationProvider>();
+
+                var connectionString = connectionStringProvider.GetDatabaseConnectionString();
+
+                var databaseName = connectionStringProvider.GetDatabaseName();
+
+                    if (connectionString.Contains("AccountKey=AccessToken", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        var conpartsDict =
+                            connectionString.Split(";").Where(w =>
+                            !string.IsNullOrEmpty(w)).Select(part => part.Split('='))
+                            .ToDictionary(sp => sp[0], sp => sp[1], StringComparer.OrdinalIgnoreCase);
+
+                        var defaultAzureCredential = services.GetRequiredService<DefaultAzureCredential>();
+                        var endpoint = conpartsDict["AccountEndpoint"];
+                        optionsBuilder.UseCosmos(accountEndpoint: endpoint, defaultAzureCredential, databaseName);
+                    }
+                    else
+                    {
+                        optionsBuilder.UseCosmos(connectionString, databaseName: databaseName);
+                    }
+                }
+
             // Synchronous blocking on asynchronous methods can result in deadlock, and the
             // Azure Cosmos DB SDK only supports async methods.
             // https://docs.microsoft.com/en-us/ef/core/providers/cosmos/limitations#synchronous-and-blocking-calls

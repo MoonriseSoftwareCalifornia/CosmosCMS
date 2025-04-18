@@ -7,6 +7,7 @@
 
 using System.Diagnostics;
 using System.Net;
+using System.Security.Claims;
 using System.Text;
 using System.Web;
 using Cosmos.BlobService;
@@ -17,6 +18,7 @@ using Cosmos.Common.Data;
 using Cosmos.Common.Data.Logic;
 using Cosmos.Common.Models;
 using Cosmos.Common.Services.PowerBI;
+using Cosmos.MicrosoftGraph;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -29,14 +31,18 @@ namespace Cosmos.Cms.Publisher.Controllers
     /// </summary>
     public class HomeController : HomeControllerBase
     {
+        private readonly IConfiguration configuration;
         private readonly ILogger<HomeController> logger;
         private readonly ArticleLogic articleLogic;
         private readonly IOptions<CosmosConfig> options;
         private readonly ApplicationDbContext dbContext;
+        private readonly MsGraphService graphService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HomeController"/> class.
         /// </summary>
+        /// <param name="services">Services provider.</param>
+        /// <param name="configuration">Configuration.</param>
         /// <param name="logger">Logger.</param>
         /// <param name="articleLogic">Article logic.</param>
         /// <param name="options">Cosmos options.</param>
@@ -45,6 +51,8 @@ namespace Cosmos.Cms.Publisher.Controllers
         /// <param name="powerBiTokenService">Service used to get tokens from Power BI.</param>
         /// <param name="emailSender">Email services.</param>
         public HomeController(
+            IServiceProvider services,
+            IConfiguration configuration,
             ILogger<HomeController> logger,
             ArticleLogic articleLogic,
             IOptions<CosmosConfig> options,
@@ -52,12 +60,27 @@ namespace Cosmos.Cms.Publisher.Controllers
             StorageContext storageContext,
             PowerBiTokenService powerBiTokenService,
             IEmailSender emailSender)
-            : base(articleLogic, dbContext, storageContext, logger, powerBiTokenService, emailSender, options)
+            : base(articleLogic, dbContext, storageContext, logger, powerBiTokenService, emailSender)
         {
+            this.configuration = configuration;
             this.logger = logger;
             this.articleLogic = articleLogic;
             this.options = options;
             this.dbContext = dbContext;
+            try
+            {
+                this.graphService = services.GetRequiredService<MsGraphService>();
+            }
+            catch
+            {
+                // Ignore if the service is not registered.
+            }
+
+            // Ensure the database is created if we are in setup mode.
+            if (options.Value.SiteSettings.AllowSetup)
+            {
+                _ = dbContext.Database.EnsureCreatedAsync().Result;
+            }
         }
 
         /// <summary>
@@ -68,55 +91,26 @@ namespace Cosmos.Cms.Publisher.Controllers
         [ActionName("Index")]
         public async Task<IActionResult> CCMS___Head()
         {
-            try
+            if (!options.Value.SiteSettings.CosmosRequiresAuthentication)
             {
-                var article = await articleLogic.GetPublishedPageByUrl(HttpContext.Request.Path, string.Empty, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(20), true);
+                var article = await articleLogic.GetPublishedPageHeaderByUrl(HttpContext.Request.Path);
 
                 if (article == null)
                 {
                     return NotFound();
                 }
 
-                if (options.Value.SiteSettings.CosmosRequiresAuthentication)
-                {
-                    if (!await CosmosUtilities.AuthUser(dbContext, User, article.ArticleNumber) && !User.Identity.IsAuthenticated)
-                    {
-                        return Unauthorized();
-                    }
-
-                    ControllerContext.HttpContext.Response.Headers.Expires = DateTimeOffset.UtcNow.AddMinutes(-30).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
-                    Response.Headers.ETag = Guid.NewGuid().ToString();
-                    Response.Headers.LastModified = DateTimeOffset.UtcNow.AddMinutes(-30).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
-                    Response.Headers.CacheControl = "no-store,no-cache";
-                }
-                else
-                {
-                    Response.Headers.Expires = article.Expires.HasValue ?
-                        article.Expires.Value.ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'") :
-                        DateTimeOffset.UtcNow.AddMinutes(1).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
-                    Response.Headers.ETag = article.Id.ToString();
-                    Response.Headers.LastModified = article.Updated.ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
-                    ControllerContext.HttpContext.Response.Headers.CacheControl = "max-age=60, stale-while-revalidate=59";
-                }
+                Response.Headers.Expires = article.Expires.HasValue ?
+                    article.Expires.Value.ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'") :
+                    DateTimeOffset.UtcNow.AddMinutes(1).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
+                Response.Headers.ETag = article.Id.ToString();
+                Response.Headers.LastModified = article.Updated.ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
+                ControllerContext.HttpContext.Response.Headers.CacheControl = "max-age=60, stale-while-revalidate=59";
 
                 return Ok("Ok");
             }
-            catch (Microsoft.Azure.Cosmos.CosmosException e)
-            {
-                string message = e.Message;
-                logger.LogError(e, message);
 
-                Response.StatusCode = (int)HttpStatusCode.NotFound;
-                return NotFound();
-            }
-            catch (Exception e)
-            {
-                string message = e.Message;
-                logger.LogError(e, message);
-
-                Response.StatusCode = (int)HttpStatusCode.NotFound;
-                return NotFound();
-            }
+            return Unauthorized();
         }
 
         /// <summary>
@@ -151,14 +145,44 @@ namespace Cosmos.Cms.Publisher.Controllers
 
                 if (options.Value.SiteSettings.CosmosRequiresAuthentication)
                 {
-                    if (!await CosmosUtilities.AuthUser(dbContext, User, article.ArticleNumber))
+                    if (!User.Identity.IsAuthenticated)
                     {
-                        if (User.Identity.IsAuthenticated)
+                        return Redirect("~/Identity/Account/Login?returnUrl=" + HttpUtility.UrlEncode(Request.Path));
+                    }
+
+                    // Look for group membership
+                    var validGroups = configuration.GetValue<string>("EntraIdValidUserGroups");
+
+                    if (!string.IsNullOrWhiteSpace(validGroups))
+                    {
+                        var groupArray = validGroups.Split(';');
+
+                        if (graphService != null)
                         {
-                            return View("__NeedPermission");
+                            var principal = User as ClaimsPrincipal;
+                            var emailAdress = principal.FindFirstValue(ClaimTypes.Email);
+
+                            var graphUser = await graphService.GetGraphUserByEmailAddress(emailAdress);
+                            var groups = await graphService.GetGraphApiUserMemberGroups(graphUser.FirstOrDefault().Id);
+                            if (groups.Any(a => groupArray.Contains(a.DisplayName)))
+                            {
+                                return View(article);
+                            }
+                            else
+                            {
+                                return View("__NeedPermission");
+                            }
                         }
 
-                        return Redirect("~/Identity/Account/Login?returnUrl=" + HttpUtility.UrlEncode(Request.Path));
+                        if (!await CosmosUtilities.AuthUser(dbContext, User, article.ArticleNumber))
+                        {
+                            if (User.Identity.IsAuthenticated)
+                            {
+                                return View("__NeedPermission");
+                            }
+
+                            return Redirect("~/Identity/Account/Login?returnUrl=" + HttpUtility.UrlEncode(Request.Path));
+                        }
                     }
 
                     Response.Headers.Expires = DateTimeOffset.UtcNow.AddMinutes(-30).ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
@@ -186,9 +210,9 @@ namespace Cosmos.Cms.Publisher.Controllers
                 {
                     return View("~/Views/Home/Redirect.cshtml", new RedirectItemViewModel()
                     {
-                         FromUrl = article.UrlPath,
-                         ToUrl = article.Content,
-                         Id = article.Id
+                        FromUrl = article.UrlPath,
+                        ToUrl = article.Content,
+                        Id = article.Id
                     });
                 }
 

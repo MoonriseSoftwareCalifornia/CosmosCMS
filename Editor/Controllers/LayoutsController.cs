@@ -31,11 +31,8 @@ namespace Cosmos.Cms.Controllers
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.ModelBinding;
-    using Microsoft.Build.Framework;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Options;
-    using NUglify;
 
     /// <summary>
     /// Layouts controller.
@@ -65,7 +62,7 @@ namespace Cosmos.Cms.Controllers
             ApplicationDbContext dbContext,
             UserManager<IdentityUser> userManager,
             ArticleEditLogic articleLogic,
-            IOptions<CosmosConfig> options,
+            IEditorSettings options,
             StorageContext storageContext,
             IViewRenderService viewRenderService,
             ILogger<LayoutsController> logger)
@@ -78,13 +75,13 @@ namespace Cosmos.Cms.Controllers
 
             var htmlUtilities = new HtmlUtilities();
 
-            if (htmlUtilities.IsAbsoluteUri(options.Value.SiteSettings.BlobPublicUrl))
+            if (htmlUtilities.IsAbsoluteUri(options.BlobPublicUrl))
             {
-                blobPublicAbsoluteUrl = new Uri(options.Value.SiteSettings.BlobPublicUrl);
+                blobPublicAbsoluteUrl = new Uri(options.BlobPublicUrl);
             }
             else
             {
-                blobPublicAbsoluteUrl = new Uri($"{options.Value.SiteSettings.PublisherUrl.TrimEnd('/')}/{options.Value.SiteSettings.BlobPublicUrl.TrimStart('/')}");
+                blobPublicAbsoluteUrl = new Uri($"{options.PublisherUrl.TrimEnd('/')}/{options.BlobPublicUrl.TrimStart('/')}");
             }
 
             this.viewRenderService = viewRenderService;
@@ -419,30 +416,6 @@ namespace Cosmos.Cms.Controllers
 
             return Json(new { success = true });
         }
-
-        private string GetTextBetween(string input, string start, string end)
-        {
-            if (string.IsNullOrEmpty(input) || string.IsNullOrEmpty(start) || string.IsNullOrEmpty(end))
-            {
-                return string.Empty;
-            }
-
-            int startIndex = input.IndexOf(start);
-            if (startIndex == -1)
-            {
-                return string.Empty;
-            }
-
-            startIndex += start.Length;
-            int endIndex = input.IndexOf(end, startIndex);
-            if (endIndex == -1)
-            {
-                return string.Empty;
-            }
-
-            return input.Substring(startIndex, endIndex - startIndex);
-        }
-
 
         /// <summary>
         /// Edit the page header and footer of a layout.
@@ -932,9 +905,27 @@ namespace Cosmos.Cms.Controllers
             return View(model);
         }
 
-        private bool LayoutExists(Guid id)
+        private string GetTextBetween(string input, string start, string end)
         {
-            return dbContext.Layouts.Where(e => e.Id == id).CosmosAnyAsync().Result;
+            if (string.IsNullOrEmpty(input) || string.IsNullOrEmpty(start) || string.IsNullOrEmpty(end))
+            {
+                return string.Empty;
+            }
+
+            int startIndex = input.IndexOf(start);
+            if (startIndex == -1)
+            {
+                return string.Empty;
+            }
+
+            startIndex += start.Length;
+            int endIndex = input.IndexOf(end, startIndex);
+            if (endIndex == -1)
+            {
+                return string.Empty;
+            }
+
+            return input.Substring(startIndex, endIndex - startIndex);
         }
 
         private async Task PurgeCdn()
@@ -944,8 +935,8 @@ namespace Cosmos.Cms.Controllers
                 return;
             }
 
-            var settings = await Cosmos___CdnController.GetCdnConfiguration(dbContext);
-            var cdnService = new Editor.Services.CdnService(settings, logger);
+            var settings = await Cosmos___SettingsController.GetCdnConfiguration(dbContext);
+            var cdnService = new Editor.Services.CdnService(settings, logger, HttpContext);
             await cdnService.PurgeCdn(new List<string>() { "/" });
         }
     }

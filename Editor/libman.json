@@ -1,21 +1,15 @@
 {
   "version": "1.0",
   "defaultProvider": "cdnjs",
+  "defaultDestination": "wwwroot/lib/",
   "libraries": [
     {
       "library": "bootstrap@5.3.3",
       "destination": "wwwroot/lib/bootstrap"
     },
     {
-      "library": ""
-    },
-    {
       "library": "cropperjs@1.6.2",
       "destination": "wwwroot/lib/cropperjs"
-    },
-    {
-      "library": "filepond@4.25.1",
-      "destination": "wwwroot/lib/filepond"
     },
     {
       "provider": "unpkg",
@@ -23,12 +17,8 @@
       "destination": "wwwroot/lib/filepond-plugin-file-metadata"
     },
     {
-      "library": "luxon@2.3.1",
+      "library": "luxon@3.5.0",
       "destination": "wwwroot/lib/luxon"
-    },
-    {
-      "library": "grapesjs@0.22.3",
-      "destination": "wwwroot/lib/grapesjs"
     },
     {
       "library": "jquery-cropper@1.0.1",
@@ -51,12 +41,16 @@
       "destination": "wwwroot/lib/fotorama"
     },
     {
-      "library": "monaco-editor@0.49.0",
+      "library": "monaco-editor@0.52.2",
       "destination": "wwwroot/lib/monaco-editor"
     },
     {
-      "library": "powerbi-client@2.23.1",
+      "library": "powerbi-client@2.23.7",
       "destination": "wwwroot/lib/powerbi-client"
+    },
+    {
+      "library": "popper.js@2.11.8",
+      "destination": "wwwroot/lib/popper"
     },
     {
       "library": "tippy.js@6.3.7",
@@ -69,17 +63,102 @@
     },
     {
       "provider": "unpkg",
-      "library": "emmet-monaco-es@5.4.0",
+      "library": "emmet-monaco-es@5.5.0",
       "destination": "wwwroot/lib/emmet-monaco-es"
     },
     {
       "provider": "unpkg",
-      "library": "@microsoft/signalr@8.0.0",
+      "library": "@microsoft/signalr@8.0.7",
       "destination": "wwwroot/lib/signalr/"
     },
     {
-      "library": "filepond@4.25.1",
+      "library": "filepond@4.32.6",
       "destination": "wwwroot/lib/filepond/"
+    },
+    {
+      "provider": "filesystem",
+      "library": "node_modules/grapesjs/dist/",
+      "destination": "wwwroot/lib/grapesjs/"
+    },
+    {
+      "provider": "filesystem",
+      "library": "node_modules/grapesjs/dist/css/",
+      "destination": "wwwroot/lib/grapesjs/css/"
+    },
+    {
+      "provider": "filesystem",
+      "library": "node_modules/grapesjs-preset-webpage/dist/",
+      "destination": "wwwroot/lib/grapesjs-preset-webpage/"
+    },
+    {
+      "provider": "filesystem",
+      "library": "node_modules/grapesjs-blocks-basic/dist/",
+      "destination": "wwwroot/lib/grapesjs-blocks-basic/"
+    },
+    {
+      "provider": "filesystem",
+      "library": "node_modules/grapesjs-plugin-forms/dist/",
+      "destination": "wwwroot/lib/grapesjs-plugin-forms/"
+    },
+    {
+      "provider": "filesystem",
+      "library": "node_modules/grapesjs-component-countdown/dist/",
+      "destination": "wwwroot/lib/grapesjs-component-countdown/"
+    },
+    {
+      "provider": "filesystem",
+      "library": "node_modules/grapesjs-plugin-export/dist/",
+      "destination": "wwwroot/lib/grapesjs-plugin-export/"
+    },
+    {
+      "provider": "filesystem",
+      "library": "node_modules/grapesjs-tabs/dist/",
+      "destination": "wwwroot/lib/grapesjs-tabs/"
+    },
+    {
+      "provider": "filesystem",
+      "library": "node_modules/grapesjs-custom-code/dist/",
+      "destination": "wwwroot/lib/grapesjs-custom-code/"
+    },
+    {
+      "provider": "filesystem",
+      "library": "node_modules/grapesjs-touch/dist/",
+      "destination": "wwwroot/lib/grapesjs-touch/"
+    },
+    {
+      "provider": "filesystem",
+      "library": "node_modules/grapesjs-parser-postcss/dist/",
+      "destination": "wwwroot/lib/grapesjs-parser-postcss/"
+    },
+    {
+      "provider": "filesystem",
+      "library": "node_modules/grapesjs-tooltip/dist/",
+      "destination": "wwwroot/lib/grapesjs-tooltip/"
+    },
+    {
+      "provider": "filesystem",
+      "library": "node_modules/grapesjs-tui-image-editor/dist/",
+      "destination": "wwwroot/lib/grapesjs-tui-image-editor/"
+    },
+    {
+      "provider": "filesystem",
+      "library": "node_modules/grapesjs-typed/dist/",
+      "destination": "wwwroot/lib/grapesjs-typed/"
+    },
+    {
+      "provider": "filesystem",
+      "library": "node_modules/grapesjs-style-bg/dist/",
+      "destination": "wwwroot/lib/grapesjs-style-bg/"
+    },
+    {
+      "provider": "filesystem",
+      "library": "node_modules/grapesjs-navbar/dist/",
+      "destination": "wwwroot/lib/grapesjs-navbar/"
+    },
+    {
+      "provider": "filesystem",
+      "library": "node_modules/grapick/dist/",
+      "destination": "wwwroot/lib/grapick/"
     }
   ]
 }

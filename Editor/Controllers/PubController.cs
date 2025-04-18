@@ -10,6 +10,7 @@ namespace Cosmos.Publisher.Controllers
     using Cosmos.BlobService;
     using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Common.Data;
+    using Cosmos.Editor.Data.Logic;
     using Microsoft.Extensions.Options;
 
     /// <summary>
@@ -20,11 +21,11 @@ namespace Cosmos.Publisher.Controllers
         /// <summary>
         /// Initializes a new instance of the <see cref="PubController"/> class.
         /// </summary>
-        /// <param name="options">Cosmos options.</param>
         /// <param name="dbContext">Database context.</param>
         /// <param name="storageContext">Storage context.</param>
-        public PubController(IOptions<CosmosConfig> options, ApplicationDbContext dbContext, StorageContext storageContext)
-            : base(options, dbContext, storageContext)
+        /// <param name="options">Editor settings.</param>
+        public PubController(ApplicationDbContext dbContext, StorageContext storageContext, IEditorSettings options)
+            : base(dbContext, storageContext, options.CosmosRequiresAuthentication)
         {
         }
     }
