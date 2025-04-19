@@ -30,6 +30,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -60,8 +61,14 @@ builder.Services.AddSingleton(option);
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddSingleton<IDynamicConfigurationProvider, DynamicConfigurationProvider>();
 
-// Add the Cosmos database context here
-builder.Services.AddDbContext<ApplicationDbContext>();
+// Add the Cosmos database context here.
+// Note that this is scopped, meaning for each request this is regenerated.
+// Multi-tenant support is enabled because each request may have a different domain name, and, connection
+// string information.
+builder.Services.AddScoped<ApplicationDbContext>((serviceProvider) =>
+{
+    return new ApplicationDbContext(new DbContextOptions<ApplicationDbContext>(), serviceProvider);
+});
 
 // This service has to appear right after DB Context.
 builder.Services.AddScoped<IEditorSettings, EditorSettings>();

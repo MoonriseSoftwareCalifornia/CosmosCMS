@@ -121,7 +121,6 @@ namespace Cosmos.Common.Data
             if (!optionsBuilder.IsConfigured)
             {
                 var connectionStringProvider = services.GetRequiredService<IDynamicConfigurationProvider>();
-
                 var connectionString = connectionStringProvider.GetDatabaseConnectionString();
 
                 var databaseName = connectionStringProvider.GetDatabaseName();
