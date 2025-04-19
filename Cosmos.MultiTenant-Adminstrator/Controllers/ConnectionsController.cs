@@ -1,19 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Cosmos.DynamicConfig;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Cosmos.DynamicConfig;
 
 namespace Cosmos.MultiTenant_Adminstrator.Controllers
 {
     public class ConnectionsController : Controller
     {
         private readonly DynamicConfigDbContext _context;
-
-        public ConnectionsController(DynamicConfigDbContext context)
+                public ConnectionsController(DynamicConfigDbContext context)
         {
             _context = context;
         }
@@ -21,7 +15,25 @@ namespace Cosmos.MultiTenant_Adminstrator.Controllers
         // GET: Connections
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Connections.ToListAsync());
+            await _context.Database.EnsureCreatedAsync();
+
+            try
+            {
+                var connections = await _context.Connections.ToListAsync();
+                if (connections == null || !connections.Any())
+                {
+                    return RedirectToAction("Create");
+                }
+
+                return View(await _context.Connections.ToListAsync());
+            }
+            catch (Exception ex)
+            {
+                // Handle exceptions as needed
+                ModelState.AddModelError(string.Empty, "An error occurred while retrieving connections: " + ex.Message);
+            }
+
+            return View(new List<Connection>());
         }
 
         // GET: Connections/Details/5
@@ -45,7 +57,16 @@ namespace Cosmos.MultiTenant_Adminstrator.Controllers
         // GET: Connections/Create
         public IActionResult Create()
         {
-            return View();
+            return View(new Connection
+            {
+                Id = Guid.NewGuid(),
+                DomainName = string.Empty,
+                DbConn = string.Empty,
+                DbName = "cosmoscms",
+                StorageConn = string.Empty,
+                Customer = string.Empty,
+                WebsiteUrl = string.Empty
+            });
         }
 
         // POST: Connections/Create
@@ -53,7 +74,7 @@ namespace Cosmos.MultiTenant_Adminstrator.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,DomainName,DbConn,DbName,StorageConn,Customer,WebsiteUrl")] Connection connection)
+        public async Task<IActionResult> Create([Bind("Id,DomainName,DbConn,DbName,StorageConn,Customer,WebsiteUrl,ResourceGroup,PublisherMode")] Connection connection)
         {
             if (ModelState.IsValid)
             {
@@ -86,7 +107,7 @@ namespace Cosmos.MultiTenant_Adminstrator.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Id,DomainName,DbConn,DbName,StorageConn,Customer,WebsiteUrl")] Connection connection)
+        public async Task<IActionResult> Edit(Guid id, [Bind("Id,DomainName,DbConn,DbName,StorageConn,Customer,WebsiteUrl,ResourceGroup,PublisherMode")] Connection connection)
         {
             if (id != connection.Id)
             {

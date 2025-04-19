@@ -11,7 +11,6 @@ namespace Cosmos.DynamicConfig
 
     public class Connection
     {
-        [Required]
         [Key]
         [Display(Name = "ID")]
         public Guid Id { get; set; } = Guid.NewGuid();
@@ -48,6 +47,19 @@ namespace Cosmos.DynamicConfig
         /// </summary>
         [Display(Name = "Website Owner Name")]
         public string? Customer { get; set; } = null;
+
+        /// <summary>
+        /// Gets or sets the resrouce group where the customer's resources are kept.
+        /// </summary>
+        [Required(AllowEmptyStrings = false)]
+        [Display(Name = "Customer Resource Group")]
+        public string? ResourceGroup { get; set; } = null;
+
+        /// <summary>
+        /// Gets or sets the publisher mode.
+        /// </summary>
+        [AllowedValues("Static", "Decoupled", "Headless", "Hybrid", "Static-dynamic", "")]
+        public string PublisherMode { get; set; } = string.Empty;
 
         /// <summary>
         /// Gets or sets the website URL.

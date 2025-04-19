@@ -126,22 +126,22 @@ namespace Cosmos.Common.Data
 
                 var databaseName = connectionStringProvider.GetDatabaseName();
 
-                    if (connectionString.Contains("AccountKey=AccessToken", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        var conpartsDict =
-                            connectionString.Split(";").Where(w =>
-                            !string.IsNullOrEmpty(w)).Select(part => part.Split('='))
-                            .ToDictionary(sp => sp[0], sp => sp[1], StringComparer.OrdinalIgnoreCase);
+                if (connectionString.Contains("AccountKey=AccessToken", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    var conpartsDict =
+                        connectionString.Split(";").Where(w =>
+                        !string.IsNullOrEmpty(w)).Select(part => part.Split('='))
+                        .ToDictionary(sp => sp[0], sp => sp[1], StringComparer.OrdinalIgnoreCase);
 
-                        var defaultAzureCredential = services.GetRequiredService<DefaultAzureCredential>();
-                        var endpoint = conpartsDict["AccountEndpoint"];
-                        optionsBuilder.UseCosmos(accountEndpoint: endpoint, defaultAzureCredential, databaseName);
-                    }
-                    else
-                    {
-                        optionsBuilder.UseCosmos(connectionString, databaseName: databaseName);
-                    }
+                    var defaultAzureCredential = services.GetRequiredService<DefaultAzureCredential>();
+                    var endpoint = conpartsDict["AccountEndpoint"];
+                    optionsBuilder.UseCosmos(accountEndpoint: endpoint, defaultAzureCredential, databaseName);
                 }
+                else
+                {
+                    optionsBuilder.UseCosmos(connectionString, databaseName: databaseName);
+                }
+            }
 
             // Synchronous blocking on asynchronous methods can result in deadlock, and the
             // Azure Cosmos DB SDK only supports async methods.
