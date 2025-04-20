@@ -239,7 +239,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 });
 
 // END
-builder.Services.AddResponseCaching();
+// builder.Services.AddResponseCaching();
 
 // Add the SignalR service.
 // If there is a DB connection, then use SQL backplane.
