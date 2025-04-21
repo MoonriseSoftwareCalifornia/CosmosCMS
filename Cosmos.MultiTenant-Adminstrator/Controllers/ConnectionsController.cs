@@ -52,7 +52,7 @@ namespace Cosmos.MultiTenant_Adminstrator.Controllers
                 return NotFound();
             }
 
-            return View(connection);
+            return View(new ConnectionViewModel(connection));
         }
 
         // GET: Connections/Create
@@ -75,16 +75,16 @@ namespace Cosmos.MultiTenant_Adminstrator.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,DomainName,DbConn,DbName,StorageConn,Customer,WebsiteUrl,ResourceGroup,PublisherMode")] Connection connection)
+        public async Task<IActionResult> Create([Bind("Id,DomainNames,DbConn,DbName,StorageConn,Customer,WebsiteUrl,ResourceGroup,PublisherMode")] ConnectionViewModel model)
         {
             if (ModelState.IsValid)
             {
-                connection.Id = Guid.NewGuid();
-                _context.Add(connection);
+                model.Id = Guid.NewGuid();
+                _context.Add(model.ToConnection());
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(connection);
+            return View(model);
         }
 
         // GET: Connections/Edit/5
@@ -100,7 +100,7 @@ namespace Cosmos.MultiTenant_Adminstrator.Controllers
             {
                 return NotFound();
             }
-            return View(connection);
+            return View(new ConnectionViewModel(connection));
         }
 
         // POST: Connections/Edit/5
@@ -108,9 +108,9 @@ namespace Cosmos.MultiTenant_Adminstrator.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Id,DomainName,DbConn,DbName,StorageConn,Customer,WebsiteUrl,ResourceGroup,PublisherMode")] Connection connection)
+        public async Task<IActionResult> Edit(Guid id, [Bind("Id,DomainNames,DbConn,DbName,StorageConn,Customer,WebsiteUrl,ResourceGroup,PublisherMode")] ConnectionViewModel model)
         {
-            if (id != connection.Id)
+            if (id != model.Id)
             {
                 return NotFound();
             }
@@ -119,12 +119,12 @@ namespace Cosmos.MultiTenant_Adminstrator.Controllers
             {
                 try
                 {
-                    _context.Update(connection);
+                    _context.Update(model.ToConnection());
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ConnectionExists(connection.Id))
+                    if (!ConnectionExists(model.Id))
                     {
                         return NotFound();
                     }
@@ -135,7 +135,7 @@ namespace Cosmos.MultiTenant_Adminstrator.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(connection);
+            return View(model);
         }
 
         // GET: Connections/Delete/5
@@ -153,7 +153,7 @@ namespace Cosmos.MultiTenant_Adminstrator.Controllers
                 return NotFound();
             }
 
-            return View(connection);
+            return View(new ConnectionViewModel(connection));
         }
 
         // POST: Connections/Delete/5

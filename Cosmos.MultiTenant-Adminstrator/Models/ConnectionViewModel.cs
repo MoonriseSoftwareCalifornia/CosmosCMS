@@ -22,7 +22,7 @@ namespace Cosmos.MultiTenant_Adminstrator.Models
         public ConnectionViewModel(Connection connection)
         {
             Id = connection.Id;
-            DomainNames = string.Join(", ", connection.DomainNames);
+            DomainNames = connection.DomainNames == null ? string.Empty : string.Join(", ", connection.DomainNames);
             DbConn = connection.DbConn;
             DbName = connection.DbName;
             StorageConn = connection.StorageConn;
@@ -89,5 +89,25 @@ namespace Cosmos.MultiTenant_Adminstrator.Models
         [Required(AllowEmptyStrings = false)]
         [Display(Name = "Website URL")]
         public string WebsiteUrl { get; set; } = null!;
+
+        /// <summary>
+        /// Converts the view model to a <see cref="Connection"/> object.
+        /// </summary>
+        /// <returns></returns>
+        internal Connection ToConnection()
+        {
+            return new Connection
+            {
+                Id = Id,
+                DomainNames = DomainNames.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(d => d.Trim()).ToArray(),
+                DbConn = DbConn,
+                DbName = DbName,
+                StorageConn = StorageConn,
+                Customer = Customer,
+                ResourceGroup = ResourceGroup,
+                PublisherMode = PublisherMode,
+                WebsiteUrl = WebsiteUrl
+            };
+        }
     }
 }

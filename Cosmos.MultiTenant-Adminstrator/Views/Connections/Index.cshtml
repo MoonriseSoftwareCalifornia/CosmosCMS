@@ -42,11 +42,17 @@
                     <a href="@item.WebsiteUrl" target="_blank">@Html.DisplayFor(modelItem => item.WebsiteUrl)</a>
                 </td>
                 <td>
-                    @foreach (var domain in item.DomainNames)
+                    @if (item.DomainNames == null || !item.DomainNames.Any())
                     {
-                        <a href="@($"https://{domain.Trim()}")" target="_blank">@Html.DisplayFor(modelItem => domain.Trim())</a>
-                        <br />
-                    })
+                        <span>No domains available</span>
+                    }
+                    else
+                    {
+                        foreach (var domain in item.DomainNames)
+                        {
+                            <a href="@($"https://{domain.Trim()}")" target="_blank">@domain.Trim()</a><br />
+                        }
+                    }
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.PublisherMode)
