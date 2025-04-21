@@ -1333,7 +1333,7 @@
           "Azure.Identity": "[1.13.2, )",
           "Azure.Storage.Blobs": "[12.24.0, )",
           "Azure.Storage.Files.Shares": "[12.22.0, )",
-          "Cosmos.DynamicConfig": "[9.0.8.4, )",
+          "Cosmos.DynamicConfig": "[9.0.8.8, )",
           "Microsoft.AspNetCore.DataProtection": "[9.0.4, )",
           "Microsoft.Extensions.Caching.Abstractions": "[9.0.4, )",
           "Microsoft.Extensions.Configuration.Abstractions": "[9.0.4, )",

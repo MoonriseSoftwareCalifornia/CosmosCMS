@@ -142,7 +142,7 @@ namespace Cosmos.Cms.Controllers
         {
             if (options.IsMultiTenantEditor && !EnsureMultiTenantConfigured())
             {
-                throw new InvalidOperationException("Multi-tenant configuration is not set up.");
+                return NotFound();
             }
 
             if (!ModelState.IsValid) 
