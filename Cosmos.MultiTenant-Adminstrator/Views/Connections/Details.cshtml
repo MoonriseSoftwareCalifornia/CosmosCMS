@@ -1,4 +1,4 @@
-﻿@model Cosmos.DynamicConfig.Connection
+﻿@model ConnectionViewModel
 
 @{
     ViewData["Title"] = "Details";
@@ -35,10 +35,10 @@
             @Html.DisplayFor(model => model.PublisherMode)
         </dd>
         <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.DomainName)
+            @Html.DisplayNameFor(model => model.DomainNames)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.DomainName)
+            @Html.DisplayFor(model => model.DomainNames)
         </dd>
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.DbConn)

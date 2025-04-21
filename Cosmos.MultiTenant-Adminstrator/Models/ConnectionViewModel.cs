@@ -1,16 +1,37 @@
-﻿// <copyright file="ConnectionStringProvider.cs" company="Moonrise Software, LLC">
-// Copyright (c) Moonrise Software, LLC. All rights reserved.
-// Licensed under the GNU Public License, Version 3.0 (https://www.gnu.org/licenses/gpl-3.0.html)
-// See https://github.com/MoonriseSoftwareCalifornia/CosmosCMS
-// for more information concerning the license and the contributors participating to this project.
-// </copyright>
+﻿using Cosmos.DynamicConfig;
+using System.ComponentModel.DataAnnotations;
 
-namespace Cosmos.DynamicConfig
+namespace Cosmos.MultiTenant_Adminstrator.Models
 {
-    using System.ComponentModel.DataAnnotations;
-
-    public class Connection
+    /// <summary>
+    /// View model for the connection settings.
+    /// </summary>
+    public class ConnectionViewModel
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ConnectionViewModel"/> class.
+        /// </summary>
+        public ConnectionViewModel()
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ConnectionViewModel"/> class with the specified connection.
+        /// </summary>
+        /// <param name="connection"></param>
+        public ConnectionViewModel(Connection connection)
+        {
+            Id = connection.Id;
+            DomainNames = string.Join(", ", connection.DomainNames);
+            DbConn = connection.DbConn;
+            DbName = connection.DbName;
+            StorageConn = connection.StorageConn;
+            Customer = connection.Customer;
+            ResourceGroup = connection.ResourceGroup;
+            PublisherMode = connection.PublisherMode;
+            WebsiteUrl = connection.WebsiteUrl;
+        }
+
         [Key]
         [Display(Name = "ID")]
         public Guid Id { get; set; } = Guid.NewGuid();
@@ -19,7 +40,7 @@ namespace Cosmos.DynamicConfig
         /// Gets or sets the editor domain name of the connection.
         /// </summary>
         [Display(Name = "Editor Domain Names")]
-        public string[] DomainNames { get; set; } = null!;
+        public string DomainNames { get; set; } = null!;
 
         /// <summary>
         /// Gets or sets the database connection string.

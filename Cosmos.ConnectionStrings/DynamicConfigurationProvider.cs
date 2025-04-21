@@ -152,7 +152,7 @@ namespace Cosmos.DynamicConfig
                         .Options;
 
                 using var dbContext = new DynamicConfigDbContext(options);
-                var result = dbContext.Connections.FirstOrDefaultAsync(c => c.DomainName == Domain);
+                var result = dbContext.Connections.FirstOrDefaultAsync(c => c.DomainNames.Any(a => a == Domain));
                 result.Wait();
                 connection = result.Result;
                 if (connection != null)

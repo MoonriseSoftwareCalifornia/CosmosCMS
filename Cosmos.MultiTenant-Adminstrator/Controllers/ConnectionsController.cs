@@ -1,4 +1,5 @@
 ﻿using Cosmos.DynamicConfig;
+using Cosmos.MultiTenant_Adminstrator.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -57,10 +58,10 @@ namespace Cosmos.MultiTenant_Adminstrator.Controllers
         // GET: Connections/Create
         public IActionResult Create()
         {
-            return View(new Connection
+            return View(new ConnectionViewModel
             {
                 Id = Guid.NewGuid(),
-                DomainName = string.Empty,
+                DomainNames = string.Empty,
                 DbConn = string.Empty,
                 DbName = "cosmoscms",
                 StorageConn = string.Empty,

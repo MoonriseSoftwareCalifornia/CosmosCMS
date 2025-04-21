@@ -606,6 +606,7 @@ namespace Cosmos.BlobService
             {
                 return new AzureStorage(this.services, this.credential, this.isMultiTenant ?? false);
             }
+
             return new AzureStorage(this.config.Value.StorageConfig.AzureConfigs.FirstOrDefault(), this.credential);
         }
 

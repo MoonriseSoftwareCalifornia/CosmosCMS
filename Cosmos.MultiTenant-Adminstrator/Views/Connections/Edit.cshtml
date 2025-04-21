@@ -1,4 +1,4 @@
-﻿@model Cosmos.DynamicConfig.Connection
+﻿@model ConnectionViewModel
 
 @{
     ViewData["Title"] = "Edit";
@@ -42,9 +42,9 @@
                 <span asp-validation-for="PublisherMode" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="DomainName" class="control-label"></label>
-                <input asp-for="DomainName" class="form-control" />
-                <span asp-validation-for="DomainName" class="text-danger"></span>
+                <label asp-for="DomainNames" class="control-label"></label>
+                <input asp-for="DomainNames" class="form-control" />
+                <span asp-validation-for="DomainNames" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="DbConn" class="control-label"></label>

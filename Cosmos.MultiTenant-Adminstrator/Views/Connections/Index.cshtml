@@ -20,7 +20,7 @@
                 @Html.DisplayNameFor(model => model.WebsiteUrl)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.DomainName)
+                @Html.DisplayNameFor(model => model.DomainNames)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.PublisherMode)
@@ -42,7 +42,11 @@
                     <a href="@item.WebsiteUrl" target="_blank">@Html.DisplayFor(modelItem => item.WebsiteUrl)</a>
                 </td>
                 <td>
-                    <a href="@($"https://{item.DomainName}")" target="_blank">@Html.DisplayFor(modelItem => item.DomainName)</a>
+                    @foreach (var domain in item.DomainNames)
+                    {
+                        <a href="@($"https://{domain.Trim()}")" target="_blank">@Html.DisplayFor(modelItem => domain.Trim())</a>
+                        <br />
+                    })
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.PublisherMode)
