@@ -1,7 +1,14 @@
-﻿using Cosmos.DynamicConfig;
+﻿using Azure.Identity;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using Cosmos.BlobService;
+using Cosmos.BlobService.Drivers;
+using Cosmos.Common.Data;
+using Cosmos.DynamicConfig;
 using Cosmos.MultiTenant_Adminstrator.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileSystemGlobbing.Internal;
 
 namespace Cosmos.MultiTenant_Adminstrator.Controllers
 {
@@ -80,6 +87,18 @@ namespace Cosmos.MultiTenant_Adminstrator.Controllers
             if (ModelState.IsValid)
             {
                 model.Id = Guid.NewGuid();
+                var connection = model.ToConnection();
+                var result = await TestConnections(connection);
+                if (!result.IsDatabaseConnected)
+                {
+                    ModelState.AddModelError(string.Empty, "Database connection failed: " + result.ErrorMessage);
+                    return View(model);
+                }
+                if (!result.IsStorageConnected)
+                {
+                    ModelState.AddModelError(string.Empty, "Storage connection failed: " + result.ErrorMessage);
+                    return View(model);
+                }
                 _context.Add(model.ToConnection());
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -175,5 +194,32 @@ namespace Cosmos.MultiTenant_Adminstrator.Controllers
         {
             return _context.Connections.Any(e => e.Id == id);
         }
+
+        private async Task<TestResult> TestConnections(Connection connection)
+        {
+            var result = new TestResult();
+            try
+            {
+                // Test the database connection
+                result.IsDatabaseConnected = ApplicationDbContext.EnsureDatabaseExists(connection.DbConn, connection.DbName);
+
+                // Test the storage connection
+                var blobClient = new BlobServiceClient(connection.StorageConn);
+                var containerClient = blobClient.GetBlobContainerClient("$web");
+                var result1 = await containerClient.CreateIfNotExistsAsync();
+                var result2 = await blobClient.SetPropertiesAsync(new BlobServiceProperties()
+                {
+                    StaticWebsite = new BlobStaticWebsite() { Enabled = true, IndexDocument = "index.html" },
+                });
+
+                result.IsStorageConnected = true;
+            }
+            catch (Exception ex)
+            {
+                result.ErrorMessage = ex.Message;
+            }
+            return result;
+        }
+
     }
 }

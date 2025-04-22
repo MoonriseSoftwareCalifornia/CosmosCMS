@@ -124,12 +124,12 @@ namespace Cosmos.Common.Data.Logic
             var url = new Url
             {
                 Location = publicUrl,
-                LastMod = home.Updated.ToString("u"),
+                LastMod = (home == null || home.Updated == null) ? DateTimeOffset.UtcNow.ToString("u") : home.Updated.ToString("u"),
                 Priority = 1.0,
                 Images = new List<Image>()
             };
 
-            if (!string.IsNullOrWhiteSpace(home.BannerImage))
+            if (home != null && !string.IsNullOrWhiteSpace(home.BannerImage))
             {
                 url.Images.Add(new Image
                 {

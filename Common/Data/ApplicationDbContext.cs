@@ -17,6 +17,7 @@ namespace Cosmos.Common.Data
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Diagnostics;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Options;
 
     /// <summary>
     ///     Database Context for Cosmos CMS.
@@ -36,6 +37,32 @@ namespace Cosmos.Common.Data
             : base(options, true)
         {
             this.services = services;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ApplicationDbContext"/> class.
+        /// </summary>
+        /// <param name="options">Database context options.</param>
+        public ApplicationDbContext(
+            DbContextOptions<ApplicationDbContext> options)
+            : base(options, true)
+        {
+        }
+
+        /// <summary>
+        /// Ensure database exists.
+        /// </summary>
+        /// <param name="connectionString">Connection string.</param>
+        /// <param name="databaseName">Database name.</param>
+        /// <returns>Success or not.</returns>
+        public static bool EnsureDatabaseExists(string connectionString, string databaseName)
+        {
+            var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+            optionsBuilder.UseCosmos(connectionString: connectionString, databaseName: databaseName);
+            using var dbContext = new ApplicationDbContext(optionsBuilder.Options);
+            var result = dbContext.Database.EnsureCreatedAsync();
+            result.Wait();
+            return result.Result;
         }
 
         /// <summary>
