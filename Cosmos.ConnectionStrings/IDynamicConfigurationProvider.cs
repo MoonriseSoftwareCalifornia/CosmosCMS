@@ -50,12 +50,6 @@ namespace Cosmos.DynamicConfig
         /// <param name="name">Connection string name.</param>
         /// <returns>Connection string.</returns>
         string? GetConnectionStringByName(string name);
-
-        /// <summary>
-        /// Saves connection information for the current domain.
-        /// </summary>
-        /// <param name="connection"></param>
-        void SaveConnection(Connection connection);
     }
 }
 

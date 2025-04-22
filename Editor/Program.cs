@@ -30,6 +30,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -60,8 +61,35 @@ builder.Services.AddSingleton(option);
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddSingleton<IDynamicConfigurationProvider, DynamicConfigurationProvider>();
 
-// Add the Cosmos database context here
-builder.Services.AddDbContext<ApplicationDbContext>();
+// Make sure the database exists if in setup mode and is NOT in multitenant mode.
+var multi = builder.Configuration.GetValue<bool?>("MultiTenantEditor") ?? false;
+if (option.Value.SiteSettings.AllowSetup && !multi)
+{
+    var connectionString = builder.Configuration.GetConnectionString("ApplicationDbContextConnection");
+    var databaseName = builder.Configuration.GetValue<string>($"CosmosIdentityDbName") ?? "cosmoscms";
+    ApplicationDbContext.EnsureDatabaseExists(connectionString, databaseName);
+}
+
+// Add the Cosmos database context here.
+if (multi)
+{
+    // Note that this is scopped, meaning for each request this is regenerated.
+    // Multi-tenant support is enabled because each request may have a different domain name and connection
+    // string information.
+    builder.Services.AddScoped<ApplicationDbContext>((serviceProvider) =>
+    {
+        return new ApplicationDbContext(new DbContextOptions<ApplicationDbContext>(), serviceProvider);
+    });
+}
+else
+{
+    // A single website (not multi-tenant) responds to only one DNS name, and
+    // therefore a singleton will be better for performance.
+    builder.Services.AddSingleton<ApplicationDbContext>((serviceProvider) =>
+    {
+        return new ApplicationDbContext(new DbContextOptions<ApplicationDbContext>(), serviceProvider);
+    });
+}
 
 // This service has to appear right after DB Context.
 builder.Services.AddScoped<IEditorSettings, EditorSettings>();
@@ -232,7 +260,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 });
 
 // END
-builder.Services.AddResponseCaching();
+// builder.Services.AddResponseCaching();
 
 // Add the SignalR service.
 // If there is a DB connection, then use SQL backplane.

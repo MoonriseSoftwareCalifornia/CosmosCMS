@@ -14,8 +14,8 @@ namespace Cosmos.BlobService
     using Cosmos.BlobService.Config;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.DataProtection;
-    using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
     using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
+    using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Options;
@@ -85,7 +85,6 @@ namespace Cosmos.BlobService
                 config.GetConnectionString("AzureBlobStorageConnectionString");
             }
 
-
             if (string.IsNullOrWhiteSpace(connectionString))
             {
                 throw new ArgumentNullException("DataProtectionStorage", "'DataProtectionStorage' or 'AzureBlobStorageConnectionString' connection string is not set.");
@@ -152,7 +151,7 @@ namespace Cosmos.BlobService
         /// Sets the application discriminator for the data protection keys based on the domain name.
         /// </summary>
         /// <param name="app">Application builder.</param>
-        /// <returns>IApplicationBuilder</returns>
+        /// <returns>IApplicationBuilder.</returns>
         public static IApplicationBuilder UseCosmosCmsDataProtection(this IApplicationBuilder app)
         {
             app.Use(async (context, next) =>

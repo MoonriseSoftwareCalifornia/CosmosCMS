@@ -515,6 +515,16 @@ namespace Cosmos.BlobService.Drivers
         }
 
         /// <summary>
+        /// Gets the thumbnail stream for a given blob.
+        /// </summary>
+        /// <param name="target">Path to the blob.</param>
+        /// <returns>Returns the thumbnail stream as a <see cref="Stream"/>.</returns>
+        public Task<Stream> GetImageThumbnailStreamAsync(string target)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
         /// Initializes the instance.
         /// </summary>
         /// <param name="containerName">Container name.</param>
@@ -535,11 +545,6 @@ namespace Cosmos.BlobService.Drivers
                 this.usesAzureDefaultCredential = false;
                 this.blobServiceClient = new BlobServiceClient(connectionString);
             }
-        }
-
-        public Task<Stream> GetImageThumbnailStreamAsync(string target)
-        {
-            throw new NotImplementedException();
         }
     }
 }

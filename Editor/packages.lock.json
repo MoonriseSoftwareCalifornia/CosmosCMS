@@ -140,12 +140,12 @@
       },
       "Microsoft.Azure.SignalR": {
         "type": "Direct",
-        "requested": "[1.30.2, )",
-        "resolved": "1.30.2",
-        "contentHash": "n76ZE/xzz7edrnOwMSRsSg+arzDuEbg6U6eU6TgmormFE5+SF6Y4TPmMA/nXUysBLMREYnDylUpSLgmdCoSu0g==",
+        "requested": "[1.30.3, )",
+        "resolved": "1.30.3",
+        "contentHash": "p2dWnrpVI7uSq9xo1YBi7F1Dtq8TBvi/XA5dFD3MPPQaUtoNTb9G0uprt5gPCW9Cuipid4jb21GqJ0Eu9+6GpQ==",
         "dependencies": {
           "Azure.Identity": "1.11.4",
-          "Microsoft.Azure.SignalR.Protocols": "1.30.2",
+          "Microsoft.Azure.SignalR.Protocols": "1.30.3",
           "Microsoft.Extensions.Http": "2.1.0",
           "Newtonsoft.Json": "13.0.3"
         }
@@ -1162,8 +1162,8 @@
       },
       "Microsoft.Azure.SignalR.Protocols": {
         "type": "Transitive",
-        "resolved": "1.30.2",
-        "contentHash": "x894k+tL5YuEZNrbJv8qsuAWcPcWRvbWHA7dCC9qlRWzNrxr6QzTx79HVUiGLDylvOR2bZ9OV2nOn/1fYXonIA==",
+        "resolved": "1.30.3",
+        "contentHash": "OPkIylG1MF4/uA05IADl8HZR6dLzt9uEGY19ACT0u6ARyvesJMNZzRI/mhAiXHUyxfvlIXewAeyIFMIu5wLa4A==",
         "dependencies": {
           "Microsoft.Extensions.Primitives": "2.1.1",
           "System.Buffers": "4.5.1",
@@ -2803,7 +2803,7 @@
           "Azure.Identity": "[1.13.2, )",
           "Azure.Storage.Blobs": "[12.24.0, )",
           "Azure.Storage.Files.Shares": "[12.22.0, )",
-          "Cosmos.DynamicConfig": "[9.0.7.8, )",
+          "Cosmos.DynamicConfig": "[9.0.8.4, )",
           "Microsoft.AspNetCore.DataProtection": "[9.0.4, )",
           "Microsoft.Extensions.Caching.Abstractions": "[9.0.4, )",
           "Microsoft.Extensions.Configuration.Abstractions": "[9.0.4, )",
@@ -2816,8 +2816,8 @@
           "AspNetCore.Identity.CosmosDb": "[9.0.1, )",
           "Azure.Extensions.AspNetCore.Configuration.Secrets": "[1.4.0, )",
           "Azure.Identity": "[1.13.2, )",
-          "Cosmos.BlobService": "[9.0.7.8, )",
-          "Cosmos.DynamicConfig": "[9.0.7.8, )",
+          "Cosmos.BlobService": "[9.0.8.4, )",
+          "Cosmos.DynamicConfig": "[9.0.8.4, )",
           "Cosmos.EmailServices": "[9.0.1, )",
           "MailChimp.Net.V3": "[5.7.0, )",
           "Microsoft.AspNetCore.DataProtection.EntityFrameworkCore": "[9.0.4, )",

@@ -17,6 +17,7 @@ namespace Cosmos.Common.Data
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Diagnostics;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Options;
 
     /// <summary>
     ///     Database Context for Cosmos CMS.
@@ -36,6 +37,32 @@ namespace Cosmos.Common.Data
             : base(options, true)
         {
             this.services = services;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ApplicationDbContext"/> class.
+        /// </summary>
+        /// <param name="options">Database context options.</param>
+        public ApplicationDbContext(
+            DbContextOptions<ApplicationDbContext> options)
+            : base(options, true)
+        {
+        }
+
+        /// <summary>
+        /// Ensure database exists.
+        /// </summary>
+        /// <param name="connectionString">Connection string.</param>
+        /// <param name="databaseName">Database name.</param>
+        /// <returns>Success or not.</returns>
+        public static bool EnsureDatabaseExists(string connectionString, string databaseName)
+        {
+            var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+            optionsBuilder.UseCosmos(connectionString: connectionString, databaseName: databaseName);
+            using var dbContext = new ApplicationDbContext(optionsBuilder.Options);
+            var result = dbContext.Database.EnsureCreatedAsync();
+            result.Wait();
+            return result.Result;
         }
 
         /// <summary>
@@ -121,27 +148,26 @@ namespace Cosmos.Common.Data
             if (!optionsBuilder.IsConfigured)
             {
                 var connectionStringProvider = services.GetRequiredService<IDynamicConfigurationProvider>();
-
                 var connectionString = connectionStringProvider.GetDatabaseConnectionString();
 
                 var databaseName = connectionStringProvider.GetDatabaseName();
 
-                    if (connectionString.Contains("AccountKey=AccessToken", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        var conpartsDict =
-                            connectionString.Split(";").Where(w =>
-                            !string.IsNullOrEmpty(w)).Select(part => part.Split('='))
-                            .ToDictionary(sp => sp[0], sp => sp[1], StringComparer.OrdinalIgnoreCase);
+                if (connectionString.Contains("AccountKey=AccessToken", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    var conpartsDict =
+                        connectionString.Split(";").Where(w =>
+                        !string.IsNullOrEmpty(w)).Select(part => part.Split('='))
+                        .ToDictionary(sp => sp[0], sp => sp[1], StringComparer.OrdinalIgnoreCase);
 
-                        var defaultAzureCredential = services.GetRequiredService<DefaultAzureCredential>();
-                        var endpoint = conpartsDict["AccountEndpoint"];
-                        optionsBuilder.UseCosmos(accountEndpoint: endpoint, defaultAzureCredential, databaseName);
-                    }
-                    else
-                    {
-                        optionsBuilder.UseCosmos(connectionString, databaseName: databaseName);
-                    }
+                    var defaultAzureCredential = services.GetRequiredService<DefaultAzureCredential>();
+                    var endpoint = conpartsDict["AccountEndpoint"];
+                    optionsBuilder.UseCosmos(accountEndpoint: endpoint, defaultAzureCredential, databaseName);
                 }
+                else
+                {
+                    optionsBuilder.UseCosmos(connectionString, databaseName: databaseName);
+                }
+            }
 
             // Synchronous blocking on asynchronous methods can result in deadlock, and the
             // Azure Cosmos DB SDK only supports async methods.

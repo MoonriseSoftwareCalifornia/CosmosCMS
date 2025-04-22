@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Index";
+    var resourceGroup = "https://portal.azure.com/#@moonrise.net/resource/subscriptions/eea20e7a-4dd0-4385-80d6-6b448e17a7da/resourceGroups/RESOURCEGROUPHERE/overview";
 }
 
 <h1>Index</h1>
@@ -13,53 +14,58 @@
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.DomainName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.DbConn)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.DbName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.StorageConn)
-            </th>
-            <th>
                 @Html.DisplayNameFor(model => model.Customer)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.WebsiteUrl)
             </th>
+            <th>
+                @Html.DisplayNameFor(model => model.DomainNames)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.PublisherMode)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ResourceGroup)
+            </th>
             <th></th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.DomainName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DbConn)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DbName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.StorageConn)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Customer)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.WebsiteUrl)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Customer)
+                </td>
+                <td>
+                    <a href="@item.WebsiteUrl" target="_blank">@Html.DisplayFor(modelItem => item.WebsiteUrl)</a>
+                </td>
+                <td>
+                    @if (item.DomainNames == null || !item.DomainNames.Any())
+                    {
+                        <span>No domains available</span>
+                    }
+                    else
+                    {
+                        foreach (var domain in item.DomainNames)
+                        {
+                            <a href="@($"https://{domain.Trim()}")" target="_blank">@domain.Trim()</a><br />
+                        }
+                    }
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.PublisherMode)
+                </td>
+                <td>
+                    <a href="@(resourceGroup.Replace("RESOURCEGROUPHERE", item.ResourceGroup))" target="_blank">@Html.DisplayFor(modelItem => item.ResourceGroup)</a>
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>

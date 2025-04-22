@@ -1,7 +1,16 @@
-﻿@model Cosmos.DynamicConfig.Connection
+﻿@model ConnectionViewModel
 
 @{
     ViewData["Title"] = "Create";
+    var modes = new List<SelectListItem>
+   {
+       new SelectListItem { Value = "", Text = "" },
+       new SelectListItem { Value = "Static", Text = "Static" },
+       new SelectListItem { Value = "Decoupled", Text = "Decoupled" },
+       new SelectListItem { Value = "Headless", Text = "Headless" },
+       new SelectListItem { Value = "Hybrid", Text = "Hybrid" },
+       new SelectListItem { Value = "Static-dynamic", Text = "Static-dynamic" }
+   };
 }
 
 <h1>Create</h1>
@@ -9,13 +18,34 @@
 <h4>Connection</h4>
 <hr />
 <div class="row">
-    <div class="col-md-4">
+    <div class="col-md-10">
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="DomainName" class="control-label"></label>
-                <input asp-for="DomainName" class="form-control" />
-                <span asp-validation-for="DomainName" class="text-danger"></span>
+                <label asp-for="WebsiteUrl" class="control-label"></label>
+                <input asp-for="WebsiteUrl" class="form-control" />
+                <span asp-validation-for="WebsiteUrl" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Customer" class="control-label"></label>
+                <input asp-for="Customer" class="form-control" />
+                <span asp-validation-for="Customer" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ResourceGroup" class="control-label"></label>
+                <input asp-for="ResourceGroup" class="form-control" />
+                <span asp-validation-for="ResourceGroup" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="PublisherMode" class="control-label"></label>
+                <select asp-for="PublisherMode" class="form-control" asp-items="modes"></select>
+                <span asp-validation-for="PublisherMode" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="DomainNames" class="control-label"></label>
+                <input asp-for="DomainNames" class="form-control" />
+                <span asp-validation-for="DomainNames" class="text-danger"></span>
+                <span class="text-muted">Comma separated list of domain names</span>
             </div>
             <div class="form-group">
                 <label asp-for="DbConn" class="control-label"></label>
@@ -31,16 +61,6 @@
                 <label asp-for="StorageConn" class="control-label"></label>
                 <input asp-for="StorageConn" class="form-control" />
                 <span asp-validation-for="StorageConn" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Customer" class="control-label"></label>
-                <input asp-for="Customer" class="form-control" />
-                <span asp-validation-for="Customer" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="WebsiteUrl" class="control-label"></label>
-                <input asp-for="WebsiteUrl" class="form-control" />
-                <span asp-validation-for="WebsiteUrl" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />

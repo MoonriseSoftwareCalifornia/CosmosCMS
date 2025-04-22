@@ -28,9 +28,7 @@ namespace Cosmos.DynamicConfig
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Connection>()
-                .ToContainer("config")
-                .HasPartitionKey(k => k.DomainName)
-                .HasKey(k => k.Id);
+                .ToContainer("config");
 
             base.OnModelCreating(modelBuilder);
         }

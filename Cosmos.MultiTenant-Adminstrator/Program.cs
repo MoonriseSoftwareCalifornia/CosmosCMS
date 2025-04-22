@@ -17,8 +17,14 @@ builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
             .AddMicrosoftGraph(builder.Configuration.GetSection("MicrosoftGraph"))
             .AddInMemoryTokenCaches();
 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrEmpty(connectionString))
+{
+    throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+}
+
 builder.Services.AddDbContext<Cosmos.DynamicConfig.DynamicConfigDbContext>(options =>
-    options.UseCosmos(builder.Configuration.GetConnectionString("DefaultConnection"), ""));
+    options.UseCosmos(connectionString: connectionString, databaseName: "configs"));
 
 builder.Services.AddControllersWithViews(options =>
 {

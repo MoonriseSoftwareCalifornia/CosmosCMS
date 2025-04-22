@@ -628,6 +628,16 @@ namespace Cosmos.BlobService.Drivers
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Gets the image thumbnail stream.
+        /// </summary>
+        /// <param name="target">URL path to target.</param>
+        /// <returns>Stream.</returns>
+        public Task<Stream> GetImageThumbnailStreamAsync(string target)
+        {
+            throw new NotImplementedException();
+        }
+
         private async Task CreateSubDirectory(ShareDirectoryClient directory, List<string> path)
         {
             var client = directory.GetSubdirectoryClient(path[0]);
@@ -683,11 +693,6 @@ namespace Cosmos.BlobService.Drivers
             }
 
             return list;
-        }
-
-        public Task<Stream> GetImageThumbnailStreamAsync(string target)
-        {
-            throw new NotImplementedException();
         }
     }
 }

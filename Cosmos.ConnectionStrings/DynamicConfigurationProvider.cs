@@ -9,7 +9,9 @@ namespace Cosmos.DynamicConfig
 {
     using Microsoft.AspNetCore.Http;
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Caching.Memory;
     using Microsoft.Extensions.Configuration;
+    using System.Text;
 
     /// <summary>
     /// Gets connection strings and configuration values from the configuration file.
@@ -21,16 +23,25 @@ namespace Cosmos.DynamicConfig
     {
         private readonly IConfiguration configuration;
         private readonly IHttpContextAccessor httpContextAccessor;
+        private readonly IMemoryCache memoryCache;
         private readonly bool isMultiTenantEditor;
+        private readonly StringBuilder errorMessages = new StringBuilder();
+        private readonly string? connectionString;
+
         /// <summary>
         /// Gets the database connection
         /// </summary>
-        private readonly Connection? connection;
+        //private readonly Connection? connection;
 
         /// <summary>
         /// Gets a value indicating whether the connection is configured for multi-tenant.
         /// </summary>
-        public bool IsMultiTenantConfigured { get { return connection != null; } }
+        public bool IsMultiTenantConfigured { get { return GetTenantConnection() != null; } }
+
+        /// <summary>
+        /// Gets a value indicating the error messages that may exist.
+        /// </summary>
+        public string ErrorMesages => errorMessages.ToString();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ConnectionStringProvider"/> class.
@@ -38,31 +49,20 @@ namespace Cosmos.DynamicConfig
         /// <param name="configuration">Connection configuration.</param>
         /// <param name="httpContextAccessor">HTTP context accessor.</param>
         /// <param name="logger">Log service.</param>
+        /// <param name="memoryCache">Memory cache.</param>
         public DynamicConfigurationProvider(
             IConfiguration configuration,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            IMemoryCache memoryCache)
         {
             this.configuration = configuration;
             this.httpContextAccessor = httpContextAccessor;
+            this.memoryCache = memoryCache;
             isMultiTenantEditor = this.configuration.GetValue<bool?>("MultiTenantEditor") ?? false;
-            if (isMultiTenantEditor && Domain != null)
+            var domainName = Domain.ToLower(); // Get the domain name from the HTTP context.
+            if (isMultiTenantEditor && !string.IsNullOrWhiteSpace(domainName))
             {
-                var connectionString = this.configuration.GetConnectionString("ConfigDbConnectionString");
-                if (string.IsNullOrEmpty(connectionString))
-                {
-                    throw new Exception("connectionString is not set.");
-                }
-                var options = new DbContextOptionsBuilder<DynamicConfigDbContext>()
-                    .UseCosmos(connectionString, databaseName: "configs")
-                    .Options;
-
-                using var dbContext = new DynamicConfigDbContext(options);
-                var result = dbContext.Connections.FirstOrDefaultAsync(w => w.DomainName == httpContextAccessor.HttpContext.Request.Host.Host.ToLower());
-                result.Wait();
-                if (result.Result != null)
-                {
-                    this.connection = result.Result;
-                }
+                connectionString = this.configuration.GetConnectionString("ConfigDbConnectionString") ?? string.Empty;
             }
         }
 
@@ -73,7 +73,7 @@ namespace Cosmos.DynamicConfig
         {
             get
             {
-                return httpContextAccessor.HttpContext.Request.Host.Host ?? string.Empty;
+                return httpContextAccessor.HttpContext.Request.Host.Host?.ToLower() ?? string.Empty;
             }
         }
 
@@ -85,7 +85,7 @@ namespace Cosmos.DynamicConfig
         {
             if (this.isMultiTenantEditor)
             {
-                return this.connection?.DbName;
+                return GetTenantConnection()?.DbName;
             }
             return configuration.GetValue<string>($"CosmosIdentityDbName") ?? "cosmoscms";
         }
@@ -98,7 +98,7 @@ namespace Cosmos.DynamicConfig
         {
             if (this.isMultiTenantEditor)
             {
-                return this.connection?.DbConn;
+                return GetTenantConnection()?.DbConn;
             }
             return configuration.GetConnectionString("ApplicationDbContextConnection");
         }
@@ -111,7 +111,7 @@ namespace Cosmos.DynamicConfig
         {
             if (this.isMultiTenantEditor)
             {
-                return this.connection?.StorageConn;
+                return GetTenantConnection()?.StorageConn;
             }
             return configuration.GetConnectionString("AzureBlobStorageConnectionString");
         }
@@ -136,24 +136,32 @@ namespace Cosmos.DynamicConfig
             return configuration.GetConnectionString(name);
         }
 
-        /// <summary>
-        /// Saves the connection information to the database.
-        /// </summary>
-        /// <param name="connection"></param>
-        public void SaveConnection(Connection connection)
+        private Connection? GetTenantConnection()
         {
-            var options = new DbContextOptionsBuilder<DynamicConfigDbContext>()
-                .UseCosmos(connection.DbConn, databaseName: "configs")
-                .Options;
-            using var dbContext = new DynamicConfigDbContext(options);
-            var existingConnection = dbContext.Connections.FirstOrDefault(w => w.DomainName == connection.DomainName);
-            if (existingConnection != null)
+            if (string.IsNullOrWhiteSpace(connectionString))
             {
-                dbContext.Connections.Remove(existingConnection);
+                return null;
             }
-            connection.DomainName = Domain.ToLower(); // Set the domain name to the current domain
-            dbContext.Connections.Add(connection);
-            dbContext.SaveChanges();
+
+            memoryCache.TryGetValue<Connection>(Domain, out var connection);
+
+            if (connection == null)
+            {
+                var options = new DbContextOptionsBuilder<DynamicConfigDbContext>()
+                        .UseCosmos(connectionString, databaseName: "configs")
+                        .Options;
+
+                using var dbContext = new DynamicConfigDbContext(options);
+                var result = dbContext.Connections.FirstOrDefaultAsync(c => c.DomainNames.Any(a => a == Domain));
+                result.Wait();
+                connection = result.Result;
+                if (connection != null)
+                {
+                    memoryCache.Set(Domain, connection, TimeSpan.FromMinutes(20));
+                }
+            }
+
+            return connection;
         }
     }
 }

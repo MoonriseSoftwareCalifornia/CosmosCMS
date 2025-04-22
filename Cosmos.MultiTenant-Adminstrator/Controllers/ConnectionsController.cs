@@ -1,19 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
+﻿using Azure.Identity;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using Cosmos.BlobService;
+using Cosmos.BlobService.Drivers;
+using Cosmos.Common.Data;
 using Cosmos.DynamicConfig;
+using Cosmos.MultiTenant_Adminstrator.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileSystemGlobbing.Internal;
 
 namespace Cosmos.MultiTenant_Adminstrator.Controllers
 {
     public class ConnectionsController : Controller
     {
         private readonly DynamicConfigDbContext _context;
-
-        public ConnectionsController(DynamicConfigDbContext context)
+                public ConnectionsController(DynamicConfigDbContext context)
         {
             _context = context;
         }
@@ -21,7 +23,25 @@ namespace Cosmos.MultiTenant_Adminstrator.Controllers
         // GET: Connections
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Connections.ToListAsync());
+            await _context.Database.EnsureCreatedAsync();
+
+            try
+            {
+                var connections = await _context.Connections.ToListAsync();
+                if (connections == null || !connections.Any())
+                {
+                    return RedirectToAction("Create");
+                }
+
+                return View(await _context.Connections.ToListAsync());
+            }
+            catch (Exception ex)
+            {
+                // Handle exceptions as needed
+                ModelState.AddModelError(string.Empty, "An error occurred while retrieving connections: " + ex.Message);
+            }
+
+            return View(new List<Connection>());
         }
 
         // GET: Connections/Details/5
@@ -39,13 +59,22 @@ namespace Cosmos.MultiTenant_Adminstrator.Controllers
                 return NotFound();
             }
 
-            return View(connection);
+            return View(new ConnectionViewModel(connection));
         }
 
         // GET: Connections/Create
         public IActionResult Create()
         {
-            return View();
+            return View(new ConnectionViewModel
+            {
+                Id = Guid.NewGuid(),
+                DomainNames = string.Empty,
+                DbConn = string.Empty,
+                DbName = "cosmoscms",
+                StorageConn = string.Empty,
+                Customer = string.Empty,
+                WebsiteUrl = string.Empty
+            });
         }
 
         // POST: Connections/Create
@@ -53,16 +82,28 @@ namespace Cosmos.MultiTenant_Adminstrator.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,DomainName,DbConn,DbName,StorageConn,Customer,WebsiteUrl")] Connection connection)
+        public async Task<IActionResult> Create([Bind("Id,DomainNames,DbConn,DbName,StorageConn,Customer,WebsiteUrl,ResourceGroup,PublisherMode")] ConnectionViewModel model)
         {
             if (ModelState.IsValid)
             {
-                connection.Id = Guid.NewGuid();
-                _context.Add(connection);
+                model.Id = Guid.NewGuid();
+                var connection = model.ToConnection();
+                var result = await TestConnections(connection);
+                if (!result.IsDatabaseConnected)
+                {
+                    ModelState.AddModelError(string.Empty, "Database connection failed: " + result.ErrorMessage);
+                    return View(model);
+                }
+                if (!result.IsStorageConnected)
+                {
+                    ModelState.AddModelError(string.Empty, "Storage connection failed: " + result.ErrorMessage);
+                    return View(model);
+                }
+                _context.Add(model.ToConnection());
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(connection);
+            return View(model);
         }
 
         // GET: Connections/Edit/5
@@ -78,7 +119,7 @@ namespace Cosmos.MultiTenant_Adminstrator.Controllers
             {
                 return NotFound();
             }
-            return View(connection);
+            return View(new ConnectionViewModel(connection));
         }
 
         // POST: Connections/Edit/5
@@ -86,9 +127,9 @@ namespace Cosmos.MultiTenant_Adminstrator.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Id,DomainName,DbConn,DbName,StorageConn,Customer,WebsiteUrl")] Connection connection)
+        public async Task<IActionResult> Edit(Guid id, [Bind("Id,DomainNames,DbConn,DbName,StorageConn,Customer,WebsiteUrl,ResourceGroup,PublisherMode")] ConnectionViewModel model)
         {
-            if (id != connection.Id)
+            if (id != model.Id)
             {
                 return NotFound();
             }
@@ -97,12 +138,12 @@ namespace Cosmos.MultiTenant_Adminstrator.Controllers
             {
                 try
                 {
-                    _context.Update(connection);
+                    _context.Update(model.ToConnection());
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ConnectionExists(connection.Id))
+                    if (!ConnectionExists(model.Id))
                     {
                         return NotFound();
                     }
@@ -113,7 +154,7 @@ namespace Cosmos.MultiTenant_Adminstrator.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(connection);
+            return View(model);
         }
 
         // GET: Connections/Delete/5
@@ -131,7 +172,7 @@ namespace Cosmos.MultiTenant_Adminstrator.Controllers
                 return NotFound();
             }
 
-            return View(connection);
+            return View(new ConnectionViewModel(connection));
         }
 
         // POST: Connections/Delete/5
@@ -153,5 +194,32 @@ namespace Cosmos.MultiTenant_Adminstrator.Controllers
         {
             return _context.Connections.Any(e => e.Id == id);
         }
+
+        private async Task<TestResult> TestConnections(Connection connection)
+        {
+            var result = new TestResult();
+            try
+            {
+                // Test the database connection
+                result.IsDatabaseConnected = ApplicationDbContext.EnsureDatabaseExists(connection.DbConn, connection.DbName);
+
+                // Test the storage connection
+                var blobClient = new BlobServiceClient(connection.StorageConn);
+                var containerClient = blobClient.GetBlobContainerClient("$web");
+                var result1 = await containerClient.CreateIfNotExistsAsync();
+                var result2 = await blobClient.SetPropertiesAsync(new BlobServiceProperties()
+                {
+                    StaticWebsite = new BlobStaticWebsite() { Enabled = true, IndexDocument = "index.html" },
+                });
+
+                result.IsStorageConnected = true;
+            }
+            catch (Exception ex)
+            {
+                result.ErrorMessage = ex.Message;
+            }
+            return result;
+        }
+
     }
 }

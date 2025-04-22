@@ -18,12 +18,19 @@ namespace Cosmos.MultiTenant.Adminstrator.Controllers
             _logger = logger;
             _graphServiceClient = graphServiceClient; ;
         }
-
+                
         [AuthorizeForScopes(ScopeKeySection = "MicrosoftGraph:Scopes")]
         public async Task<IActionResult> Index()
         {
-            var user = await _graphServiceClient.Me.Request().GetAsync();
-            ViewData["GraphApiResult"] = user.DisplayName;
+            try
+            {
+                var user = await _graphServiceClient.Me.Request().GetAsync();
+                ViewData["GraphApiResult"] = user.DisplayName;
+            }
+            catch
+            {
+                ViewData["GraphApiResult"] = "Error retrieving user information.";
+            }
             return View();
         }
 
