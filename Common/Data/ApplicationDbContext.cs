@@ -50,22 +50,6 @@ namespace Cosmos.Common.Data
         }
 
         /// <summary>
-        /// Ensure database exists.
-        /// </summary>
-        /// <param name="connectionString">Connection string.</param>
-        /// <param name="databaseName">Database name.</param>
-        /// <returns>Success or not.</returns>
-        public static bool EnsureDatabaseExists(string connectionString, string databaseName)
-        {
-            var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-            optionsBuilder.UseCosmos(connectionString: connectionString, databaseName: databaseName);
-            using var dbContext = new ApplicationDbContext(optionsBuilder.Options);
-            var result = dbContext.Database.EnsureCreatedAsync();
-            result.Wait();
-            return result.Result;
-        }
-
-        /// <summary>
         /// Gets or sets catalog of Articles.
         /// </summary>
         public DbSet<CatalogEntry> ArticleCatalog { get; set; }
@@ -129,6 +113,22 @@ namespace Cosmos.Common.Data
         /// Gets or sets data protection keys.
         /// </summary>
         public DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
+
+        /// <summary>
+        /// Ensure database exists.
+        /// </summary>
+        /// <param name="connectionString">Connection string.</param>
+        /// <param name="databaseName">Database name.</param>
+        /// <returns>Success or not.</returns>
+        public static bool EnsureDatabaseExists(string connectionString, string databaseName)
+        {
+            var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+            optionsBuilder.UseCosmos(connectionString: connectionString, databaseName: databaseName);
+            using var dbContext = new ApplicationDbContext(optionsBuilder.Options);
+            var result = dbContext.Database.EnsureCreatedAsync();
+            result.Wait();
+            return result.Result;
+        }
 
         /// <summary>
         ///     Determine if this service is configured.
