@@ -41,6 +41,20 @@
           "System.Threading.Tasks.Extensions": "4.5.4"
         }
       },
+      "Cosmos.EmailServices": {
+        "type": "Direct",
+        "requested": "[9.0.1, )",
+        "resolved": "9.0.1",
+        "contentHash": "S76kU29M39PxJfdeAbGDhjvoYn89zds1u5ByDv7qrHU/B6haaXN60yZnBFUqIx8Q78NGL4p7pqNYsA6ytcUz8g==",
+        "dependencies": {
+          "Azure.Communication.Email": "1.0.1",
+          "Azure.Identity": "1.13.2",
+          "HtmlAgilityPack": "1.11.72",
+          "Microsoft.AspNetCore.Identity.UI": "9.0.1",
+          "SendGrid": "9.29.3",
+          "System.Configuration.ConfigurationManager": "9.0.1"
+        }
+      },
       "MailChimp.Net.V3": {
         "type": "Direct",
         "requested": "[5.7.0, )",
@@ -223,8 +237,8 @@
       },
       "HtmlAgilityPack": {
         "type": "Transitive",
-        "resolved": "1.12.1",
-        "contentHash": "SP6/2Y26CXtxjXn0Wwsom9Ek35SNWKHEu/IWhNEFejBSSVWWXPRSlpqpBSYWv1SQhYFnwMO01xVbEdK3iRR4hg=="
+        "resolved": "1.11.72",
+        "contentHash": "RNLgXxTFdIGFI+o5l8c2aJ2L5StIRn9Uv8HKR76p7QP4ZUL26wzpWUCWh08xWUdkL2kocl+Xhv6VUu0rA1npVg=="
       },
       "Microsoft.AspNetCore.Cryptography.Internal": {
         "type": "Transitive",
@@ -796,11 +810,11 @@
       },
       "System.Configuration.ConfigurationManager": {
         "type": "Transitive",
-        "resolved": "9.0.4",
-        "contentHash": "dvjqKp+2LpGid6phzrdrS/2mmEPxFl3jE1+L7614q4ZChKbLJCpHXg6sBILlCCED1t//EE+un/UdAetzIMpqnw==",
+        "resolved": "9.0.1",
+        "contentHash": "ntDQ+3A7vGq6jnv3KI8nv1Tfgmos9TG863xd/5tmms6LqrIxEze1RLuA3JB/AcpXMUSO70DXzXfPnJD2ZHFX0Q==",
         "dependencies": {
-          "System.Diagnostics.EventLog": "9.0.4",
-          "System.Security.Cryptography.ProtectedData": "9.0.4"
+          "System.Diagnostics.EventLog": "9.0.1",
+          "System.Security.Cryptography.ProtectedData": "9.0.1"
         }
       },
       "System.Diagnostics.Debug": {
@@ -820,8 +834,8 @@
       },
       "System.Diagnostics.EventLog": {
         "type": "Transitive",
-        "resolved": "9.0.4",
-        "contentHash": "getRQEXD8idlpb1KW56XuxImMy0FKp2WJPDf3Qr0kI/QKxxJSftqfDFVo0DZ3HCJRLU73qHSruv5q2l5O47jQQ=="
+        "resolved": "9.0.1",
+        "contentHash": "iVnDpgYJsRaRFnk77kcLA3+913WfWDtnAKrQl9tQ5ahqKANTaJKmQdsuPWWiAPWE9pk1Kj4Pg9JGXWfFYYyakQ=="
       },
       "System.Diagnostics.Tracing": {
         "type": "Transitive",
@@ -1199,8 +1213,8 @@
       },
       "System.Security.Cryptography.ProtectedData": {
         "type": "Transitive",
-        "resolved": "9.0.4",
-        "contentHash": "o94k2RKuAce3GeDMlUvIXlhVa1kWpJw95E6C9LwW0KlG0nj5+SgCiIxJ2Eroqb9sLtG1mEMbFttZIBZ13EJPvQ=="
+        "resolved": "9.0.1",
+        "contentHash": "u+4PH6GyDjEsWgcpKp1S/DiyxtGvazNPdaPFR6p6/qZr3TW+oZWvwfHO2H2CSpS4KGl2z2CBfU6eB38PsmoxtA=="
       },
       "System.Security.Cryptography.X509Certificates": {
         "type": "Transitive",
@@ -1319,7 +1333,7 @@
           "Azure.Identity": "[1.13.2, )",
           "Azure.Storage.Blobs": "[12.24.0, )",
           "Azure.Storage.Files.Shares": "[12.22.0, )",
-          "Cosmos.DynamicConfig": "[9.0.8.10, )",
+          "Cosmos.DynamicConfig": "[9.0.8.11, )",
           "Microsoft.AspNetCore.DataProtection": "[9.0.4, )",
           "Microsoft.Extensions.Caching.Abstractions": "[9.0.4, )",
           "Microsoft.Extensions.Configuration.Abstractions": "[9.0.4, )",
@@ -1336,17 +1350,6 @@
           "Microsoft.Extensions.Configuration.Binder": "[9.0.4, )",
           "Microsoft.Extensions.Logging.Abstractions": "[9.0.4, )",
           "System.Text.Encodings.Web": "[9.0.4, )"
-        }
-      },
-      "cosmos.emailservices": {
-        "type": "Project",
-        "dependencies": {
-          "Azure.Communication.Email": "[1.0.1, )",
-          "Azure.Identity": "[1.13.2, )",
-          "HtmlAgilityPack": "[1.12.1, )",
-          "Microsoft.AspNetCore.Identity.UI": "[9.0.4, )",
-          "SendGrid": "[9.29.3, )",
-          "System.Configuration.ConfigurationManager": "[9.0.4, )"
         }
       }
     }
