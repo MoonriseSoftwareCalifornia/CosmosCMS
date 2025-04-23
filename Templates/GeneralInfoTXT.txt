@@ -1,0 +1,5 @@
+﻿{{Subject}}
+{{Subtitle}}
+From: {{WebsiteName}}
+
+{{Body}}
