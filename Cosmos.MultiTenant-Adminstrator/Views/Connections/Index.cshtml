@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Cosmos.DynamicConfig.Connection>
+﻿@model IEnumerable<ConnectionsIndexViewModel>
 
 @{
     ViewData["Title"] = "Index";
@@ -15,6 +15,12 @@
         <tr>
             <th>
                 @Html.DisplayNameFor(model => model.Customer)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.DatabaseStatus)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.StorageStatus)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.WebsiteUrl)
@@ -37,6 +43,12 @@
             <tr>
                 <td>
                     @Html.DisplayFor(modelItem => item.Customer)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.DatabaseStatus)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.StorageStatus)
                 </td>
                 <td>
                     <a href="@item.WebsiteUrl" target="_blank">@Html.DisplayFor(modelItem => item.WebsiteUrl)</a>

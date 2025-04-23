@@ -14,6 +14,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     using System.Text.Encodings.Web;
     using System.Threading.Tasks;
     using Cosmos.Cms.Common.Services.Configurations;
+    using Cosmos.Cms.Data;
     using Cosmos.Editor.Services;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
@@ -23,7 +24,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     using Microsoft.AspNetCore.RateLimiting;
     using Microsoft.AspNetCore.WebUtilities;
     using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Options;
 
     /// <summary>
     /// External login page model.
@@ -170,7 +170,12 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
 
                 if (user != null && !await userManager.IsEmailConfirmedAsync(user))
                 {
-                    var newAdministrator = await SetupNewAdministrator.Ensure_RolesAndAdmin_Exists(roleManager, userManager, user);
+                    var admins = await userManager.GetUsersInRoleAsync(RequiredIdentityRoles.Administrators);
+                    if (admins.Count == 0)
+                    {
+                        var newAdministrator = await SetupNewAdministrator.Ensure_RolesAndAdmin_Exists(roleManager, userManager, user);
+                    }
+
                     ViewData["ShowResendConfirmEmail"] = true;
                 }
             }
@@ -206,7 +211,13 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                     {
                         logger.LogInformation("User created an account using {Name} provider.", info.LoginProvider);
 
-                        var newAdministrator = await SetupNewAdministrator.Ensure_RolesAndAdmin_Exists(roleManager, userManager, user);
+                        var newAdministrator = false;
+                        var admins = await userManager.GetUsersInRoleAsync(RequiredIdentityRoles.Administrators);
+
+                        if (admins.Count == 0)
+                        {
+                            newAdministrator = await SetupNewAdministrator.Ensure_RolesAndAdmin_Exists(roleManager, userManager, user);
+                        }
 
                         var userId = await userManager.GetUserIdAsync(user);
                         var code = await userManager.GenerateEmailConfirmationTokenAsync(user);

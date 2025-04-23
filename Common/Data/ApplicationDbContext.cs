@@ -119,15 +119,23 @@ namespace Cosmos.Common.Data
         /// </summary>
         /// <param name="connectionString">Connection string.</param>
         /// <param name="databaseName">Database name.</param>
+        /// <param name="setup">Setup database as well as test connection.</param>
         /// <returns>Success or not.</returns>
-        public static bool EnsureDatabaseExists(string connectionString, string databaseName)
+        public static bool EnsureDatabaseExists(string connectionString, string databaseName, bool setup = true)
         {
             var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
             optionsBuilder.UseCosmos(connectionString: connectionString, databaseName: databaseName);
             using var dbContext = new ApplicationDbContext(optionsBuilder.Options);
-            var result = dbContext.Database.EnsureCreatedAsync();
-            result.Wait();
-            return result.Result;
+
+            if (setup)
+            {
+                var result = dbContext.Database.EnsureCreatedAsync();
+                result.Wait();
+            }
+
+            var canConnect = dbContext.Articles.CountAsync();
+            canConnect.Wait();
+            return canConnect.Result >= 0;
         }
 
         /// <summary>

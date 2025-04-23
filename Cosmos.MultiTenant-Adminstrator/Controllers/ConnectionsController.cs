@@ -33,7 +33,20 @@ namespace Cosmos.MultiTenant_Adminstrator.Controllers
                     return RedirectToAction("Create");
                 }
 
-                return View(await _context.Connections.ToListAsync());
+                var entities = await _context.Connections.ToListAsync();
+                var model = new List<ConnectionsIndexViewModel>();
+
+                foreach(var item in entities)
+                {
+                    var result = await this.TestConnections(item, false);
+                    model.Add(new ConnectionsIndexViewModel(item)
+                    {
+                        DatabaseStatus = result.IsDatabaseConnected,
+                        StorageStatus = result.IsStorageConnected
+                    });
+                }
+
+                return View(model);
             }
             catch (Exception ex)
             {
@@ -138,6 +151,18 @@ namespace Cosmos.MultiTenant_Adminstrator.Controllers
             {
                 try
                 {
+                    var connection = model.ToConnection();
+                    var result = await TestConnections(connection);
+                    if (!result.IsDatabaseConnected)
+                    {
+                        ModelState.AddModelError(string.Empty, "Database connection failed: " + result.ErrorMessage);
+                        return View(model);
+                    }
+                    if (!result.IsStorageConnected)
+                    {
+                        ModelState.AddModelError(string.Empty, "Storage connection failed: " + result.ErrorMessage);
+                        return View(model);
+                    }
                     _context.Update(model.ToConnection());
                     await _context.SaveChangesAsync();
                 }
@@ -195,22 +220,20 @@ namespace Cosmos.MultiTenant_Adminstrator.Controllers
             return _context.Connections.Any(e => e.Id == id);
         }
 
-        private async Task<TestResult> TestConnections(Connection connection)
+        private async Task<TestResult> TestConnections(Connection connection, bool setup = true)
         {
             var result = new TestResult();
             try
             {
                 // Test the database connection
-                result.IsDatabaseConnected = ApplicationDbContext.EnsureDatabaseExists(connection.DbConn, connection.DbName);
+                result.IsDatabaseConnected = ApplicationDbContext.EnsureDatabaseExists(connection.DbConn, connection.DbName, setup);
 
                 // Test the storage connection
                 var blobClient = new BlobServiceClient(connection.StorageConn);
                 var containerClient = blobClient.GetBlobContainerClient("$web");
                 var result1 = await containerClient.CreateIfNotExistsAsync();
-                var result2 = await blobClient.SetPropertiesAsync(new BlobServiceProperties()
-                {
-                    StaticWebsite = new BlobStaticWebsite() { Enabled = true, IndexDocument = "index.html" },
-                });
+                
+                var result2 = await blobClient.GetPropertiesAsync();
 
                 result.IsStorageConnected = true;
             }

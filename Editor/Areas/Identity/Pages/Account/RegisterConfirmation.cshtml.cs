@@ -27,8 +27,8 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         /// Initializes a new instance of the <see cref="RegisterConfirmationModel"/> class.
         /// Constructor.
         /// </summary>
-        /// <param name="userManager"></param>
-        /// <param name="sender"></param>
+        /// <param name="userManager">User manager.</param>
+        /// <param name="sender">Email sender service.</param>
         public RegisterConfirmationModel(UserManager<IdentityUser> userManager, IEmailSender sender)
         {
             this.userManager = userManager;

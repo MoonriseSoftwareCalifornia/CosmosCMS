@@ -12,6 +12,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+    using Cosmos.Cms.Data;
     using Cosmos.Common.Data;
     using Cosmos.Editor.Services;
     using Cosmos.EmailServices;
@@ -120,7 +121,12 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                 {
                     logger.LogInformation("User created a new account with password.");
 
-                    var newAdministrator = await SetupNewAdministrator.Ensure_RolesAndAdmin_Exists(roleManager, userManager, user);
+                    var newAdministrator = false;
+                    var admins = await userManager.GetUsersInRoleAsync(RequiredIdentityRoles.Administrators);
+                    if (admins.Count == 0)
+                    {
+                        newAdministrator = await SetupNewAdministrator.Ensure_RolesAndAdmin_Exists(roleManager, userManager, user);
+                    }
 
                     var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
                     code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
@@ -133,17 +139,9 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                     // If the user is a new administrator, don't do these things
                     if (!newAdministrator)
                     {
-                        var admins = await userManager.GetUsersInRoleAsync("Administrators");
-                        var editors = await userManager.GetUsersInRoleAsync("Administrators");
-
                         foreach (var admin in admins)
                         {
                             await emailSender.SendEmailAsync(admin.Email, $"New account request for: {user.Email} requested an account.", $"{user.Email} requested a user account on publisher website: {Request.Host}.");
-                        }
-
-                        foreach (var editor in editors)
-                        {
-                            await emailSender.SendEmailAsync(editor.Email, $"New account request for: {user.Email} requested an account.", $"{user.Email} requested a user account on publisher website: {Request.Host}.");
                         }
 
                         var homePage = await dbContext.Pages.Select(s => new { s.Title, s.UrlPath }).FirstOrDefaultAsync(f => f.UrlPath == "root");
