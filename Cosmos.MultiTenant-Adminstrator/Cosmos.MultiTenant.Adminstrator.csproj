@@ -11,6 +11,7 @@
     <EnableSdkContainerDebugging>True</EnableSdkContainerDebugging>
     <ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:9.0</ContainerBaseImage>
     <Version>9.0.8.11</Version>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
 
   <ItemGroup>
@@ -34,6 +35,7 @@
     <PackageReference Include="Microsoft.Identity.Web.MicrosoftGraph" Version="3.8.3" />
     <PackageReference Include="Microsoft.Identity.Web.UI" Version="3.8.3" />
     <PackageReference Include="Microsoft.Identity.Web.DownstreamApi" Version="3.8.3" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="9.0.0" />
     <PackageReference Include="System.Private.Uri" Version="4.3.2" />
   </ItemGroup>
