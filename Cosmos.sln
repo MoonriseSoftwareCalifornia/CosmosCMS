@@ -12,8 +12,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.Common", "Common\Cosmos.Common.csproj", "{2233829B-29FC-4E78-9245-124E30FE1A48}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.Editor", "Editor\Cosmos.Editor.csproj", "{B9D13C81-4C4A-477F-9FEF-2108707380E6}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.Publisher", "Publisher\Cosmos.Publisher.csproj", "{FA561356-EE78-4B23-B5B5-B6D6882803B5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.Api", "Cosmos.Api\Cosmos.Api.csproj", "{FC9AB050-4561-457B-981A-436588EE4DB3}"
@@ -24,9 +22,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.BlobService", "Cosmo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.MultiTenant.Adminstrator", "Cosmos.MultiTenant-Adminstrator\Cosmos.MultiTenant.Adminstrator.csproj", "{2BEC20AC-2139-416C-853C-8EF509D917E0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.EmailServices", "Cosmos.EmailServices\Cosmos.EmailServices.csproj", "{97068073-75CE-A2DC-493E-5EFC7CD3A2AA}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.Services.Api", "Cosmos.Services.Api\Cosmos.Services.Api.csproj", "{69195A6F-3DE5-4F91-AA9B-C52399F0A252}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.Editor", "Editor\Cosmos.Editor.csproj", "{AC03A22A-54ED-5D8A-9B92-90FD1178AD85}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -38,10 +36,6 @@ Global
 		{2233829B-29FC-4E78-9245-124E30FE1A48}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2233829B-29FC-4E78-9245-124E30FE1A48}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2233829B-29FC-4E78-9245-124E30FE1A48}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B9D13C81-4C4A-477F-9FEF-2108707380E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B9D13C81-4C4A-477F-9FEF-2108707380E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B9D13C81-4C4A-477F-9FEF-2108707380E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B9D13C81-4C4A-477F-9FEF-2108707380E6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FA561356-EE78-4B23-B5B5-B6D6882803B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{FA561356-EE78-4B23-B5B5-B6D6882803B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FA561356-EE78-4B23-B5B5-B6D6882803B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -62,14 +56,14 @@ Global
 		{2BEC20AC-2139-416C-853C-8EF509D917E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2BEC20AC-2139-416C-853C-8EF509D917E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2BEC20AC-2139-416C-853C-8EF509D917E0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{97068073-75CE-A2DC-493E-5EFC7CD3A2AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{97068073-75CE-A2DC-493E-5EFC7CD3A2AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{97068073-75CE-A2DC-493E-5EFC7CD3A2AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{97068073-75CE-A2DC-493E-5EFC7CD3A2AA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{69195A6F-3DE5-4F91-AA9B-C52399F0A252}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{69195A6F-3DE5-4F91-AA9B-C52399F0A252}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{69195A6F-3DE5-4F91-AA9B-C52399F0A252}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{69195A6F-3DE5-4F91-AA9B-C52399F0A252}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC03A22A-54ED-5D8A-9B92-90FD1178AD85}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC03A22A-54ED-5D8A-9B92-90FD1178AD85}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC03A22A-54ED-5D8A-9B92-90FD1178AD85}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC03A22A-54ED-5D8A-9B92-90FD1178AD85}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
