@@ -33,7 +33,8 @@ namespace Cosmos.Cms.Controllers
     /// Home page controller.
     /// </summary>
     [Authorize]
-    [ResponseCache(NoStore = true)]
+    [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
+
     public class HomeController : Controller
     {
         private readonly ArticleEditLogic articleLogic;

@@ -129,8 +129,15 @@ namespace Cosmos.Common.Data
 
             if (setup)
             {
-                var result = dbContext.Database.EnsureCreatedAsync();
-                result.Wait();
+                try
+                {
+                    var result = dbContext.Database.EnsureCreatedAsync();
+                    result.Wait();
+                }
+                catch
+                {
+
+                }
             }
 
             var canConnect = dbContext.Articles.CountAsync();

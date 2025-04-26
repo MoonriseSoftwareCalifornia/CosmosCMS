@@ -11,11 +11,13 @@ namespace Cosmos.Publisher.Controllers
     using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Common.Data;
     using Cosmos.Editor.Data.Logic;
+    using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Options;
 
     /// <summary>
     /// Secure file access controller and proxy.
     /// </summary>
+    [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
     public class PubController : PubControllerBase
     {
         /// <summary>

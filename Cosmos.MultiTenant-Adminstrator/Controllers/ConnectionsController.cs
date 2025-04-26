@@ -163,7 +163,21 @@ namespace Cosmos.MultiTenant_Adminstrator.Controllers
                         ModelState.AddModelError(string.Empty, "Storage connection failed: " + result.ErrorMessage);
                         return View(model);
                     }
-                    _context.Update(model.ToConnection());
+                    var entity = await _context.Connections.FindAsync(id);
+                    if (entity == null)
+                    {
+                        return NotFound();
+                    }
+
+                    entity.PublisherMode = model.PublisherMode;
+                    entity.Customer = model.Customer;
+                    entity.DomainNames = model.DomainNames.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(d => d.Trim()).ToArray();
+                    entity.DbConn = model.DbConn;
+                    entity.DbName = model.DbName;
+                    entity.StorageConn = model.StorageConn;
+                    entity.WebsiteUrl = model.WebsiteUrl;
+                    entity.ResourceGroup = model.ResourceGroup;
+
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)

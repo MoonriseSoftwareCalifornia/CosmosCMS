@@ -40,6 +40,7 @@ namespace Cosmos.Cms.Controllers
     /// </summary>
     // [ResponseCache(NoStore = true)]
     [Authorize(Roles = "Administrators, Editors, Authors, Team Members")]
+    [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
     public class FileManagerController : BaseController
     {
         // Private fields

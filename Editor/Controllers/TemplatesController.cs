@@ -33,6 +33,7 @@ namespace Cosmos.Cms.Controllers
     /// Templates controller.
     /// </summary>
     [Authorize(Roles = "Administrators, Editors")]
+    [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
     public class TemplatesController : BaseController
     {
         private readonly ArticleEditLogic articleLogic;

@@ -76,7 +76,7 @@ if (multi)
     // Note that this is scopped, meaning for each request this is regenerated.
     // Multi-tenant support is enabled because each request may have a different domain name and connection
     // string information.
-    builder.Services.AddScoped<ApplicationDbContext>((serviceProvider) =>
+    builder.Services.AddTransient<ApplicationDbContext>((serviceProvider) =>
     {
         return new ApplicationDbContext(new DbContextOptions<ApplicationDbContext>(), serviceProvider);
     });
@@ -92,7 +92,7 @@ else
 }
 
 // This service has to appear right after DB Context.
-builder.Services.AddScoped<IEditorSettings, EditorSettings>();
+builder.Services.AddTransient<IEditorSettings, EditorSettings>();
 
 // Add Cosmos Identity here
 builder.Services.AddCosmosIdentity<ApplicationDbContext, IdentityUser, IdentityRole, string>(
@@ -306,7 +306,8 @@ app.UseRouting();
 
 app.UseCors();
 
-app.UseResponseCaching(); // https://docs.microsoft.com/en-us/aspnet/core/performance/caching/middleware?view=aspnetcore-3.1
+// Disable for the editor.
+// app.UseResponseCaching(); // https://docs.microsoft.com/en-us/aspnet/core/performance/caching/middleware?view=aspnetcore-3.1
 
 app.UseAuthentication();
 app.UseAuthorization();
