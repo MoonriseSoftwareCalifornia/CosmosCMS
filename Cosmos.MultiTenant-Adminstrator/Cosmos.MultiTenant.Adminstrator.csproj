@@ -10,7 +10,7 @@
     <ContainerRuntimeIdentifier>linux-x64</ContainerRuntimeIdentifier>
     <EnableSdkContainerDebugging>True</EnableSdkContainerDebugging>
     <ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:9.0</ContainerBaseImage>
-    <Version>9.0.8.11</Version>
+    <Version>9.0.8.13</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -30,10 +30,10 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Identity.Web" Version="3.8.3" />
-    <PackageReference Include="Microsoft.Identity.Web.MicrosoftGraph" Version="3.8.3" />
-    <PackageReference Include="Microsoft.Identity.Web.UI" Version="3.8.3" />
-    <PackageReference Include="Microsoft.Identity.Web.DownstreamApi" Version="3.8.3" />
+    <PackageReference Include="Microsoft.Identity.Web" Version="3.8.4" />
+    <PackageReference Include="Microsoft.Identity.Web.MicrosoftGraph" Version="3.8.4" />
+    <PackageReference Include="Microsoft.Identity.Web.UI" Version="3.8.4" />
+    <PackageReference Include="Microsoft.Identity.Web.DownstreamApi" Version="3.8.4" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="9.0.0" />
     <PackageReference Include="System.Private.Uri" Version="4.3.2" />
   </ItemGroup>
