@@ -525,6 +525,24 @@ namespace Cosmos.BlobService.Drivers
         }
 
         /// <summary>
+        /// Gets the storage consumption for the container.
+        /// </summary>
+        /// <returns>Byte count.</returns>
+        public async Task<long> GetStorageConsumption()
+        {
+            var containerClient = this.blobServiceClient.GetBlobContainerClient(this.containerName);
+
+            var blobs = containerClient.GetBlobsAsync().AsPages();
+            long bytesConsumed = 0;
+            await foreach (var blobPage in blobs)
+            {
+                bytesConsumed += blobPage.Values.Sum(b => b.Properties.ContentLength.GetValueOrDefault());
+            }
+
+            return bytesConsumed;
+        }
+
+        /// <summary>
         /// Initializes the instance.
         /// </summary>
         /// <param name="containerName">Container name.</param>

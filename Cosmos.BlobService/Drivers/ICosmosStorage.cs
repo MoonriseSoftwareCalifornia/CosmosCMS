@@ -99,6 +99,12 @@ namespace Cosmos.BlobService.Drivers
         Task<FileMetadata> GetFileMetadataAsync(string target);
 
         /// <summary>
+        /// Gets the total number of bytes consumed for a storage account.
+        /// </summary>
+        /// <returns>Number of bytes.</returns>
+        Task<long> GetStorageConsumption();
+
+        /// <summary>
         /// Opens a read stream from the blob in storage.
         /// </summary>
         /// <param name="target">Path to blob to read.</param>

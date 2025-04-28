@@ -694,5 +694,10 @@ namespace Cosmos.BlobService.Drivers
 
             return list;
         }
+
+        public Task<long> GetStorageConsumption()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
