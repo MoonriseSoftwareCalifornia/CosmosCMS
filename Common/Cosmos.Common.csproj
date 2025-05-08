@@ -15,9 +15,9 @@
 		<SignAssembly>false</SignAssembly>
 		<AnalysisLevel>5.0</AnalysisLevel>
 		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-		<Version>9.0.8.13</Version>
-		<AssemblyVersion>9.0.8.13</AssemblyVersion>
-		<FileVersion>9.0.8.13</FileVersion>
+		<Version>9.0.9.1</Version>
+		<AssemblyVersion>9.0.9.1</AssemblyVersion>
+		<FileVersion>9.0.9.1</FileVersion>
 		<UserSecretsId>498e495c-d772-4d44-870d-92009f01de57</UserSecretsId>
 		<PackageProjectUrl>https://www.moonrise.net/cosmos</PackageProjectUrl>
 		<NeutralLanguage></NeutralLanguage>
@@ -94,6 +94,7 @@
 		<PackageReference Include="AspNetCore.Identity.CosmosDb" Version="9.0.1" />
 		<PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.4.0" />
 		<PackageReference Include="Azure.Identity" Version="1.13.2" />
+		<PackageReference Include="Azure.Monitor.Query" Version="1.6.0" />
 		<PackageReference Include="Cosmos.EmailServices" Version="9.0.1" />
 		<PackageReference Include="MailChimp.Net.V3" Version="5.7.0" />
 		<PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="9.0.4" />

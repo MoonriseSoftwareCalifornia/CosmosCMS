@@ -169,6 +169,33 @@ namespace Cosmos.Editor.Services
         }
 
         /// <summary>
+        /// Gets the endpoint statistics for the configured CDN.
+        /// </summary>
+        /// <returns>FrontDoorUsage list.</returns>
+        public async Task<List<FrontDoorUsage>> GetEndpointStatistics()
+        {
+            var usage = new List<FrontDoorUsage>();
+
+            if (IsConfigured(CdnType.AzureFrontDoor))
+            {
+                var frontendEndpointResourceId = FrontDoorEndpointResource.CreateResourceIdentifier(
+                    SubscriptionId.ToString(),
+                    ResourceGroup,
+                    ProfileName,
+                    EndPointName);
+                var frontDoor = new ArmClient(new DefaultAzureCredential()).GetFrontDoorEndpointResource(frontendEndpointResourceId);
+                
+                var stats = frontDoor.GetResourceUsagesAsync();
+                await foreach (var stat in stats)
+                {
+                    usage.Add(stat);
+                }
+            }
+
+            return usage;
+        }
+
+        /// <summary>
         /// Purges the CDN (or Front Door) if either is configured.
         /// </summary>
         /// <param name="purgeUrls">Purge URL Paths.</param>
@@ -210,6 +237,7 @@ namespace Cosmos.Editor.Services
                     EndPointName);
 
                 var frontDoor = client.GetFrontDoorEndpointResource(frontendEndpointResourceId);
+
 
                 var purgeContent = new FrontDoorPurgeContent(purgeUrls);
 

@@ -22,6 +22,11 @@ namespace Cosmos.DynamicConfig
         public DbSet<Connection> Connections { get; set; } = null!;
 
         /// <summary>
+        /// Gets or sets the metrics entity.
+        /// </summary>
+        public DbSet<Metric> Metrics { get; set; } = null!;
+
+        /// <summary>
         ///  Handles the on model creating event.
         /// </summary>
         /// <param name="modelBuilder"></param>
@@ -29,6 +34,9 @@ namespace Cosmos.DynamicConfig
         {
             modelBuilder.Entity<Connection>()
                 .ToContainer("config");
+
+            modelBuilder.Entity<Metric>()
+                .ToContainer("Metrics");
 
             base.OnModelCreating(modelBuilder);
         }

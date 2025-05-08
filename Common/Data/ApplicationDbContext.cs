@@ -95,6 +95,11 @@ namespace Cosmos.Common.Data
         public DbSet<NodeScript> NodeScripts { get; set; }
 
         /// <summary>
+        /// Gets or sets metrics for the site.
+        /// </summary>
+        public DbSet<Metric> Metrics { get; set; }
+
+        /// <summary>
         /// Gets or sets published pages viewable via the publisher.
         /// </summary>
         public DbSet<PublishedPage> Pages { get; set; }

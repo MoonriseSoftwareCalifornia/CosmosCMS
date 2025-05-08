@@ -330,6 +330,14 @@
           "Microsoft.Extensions.Configuration": "2.1.0"
         }
       },
+      "Azure.Monitor.Query": {
+        "type": "Transitive",
+        "resolved": "1.6.0",
+        "contentHash": "GSzWkxwpUAf2L72QQrKoEk57DChxDGWlKgwuBM4wDwmB9oCbdIeQF0l36kIytHYbQCsy/uSCqiBkr+92XPDvOA==",
+        "dependencies": {
+          "Azure.Core": "1.44.1"
+        }
+      },
       "Azure.Security.KeyVault.Secrets": {
         "type": "Transitive",
         "resolved": "4.6.0",
@@ -2814,6 +2822,7 @@
           "AspNetCore.Identity.CosmosDb": "[9.0.1, )",
           "Azure.Extensions.AspNetCore.Configuration.Secrets": "[1.4.0, )",
           "Azure.Identity": "[1.13.2, )",
+          "Azure.Monitor.Query": "[1.6.0, )",
           "Cosmos.BlobService": "[9.0.8.13, )",
           "Cosmos.DynamicConfig": "[9.0.8.13, )",
           "Cosmos.EmailServices": "[9.0.1, )",

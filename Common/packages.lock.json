@@ -41,6 +41,15 @@
           "System.Threading.Tasks.Extensions": "4.5.4"
         }
       },
+      "Azure.Monitor.Query": {
+        "type": "Direct",
+        "requested": "[1.6.0, )",
+        "resolved": "1.6.0",
+        "contentHash": "GSzWkxwpUAf2L72QQrKoEk57DChxDGWlKgwuBM4wDwmB9oCbdIeQF0l36kIytHYbQCsy/uSCqiBkr+92XPDvOA==",
+        "dependencies": {
+          "Azure.Core": "1.44.1"
+        }
+      },
       "Cosmos.EmailServices": {
         "type": "Direct",
         "requested": "[9.0.1, )",
@@ -1333,7 +1342,7 @@
           "Azure.Identity": "[1.13.2, )",
           "Azure.Storage.Blobs": "[12.24.0, )",
           "Azure.Storage.Files.Shares": "[12.22.0, )",
-          "Cosmos.DynamicConfig": "[9.0.8.12, )",
+          "Cosmos.DynamicConfig": "[9.0.8.13, )",
           "Microsoft.AspNetCore.DataProtection": "[9.0.4, )",
           "Microsoft.Extensions.Caching.Abstractions": "[9.0.4, )",
           "Microsoft.Extensions.Configuration.Abstractions": "[9.0.4, )",

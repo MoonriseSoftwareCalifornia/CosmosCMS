@@ -26,6 +26,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.Services.Api", "Cosm
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.Editor", "Editor\Cosmos.Editor.csproj", "{AC03A22A-54ED-5D8A-9B92-90FD1178AD85}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.MultiTenant.Metrics", "Cosmos.MultiTenant.Metrics\Cosmos.MultiTenant.Metrics.csproj", "{EC62F0D8-D15A-4166-AE73-AA8B83FFDA3F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -64,6 +66,10 @@ Global
 		{AC03A22A-54ED-5D8A-9B92-90FD1178AD85}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AC03A22A-54ED-5D8A-9B92-90FD1178AD85}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AC03A22A-54ED-5D8A-9B92-90FD1178AD85}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC62F0D8-D15A-4166-AE73-AA8B83FFDA3F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC62F0D8-D15A-4166-AE73-AA8B83FFDA3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC62F0D8-D15A-4166-AE73-AA8B83FFDA3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC62F0D8-D15A-4166-AE73-AA8B83FFDA3F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
