@@ -35,3 +35,7 @@ jobs:
       run: docker build . --file Cosmos.MultiTenant-Adminstrator/Dockerfile --tag ${{ secrets.DOCKERLOGIN}}/cosmos-tenant-admin:latest
     - name: Push Multi-tenant Administrator
       run: docker push ${{ secrets.DOCKERLOGIN}}/cosmos-tenant-admin
+    - name: Build Multi-tenant Metrics FA
+      run: docker build . --file Cosmos.MultiTenant.Metrics/Dockerfile --tag ${{ secrets.DOCKERLOGIN}}/cosmos-tenant-metric-fa:latest
+    - name: Push Multi-tenant Metrics FA
+      run: docker push ${{ secrets.DOCKERLOGIN}}/cosmos-tenant-metric-fa
