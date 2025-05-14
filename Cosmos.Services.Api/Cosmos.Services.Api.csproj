@@ -9,7 +9,7 @@
     <EnableSdkContainerDebugging>True</EnableSdkContainerDebugging>
     <ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:9.0</ContainerBaseImage>
     <UserSecretsId>15f2be8e-95c5-4f74-9b62-04d221c1e630</UserSecretsId>
-    <Version>9.0.9.1</Version>
+    <Version>9.0.9.2</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.5" />
     <PackageReference Include="System.Private.Uri" Version="4.3.2" />
   </ItemGroup>
 
