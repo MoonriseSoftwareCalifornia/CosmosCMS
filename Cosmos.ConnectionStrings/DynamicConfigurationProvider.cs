@@ -83,7 +83,7 @@ namespace Cosmos.DynamicConfig
                 }
 
                 // Fallback to retrieving the domain name from the HTTP context host
-                return string.Empty;
+                return httpContextAccessor.HttpContext.Request.Host.Host?.ToLower() ?? string.Empty;
             }
         }
 

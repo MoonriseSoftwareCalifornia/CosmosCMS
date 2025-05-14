@@ -695,6 +695,11 @@ namespace Cosmos.BlobService.Drivers
             return list;
         }
 
+        /// <summary>
+        /// Gets the storage consumption.
+        /// </summary>
+        /// <returns>Bytes.</returns>
+        /// <exception cref="NotImplementedException">Not yet implemented.</exception>
         public Task<long> GetStorageConsumption()
         {
             throw new NotImplementedException();
