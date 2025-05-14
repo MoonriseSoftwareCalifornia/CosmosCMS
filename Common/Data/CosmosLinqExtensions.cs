@@ -24,7 +24,12 @@ namespace Cosmos.Common.Data
         /// <returns>Indicates the existence of any entities as a <see cref="bool"/>.</returns>
         public static async Task<bool> CosmosAnyAsync<T>(this IQueryable<T> query)
         {
-            return (await query.CountAsync()) > 0;
+            try
+            {
+                return (await query.CountAsync()) > 0;
+            }
+            catch
+            { return false; }
         }
     }
 }

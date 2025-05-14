@@ -184,6 +184,10 @@ namespace Cosmos.MultiTenant.Metrics
             metric.DatabaseRuUsage = cosmosDbResults.Where(x => x.ResourceName == "TotalRequestUnits")
                 .Sum(x => x.Total);
 
+            // Cumulative metric.
+            metric.DatabaseRuUsage = cosmosDbResults.Where(x => x.ResourceName == "TotalRequestUnits")
+                .Sum(x => x.Total);
+
             // Threadshold metric.
             metric.DatabaseDataUsageBytes = cosmosDbResults.Where(x => x.ResourceName == "DataUsage")
                 .Max(x => x.Maximum);
@@ -226,11 +230,14 @@ namespace Cosmos.MultiTenant.Metrics
 
             // Cumulative metric.
             metric.BlobStorageEgressBytes = storageResults.Where(x => x.ResourceName == "Egress")
-                .Max(x => x.Total);
+                .Sum(x => x.Total);
 
             // Cumulative metric.
             metric.BlobStorageIngressBytes = storageResults.Where(x => x.ResourceName == "Ingress")
-                .Max(x => x.Total);
+                .Sum(x => x.Total);
+
+            metric.BlobStorageTransactions = storageResults.Where(x => x.ResourceName == "Transactions")
+                .Sum(x => x.Total);
         }
 
         private async Task<long> CalculateTotalBlobSizeAsync(string connectionString)

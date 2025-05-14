@@ -73,7 +73,17 @@ namespace Cosmos.DynamicConfig
         {
             get
             {
-                return httpContextAccessor.HttpContext.Request.Host.Host?.ToLower() ?? string.Empty;
+                // Attempt to retrieve the domain name from a custom cookie
+                var cookieName = "CosmosWebsiteDomain"; // Replace with your custom cookie name
+                var cookieValue = httpContextAccessor.HttpContext?.Request.Cookies[cookieName];
+
+                if (!string.IsNullOrWhiteSpace(cookieValue))
+                {
+                    return cookieValue.ToLower();
+                }
+
+                // Fallback to retrieving the domain name from the HTTP context host
+                return string.Empty;
             }
         }
 
@@ -109,11 +119,12 @@ namespace Cosmos.DynamicConfig
         /// <returns>Database connection string.</returns>
         public string? GetStorageConnectionString()
         {
-            if (this.isMultiTenantEditor)
+            var con =  GetTenantConnection();
+            if (this.isMultiTenantEditor && con != null && !string.IsNullOrEmpty(con.StorageConn))
             {
-                return GetTenantConnection()?.StorageConn;
+                return con?.StorageConn;
             }
-            return configuration.GetConnectionString("AzureBlobStorageConnectionString");
+            return configuration.GetConnectionString("DataProtectionStorage");
         }
 
         /// <summary>
@@ -138,6 +149,20 @@ namespace Cosmos.DynamicConfig
 
         private Connection? GetTenantConnection()
         {
+            if (string.IsNullOrEmpty(Domain))
+            {
+                var connectionString = configuration.GetConnectionString("ConfigDbConnectionString");
+                var storageConnection = configuration.GetConnectionString("AzureBlobStorageConnectionString");
+                return new Connection()
+                {
+                    Customer = "Moonrise Software LLC",
+                    DomainNames = new[] { "www.moonrise.net" },
+                    DbConn = connectionString,
+                    DbName = "cosmoscms",
+                    StorageConn = storageConnection
+                };
+            }
+
             if (string.IsNullOrWhiteSpace(connectionString))
             {
                 return null;

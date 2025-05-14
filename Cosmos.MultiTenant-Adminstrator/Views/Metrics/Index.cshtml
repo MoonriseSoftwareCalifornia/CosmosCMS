@@ -1,0 +1,72 @@
+﻿@using Cosmos.MultiTenant_Adminstrator.Controllers
+@using System.Globalization
+@model IEnumerable<MetricsIndexViewModel>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.WebsiteUrl)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.TimeStamp)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.MaxBlobStorageBytes)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.MaxDatabaseDataUsageBytes)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.SumDatabaseRuUsage)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.SumFrontDoorRequestBytes)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.SumFrontDoorResponseBytes)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.WebsiteUrl)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.TimeStamp)
+                </td>
+                <td>
+                    @NumberFormatter.FormatBytes(item.MaxBlobStorageBytes)
+                </td>
+                <td>
+                    @NumberFormatter.FormatBytes(item.MaxDatabaseDataUsageBytes)
+                </td>
+                <td>
+                    @item.SumDatabaseRuUsage??.Value.ToString()
+                </td>
+                <td>
+                    @NumberFormatter.FormatBytes(item.SumFrontDoorRequestBytes)
+                </td>
+                <td>
+                    @NumberFormatter.FormatBytes(item.SumFrontDoorResponseBytes)
+                </td>
+                <td>
+
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

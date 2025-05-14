@@ -1,14 +1,9 @@
-﻿using Azure.Identity;
-using Azure.Storage.Blobs;
-using Azure.Storage.Blobs.Models;
-using Cosmos.BlobService;
-using Cosmos.BlobService.Drivers;
+﻿using Azure.Storage.Blobs;
 using Cosmos.Common.Data;
 using Cosmos.DynamicConfig;
 using Cosmos.MultiTenant_Adminstrator.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.FileSystemGlobbing.Internal;
 
 namespace Cosmos.MultiTenant_Adminstrator.Controllers
 {

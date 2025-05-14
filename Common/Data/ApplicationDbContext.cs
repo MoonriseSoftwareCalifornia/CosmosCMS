@@ -268,6 +268,11 @@ namespace Cosmos.Common.Data
                 .HasPartitionKey(k => k.Id)
                 .HasKey(k => k.Id);
 
+            modelBuilder.Entity<Metric>()
+                .ToContainer("Metrics")
+                .HasPartitionKey(k => k.Id)
+                .HasKey(k => k.Id);
+
             modelBuilder.Entity<Contact>()
                 .HasPartitionKey(k => k.Id)
                 .HasKey(k => k.Id);

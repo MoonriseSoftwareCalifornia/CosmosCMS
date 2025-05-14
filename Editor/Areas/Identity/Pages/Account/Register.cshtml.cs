@@ -115,6 +115,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
 
             if (ModelState.IsValid)
             {
+                dbContext.Database.EnsureCreated();
                 var user = new IdentityUser { UserName = Input.Email, Email = Input.Email };
                 var result = await userManager.CreateAsync(user, Input.Password);
                 if (result.Succeeded)

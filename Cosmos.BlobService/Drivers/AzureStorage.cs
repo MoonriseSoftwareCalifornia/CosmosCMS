@@ -43,9 +43,7 @@ namespace Cosmos.BlobService.Drivers
         {
             var connectionStringProvider = services.GetRequiredService<IDynamicConfigurationProvider>();
 
-            var connectionString = isMultiTenant ?
-                connectionStringProvider.GetStorageConnectionString() :
-                connectionStringProvider.GetConnectionStringByName("AzureBlobStorageConnectionString");
+            var connectionString = connectionStringProvider.GetStorageConnectionString();
 
             this.Initialize(containerName, connectionString, defaultAzureCredential);
         }

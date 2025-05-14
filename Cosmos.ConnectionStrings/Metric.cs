@@ -47,6 +47,14 @@ namespace Cosmos.DynamicConfig
         public double? BlobStorageIngressBytes { get; set; } = 0;
 
         /// <summary>
+        /// Blob storage transactions.
+        /// </summary>
+        /// <remarks>
+        /// In Azure Storage, a transaction refers to any operation that interacts with the storage account. These operations can include reading, writing, deleting, or listing data across the different storage services:
+        /// </remarks>
+        public double? BlobStorageTransactions {  get; set; } = 0;
+
+        /// <summary>
         /// Gets or sets the total size of database storage in bytes for the day.
         /// </summary>
         public double? DatabaseDataUsageBytes { get; set; }
