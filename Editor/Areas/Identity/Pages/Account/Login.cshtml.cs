@@ -7,12 +7,14 @@
 
 namespace Cosmos.Cms.Areas.Identity.Pages.Account
 {
+    using System;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
     using System.Linq;
     using System.Threading.Tasks;
     using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Common.Data;
+    using Cosmos.DynamicConfig;
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
@@ -20,6 +22,8 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     using Microsoft.AspNetCore.Mvc.RazorPages;
     using Microsoft.AspNetCore.RateLimiting;
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
 
@@ -32,38 +36,63 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     {
         private readonly ILogger<LoginModel> logger;
         private readonly IOptions<SiteSettings> options;
-        private readonly SignInManager<IdentityUser> signInManager;
-        private readonly UserManager<IdentityUser> userManager;
-        private readonly ApplicationDbContext dbContext;
+        private readonly IServiceProvider services;
+        private readonly IConfiguration configuration;
+        private readonly bool isMultiTenantEditor;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LoginModel"/> class.
         /// Constructor.
         /// </summary>
-        /// <param name="signInManager">Sign in manager service.</param>
         /// <param name="logger">Log service.</param>
-        /// <param name="userManager">User manager service.</param>
         /// <param name="options">Cosmos site options.</param>
-        /// <param name="dbContext">Database context.</param>
+        /// <param name="services">App services.</param>
+        /// <param name="configuration">App configuration.</param>
         public LoginModel(
-            SignInManager<IdentityUser> signInManager,
             ILogger<LoginModel> logger,
-            UserManager<IdentityUser> userManager,
             IOptions<SiteSettings> options,
-            ApplicationDbContext dbContext)
+            IServiceProvider services,
+            IConfiguration configuration)
         {
-            this.userManager = userManager;
-            this.signInManager = signInManager;
             this.logger = logger;
             this.options = options;
-            this.dbContext = dbContext;
+            this.services = services;
+            this.configuration = configuration;
+            isMultiTenantEditor = this.configuration.GetValue<bool?>("MultiTenantEditor") ?? false;
+        }
+
+        private SignInManager<IdentityUser> SignInManager
+        {
+            get
+            {
+                var manager = services.GetService<SignInManager<IdentityUser>>();
+                return manager;
+            }
+        }
+
+        private UserManager<IdentityUser> UserManager
+        {
+            get
+            {
+                var manager = services.GetService<UserManager<IdentityUser>>();
+                return manager;
+            }
+        }
+
+        private ApplicationDbContext DbContext
+        {
+            get
+            {
+                var manager = services.GetService<ApplicationDbContext>();
+                return manager;
+            }
         }
 
         /// <summary>
         /// Gets or sets input model.
         /// </summary>
         [BindProperty]
-        public InputModel Input { get; set; }
+        public InputModel Input { get; set; } = new InputModel();
 
         /// <summary>
         /// Gets or sets external logins.
@@ -100,18 +129,28 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                 return RedirectToAction(returnUrl);
             }
 
+            if (await NeedsAccountCookieSet())
+            {
+                // Automatically add the website domain name if given in the query string.
+                Input.NeedsCookieSet = true;
+                Input.WebsiteDomainName = Request.Query["website"];
+                return Page();
+            }
+
+            ViewData["ShowWebsiteField"] = false;
+
             // Clear the existing external cookie to ensure a clean login process
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 
-            ExternalLogins = (await signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+            ExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 
             // If there are no users yet, go strait to the register page.
             if (options.Value.AllowSetup)
             {
-                await dbContext.Database.EnsureCreatedAsync();
+                await DbContext.Database.EnsureCreatedAsync();
             }
 
-            if (await userManager.Users.CountAsync() == 0)
+            if (await UserManager.Users.CountAsync() == 0)
             {
                 return RedirectToPage("Register");
             }
@@ -128,16 +167,44 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
+            ViewData["IsMultiTenantEditor"] = isMultiTenantEditor;
             returnUrl = await GetReturnUrl(returnUrl);
 
-            ExternalLogins = (await signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+            if (Input.NeedsCookieSet)
+            {
+                if (string.IsNullOrWhiteSpace(Input.WebsiteDomainName))
+                {
+                    ModelState.AddModelError(string.Empty, "Please enter a valid domain name.");
+                    return Page();
+                }
+
+                // Automatically add the website domain name if given in the query string.
+                if (await DynamicConfigurationProvider.ValidateDomainName(configuration, Input.WebsiteDomainName))
+                {
+                    // Automatically add the website domain name if given in the query string.
+                    Response.Cookies.Append(DynamicConfigurationProvider.StandardCookieName, Input.WebsiteDomainName);
+                    Input.NeedsCookieSet = false;
+                    return Page();
+                }
+
+                return Page();
+            }
+
+            if (!isMultiTenantEditor)
+            {
+                ExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+            }
+            else
+            {
+                ExternalLogins = new List<AuthenticationScheme>();
+            }
 
             if (ModelState.IsValid)
             {
                 // This doesn't count login failures towards account lockout
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
                 var result =
-                    await signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, false);
+                    await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, false);
                 if (result.Succeeded)
                 {
                     logger.LogInformation("User logged in.");
@@ -169,12 +236,33 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         private async Task<string> GetReturnUrl(string returnUrl)
         {
-            if (!await dbContext.Articles.CosmosAnyAsync())
+            if (!await DbContext.Articles.CosmosAnyAsync())
             {
                 return "/";
             }
 
-            return string.IsNullOrWhiteSpace(returnUrl) ? "/" : returnUrl.Replace("http://", "https://");   
+            return string.IsNullOrWhiteSpace(returnUrl) ? "/" : returnUrl.Replace("http://", "https://");
+        }
+
+        /// <summary>
+        /// Indicates if the account cookie needs to be set.
+        /// </summary>
+        /// <returns>True or false.</returns>
+        /// <remarks>This also sets the ViewData['NeedsAccountCookieSet'] so that the view knows what to show.</remarks>
+        private async Task<bool> NeedsAccountCookieSet()
+        {
+            if (!isMultiTenantEditor)
+            {
+                return false;
+            }
+
+            var domainName = DynamicConfigurationProvider.GetDomainName(configuration, HttpContext);
+            if (await DynamicConfigurationProvider.ValidateDomainName(configuration, domainName))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -190,11 +278,21 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
             public string Email { get; set; }
 
             /// <summary>
+            /// Gets or sets a value indicating whether the cookie needs to be set.
+            /// </summary>
+            public bool NeedsCookieSet { get; set; } = false;
+
+            /// <summary>
             /// Gets or sets password.
             /// </summary>
             [Required]
             [DataType(DataType.Password)]
             public string Password { get; set; }
+
+            /// <summary>
+            /// Gets or sets website domain name.
+            /// </summary>
+            public string WebsiteDomainName { get; set; } = string.Empty;
 
             /// <summary>
             /// Gets or sets a value indicating whether remember me.

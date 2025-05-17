@@ -19,23 +19,23 @@ namespace Cosmos.DynamicConfig
         /// <summary>
         /// Get database name by domain name.
         /// </summary>
-        /// <param name="domain">Domain name.</param>
+        /// <param name="domainName">Domain name.</param>
         /// <returns>Database name.</returns>
-        string? GetDatabaseName();
+        string? GetDatabaseName(string domainName = "");
 
         /// <summary>
         /// Get database connection string based on domain.
         /// </summary>
-        /// <param name="domain">domain name.</param>
+        /// <param name="domainName">domain name.</param>
         /// <returns>Connection string.</returns>
-        string? GetDatabaseConnectionString();
+        string? GetDatabaseConnectionString(string domainName = "");
 
         /// <summary>
         /// Get storage connection string based on domain.
         /// </summary>
-        /// <param name="domain">Domain name.</param>
+        /// <param name="domainName">Domain name.</param>
         /// <returns>Connection string.</returns>
-        string? GetStorageConnectionString();
+        string? GetStorageConnectionString(string domainName = "");
 
         /// <summary>
         /// Get configuration value.

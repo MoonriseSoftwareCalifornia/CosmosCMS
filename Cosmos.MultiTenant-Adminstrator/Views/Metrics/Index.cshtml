@@ -49,13 +49,16 @@
                     @Html.DisplayFor(modelItem => item.TimeStamp)
                 </td>
                 <td>
-                    @NumberFormatter.FormatBytes(item.MaxBlobStorageBytes)
+                    @NumberFormatter.FormatBytes(item.MaxBlobStorageBytes)<br />
+                    @item.BlobStorageCost.Value.ToString("C4", CultureInfo.CurrentCulture)
                 </td>
                 <td>
-                    @NumberFormatter.FormatBytes(item.MaxDatabaseDataUsageBytes)
+                    @NumberFormatter.FormatBytes(item.MaxDatabaseDataUsageBytes)<br />
+                    @item.DatabaseStorageCost.Value.ToString("C4", CultureInfo.CurrentCulture)
                 </td>
                 <td>
-                    @item.SumDatabaseRuUsage??.Value.ToString()
+                    @item.SumDatabaseRuUsage.Value.ToString("N")<br />
+                    @item.DatabaseRuCost.Value.ToString("C4", CultureInfo.CurrentCulture)
                 </td>
                 <td>
                     @NumberFormatter.FormatBytes(item.SumFrontDoorRequestBytes)

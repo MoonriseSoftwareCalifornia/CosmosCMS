@@ -36,12 +36,17 @@ namespace Cosmos.DynamicConfig
         /// <summary>
         /// Gets a value indicating whether the connection is configured for multi-tenant.
         /// </summary>
-        public bool IsMultiTenantConfigured { get { return GetTenantConnection() != null; } }
+        public bool IsMultiTenantConfigured { get { return GetTenantConnection("") != null; } }
 
         /// <summary>
         /// Gets a value indicating the error messages that may exist.
         /// </summary>
         public string ErrorMesages => errorMessages.ToString();
+
+        /// <summary>
+        ///  Gets the standard cookie name.
+        /// </summary>
+        public static string StandardCookieName => "CosmosWebsiteDomain";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ConnectionStringProvider"/> class.
@@ -73,29 +78,20 @@ namespace Cosmos.DynamicConfig
         {
             get
             {
-                // Attempt to retrieve the domain name from a custom cookie
-                var cookieName = "CosmosWebsiteDomain"; // Replace with your custom cookie name
-                var cookieValue = httpContextAccessor.HttpContext?.Request.Cookies[cookieName];
-
-                if (!string.IsNullOrWhiteSpace(cookieValue))
-                {
-                    return cookieValue.ToLower();
-                }
-
-                // Fallback to retrieving the domain name from the HTTP context host
-                return httpContextAccessor.HttpContext.Request.Host.Host?.ToLower() ?? string.Empty;
+                return GetDomainName(configuration, httpContextAccessor.HttpContext);
             }
         }
 
         /// <summary>
         /// Gets the database name.
         /// </summary>
+        /// <param name="domainName">Domain name</param>
         /// <returns>Database name.</returns>
-        public string? GetDatabaseName()
+        public string? GetDatabaseName(string domainName = "")
         {
             if (this.isMultiTenantEditor)
             {
-                return GetTenantConnection()?.DbName;
+                return GetTenantConnection(domainName)?.DbName;
             }
             return configuration.GetValue<string>($"CosmosIdentityDbName") ?? "cosmoscms";
         }
@@ -103,12 +99,13 @@ namespace Cosmos.DynamicConfig
         /// <summary>
         /// Gets the database connection string.
         /// </summary>
+        /// <param name="domainName">Domain name</param>
         /// <returns>Database connection string.</returns>
-        public string? GetDatabaseConnectionString()
+        public string? GetDatabaseConnectionString(string domainName = "")
         {
             if (this.isMultiTenantEditor)
             {
-                return GetTenantConnection()?.DbConn;
+                return GetTenantConnection(domainName)?.DbConn;
             }
             return configuration.GetConnectionString("ApplicationDbContextConnection");
         }
@@ -116,10 +113,11 @@ namespace Cosmos.DynamicConfig
         /// <summary>
         /// Gets the storage connection string.
         /// </summary>
+        /// <param name="domainName">Domain name</param>
         /// <returns>Database connection string.</returns>
-        public string? GetStorageConnectionString()
+        public string? GetStorageConnectionString(string domainName = "")
         {
-            var con =  GetTenantConnection();
+            var con = GetTenantConnection(domainName);
             if (this.isMultiTenantEditor && con != null && !string.IsNullOrEmpty(con.StorageConn))
             {
                 return con?.StorageConn;
@@ -147,9 +145,87 @@ namespace Cosmos.DynamicConfig
             return configuration.GetConnectionString(name);
         }
 
-        private Connection? GetTenantConnection()
+        /// <summary>
+        /// Gets the domain name from the cookie or query string, or default to the host name.
+        /// </summary>
+        /// <param name="configuration"></param>
+        /// <param name="httpContext"></param>
+        /// <returns></returns>
+        public static string GetDomainName(IConfiguration configuration, HttpContext httpContext)
         {
-            if (string.IsNullOrEmpty(Domain))
+            var cookieValue = httpContext.Request.Cookies[StandardCookieName];
+            if (!string.IsNullOrWhiteSpace(cookieValue))
+            {
+                return cookieValue.ToLower();
+            }
+            var websiteDomainName = httpContext.Request.Query["website"].ToString().ToLower();
+            if (!string.IsNullOrWhiteSpace(websiteDomainName))
+            {
+                return websiteDomainName.ToLower();
+            }
+            return httpContext.Request.Host.Host?.ToLower() ?? string.Empty;
+        }
+
+        /// <summary>
+        /// Tests to see if there is a connection defined for the specified domain name.
+        /// </summary>
+        /// <param name="configuration"></param>
+        /// <param name="domainName"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        public static async Task<bool> ValidateDomainName(IConfiguration configuration, string domainName)
+        {
+            if (string.IsNullOrWhiteSpace(domainName))
+            {
+                return false;
+            }
+
+            var connectionString = configuration.GetConnectionString("ConfigDbConnectionString");
+
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                throw new ArgumentException("Connection string 'ConfigDbConnectionString' not found.");
+            }
+
+            var options = new DbContextOptionsBuilder<DynamicConfigDbContext>()
+                    .UseCosmos(connectionString, databaseName: "configs")
+                    .Options;
+            using var dbContext = new DynamicConfigDbContext(options);
+            var result = await dbContext.Connections.FirstOrDefaultAsync(c => c.DomainNames.Any(a => a == domainName));
+            return result != null;
+        }
+
+        public static async Task<bool> ValidateDomainName(IConfiguration configuration, string domainName, string emailAddress)
+        {
+            if (string.IsNullOrWhiteSpace(domainName))
+            {
+                return false;
+            }
+
+            var connectionString = configuration.GetConnectionString("ConfigDbConnectionString");
+
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                throw new ArgumentException("Connection string 'ConfigDbConnectionString' not found.");
+            }
+
+            var options = new DbContextOptionsBuilder<DynamicConfigDbContext>()
+                    .UseCosmos(connectionString, databaseName: "configs")
+                    .Options;
+            using var dbContext = new DynamicConfigDbContext(options);
+            var result = await dbContext.Connections.FirstOrDefaultAsync(c => c.DomainNames.Any(a => a == domainName));
+
+            return result != null;
+        }
+
+        private Connection? GetTenantConnection(string domainName)
+        {
+            if (string.IsNullOrWhiteSpace(domainName))
+            {
+                domainName = Domain;
+            }
+
+            if (string.IsNullOrEmpty(domainName))
             {
                 var connectionString = configuration.GetConnectionString("ConfigDbConnectionString");
                 var storageConnection = configuration.GetConnectionString("AzureBlobStorageConnectionString");
@@ -168,7 +244,7 @@ namespace Cosmos.DynamicConfig
                 return null;
             }
 
-            memoryCache.TryGetValue<Connection>(Domain, out var connection);
+            memoryCache.TryGetValue<Connection>(domainName, out var connection);
 
             if (connection == null)
             {
@@ -177,7 +253,7 @@ namespace Cosmos.DynamicConfig
                         .Options;
 
                 using var dbContext = new DynamicConfigDbContext(options);
-                var result = dbContext.Connections.FirstOrDefaultAsync(c => c.DomainNames.Any(a => a == Domain));
+                var result = dbContext.Connections.FirstOrDefaultAsync(c => c.DomainNames.Any(a => a == domainName));
                 result.Wait();
                 connection = result.Result;
                 if (connection != null)

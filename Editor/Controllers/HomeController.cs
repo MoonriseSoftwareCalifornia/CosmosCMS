@@ -143,12 +143,7 @@ namespace Cosmos.Cms.Controllers
         {
             if (options.IsMultiTenantEditor && !EnsureMultiTenantConfigured())
             {
-                return NotFound();
-            }
-
-            if (!ModelState.IsValid) 
-            {
-                return BadRequest(ModelState);
+                return Redirect("~/Identity/Account/Login");
             }
 
             if (User.Identity?.IsAuthenticated == false)

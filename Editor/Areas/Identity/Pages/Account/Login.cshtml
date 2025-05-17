@@ -5,6 +5,11 @@
 @model LoginModel
 @{
     ViewData["Title"] = "Log in";
+
+    if (Model.Input.NeedsCookieSet)
+    {
+        Model.Input.Password = Guid.NewGuid().ToString();
+    }
 }
 
 <div class="container">
@@ -22,67 +27,102 @@
                             Do you need an account? <a asp-page="./Register" class="btn btn-sm btn-dark" asp-route-returnUrl="@Model.ReturnUrl">Create Account</a>
                         </p>
                     </section>
-                    <section>
-                        <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
-                            <div class="d-grid gap-3 mb-3">
-                                @foreach (var provider in Model.ExternalLogins)
-                                {
-                                    @if (provider.Name == "Facebook")
-                                    {
-                                        <button type="submit" class="btn btn-outline-primary" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">
-                                            <img height="35" alt="Facebook Login Icon" src="~/lib/images/facebook.png" /> Login using @provider.DisplayName
-                                        </button>
-                                    }
-                                    else if (provider.Name == "Google")
-                                    {
-                                        <button type="submit" class="btn btn-dark" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">
-                                            <img height="35" alt="Google Login Icon" src="~/lib/images/img_login_google2.2x.png" /> Login using @provider.DisplayName
-                                        </button>
-                                    }
-                                    else if (provider.Name == "Microsoft")
-                                    {
-                                        <button type="submit" class="btn btn-dark" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">
-                                            <img height="35" alt="Microsoft Login Icon" src="~/lib/images/img_login_microsoft2.2x.png" /> Login using @provider.DisplayName
-                                        </button>
-                                    }
-                                }
-                            </div>
-                        </form>
-                    </section>
-                    @if (options.Value.SiteSettings.AllowLocalAccounts)
+                    @if (Model.Input.NeedsCookieSet)
                     {
-                        <div>
-                            @if (Model.ExternalLogins?.Count > 0)
-                            {
-                                <hr />
-                                <h5 class="card-title text-center">Or continue below:</h5>
-                            }
-                        </div>
                         <section>
-                            <form id="account" method="post">
-                                <div asp-validation-summary="All" class="text-danger"></div>
+                            <form id="account" method="post" asp-antiforgery="true">
+                                <input type="hidden" asp-for="Input.Password" />
+                                <input type="hidden" asp-for="Input.NeedsCookieSet" />
                                 <div class="form-group mb-3">
                                     <label asp-for="Input.Email"></label>
                                     <input asp-for="Input.Email" class="form-control" />
                                     <span asp-validation-for="Input.Email" class="text-danger"></span>
                                     <a id="resend-confirmation" class="text-light" asp-page="./ResendEmailConfirmation">Resend email confirmation</a>
                                 </div>
-                                <div class="form-group mb-3">
-                                    <label asp-for="Input.Password"></label>
-                                    <input asp-for="Input.Password" class="form-control" />
-                                    <span asp-validation-for="Input.Password" class="text-danger"></span>
-                                    <a id="forgot-password" class="text-light" asp-page="./ForgotPassword">Forgot your password?</a>
-                                </div>
-                                <div class="form-group mb-3">
-                                    <div class="checkbox" style="display:none">
-                                        <label asp-for="Input.RememberMe">
-                                            <input asp-for="Input.RememberMe" />
-                                            @Html.DisplayNameFor(m => m.Input.RememberMe)
-                                        </label>
-                                    </div>
+                                <div id="websiteDomainNameGroup" class="form-group mb-3">
+                                    <label asp-for="Input.WebsiteDomainName"></label>
+                                    <input asp-for="Input.WebsiteDomainName" class="form-control" />
+                                    <span class="text-light text-mute">Example: www.acme.com</span>
+                                    <span asp-validation-for="Input.WebsiteDomainName" class="text-danger"></span>
                                 </div>
                                 <div class="form-group">
-                                    <button type="submit" class="btn btn-dark">Log in</button>
+                                    <button type="submit" class="btn btn-dark">Continue <i class="fa-solid fa-circle-arrow-right"></i></button>
+                                </div>
+                            </form>
+                        </section>
+                    }
+                    else
+                    {
+                        @if (options.Value.SiteSettings.AllowLocalAccounts)
+                        {
+                            <section>
+                                <form id="account" method="post" asp-antiforgery="true">
+                                    <div class="form-group mb-3">
+                                        <label asp-for="Input.Email"></label>
+                                        <input asp-for="Input.Email" class="form-control" />
+                                        <span asp-validation-for="Input.Email" class="text-danger"></span>
+                                        <a id="resend-confirmation" class="text-light" asp-page="./ResendEmailConfirmation">Resend email confirmation</a>
+                                    </div>
+                                    <div id="websiteDomainNameGroup" class="form-group mb-3">
+                                        <label asp-for="Input.WebsiteDomainName"></label>
+                                        <input asp-for="Input.WebsiteDomainName" class="form-control" />
+                                        <span class="text-light text-mute">Example: www.acme.com</span>
+                                        <span asp-validation-for="Input.WebsiteDomainName" class="text-danger"></span>
+                                    </div>
+                                    <div>
+                                        @if (Model.ExternalLogins?.Count > 0)
+                                        {
+                                            <hr />
+                                            <h5 class="card-title text-center">Login with password or one of the following options below.</h5>
+                                        }
+                                    </div>
+                                    <div id="passwordGroup" class="form-group mb-3">
+                                        <label asp-for="Input.Password"></label>
+                                        <input asp-for="Input.Password" class="form-control" />
+                                        <span asp-validation-for="Input.Password" class="text-danger"></span>
+                                        <a id="forgot-password" class="text-light" asp-page="./ForgotPassword">Forgot your password?</a>
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <div class="checkbox" style="display:none">
+                                            <label asp-for="Input.RememberMe">
+                                                <input asp-for="Input.RememberMe" />
+                                                @Html.DisplayNameFor(m => m.Input.RememberMe)
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <button type="submit" class="btn btn-dark">Log in</button>
+                                    </div>
+                                </form>
+                            </section>
+                        }
+                        <section>
+                            <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" asp-route-emailAddr="@Model.Input.Email" method="post" class="form-horizontal">
+                                <div class="d-grid gap-3 mb-3">
+                                    @if (Model.ExternalLogins != null)
+                                    {
+                                        @foreach (var provider in Model.ExternalLogins)
+                                        {
+                                            @if (provider.Name == "Facebook")
+                                            {
+                                                <button type="submit" class="btn btn-outline-primary" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">
+                                                    <img height="35" alt="Facebook Login Icon" src="~/lib/images/facebook.png" /> Login using @provider.DisplayName
+                                                </button>
+                                            }
+                                            else if (provider.Name == "Google")
+                                            {
+                                                <button type="submit" class="btn btn-dark" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">
+                                                    <img height="35" alt="Google Login Icon" src="~/lib/images/img_login_google2.2x.png" /> Login using @provider.DisplayName
+                                                </button>
+                                            }
+                                            else if (provider.Name == "Microsoft")
+                                            {
+                                                <button type="submit" class="btn btn-dark" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">
+                                                    <img height="35" alt="Microsoft Login Icon" src="~/lib/images/img_login_microsoft2.2x.png" /> Login using @provider.DisplayName
+                                                </button>
+                                            }
+                                        }
+                                    }
                                 </div>
                             </form>
                         </section>
@@ -91,6 +131,20 @@
             </div>
         </div>
     </div>
+
+    <script>
+        $(document).ready(function () {
+
+            $("#resend-confirmation").click(function (e) {
+                e.preventDefault();
+                var url = $(this).attr("href");
+                $.get(url, function (data) {
+                    alert(data);
+                });
+            });
+        });
+    </script>
+
 </div>
 
 @section Scripts {
