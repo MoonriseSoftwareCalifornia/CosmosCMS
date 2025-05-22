@@ -112,7 +112,7 @@
                     </li>
                 }
                 <li class="nav-item"><span title="Cosmos Version" class="nav-link text-mute">@assemblyName.Version.ToString()</span></li>
-                @if (Context.Request.Path.Equals("/home/preview", StringComparison.InvariantCultureIgnoreCase))
+                @if (Context.Request.Path == "/home/preview")
                 {
                     <li class="nav-item"><a class="btn btn-sm btn-primary mt-2" title="Close preview" href="javascript:closePreview()">Close Preview</a></li>
                 }

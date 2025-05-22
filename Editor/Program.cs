@@ -67,7 +67,7 @@ if (option.Value.SiteSettings.AllowSetup && !multi)
 {
     var connectionString = builder.Configuration.GetConnectionString("ApplicationDbContextConnection");
     var databaseName = builder.Configuration.GetValue<string>($"CosmosIdentityDbName") ?? "cosmoscms";
-    ApplicationDbContext.EnsureDatabaseExists(connectionString, databaseName);
+    ApplicationDbContext.EnsureDatabaseExists(connectionString, databaseName, true);
 }
 
 // Add the Cosmos database context here.
@@ -76,18 +76,24 @@ if (multi)
     // Note that this is scopped, meaning for each request this is regenerated.
     // Multi-tenant support is enabled because each request may have a different domain name and connection
     // string information.
-    builder.Services.AddTransient<ApplicationDbContext>((serviceProvider) =>
+    builder.Services.AddTransient((serviceProvider) =>
     {
-        return new ApplicationDbContext(new DbContextOptions<ApplicationDbContext>(), serviceProvider);
+        return new ApplicationDbContext(serviceProvider);
     });
 }
 else
 {
+    var dbName = builder.Configuration.GetValue<string>($"CosmosIdentityDbName") ?? "cosmoscms";
+    var cosmosDbConnectionString = builder.Configuration.GetConnectionString("ApplicationDbContextConnection");
+    var dbOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
+        .UseCosmos(cosmosDbConnectionString, dbName)
+        .Options;
+
     // A single website (not multi-tenant) responds to only one DNS name, and
     // therefore a singleton will be better for performance.
-    builder.Services.AddSingleton<ApplicationDbContext>((serviceProvider) =>
+    builder.Services.AddTransient((serviceProvider) =>
     {
-        return new ApplicationDbContext(new DbContextOptions<ApplicationDbContext>(), serviceProvider);
+        return new ApplicationDbContext(dbOptions, serviceProvider);
     });
 }
 

@@ -17,6 +17,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     using Cosmos.DynamicConfig;
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -113,9 +114,10 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         /// <summary>
         /// On get method handler.
         /// </summary>
-        /// <param name="returnUrl">Return URL after logging in.</param>
+        /// <param name="returnUrl">Return URL after logging in (optional).</param>
+        /// <param name="website">Website DNS name (optional).</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task<IActionResult> OnGetAsync(string returnUrl = null)
+        public async Task<IActionResult> OnGetAsync(string returnUrl = "", string website = "")
         {
             returnUrl = await GetReturnUrl(returnUrl);
 
@@ -129,15 +131,18 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                 return RedirectToAction(returnUrl);
             }
 
-            if (await NeedsAccountCookieSet())
+            if (isMultiTenantEditor)
             {
-                // Automatically add the website domain name if given in the query string.
-                Input.NeedsCookieSet = true;
-                Input.WebsiteDomainName = Request.Query["website"];
-                return Page();
-            }
+                Input.NeedsCookieSet = await NeedsAccountCookieSet();
 
-            ViewData["ShowWebsiteField"] = false;
+                Input.WebsiteDomainName = DynamicConfigurationProvider.GetTenantDomainNameFromRequest(configuration, HttpContext);
+
+                if (Input.NeedsCookieSet)
+                {
+                    // We need to get the account set before processing the rest.
+                    return Page();
+                }
+            }
 
             // Clear the existing external cookie to ensure a clean login process
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
@@ -178,26 +183,45 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                     return Page();
                 }
 
+                Input.WebsiteDomainName = DynamicConfigurationProvider.CleanUpDomainName(Input.WebsiteDomainName);
+
                 // Automatically add the website domain name if given in the query string.
                 if (await DynamicConfigurationProvider.ValidateDomainName(configuration, Input.WebsiteDomainName))
                 {
                     // Automatically add the website domain name if given in the query string.
                     Response.Cookies.Append(DynamicConfigurationProvider.StandardCookieName, Input.WebsiteDomainName);
                     Input.NeedsCookieSet = false;
-                    return Page();
+                }
+                else
+                {
+                    ModelState.AddModelError("Input.WebsiteDomainName", "Please enter a valid domain name.");
                 }
 
                 return Page();
             }
 
-            if (!isMultiTenantEditor)
+            if (isMultiTenantEditor)
             {
-                ExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+                var databaseStatus = ApplicationDbContext.EnsureDatabaseExists(DbContext, false);
+                if (databaseStatus == DbStatus.DoesNotExist)
+                {
+                    ModelState.AddModelError(string.Empty, "Database not setup. Please setup using the multi-tenant administrator.");
+                    return Page();
+                }
+
+                if (databaseStatus == DbStatus.ExistsWithMissingContainers)
+                {
+                    ModelState.AddModelError(string.Empty, "Database setup not complete. Complete setup using the multi-tenant administrator.");
+                    return Page();
+                }
+
+                if (databaseStatus == DbStatus.ExistsWithNoUsers)
+                {
+                    return RedirectToPage("Register");
+                }
             }
-            else
-            {
-                ExternalLogins = new List<AuthenticationScheme>();
-            }
+
+            ExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 
             if (ModelState.IsValid)
             {
@@ -222,8 +246,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                     return RedirectToPage("./Lockout");
                 }
 
-                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-                return Page();
+                ModelState.AddModelError("Input.Password", "Invalid login attempt.");
             }
 
             // If we got this far, something failed, redisplay form
@@ -256,7 +279,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                 return false;
             }
 
-            var domainName = DynamicConfigurationProvider.GetDomainName(configuration, HttpContext);
+            var domainName = DynamicConfigurationProvider.GetTenantDomainNameFromCookieOrHost(configuration, HttpContext);
             if (await DynamicConfigurationProvider.ValidateDomainName(configuration, domainName))
             {
                 return false;
@@ -292,6 +315,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
             /// <summary>
             /// Gets or sets website domain name.
             /// </summary>
+            [Display(Name = "Website Domain Name")]
             public string WebsiteDomainName { get; set; } = string.Empty;
 
             /// <summary>

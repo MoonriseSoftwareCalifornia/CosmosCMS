@@ -7,6 +7,7 @@
 
 namespace Cosmos.DynamicConfig
 {
+    using Azure.Core;
     using Microsoft.AspNetCore.Http;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Caching.Memory;
@@ -78,7 +79,7 @@ namespace Cosmos.DynamicConfig
         {
             get
             {
-                return GetDomainName(configuration, httpContextAccessor.HttpContext);
+                return GetTenantDomainNameFromCookieOrHost(configuration, httpContextAccessor.HttpContext);
             }
         }
 
@@ -151,19 +152,78 @@ namespace Cosmos.DynamicConfig
         /// <param name="configuration"></param>
         /// <param name="httpContext"></param>
         /// <returns></returns>
-        public static string GetDomainName(IConfiguration configuration, HttpContext httpContext)
+        public static string GetTenantDomainNameFromCookieOrHost(IConfiguration configuration, HttpContext httpContext)
         {
             var cookieValue = httpContext.Request.Cookies[StandardCookieName];
             if (!string.IsNullOrWhiteSpace(cookieValue))
             {
                 return cookieValue.ToLower();
             }
-            var websiteDomainName = httpContext.Request.Query["website"].ToString().ToLower();
-            if (!string.IsNullOrWhiteSpace(websiteDomainName))
-            {
-                return websiteDomainName.ToLower();
-            }
             return httpContext.Request.Host.Host?.ToLower() ?? string.Empty;
+        }
+
+        /// <summary>
+        /// Gets the tenant website domain name from the request.
+        /// </summary>
+        /// <param name="configuration">App configuration.</param>
+        /// <param name="httpContext">Current HTTP request context.</param>
+        /// <returns>Domain Name.</returns>
+        /// <remarks>
+        /// <para>Returns the domain name by looking at the incomming request.  Here is the order:</para>
+        /// <list type="number">
+        /// <item>Standard cookie.</item>
+        /// <item>Query string value 'website'.</item>
+        /// <item>Referer request header value.</item>
+        /// </list>
+        /// <para>Note: This should ONLY be used for login and register functionality with HTTP GET method.</para>
+        /// </remarks>
+        public static string GetTenantDomainNameFromRequest(IConfiguration configuration, HttpContext httpContext)
+        {
+            // In order of priority
+            // 1. A set cookie
+            var cookieValue = httpContext.Request.Cookies[StandardCookieName];
+            if (!string.IsNullOrWhiteSpace(cookieValue))
+            {
+                return CleanUpDomainName(cookieValue);
+            }
+
+            // 2. Query string
+            var queryValue = (string?) httpContext.Request.Query["website"];
+            if (!string.IsNullOrWhiteSpace(queryValue))
+            {
+                return CleanUpDomainName(queryValue);
+            }
+
+            // 3. referer header value
+            var refererValue = (string?) httpContext.Request.Headers[HttpHeader.Names.Referer];
+            refererValue = CleanUpDomainName(refererValue);
+            var host = httpContext.Request.Host.Host;
+            if (!string.IsNullOrWhiteSpace(refererValue) && refererValue.ToLower() != host.ToLower())
+            {
+                return CleanUpDomainName(refererValue);
+            }
+
+            return string.Empty;
+        }
+
+        /// <summary>
+        /// Handles possibility that a user entered a URI instead of a domain name, and returns just the host name.
+        /// </summary>
+        /// <param name="value">URI or domain value.</param>
+        /// <returns>Host name only.</returns>
+        public static string CleanUpDomainName(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return value;
+            }
+
+            if (Uri.TryCreate(value, UriKind.Absolute, out var referrerUri))
+            {
+                return referrerUri.Host.ToLower();
+            }
+
+            return value.ToLower();
         }
 
         /// <summary>
@@ -228,7 +288,19 @@ namespace Cosmos.DynamicConfig
             if (string.IsNullOrEmpty(domainName))
             {
                 var connectionString = configuration.GetConnectionString("ConfigDbConnectionString");
+
+                if (string.IsNullOrWhiteSpace(connectionString))
+                {
+                    throw new ArgumentException("Connection string 'ConfigDbConnectionString' not found.");
+                }
+
                 var storageConnection = configuration.GetConnectionString("AzureBlobStorageConnectionString");
+
+                if (string.IsNullOrWhiteSpace(storageConnection))
+                {
+                    throw new ArgumentException("Connection string 'AzureBlobStorageConnectionString' not found.");
+                }
+
                 return new Connection()
                 {
                     Customer = "Moonrise Software LLC",

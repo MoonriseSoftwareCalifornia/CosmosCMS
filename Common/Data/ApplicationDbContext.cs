@@ -14,9 +14,12 @@ namespace Cosmos.Common.Data
     using Cosmos.DynamicConfig;
     using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
     using Microsoft.AspNetCore.Identity;
+    using Microsoft.Azure.Cosmos;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Diagnostics;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Options;
+    using Microsoft.IdentityModel.Tokens;
 
     /// <summary>
     ///     Database Context for Cosmos CMS.
@@ -34,6 +37,17 @@ namespace Cosmos.Common.Data
             DbContextOptions<ApplicationDbContext> options,
             IServiceProvider services)
             : base(options, true)
+        {
+            this.services = services;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ApplicationDbContext"/> class.
+        /// </summary>
+        /// <param name="services">Service provider.</param>
+        public ApplicationDbContext(
+            IServiceProvider services)
+            : base(GetDynamicOptions(services), true)
         {
             this.services = services;
         }
@@ -119,34 +133,107 @@ namespace Cosmos.Common.Data
         public DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
 
         /// <summary>
-        /// Ensure database exists.
+        /// Ensure database exists and returns status.
         /// </summary>
         /// <param name="connectionString">Connection string.</param>
         /// <param name="databaseName">Database name.</param>
         /// <param name="setup">Setup database as well as test connection.</param>
         /// <returns>Success or not.</returns>
-        public static bool EnsureDatabaseExists(string connectionString, string databaseName, bool setup = true)
+        public static DbStatus EnsureDatabaseExists(string connectionString, string databaseName, bool setup)
         {
             var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
             optionsBuilder.UseCosmos(connectionString: connectionString, databaseName: databaseName);
             using var dbContext = new ApplicationDbContext(optionsBuilder.Options);
 
-            if (setup)
-            {
-                try
-                {
-                    var result = dbContext.Database.EnsureCreatedAsync();
-                    result.Wait();
-                }
-                catch
-                {
+            return EnsureDatabaseExists(dbContext, setup);
+        }
 
+
+        /// <summary>
+        /// Gets the database connection string.
+        /// </summary>
+        /// <returns>Database name.</returns>
+        public string GetDatabaseName()
+        {
+            var connectionStringProvider = this.services.GetRequiredService<IDynamicConfigurationProvider>();
+            return connectionStringProvider.GetDatabaseName();
+        }
+
+        /// <summary>
+        /// Ensure database exists and returns status.
+        /// </summary>
+        /// <param name="dbContext">Database context.</param>
+        /// <param name="setup">Setup database as well as test connection.</param>
+        /// <returns>Success or not.</returns>
+        public static DbStatus EnsureDatabaseExists(ApplicationDbContext dbContext, bool setup)
+        {
+            var databaseName = dbContext.GetDatabaseName();
+
+            var cosmosClient = dbContext.Database.GetCosmosClient();
+
+            DbStatus dbStatus = DbStatus.DoesNotExist;
+
+            try
+            {
+                DatabaseResponse response = cosmosClient.GetDatabase(databaseName).ReadAsync().Result;
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    // Check to see if the identity containers exist.
+                    var identityContainerResult = cosmosClient.GetContainer(databaseName, "Identity").ReadContainerAsync().Result;
+                    // Check to see if the CMS containers exists.
+                    var articleContainerResult = cosmosClient.GetContainer(databaseName, "Articles").ReadContainerAsync().Result;
+
+                    if (identityContainerResult.StatusCode == System.Net.HttpStatusCode.OK &&
+                        articleContainerResult.StatusCode == System.Net.HttpStatusCode.OK)
+                    {
+                        // Check to see if the database is empty.
+                        var query = identityContainerResult.Container.GetItemLinqQueryable<IdentityUser>(allowSynchronousQueryExecution: true);
+                        var count = query.Count();
+                        if (count > 0)
+                        {
+                            dbStatus = DbStatus.ExistsWithUsers; // Database exists and is not empty.
+                        }
+                        else
+                        {
+                            dbStatus = DbStatus.ExistsWithNoUsers; // Database exists but is empty.
+                        }
+                    }
+                    else
+                    {
+                        dbStatus = DbStatus.ExistsWithMissingContainers; // Container does not exist.
+                    }
+                }
+            }
+            catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                dbStatus = DbStatus.DoesNotExist;
+            }
+            catch (Exception)
+            {
+                throw; // Log or handle unexpected exceptions as needed
+            }
+
+            // If setup is allowed, and database either does not exist, or, has missing containers,
+            // setup the database now.
+            if (setup && (dbStatus == DbStatus.DoesNotExist || dbStatus == DbStatus.ExistsWithMissingContainers))
+            {
+                var task = dbContext.Database.EnsureCreatedAsync();
+                task.Wait();
+                if (task.IsCompletedSuccessfully)
+                {
+                    dbStatus = DbStatus.ExistsWithNoUsers; // Database exists but has no users.
+                }
+                else if (task.IsFaulted)
+                {
+                    throw task.Exception; // Database creation failed.
+                }
+                else
+                {
+                    throw new Exception("EnsureCreatedAsync() failed."); // Database creation failed.
                 }
             }
 
-            var canConnect = dbContext.Articles.CountAsync();
-            canConnect.Wait();
-            return canConnect.Result >= 0;
+            return dbStatus;
         }
 
         /// <summary>
@@ -164,41 +251,12 @@ namespace Cosmos.Common.Data
         /// <param name="optionsBuilder">DbContextOptionsBuilder.</param>
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            if (!optionsBuilder.IsConfigured)
-            {
-                var connectionStringProvider = services.GetRequiredService<IDynamicConfigurationProvider>();
-                var connectionString = connectionStringProvider.GetDatabaseConnectionString();
-
-                var databaseName = connectionStringProvider.GetDatabaseName();
-
-                if (connectionString != null)
-                {
-                    if (connectionString.Contains("AccountKey=AccessToken", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        var conpartsDict =
-                            connectionString.Split(";").Where(w =>
-                            !string.IsNullOrEmpty(w)).Select(part => part.Split('='))
-                            .ToDictionary(sp => sp[0], sp => sp[1], StringComparer.OrdinalIgnoreCase);
-
-                        var defaultAzureCredential = services.GetRequiredService<DefaultAzureCredential>();
-                        var endpoint = conpartsDict["AccountEndpoint"];
-                        optionsBuilder.UseCosmos(accountEndpoint: endpoint, defaultAzureCredential, databaseName);
-                    }
-                    else
-                    {
-                        optionsBuilder.UseCosmos(connectionString, databaseName: databaseName);
-                    }
-                }
-            }
-
             // Synchronous blocking on asynchronous methods can result in deadlock, and the
             // Azure Cosmos DB SDK only supports async methods.
             // https://docs.microsoft.com/en-us/ef/core/providers/cosmos/limitations#synchronous-and-blocking-calls
             // TODO: Remove all synchronous calls to the database.
             optionsBuilder.ConfigureWarnings(w => w.Ignore(CosmosEventId.SyncNotSupported));
 
-            // https://github.com/dotnet/efcore/issues/33328
-            // Note this is done because using the default azure credential causes problems here.
             base.OnConfiguring(optionsBuilder);
         }
 
@@ -208,7 +266,12 @@ namespace Cosmos.Common.Data
         /// <param name="modelBuilder">DB Context model builder.</param>
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // DEFAULT CONTAINER ENTITIES
             modelBuilder.HasDefaultContainer("CosmosCms");
+            modelBuilder.Entity<Contact>()
+                .HasKey(k => k.Id);
+            modelBuilder.Entity<NodeScript>()
+                .HasKey(k => k.Id);
 
             // Need to make a convertion so article number can be used as a partition key
             modelBuilder.Entity<ArticleNumber>()
@@ -225,8 +288,6 @@ namespace Cosmos.Common.Data
                 .HasPartitionKey(a => a.ArticleNumber)
                 .HasKey(article => article.Id);
 
-            modelBuilder.Entity<CatalogEntry>().OwnsMany(o => o.ArticlePermissions);
-
             modelBuilder.Entity<ArticleLock>()
                 .ToContainer("ArticleLocks")
                 .HasPartitionKey(a => a.Id)
@@ -236,6 +297,8 @@ namespace Cosmos.Common.Data
                 .ToContainer("ArticleLogs")
                 .HasPartitionKey(k => k.Id)
                 .HasKey(log => log.Id);
+
+            modelBuilder.Entity<CatalogEntry>().OwnsMany(o => o.ArticlePermissions);
 
             modelBuilder.Entity<CatalogEntry>()
                 .Property(e => e.ArticleNumber)
@@ -267,19 +330,12 @@ namespace Cosmos.Common.Data
                 .HasKey(node => node.Id);
 
             modelBuilder.Entity<AuthorInfo>()
+                .ToContainer("AuthorInfo")
                 .HasPartitionKey(k => k.Id)
                 .HasKey(k => k.Id);
 
             modelBuilder.Entity<Metric>()
                 .ToContainer("Metrics")
-                .HasPartitionKey(k => k.Id)
-                .HasKey(k => k.Id);
-
-            modelBuilder.Entity<Contact>()
-                .HasPartitionKey(k => k.Id)
-                .HasKey(k => k.Id);
-
-            modelBuilder.Entity<NodeScript>()
                 .HasPartitionKey(k => k.Id)
                 .HasKey(k => k.Id);
 
@@ -289,6 +345,40 @@ namespace Cosmos.Common.Data
                 .HasKey(k => k.Id);
 
             base.OnModelCreating(modelBuilder);
+        }
+
+        private static DbContextOptions<ApplicationDbContext> GetDynamicOptions(IServiceProvider services)
+        {
+            var connectionStringProvider = services.GetRequiredService<IDynamicConfigurationProvider>();
+            var connectionString = connectionStringProvider.GetDatabaseConnectionString();
+
+            // Note: This may be null if the cookie or website URL has not yet been set.
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                return new DbContextOptions<ApplicationDbContext>();
+            }
+
+            var databaseName = connectionStringProvider.GetDatabaseName();
+
+            var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+
+            if (connectionString.Contains("AccountKey=AccessToken", StringComparison.CurrentCultureIgnoreCase))
+            {
+                var conpartsDict =
+                    connectionString.Split(";").Where(w =>
+                    !string.IsNullOrEmpty(w)).Select(part => part.Split('='))
+                    .ToDictionary(sp => sp[0], sp => sp[1], StringComparer.OrdinalIgnoreCase);
+
+                var defaultAzureCredential = services.GetRequiredService<DefaultAzureCredential>();
+                var endpoint = conpartsDict["AccountEndpoint"];
+                optionsBuilder.UseCosmos(accountEndpoint: endpoint, defaultAzureCredential, databaseName);
+            }
+            else
+            {
+                optionsBuilder.UseCosmos(connectionString, databaseName: databaseName);
+            }
+
+            return optionsBuilder.Options;
         }
     }
 }

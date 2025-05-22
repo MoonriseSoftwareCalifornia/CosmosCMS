@@ -7,13 +7,16 @@
 
 namespace Cosmos.Cms.Areas.Identity.Pages.Account
 {
+    using System;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+    using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Cms.Data;
     using Cosmos.Common.Data;
+    using Cosmos.DynamicConfig;
     using Cosmos.Editor.Services;
     using Cosmos.EmailServices;
     using Microsoft.AspNetCore.Authentication;
@@ -25,7 +28,11 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     using Microsoft.AspNetCore.RateLimiting;
     using Microsoft.AspNetCore.WebUtilities;
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
+    using NUglify.Helpers;
 
     /// <summary>
     /// Register page model.
@@ -36,42 +43,42 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     {
         private readonly ICosmosEmailSender emailSender;
         private readonly ILogger<RegisterModel> logger;
-        private readonly SignInManager<IdentityUser> signInManager;
-        private readonly UserManager<IdentityUser> userManager;
-        private readonly RoleManager<IdentityRole> roleManager;
-        private readonly ApplicationDbContext dbContext;
+        private readonly IOptions<SiteSettings> options;
+        private readonly IServiceProvider services;
+        private readonly IConfiguration configuration;
+        private readonly bool isMultiTenantEditor;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RegisterModel"/> class.
         /// Constructor.
         /// </summary>
-        /// <param name="userManager">User manager service.</param>
-        /// <param name="roleManager">Role manager service.</param>
-        /// <param name="signInManager">Sign-in service.</param>
-        /// <param name="logger">Logger service.</param>
+        /// <param name="logger">Log service.</param>
+        /// <param name="options">Cosmos site options.</param>
+        /// <param name="services">App services.</param>
+        /// <param name="configuration">App configuration.</param>
         /// <param name="emailSender">Email sender service.</param>
-        /// <param name="dbContext">Database context.</param>
         public RegisterModel(
-            UserManager<IdentityUser> userManager,
-            RoleManager<IdentityRole> roleManager,
-            SignInManager<IdentityUser> signInManager,
             ILogger<RegisterModel> logger,
-            IEmailSender emailSender,
-            ApplicationDbContext dbContext)
+            IOptions<SiteSettings> options,
+            IServiceProvider services,
+            IConfiguration configuration,
+            IEmailSender emailSender)
         {
-            this.userManager = userManager;
-            this.roleManager = roleManager;
-            this.signInManager = signInManager;
             this.logger = logger;
+            this.options = options;
+            this.services = services;
+            this.configuration = configuration;
+            isMultiTenantEditor = this.configuration.GetValue<bool?>("MultiTenantEditor") ?? false;
+
             this.emailSender = (ICosmosEmailSender)emailSender;
-            this.dbContext = dbContext;
+
         }
 
         /// <summary>
         /// Gets or sets page input model.
         /// </summary>
         [BindProperty]
-        public InputModel Input { get; set; }
+        public InputModel Input { get; set; } = new InputModel();
 
         /// <summary>
         /// Gets or sets return URL.
@@ -83,17 +90,68 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         /// </summary>
         public IList<AuthenticationScheme> ExternalLogins { get; set; }
 
+        private SignInManager<IdentityUser> SignInManager
+        {
+            get
+            {
+                var manager = services.GetService<SignInManager<IdentityUser>>();
+                return manager;
+            }
+        }
+
+        private UserManager<IdentityUser> UserManager
+        {
+            get
+            {
+                var manager = services.GetService<UserManager<IdentityUser>>();
+                return manager;
+            }
+        }
+
+        private RoleManager<IdentityRole> RoleManager
+        {
+            get
+            {
+                var manager = services.GetService<RoleManager<IdentityRole>>();
+                return manager;
+            }
+        }
+
+        private ApplicationDbContext DbContext
+        {
+            get
+            {
+                var manager = services.GetService<ApplicationDbContext>();
+                return manager;
+            }
+        }
+
         /// <summary>
         /// GET method handler.
         /// </summary>
         /// <param name="returnUrl">Returns a <see cref="PageResult"/>.</param>
+        /// <param name="website">Website DNS name.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task<IActionResult> OnGetAsync(string returnUrl = null)
+        public async Task<IActionResult> OnGetAsync(string returnUrl = null, string website = "")
         {
-            ReturnUrl = returnUrl;
-            ExternalLogins = (await signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+            if (isMultiTenantEditor)
+            {
+                Input.NeedsCookieSet = await NeedsAccountCookieSet();
 
-            ViewData["ShowLogin"] = await userManager.Users.CosmosAnyAsync();
+                Input.WebsiteDomainName = DynamicConfigurationProvider.GetTenantDomainNameFromRequest(configuration, HttpContext);
+
+                if (Input.NeedsCookieSet)
+                {
+                    // We need to get the account set before processing the rest.
+                    ViewData["ShowLogin"] = false;
+                    return Page();
+                }
+            }
+
+            ReturnUrl = returnUrl;
+            ExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+
+            ViewData["ShowLogin"] = await UserManager.Users.CosmosAnyAsync();
 
             return Page();
         }
@@ -105,8 +163,36 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
+
             returnUrl = returnUrl ?? Url.Content("~/");
-            ExternalLogins = (await signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+
+            // Check to see if we need a cookie set
+            // to distinguish which tenant to log in to.
+            if (Input.NeedsCookieSet)
+            {
+                if (string.IsNullOrWhiteSpace(Input.WebsiteDomainName))
+                {
+                    ModelState.AddModelError(string.Empty, "Please enter a valid domain name.");
+                    return Page();
+                }
+
+                // Automatically add the website domain name if given in the query string.
+                if (await DynamicConfigurationProvider.ValidateDomainName(configuration, Input.WebsiteDomainName))
+                {
+                    // Automatically add the website domain name if given in the query string.
+                    Response.Cookies.Append(DynamicConfigurationProvider.StandardCookieName, Input.WebsiteDomainName);
+                    Input.NeedsCookieSet = false;
+                }
+                else
+                {
+                    ModelState.AddModelError("Input.WebsiteDomainName", "Please enter a valid domain name.");
+                }
+
+                ViewData["ShowLogin"] = false;
+                return Page();
+            }
+
+            ExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 
             if (!Input.AgreeToTerms)
             {
@@ -115,21 +201,21 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
 
             if (ModelState.IsValid)
             {
-                dbContext.Database.EnsureCreated();
+                DbContext.Database.EnsureCreated();
                 var user = new IdentityUser { UserName = Input.Email, Email = Input.Email };
-                var result = await userManager.CreateAsync(user, Input.Password);
+                var result = await UserManager.CreateAsync(user, Input.Password);
                 if (result.Succeeded)
                 {
                     logger.LogInformation("User created a new account with password.");
 
                     var newAdministrator = false;
-                    var admins = await userManager.GetUsersInRoleAsync(RequiredIdentityRoles.Administrators);
+                    var admins = await UserManager.GetUsersInRoleAsync(RequiredIdentityRoles.Administrators);
                     if (admins.Count == 0)
                     {
-                        newAdministrator = await SetupNewAdministrator.Ensure_RolesAndAdmin_Exists(roleManager, userManager, user);
+                        newAdministrator = await SetupNewAdministrator.Ensure_RolesAndAdmin_Exists(RoleManager, UserManager, user);
                     }
 
-                    var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
+                    var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
                     code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
                     var callbackUrl = Url.Page(
                         "/Account/ConfirmEmail",
@@ -145,19 +231,19 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                             await emailSender.SendEmailAsync(admin.Email, $"New account request for: {user.Email} requested an account.", $"{user.Email} requested a user account on publisher website: {Request.Host}.");
                         }
 
-                        var homePage = await dbContext.Pages.Select(s => new { s.Title, s.UrlPath }).FirstOrDefaultAsync(f => f.UrlPath == "root");
+                        var homePage = await DbContext.Pages.Select(s => new { s.Title, s.UrlPath }).FirstOrDefaultAsync(f => f.UrlPath == "root");
                         var websiteName = homePage.Title ?? Request.Host.Host;
 
                         var emailHandler = new EmailHandler(emailSender, logger);
                         await emailHandler.SendCallbackTemplateEmail(EmailHandler.CallbackTemplate.NewAccountConfirmEmail, callbackUrl, Request.Host.Host, Input.Email, websiteName);
 
-                        if (userManager.Options.SignIn.RequireConfirmedAccount)
+                        if (UserManager.Options.SignIn.RequireConfirmedAccount)
                         {
                             return RedirectToPage("RegisterConfirmation", new { email = Input.Email, returnUrl });
                         }
                     }
 
-                    await signInManager.SignInAsync(user, false);
+                    await SignInManager.SignInAsync(user, false);
 
                     return LocalRedirect(returnUrl);
                 }
@@ -168,10 +254,31 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                 }
             }
 
-            ViewData["ShowLogin"] = await userManager.Users.CosmosAnyAsync();
+            ViewData["ShowLogin"] = await UserManager.Users.CosmosAnyAsync();
 
             // If we got this far, something failed, redisplay form
             return Page();
+        }
+
+        /// <summary>
+        /// Indicates if the account cookie needs to be set.
+        /// </summary>
+        /// <returns>True or false.</returns>
+        /// <remarks>This also sets the ViewData['NeedsAccountCookieSet'] so that the view knows what to show.</remarks>
+        private async Task<bool> NeedsAccountCookieSet()
+        {
+            if (!isMultiTenantEditor)
+            {
+                return false;
+            }
+
+            var domainName = DynamicConfigurationProvider.GetTenantDomainNameFromCookieOrHost(configuration, HttpContext);
+            if (await DynamicConfigurationProvider.ValidateDomainName(configuration, domainName))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -209,6 +316,23 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
             [Display(Name = "Confirm password")]
             [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
             public string ConfirmPassword { get; set; }
+
+            /// <summary>
+            /// Gets or sets a value indicating whether the cookie needs to be set.
+            /// </summary>
+            public bool NeedsCookieSet { get; set; }
+
+            /// <summary>
+            /// Gets or sets the website that forwarded the registration request.
+            /// </summary>
+            public string Referrer { get; set; }
+
+            /// <summary>
+            /// Gets or sets website domain name.
+            /// </summary>
+            [Display(Name = "Website")]
+            public string WebsiteDomainName { get; set; } = string.Empty;
+
         }
     }
 }

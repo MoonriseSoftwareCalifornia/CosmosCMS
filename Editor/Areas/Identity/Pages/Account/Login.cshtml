@@ -1,5 +1,6 @@
 ﻿@page
 @using Cosmos.Cms.Common.Services.Configurations
+@using Cosmos.DynamicConfig
 @using Microsoft.Extensions.Options
 @inject IOptions<CosmosConfig> options
 @model LoginModel
@@ -36,14 +37,14 @@
                                 <div class="form-group mb-3">
                                     <label asp-for="Input.Email"></label>
                                     <input asp-for="Input.Email" class="form-control" />
-                                    <span asp-validation-for="Input.Email" class="text-danger"></span>
+                                    <span asp-validation-for="Input.Email" class="badge text-bg-danger"></span>
                                     <a id="resend-confirmation" class="text-light" asp-page="./ResendEmailConfirmation">Resend email confirmation</a>
                                 </div>
                                 <div id="websiteDomainNameGroup" class="form-group mb-3">
                                     <label asp-for="Input.WebsiteDomainName"></label>
                                     <input asp-for="Input.WebsiteDomainName" class="form-control" />
                                     <span class="text-light text-mute">Example: www.acme.com</span>
-                                    <span asp-validation-for="Input.WebsiteDomainName" class="text-danger"></span>
+                                    <span asp-validation-for="Input.WebsiteDomainName" class="badge text-bg-danger"></span>
                                 </div>
                                 <div class="form-group">
                                     <button type="submit" class="btn btn-dark">Continue <i class="fa-solid fa-circle-arrow-right"></i></button>
@@ -57,29 +58,32 @@
                         {
                             <section>
                                 <form id="account" method="post" asp-antiforgery="true">
+                                    <span asp-validation-summary="All" class="badge text-bg-danger"></span>
                                     <div class="form-group mb-3">
                                         <label asp-for="Input.Email"></label>
                                         <input asp-for="Input.Email" class="form-control" />
-                                        <span asp-validation-for="Input.Email" class="text-danger"></span>
+                                        <span asp-validation-for="Input.Email" class="badge text-bg-danger"></span>
                                         <a id="resend-confirmation" class="text-light" asp-page="./ResendEmailConfirmation">Resend email confirmation</a>
                                     </div>
-                                    <div id="websiteDomainNameGroup" class="form-group mb-3">
+                                    @if (!string.IsNullOrWhiteSpace(Model.Input.WebsiteDomainName))
+                                    {
                                         <label asp-for="Input.WebsiteDomainName"></label>
-                                        <input asp-for="Input.WebsiteDomainName" class="form-control" />
-                                        <span class="text-light text-mute">Example: www.acme.com</span>
-                                        <span asp-validation-for="Input.WebsiteDomainName" class="text-danger"></span>
-                                    </div>
+                                        <div class="input-group mb-3">
+                                            <a id="btnChange" class="btn btn-dark">Change <i class="fa-solid fa-circle-arrow-right"></i></a>
+                                            <input asp-for="Input.WebsiteDomainName" class="form-control" readonly />
+                                        </div>
+                                    }
                                     <div>
                                         @if (Model.ExternalLogins?.Count > 0)
                                         {
                                             <hr />
-                                            <h5 class="card-title text-center">Login with password or one of the following options below.</h5>
+                                            <h5 class="card-title text-center">Login with password or choose an option below.</h5>
                                         }
                                     </div>
                                     <div id="passwordGroup" class="form-group mb-3">
                                         <label asp-for="Input.Password"></label>
                                         <input asp-for="Input.Password" class="form-control" />
-                                        <span asp-validation-for="Input.Password" class="text-danger"></span>
+                                        <span asp-validation-for="Input.Password" class="badge text-bg-danger"></span>
                                         <a id="forgot-password" class="text-light" asp-page="./ForgotPassword">Forgot your password?</a>
                                     </div>
                                     <div class="form-group mb-3">
@@ -141,6 +145,13 @@
                 $.get(url, function (data) {
                     alert(data);
                 });
+            });
+
+            $("#btnChange").click(function (e) {
+                e.preventDefault();
+                var domainName = '@DynamicConfigurationProvider.StandardCookieName';
+                document.cookie = `${domainName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+                window.location.href = "./login";
             });
         });
     </script>

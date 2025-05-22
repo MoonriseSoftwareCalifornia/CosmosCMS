@@ -208,6 +208,16 @@ namespace Cosmos.Editor.Data.Logic
                     PublisherUrl = this.configuration.GetValue<string>("CosmosPublisherUrl"),
                     StaticWebPages = this.configuration.GetValue<bool?>("CosmosStaticWebPages") ?? false,
                 };
+
+                if (string.IsNullOrWhiteSpace(config.BlobPublicUrl))
+                {
+                    throw new ArgumentNullException("'AzureBlobStorageEndPoint' is not set.");
+                }
+
+                if (string.IsNullOrWhiteSpace(config.PublisherUrl))
+                {
+                    throw new ArgumentNullException("'CosmosPublisherUrl' is not set.");
+                }
             }
 
             memoryCache.Set($"{this.httpContextAccessor.HttpContext.Request.Host.Host}-conf", config, TimeSpan.FromMinutes(5));

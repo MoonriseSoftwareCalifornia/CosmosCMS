@@ -235,7 +235,8 @@ namespace Cosmos.MultiTenant_Adminstrator.Controllers
             try
             {
                 // Test the database connection
-                result.IsDatabaseConnected = ApplicationDbContext.EnsureDatabaseExists(connection.DbConn, connection.DbName, setup);
+                var testResult = ApplicationDbContext.EnsureDatabaseExists(connection.DbConn, connection.DbName, setup);
+                result.IsDatabaseConnected = testResult == DbStatus.ExistsWithUsers || testResult == DbStatus.ExistsWithNoUsers;
 
                 // Test the storage connection
                 var blobClient = new BlobServiceClient(connection.StorageConn);

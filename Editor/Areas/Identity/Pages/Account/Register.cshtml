@@ -1,12 +1,20 @@
 ﻿@page
 @using Cosmos.Cms.Common.Services.Configurations
 @using Microsoft.Extensions.Options
+@using Cosmos.DynamicConfig
 @inject IOptions<CosmosConfig> options
 @model RegisterModel
 @{
     ViewData["Title"] = "Create Account";
     Html.ViewContext.ViewBag.BrowserTitle = "Register Account";
     var showLogin = (bool)ViewData["ShowLogin"];
+
+    if (Model.Input.NeedsCookieSet)
+    {
+        Model.Input.Email = null;
+        Model.Input.Password = null;
+        Model.Input.ConfirmPassword = null;
+    }
 }
 
 <div class="container">
@@ -17,87 +25,124 @@
                     <h2 class=" text-center">Register Account</h2>
                 </div>
                 <div class="card-body">
-                    <section>
-                        <h5>Terms and Conditions</h5> 
-                        <div style="font-size:8pt;">
-                            <p>
-                                Cosmos CMS is free software: you can use it, redistribute it, and/or modify
-                                it under the terms of the  <a target="_blank" href="https://github.com/MoonriseSoftwareCalifornia/CosmosCMS?tab=GPL-3.0-1-ov-file#readme">
-                                    GNU General Public License Version 3
-                                </a> as published by the
-                                Free Software Foundation.
-                            </p>
-                            <p>Cosmos CMS &copy; @DateTime.UtcNow.Year <a target="_blank" href="https://www.moonrise.net">Moonrise Software LLC.</a></p>
-                        </div>
-                        <div id="ckBoxDiv" class="form-check mb-4" style="position:relative">
-                            <input class="form-check-input" type="checkbox" value="true" id="chkTerms">
-                            <label class="form-check-label" for="flexCheckDefault">
-                                By checking this box, you agree to the terms and conditions of the GNU General
-                                Public License Version 3.
-                            </label>
-                        </div>                        
-                    </section>
-                    <hr />
-                    <section>
-                        <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal frmReg">
-                            <div class="d-grid gap-3">
-                                @foreach (var provider in Model.ExternalLogins)
-                                {
-                                    @if (provider.Name == "Facebook")
-                                    {
-                                        <button type="submit" class="btn btn-dark" name="provider" value="@provider.Name" title="Create account using  @provider.DisplayName account">
-                                            <img height="35" alt="Facebook Login Icon" src="~/lib/images/facebook.png" /> Register using @provider.DisplayName
-                                        </button>
-                                    }
-                                    else if (provider.Name == "Google")
-                                    {
-                                        <button type="submit" class="btn btn btn-dark" name="provider" value="@provider.Name" title="Create account using  @provider.DisplayName account">
-                                            <img height="35" alt="Google Login Icon" src="~/lib/images/img_login_google2.2x.png" /> Register using @provider.DisplayName
-                                        </button>
-                                    }
-                                    else if (provider.Name == "Microsoft" || provider.Name == "OpenIdConnect")
-                                    {
-                                        <button type="submit" class="btn btn btn-dark" name="provider" value="@provider.Name" title="Create account using  @provider.DisplayName account">
-                                            <img height="35" alt="Microsoft Login Icon" src="~/lib/images/img_login_microsoft2.2x.png" /> Register using @provider.DisplayName
-                                        </button>
-                                    }
-                                }
-                            </div>
-                        </form>
-                    </section>
-                    @if (options.Value.SiteSettings.AllowLocalAccounts)
+                    @if (Model.Input.NeedsCookieSet)
                     {
-                        <div>
-                            <div asp-validation-summary="All" class="badge badge-primary"></div>
-                            <form class="frmReg" asp-route-returnUrl="@Model.ReturnUrl" method="post">
-                                <h5>Register using Cosmos:</h5>
-                                <div class="form-group">
-                                    <label asp-for="Input.Email"></label>
-                                    <input asp-for="Input.Email" class="form-control" />
-                                    <span asp-validation-for="Input.Email" class="badge badge-primary"></span>
+                        <section>
+                            <p>Please enter the website domain name you are trying to register with.</p>
+                            <form id="account" method="post" asp-antiforgery="true">
+                                <input type="hidden" asp-for="Input.Email" />
+                                <input type="hidden" asp-for="Input.Password" />
+                                <input type="hidden" asp-for="Input.ConfirmPassword" />
+                                <input type="hidden" asp-for="Input.NeedsCookieSet" />
+                                <span asp-validation-summary="All" class="badge text-bg-danger"></span>
+                                <div id="websiteDomainNameGroup" class="form-group mb-3">
+                                    <label asp-for="Input.WebsiteDomainName"></label>
+                                    <input asp-for="Input.WebsiteDomainName" class="form-control" />
+                                    <span class="text-light text-mute">Example: www.acme.com</span>
+                                    <span asp-validation-for="Input.WebsiteDomainName" class="badge text-bg-danger"></span>
                                 </div>
                                 <div class="form-group">
-                                    <label asp-for="Input.Password"></label>
-                                    <input asp-for="Input.Password" class="form-control" />
-                                    <span asp-validation-for="Input.Password" class="badge badge-primary"></span>
+                                    <button type="submit" class="btn btn-dark">Continue <i class="fa-solid fa-circle-arrow-right"></i></button>
                                 </div>
-                                <div class="form-group mb-4">
-                                    <label asp-for="Input.ConfirmPassword"></label>
-                                    <input asp-for="Input.ConfirmPassword" class="form-control" />
-                                    <span asp-validation-for="Input.ConfirmPassword" class="badge badge-primary"></span>
-                                </div>
-                                @Html.HiddenFor(m => m.Input.AgreeToTerms)
-                                <button type="submit" class="btn btn-dark">Go <i class="fa-solid fa-circle-right"></i></button>
                             </form>
-                        </div>
+                        </section>
                     }
-                    <hr />
-                    <section>
-                        @if (showLogin)
+                    else
+                    {
+                        <section>
+                            <h5>Terms and Conditions</h5>
+                            <div style="font-size:8pt;">
+                                <p>
+                                    Cosmos CMS is free software: you can use it, redistribute it, and/or modify
+                                    it under the terms of the  <a target="_blank" href="https://github.com/MoonriseSoftwareCalifornia/CosmosCMS?tab=GPL-3.0-1-ov-file#readme">
+                                        GNU General Public License Version 3
+                                    </a> as published by the
+                                    Free Software Foundation.
+                                </p>
+                                <p>Cosmos CMS &copy; @DateTime.UtcNow.Year <a target="_blank" href="https://www.moonrise.net">Moonrise Software LLC.</a></p>
+                            </div>
+                            <div id="ckBoxDiv" class="form-check mb-4" style="position:relative">
+                                <input class="form-check-input" type="checkbox" value="true" id="chkTerms">
+                                <label class="form-check-label" for="flexCheckDefault">
+                                    By checking this box, you agree to the terms and conditions of the GNU General
+                                    Public License Version 3.
+                                </label>
+                            </div>
+                        </section>
+                        <hr />
+                        @if (options.Value.SiteSettings.AllowLocalAccounts)
                         {
-                            <p class="card-text text-center mb-3">Think you may already have an account? <a class="btn btn-sm btn-dark" asp-area="Identity" asp-page="/Account/Login">Click here to log in</a></p>
+                            <div>
+                                <form class="frmReg" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                                    <span asp-validation-summary="All" class="badge text-bg-danger"></span>
+                                    @if (!string.IsNullOrWhiteSpace(Model.Input.WebsiteDomainName))
+                                    {
+                                        <h5>Website:</h5>
+                                        <div class="input-group mb-3">
+                                            <a id="btnChange" class="btn btn-dark">Change <i class="fa-solid fa-circle-arrow-right"></i></a>
+                                            <input asp-for="Input.WebsiteDomainName" class="form-control" readonly />
+                                        </div>
+                                    }
+                                    <h5>Register using password:</h5>
+                                    <div class="form-group">
+                                        <label asp-for="Input.Email"></label>
+                                        <input asp-for="Input.Email" class="form-control" />
+                                        <span asp-validation-for="Input.Email" class="badge text-bg-danger"></span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label asp-for="Input.Password"></label>
+                                        <input asp-for="Input.Password" class="form-control" />
+                                        <span asp-validation-for="Input.Password" class="badge text-bg-danger"></span>
+                                    </div>
+                                    <div class="form-group mb-4">
+                                        <label asp-for="Input.ConfirmPassword"></label>
+                                        <input asp-for="Input.ConfirmPassword" class="form-control" />
+                                        <span asp-validation-for="Input.ConfirmPassword" class="badge text-bg-danger"></span>
+                                    </div>
+                                    @Html.HiddenFor(m => m.Input.AgreeToTerms)
+                                    <button type="submit" class="btn btn-dark">Go <i class="fa-solid fa-circle-right"></i></button>
+                                </form>
+                            </div>
                         }
-                    </section>
+                        <section>
+                            <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal frmReg">
+                                <div class="d-grid gap-3">
+                                    @if (Model.ExternalLogins != null && Model.ExternalLogins.Count > 0)
+                                    {
+                                        <h5>Register using:</h5>
+                                        @foreach (var provider in Model.ExternalLogins)
+                                        {
+                                            @if (provider.Name == "Facebook")
+                                            {
+                                                <button type="submit" class="btn btn-dark" name="provider" value="@provider.Name" title="Create account using  @provider.DisplayName account">
+                                                    <img height="35" alt="Facebook Login Icon" src="~/lib/images/facebook.png" /> Register using @provider.DisplayName
+                                                </button>
+                                            }
+                                            else if (provider.Name == "Google")
+                                            {
+                                                <button type="submit" class="btn btn btn-dark" name="provider" value="@provider.Name" title="Create account using  @provider.DisplayName account">
+                                                    <img height="35" alt="Google Login Icon" src="~/lib/images/img_login_google2.2x.png" /> Register using @provider.DisplayName
+                                                </button>
+                                            }
+                                            else if (provider.Name == "Microsoft" || provider.Name == "OpenIdConnect")
+                                            {
+                                                <button type="submit" class="btn btn btn-dark" name="provider" value="@provider.Name" title="Create account using  @provider.DisplayName account">
+                                                    <img height="35" alt="Microsoft Login Icon" src="~/lib/images/img_login_microsoft2.2x.png" /> Register using @provider.DisplayName
+                                                </button>
+                                            }
+                                        }
+                                    }
+                                </div>
+                            </form>
+                        </section>
+                        <hr />
+                        <section>
+                            @if (showLogin)
+                            {
+                                <p class="card-text text-center mb-3">Think you may already have an account? <a class="btn btn-sm btn-dark" asp-area="Identity" asp-page="/Account/Login">Click here to log in</a></p>
+                            }
+                        </section>
+                    }
                 </div>
 
             </div>
@@ -133,6 +178,13 @@
                 $('#Input_AgreeToTerms').val("false");
                 $("#msgPleaseCheck").show();
             }
+        });
+
+        $("#btnChange").click(function (e) {
+            e.preventDefault();
+            var domainName = '@DynamicConfigurationProvider.StandardCookieName';
+            document.cookie = `${domainName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+            window.location.href = "./Register";
         });
     });
 </script>

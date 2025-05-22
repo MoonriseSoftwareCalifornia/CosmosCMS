@@ -8,6 +8,7 @@
 namespace Cosmos.Cms.Areas.Identity.Pages.Account
 {
     using System.Threading.Tasks;
+    using Cosmos.DynamicConfig;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
@@ -27,8 +28,8 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         /// Initializes a new instance of the <see cref="LogoutModel"/> class.
         /// Constructor.
         /// </summary>
-        /// <param name="signInManager"></param>
-        /// <param name="logger"></param>
+        /// <param name="signInManager">Sign in manager service.</param>
+        /// <param name="logger">Logger service.</param>
         public LogoutModel(SignInManager<IdentityUser> signInManager, ILogger<LogoutModel> logger)
         {
             this.signInManager = signInManager;
@@ -38,8 +39,10 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         /// <summary>
         /// Handle GET method.
         /// </summary>
+        /// <returns>IActionResult.</returns>
         public async Task<IActionResult> OnGet()
         {
+            Response.Cookies.Delete(DynamicConfigurationProvider.StandardCookieName);
             await signInManager.SignOutAsync();
             logger.LogInformation("User logged out.");
             return Redirect("/");
@@ -48,10 +51,11 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         /// <summary>
         /// Handle POST method.
         /// </summary>
-        /// <param name="returnUrl"></param>
+        /// <param name="returnUrl">Return URL.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> OnPost(string returnUrl = null)
         {
+            Response.Cookies.Delete(DynamicConfigurationProvider.StandardCookieName);
             await signInManager.SignOutAsync();
             logger.LogInformation("User logged out.");
             if (returnUrl != null)
