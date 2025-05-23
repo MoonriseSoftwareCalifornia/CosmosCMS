@@ -83,17 +83,30 @@ namespace Cosmos.BlobService.Drivers
         /// <param name="data">Bytes to append.</param>
         /// <param name="fileMetaData">'Chunk' metadata being appended as a <see cref="FileUploadMetaData"/>.</param>
         /// <param name="uploadDateTime">Date and time uploaded as a <see cref="DateTimeOffset"/>.</param>
+        /// <param name="mode">Mode is either append or block.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         /// <remarks>
         /// Existing blobs will be overwritten if they already exists, otherwise a new blob is created.
         /// </remarks>
-        public async Task AppendBlobAsync(byte[] data, FileUploadMetaData fileMetaData, DateTimeOffset uploadDateTime)
+        public async Task AppendBlobAsync(byte[] data, FileUploadMetaData fileMetaData, DateTimeOffset uploadDateTime, string mode = "append")
         {
+            if (mode.Equals("block", StringComparison.OrdinalIgnoreCase))
+            {
+                await this.UpdloadBlockBlobAsync(new MemoryStream(data), fileMetaData, uploadDateTime);
+                return;
+            }
+
+            var blobClient = this.GetBlobClient(fileMetaData.RelativePath);
+            var properties = await blobClient.GetPropertiesAsync();
+
             var appendClient = this.GetAppendBlobClient(fileMetaData.RelativePath);
 
             if (fileMetaData.ChunkIndex == 0)
             {
-                await appendClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots);
+                var deleteResult = await appendClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots);
+
+                // If the blob was deleted, we need to wait for it to be removed from the storage account.
+                var success = await DeleteAppendBlobWithRetryAsync(appendClient);
 
                 var headers = new BlobHttpHeaders
                 {
@@ -138,6 +151,33 @@ namespace Cosmos.BlobService.Drivers
                 // This is the last chunk, wrap things up here.
                 await appendClient.SealAsync();
             }
+        }
+
+        private async Task UpdloadBlockBlobAsync(Stream readStream, FileUploadMetaData fileMetaData, DateTimeOffset uploadDateTime)
+        {
+            var blockClient = this.GetBlobClient(fileMetaData.RelativePath);
+
+            await blockClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots);
+
+            var headers = new BlobHttpHeaders
+            {
+                // Set the MIME ContentType every time the properties are updated or the field will be cleared.
+                ContentType = fileMetaData.ContentType,
+                CacheControl = fileMetaData.CacheControl,
+            };
+            await blockClient.UploadAsync(readStream, headers);
+
+            var dictionaryObject = new Dictionary<string, string>
+                {
+                    { "ccmsuploaduid", fileMetaData.UploadUid },
+                    { "ccmssize", fileMetaData.TotalFileSize.ToString() },
+                    { "ccmsdatetime", uploadDateTime.UtcDateTime.Ticks.ToString() },
+                    { "ccmsimagewidth", fileMetaData.ImageWidth },
+                    { "ccmsimageheight", fileMetaData.ImageHeight }
+                };
+
+            _ = await blockClient.SetMetadataAsync(dictionaryObject);
+
         }
 
         /// <summary>
@@ -513,6 +553,17 @@ namespace Cosmos.BlobService.Drivers
         }
 
         /// <summary>
+        ///     Gets an append blob client, used for chunk uploads.
+        /// </summary>
+        /// <param name="path">Path to blob from which to open with client.</param>
+        /// <returns>Returns the <see cref="AppendBlobClient"/>.</returns>
+        public BlobClient GetBlobClient(string path)
+        {
+            var containerClient = blobServiceClient.GetBlobContainerClient(this.containerName);
+            return containerClient.GetBlobClient(path);
+        }
+
+        /// <summary>
         /// Gets the thumbnail stream for a given blob.
         /// </summary>
         /// <param name="target">Path to the blob.</param>
@@ -561,6 +612,35 @@ namespace Cosmos.BlobService.Drivers
                 this.usesAzureDefaultCredential = false;
                 this.blobServiceClient = new BlobServiceClient(connectionString);
             }
+        }
+
+        /// <summary>
+        /// Attempts to delete an append blob and waits until it is actually deleted or a timeout is reached.
+        /// </summary>
+        /// <param name="appendBlobClient">Append blob client used in the delete.</param>
+        /// <param name="timeout">Maximum time to wait for deletion (default: 30 seconds).</param>
+        /// <param name="pollInterval">Interval between existence checks (default: 500 ms).</param>
+        /// <returns>True if the blob was deleted within the timeout, false otherwise.</returns>
+        private async Task<bool> DeleteAppendBlobWithRetryAsync(AppendBlobClient appendBlobClient, TimeSpan? timeout = null, TimeSpan? pollInterval = null)
+        {
+            timeout ??= TimeSpan.FromSeconds(30);
+            pollInterval ??= TimeSpan.FromMilliseconds(500);
+            var startTime = DateTime.UtcNow;
+
+            await appendBlobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots);
+
+            while (DateTime.UtcNow - startTime < timeout.Value)
+            {
+                if (!await appendBlobClient.ExistsAsync())
+                {
+                    return true;
+                }
+
+                await Task.Delay(pollInterval.Value);
+            }
+
+            // Final check after timeout
+            return !await appendBlobClient.ExistsAsync();
         }
     }
 }

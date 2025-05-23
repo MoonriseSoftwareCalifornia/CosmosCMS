@@ -135,7 +135,7 @@ namespace Cosmos.BlobService
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task AppendBlob(MemoryStream stream, FileUploadMetaData fileMetaData)
         {
-            await this.driver.AppendBlobAsync(stream.ToArray(), fileMetaData, DateTimeOffset.UtcNow);
+            await this.driver.AppendBlobAsync(stream.ToArray(), fileMetaData, DateTimeOffset.UtcNow, "append");
         }
 
         /// <summary>

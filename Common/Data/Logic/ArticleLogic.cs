@@ -103,7 +103,7 @@ namespace Cosmos.Common.Data.Logic
         /// <returns>Sitemap.</returns>
         public async Task<Sitemap> GetSiteMap()
         {
-            var publicUrl = CosmosOptions.Value.SiteSettings.PublisherUrl.TrimEnd('/');
+            var publicUrl = "/";
 
             var query = from t in DbContext.ArticleCatalog
                         where t.Published <= DateTimeOffset.UtcNow.AddMinutes(10)

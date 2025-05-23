@@ -18,8 +18,6 @@ namespace Cosmos.Common.Data
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Diagnostics;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Options;
-    using Microsoft.IdentityModel.Tokens;
 
     /// <summary>
     ///     Database Context for Cosmos CMS.
@@ -180,6 +178,7 @@ namespace Cosmos.Common.Data
                 {
                     // Check to see if the identity containers exist.
                     var identityContainerResult = cosmosClient.GetContainer(databaseName, "Identity").ReadContainerAsync().Result;
+
                     // Check to see if the CMS containers exists.
                     var articleContainerResult = cosmosClient.GetContainer(databaseName, "Articles").ReadContainerAsync().Result;
 

@@ -24,8 +24,9 @@ namespace Cosmos.BlobService.Drivers
         /// <param name="data">Byte array to a blob.</param>
         /// <param name="fileMetaData">File metadata.</param>
         /// <param name="uploadDateTime">Upload date and time.</param>
+        /// <param name="mode">Either append or block.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        Task AppendBlobAsync(byte[] data, FileUploadMetaData fileMetaData, DateTimeOffset uploadDateTime);
+        Task AppendBlobAsync(byte[] data, FileUploadMetaData fileMetaData, DateTimeOffset uploadDateTime, string mode);
 
         /// <summary>
         ///     Checks to see if a blob exists.

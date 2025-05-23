@@ -314,7 +314,8 @@ namespace Cosmos.BlobService
         /// </summary>
         /// <param name="stream"><see cref="MemoryStream"/> containing data being appended.</param>
         /// <param name="fileMetaData"><see cref="FileUploadMetaData"/> containing metadata about the data 'chunk' and blob.</param>
-        public void AppendBlob(MemoryStream stream, FileUploadMetaData fileMetaData)
+        /// <param name="mode">Is either append or block.</param>
+        public void AppendBlob(MemoryStream stream, FileUploadMetaData fileMetaData, string mode = "append")
         {
             var mark = DateTimeOffset.UtcNow;
 
@@ -324,7 +325,7 @@ namespace Cosmos.BlobService
             foreach (var cosmosStorage in drivers)
             {
                 var cloneArray = data.ToArray();
-                uploadTasks.Add(cosmosStorage.AppendBlobAsync(cloneArray, fileMetaData, mark));
+                uploadTasks.Add(cosmosStorage.AppendBlobAsync(cloneArray, fileMetaData, mark, mode));
             }
 
             // Wait for all the tasks to complete

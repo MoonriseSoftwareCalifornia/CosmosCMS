@@ -46,6 +46,7 @@ namespace Cosmos.Editor.Data.Logic
         private readonly StorageContext storageContext;
         private readonly ILogger<ArticleEditLogic> logger;
         private readonly IHttpContextAccessor accessor;
+        private readonly EditorSettings settings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ArticleEditLogic"/> class.
@@ -58,6 +59,7 @@ namespace Cosmos.Editor.Data.Logic
         /// <param name="storageContext">Storage service used to manage static website blobs.</param>
         /// <param name="logger">Log service.</param>
         /// <param name="accessor">Http context access.</param>
+        /// <param name="settings">Editor settings - used with multitenant editor.</param>
         public ArticleEditLogic(
             ApplicationDbContext dbContext,
             IMemoryCache memoryCache,
@@ -65,7 +67,8 @@ namespace Cosmos.Editor.Data.Logic
             IViewRenderService viewRenderService,
             StorageContext storageContext,
             ILogger<ArticleEditLogic> logger,
-            IHttpContextAccessor accessor)
+            IHttpContextAccessor accessor,
+            IEditorSettings settings)
             : base(
                 dbContext,
                 config,
@@ -76,6 +79,7 @@ namespace Cosmos.Editor.Data.Logic
             this.storageContext = storageContext;
             this.logger = logger;
             this.accessor = accessor;
+            this.settings = (EditorSettings)settings;
         }
 
         /// <summary>
@@ -274,6 +278,25 @@ namespace Cosmos.Editor.Data.Logic
             }
 
             return entry;
+        }
+
+        /// <summary>
+        /// Gest the publisher URL depending if this is a multi-tenant editor or not.
+        /// </summary>
+        /// <returns>Publisher URL.</returns>
+        private string GetPublisherUrl()
+        {
+            var urlRoot = string.Empty;
+            if (this.CosmosOptions.Value.SiteSettings.MultiTenantEditor)
+            {
+                urlRoot = settings.GetEditorConfig().PublisherUrl.TrimEnd('/') + "/";
+            }
+            else
+            {
+                urlRoot = this.CosmosOptions.Value.SiteSettings.PublisherUrl.TrimEnd('/') + "/";
+            }
+
+            return urlRoot;
         }
 
         /// <summary>
@@ -1230,7 +1253,7 @@ namespace Cosmos.Editor.Data.Logic
                     TotalChunks = 1,
                     TotalFileSize = stream.Length,
                     UploadUid = Guid.NewGuid().ToString(),
-                });
+                }, "block");
             }
         }
 
@@ -1287,10 +1310,10 @@ namespace Cosmos.Editor.Data.Logic
                     TotalFileSize = stream.Length,
                     UploadUid = Guid.NewGuid().ToString(),
                     CacheControl = "max-age=300;must-revalidate"
-                });
+                }, "block");
             }
 
-            var robotsTxtFile = $"Sitemap: {CosmosOptions.Value.SiteSettings.PublisherUrl.TrimEnd('/')}/pub/sitemap.xml";
+            var robotsTxtFile = $"Sitemap: {GetPublisherUrl().TrimEnd('/')}/pub/sitemap.xml";
             using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(robotsTxtFile)))
             {
                 var storagePath = "/robots.txt";
@@ -1307,7 +1330,7 @@ namespace Cosmos.Editor.Data.Logic
                     TotalFileSize = stream.Length,
                     UploadUid = Guid.NewGuid().ToString(),
                     CacheControl = "max-age=300;must-revalidate"
-                });
+                }, "block");
             }
         }
 
@@ -1323,12 +1346,13 @@ namespace Cosmos.Editor.Data.Logic
             using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
             var storagePath = "pub/js/toc.json";
 
+            var urlRoot = GetPublisherUrl();
+
             foreach (var item in tableOfContents.Items)
             {
-                item.UrlPath = this.CosmosOptions.Value.SiteSettings.PublisherUrl.TrimEnd('/') + "/" + item.UrlPath.TrimStart('/');
                 if (!string.IsNullOrEmpty(item.BannerImage) && !item.BannerImage.StartsWith("http"))
                 {
-                    item.BannerImage = this.CosmosOptions.Value.SiteSettings.PublisherUrl.TrimEnd('/') + "/" + item.BannerImage.TrimStart('/');
+                    item.BannerImage = urlRoot + item.BannerImage.TrimStart('/');
                 }
             }
 
@@ -1344,7 +1368,7 @@ namespace Cosmos.Editor.Data.Logic
                 TotalFileSize = stream.Length,
                 UploadUid = Guid.NewGuid().ToString(),
                 CacheControl = "max-age=300;must-revalidate"
-            });
+            }, "block");
 
             await CreateSiteMapFile();
         }
@@ -1362,7 +1386,7 @@ namespace Cosmos.Editor.Data.Logic
 
             foreach (var articleNumber in missing)
             {
-                var last = await DbContext.Articles.Where(w => w.ArticleNumber == articleNumber  && w.Published != null).OrderBy(o => o.VersionNumber).LastOrDefaultAsync();
+                var last = await DbContext.Articles.Where(w => w.ArticleNumber == articleNumber && w.Published != null).OrderBy(o => o.VersionNumber).LastOrDefaultAsync();
                 await CreateCatalogEntry(last);
             }
         }
