@@ -38,7 +38,7 @@ namespace Cosmos.Cms.Controllers
     public class HomeController : Controller
     {
         private readonly ArticleEditLogic articleLogic;
-        private readonly IEditorSettings options;
+        private readonly EditorSettings options;
         private readonly ApplicationDbContext dbContext;
         private readonly UserManager<IdentityUser> userManager;
         private readonly StorageContext storageContext;
@@ -56,6 +56,7 @@ namespace Cosmos.Cms.Controllers
         /// <param name="powerBiTokenService">Service used to get tokens from Power BI.</param>
         /// <param name="emailSender">Email service.</param>
         /// <param name="dynamicConfigurationProvider">Multi-tenant configuration provider.</param>
+        /// <param name="editorSettings">Multi-tenant editor settings.</param>
         public HomeController(
             ILogger<HomeController> logger,
             IEditorSettings options,
@@ -69,8 +70,7 @@ namespace Cosmos.Cms.Controllers
         {
             // This handles injection manually to make sure everything is setup.
             this.dynamicConfigurationProvider = dynamicConfigurationProvider;
-
-            this.options = options;
+            this.options = (EditorSettings)options;
             this.articleLogic = articleLogic;
             this.dbContext = dbContext;
             this.userManager = userManager;

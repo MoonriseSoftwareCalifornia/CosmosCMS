@@ -10,7 +10,7 @@
     <ContainerRuntimeIdentifier>linux-x64</ContainerRuntimeIdentifier>
     <EnableSdkContainerDebugging>True</EnableSdkContainerDebugging>
     <ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:9.0</ContainerBaseImage>
-    <Version>9.0.10.4</Version>
+    <Version>9.0.10.5</Version>
   </PropertyGroup>
 
   <ItemGroup>
