@@ -60,7 +60,7 @@ namespace Cosmos.BlobService.Models
         /// <summary>
         /// Gets or sets the cache control (ie CACHE-CONTROL) string.
         /// </summary>
-        /// <remarks>Defaults to "max-age=3600, must-revalidate".</remarks>
-        public string CacheControl { get; set; } = "max-age=3600, must-revalidate";
+        /// <remarks>Defaults to "max-age=10, must-revalidate". After the 10 seconds are up, the cache must revalidate the content with the origin server before serving it again.</remarks>
+        public string CacheControl { get; set; } = "max-age=10, must-revalidate";
 }
 }

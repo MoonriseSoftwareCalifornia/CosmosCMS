@@ -88,7 +88,7 @@ namespace Cosmos.BlobService.Drivers
         /// <remarks>
         /// Existing blobs will be overwritten if they already exists, otherwise a new blob is created.
         /// </remarks>
-        public async Task AppendBlobAsync(byte[] data, FileUploadMetaData fileMetaData, DateTimeOffset uploadDateTime, string mode = "append")
+        public async Task AppendBlobAsync(byte[] data, FileUploadMetaData fileMetaData, DateTimeOffset uploadDateTime, string mode = "block")
         {
             if (mode.Equals("block", StringComparison.OrdinalIgnoreCase))
             {
@@ -163,7 +163,7 @@ namespace Cosmos.BlobService.Drivers
             {
                 // Set the MIME ContentType every time the properties are updated or the field will be cleared.
                 ContentType = fileMetaData.ContentType,
-                CacheControl = fileMetaData.CacheControl,
+                CacheControl = fileMetaData.CacheControl
             };
             await blockClient.UploadAsync(readStream, headers);
 

@@ -56,7 +56,6 @@ namespace Cosmos.Cms.Controllers
         /// <param name="powerBiTokenService">Service used to get tokens from Power BI.</param>
         /// <param name="emailSender">Email service.</param>
         /// <param name="dynamicConfigurationProvider">Multi-tenant configuration provider.</param>
-        /// <param name="editorSettings">Multi-tenant editor settings.</param>
         public HomeController(
             ILogger<HomeController> logger,
             IEditorSettings options,

@@ -820,7 +820,7 @@ namespace Cosmos.Cms.Controllers
 
                 try
                 {
-                    var clone = await articleLogic.CreateArticle(articleViewModel.Title, userId);
+                    var clone = await articleLogic.CreateArticle(articleViewModel.Title, await GetUserEmail());
                     clone.StatusCode = articleViewModel.StatusCode;
                     clone.CacheDuration = articleViewModel.CacheDuration;
                     clone.Content = articleViewModel.Content;
@@ -830,15 +830,8 @@ namespace Cosmos.Cms.Controllers
 
                     var result = await articleLogic.SaveArticle(clone, userId);
 
-                    // Open the live editor if there are editable regions on the page.
-                    if (result.Model.Content.Contains("editable", StringComparison.InvariantCultureIgnoreCase) ||
-                        result.Model.Content.Contains("data-ccms-ceid", StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        return RedirectToAction("Edit", new { result.Model.ArticleNumber });
-                    }
-
                     // Otherwise, open in the Monaco code editor
-                    return RedirectToAction("EditCode", new { result.Model.ArticleNumber });
+                    return RedirectToAction("Versions", "Editor", new { id = result.Model.ArticleNumber });
                 }
                 catch (Exception e)
                 {
@@ -1810,7 +1803,7 @@ namespace Cosmos.Cms.Controllers
             else
             {
                 // Get the user's ID for logging.
-                article = await articleLogic.CreateArticle("Blank Page", userId);
+                article = await articleLogic.CreateArticle("Blank Page", await GetUserEmail());
             }
 
             var html = await articleLogic.ExportArticle(article, blobPublicAbsoluteUrl, viewRenderService);

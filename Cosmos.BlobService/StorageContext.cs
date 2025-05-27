@@ -325,6 +325,18 @@ namespace Cosmos.BlobService
             foreach (var cosmosStorage in drivers)
             {
                 var cloneArray = data.ToArray();
+
+                if (stream.Length < 30000000)
+                {
+                    // If the stream is less than 30MB, we can use the block blob.
+                    mode = "block";
+                }
+                else
+                {
+                    // If the stream is larger than 30MB, we use append blob.
+                    mode = "append";
+                }
+
                 uploadTasks.Add(cosmosStorage.AppendBlobAsync(cloneArray, fileMetaData, mark, mode));
             }
 

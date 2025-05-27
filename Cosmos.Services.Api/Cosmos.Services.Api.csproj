@@ -9,7 +9,7 @@
     <EnableSdkContainerDebugging>True</EnableSdkContainerDebugging>
     <ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:9.0</ContainerBaseImage>
     <UserSecretsId>15f2be8e-95c5-4f74-9b62-04d221c1e630</UserSecretsId>
-    <Version>9.0.10.5</Version>
+    <Version>9.0.10.6</Version>
   </PropertyGroup>
 
   <ItemGroup>
