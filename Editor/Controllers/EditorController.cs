@@ -259,7 +259,7 @@ namespace Cosmos.Cms.Controllers
                                         UrlPath = article.UrlPath,
                                         VersionNumber = article.VersionNumber,
                                         Updated = DateTimeOffset.UtcNow
-                                    }, await GetUserEmail());
+                                    }, Guid.Parse(await GetUserId()));
             }
             catch (Exception ex)
             {
@@ -437,8 +437,8 @@ namespace Cosmos.Cms.Controllers
                 return BadRequest(ModelState);
             }
 
-            var left = await articleLogic.GetArticleById(leftId, EnumControllerName.Edit, await GetUserId());
-            var right = await articleLogic.GetArticleById(rightId, EnumControllerName.Edit, await GetUserId());
+            var left = await articleLogic.GetArticleById(leftId, EnumControllerName.Edit, Guid.Parse(await GetUserId()));
+            var right = await articleLogic.GetArticleById(rightId, EnumControllerName.Edit, Guid.Parse(await GetUserId()));
             @ViewData["PageTitle"] = left.Title;
 
             ViewData["LeftVersion"] = left.VersionNumber;
@@ -613,9 +613,9 @@ namespace Cosmos.Cms.Controllers
         }
 
         /// <summary>
-        ///     Uses <see cref="ArticleEditLogic.CreateArticle(string, string, Guid?)" /> to create an <see cref="ArticleViewModel" /> that is
+        ///     Uses <see cref="ArticleEditLogic.CreateArticle" /> to create an <see cref="ArticleViewModel" /> that is
         ///     saved to
-        ///     the database with <see cref="ArticleEditLogic.SaveArticle(ArticleViewModel, string)" /> ready for editing.
+        ///     the database with <see cref="ArticleEditLogic.SaveArticle" /> ready for editing.
         /// </summary>
         /// <param name="model">Create page view model.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
@@ -640,7 +640,7 @@ namespace Cosmos.Cms.Controllers
                     return View(model);
                 }
 
-                var article = await articleLogic.CreateArticle(model.Title, await GetUserEmail(), model.TemplateId);
+                var article = await articleLogic.CreateArticle(model.Title, Guid.Parse(await GetUserId()), model.TemplateId);
 
                 return RedirectToAction("Versions", "Editor", new { Id = article.ArticleNumber });
             }
@@ -807,7 +807,7 @@ namespace Cosmos.Cms.Controllers
                 }
             }
 
-            var userId = await GetUserId();
+            var userId = Guid.Parse(await GetUserId());
 
             var articleViewModel = await articleLogic.GetArticleById(model.Id, EnumControllerName.Edit, userId);
 
@@ -820,7 +820,7 @@ namespace Cosmos.Cms.Controllers
 
                 try
                 {
-                    var clone = await articleLogic.CreateArticle(articleViewModel.Title, await GetUserEmail());
+                    var clone = await articleLogic.CreateArticle(articleViewModel.Title, userId);
                     clone.StatusCode = articleViewModel.StatusCode;
                     clone.CacheDuration = articleViewModel.CacheDuration;
                     clone.Content = articleViewModel.Content;
@@ -888,7 +888,7 @@ namespace Cosmos.Cms.Controllers
             }
 
             var user = await userManager.GetUserAsync(User);
-            await articleLogic.CreateHomePage(model, user.Email);
+            await articleLogic.CreateHomePage(model);
 
             return RedirectToAction("Index");
         }
@@ -931,7 +931,7 @@ namespace Cosmos.Cms.Controllers
 
                 try
                 {
-                    _ = await articleLogic.CreateArticle(model.Title, await GetUserEmail(), model.TemplateId);
+                    _ = await articleLogic.CreateArticle(model.Title, Guid.Parse(await GetUserId()), model.TemplateId);
                 }
                 catch (Exception ex)
                 {
@@ -1483,7 +1483,7 @@ namespace Cosmos.Cms.Controllers
             article.Title = model.Title;
 
             // Save changes back to the database
-            var result = await articleLogic.SaveArticle(article, model.UserId);
+            var result = await articleLogic.SaveArticle(article, Guid.Parse(model.UserId));
 
             // Notify others of the changes.
             if (!string.IsNullOrWhiteSpace(model.EditorId))
@@ -1518,7 +1518,6 @@ namespace Cosmos.Cms.Controllers
 
             return Ok();
         }
-
 
         /// <summary>
         /// Updates the entire body of a web page.
@@ -1686,7 +1685,7 @@ namespace Cosmos.Cms.Controllers
                                 UrlPath = article.UrlPath,
                                 VersionNumber = article.VersionNumber,
                                 Updated = model.Updated.Value
-                            }, await GetUserEmail());
+                            }, Guid.Parse(await GetUserId()));
 
                         jsonModel.Model = new EditCodePostModel()
                         {
@@ -1795,7 +1794,7 @@ namespace Cosmos.Cms.Controllers
             }
 
             ArticleViewModel article;
-            var userId = await GetUserId();
+            var userId = Guid.Parse(await GetUserId());
             if (id.HasValue)
             {
                 article = await articleLogic.GetArticleById(id.Value, EnumControllerName.Edit, userId);
@@ -1803,7 +1802,7 @@ namespace Cosmos.Cms.Controllers
             else
             {
                 // Get the user's ID for logging.
-                article = await articleLogic.CreateArticle("Blank Page", await GetUserEmail());
+                article = await articleLogic.CreateArticle("Blank Page", userId);
             }
 
             var html = await articleLogic.ExportArticle(article, blobPublicAbsoluteUrl, viewRenderService);

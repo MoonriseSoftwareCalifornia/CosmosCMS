@@ -638,6 +638,16 @@ namespace Cosmos.BlobService.Drivers
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Gets the storage consumption.
+        /// </summary>
+        /// <returns>Bytes.</returns>
+        /// <exception cref="NotImplementedException">Not yet implemented.</exception>
+        public Task<long> GetStorageConsumption()
+        {
+            throw new NotImplementedException();
+        }
+
         private async Task CreateSubDirectory(ShareDirectoryClient directory, List<string> path)
         {
             var client = directory.GetSubdirectoryClient(path[0]);
@@ -693,16 +703,6 @@ namespace Cosmos.BlobService.Drivers
             }
 
             return list;
-        }
-
-        /// <summary>
-        /// Gets the storage consumption.
-        /// </summary>
-        /// <returns>Bytes.</returns>
-        /// <exception cref="NotImplementedException">Not yet implemented.</exception>
-        public Task<long> GetStorageConsumption()
-        {
-            throw new NotImplementedException();
         }
     }
 }

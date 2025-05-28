@@ -46,7 +46,6 @@ namespace Cosmos.Editor.Models
             }
         }
 
-
         /// <summary>
         /// Initializes a new instance of the <see cref="EditorConfig"/> class.
         /// </summary>
@@ -114,7 +113,6 @@ namespace Cosmos.Editor.Models
         [Required(AllowEmptyStrings = false)]
         [Url]
         public string PublisherUrl { get; set; } = string.Empty;
-
 
         /// <summary>
         ///    Gets or sets a value indicating whether publish to static website.

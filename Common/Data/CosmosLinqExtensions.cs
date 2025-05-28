@@ -29,7 +29,9 @@ namespace Cosmos.Common.Data
                 return (await query.CountAsync()) > 0;
             }
             catch
-            { return false; }
+            {
+                return false;
+            }
         }
     }
 }

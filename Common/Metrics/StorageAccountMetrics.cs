@@ -76,7 +76,7 @@ namespace Cosmos.Common.Metrics
         /// <param name="granularity">Time span.</param>
         /// <returns>List of metrics results.</returns>
         /// <example>
-        /// RetrieveMetricsAsync(DateTime.UtcNow.AddHours(-1), DateTime.UtcNow, TimeSpan.FromHours(1)).Wait();
+        /// RetrieveMetricsAsync(DateTime.UtcNow.AddHours(-1), DateTime.UtcNow, TimeSpan.FromHours(1)).Wait();.
         /// </example>
         public async Task<List<QueryResultMetric>> RetrieveMetricsAsync(DateTimeOffset startDateTime, DateTimeOffset endDateTime, TimeSpan granularity)
         {
@@ -91,8 +91,7 @@ namespace Cosmos.Common.Metrics
             var response = await client.QueryResourceAsync(
                 resourceId,
                 new[] { "Transactions", "Egress", "Ingress" },
-                options
-            );
+                options);
 
             var results = new List<QueryResultMetric>();
 

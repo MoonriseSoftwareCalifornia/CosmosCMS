@@ -167,6 +167,7 @@ namespace Cosmos.DynamicConfig
         /// </summary>
         /// <param name="configuration">App configuration.</param>
         /// <param name="httpContext">Current HTTP request context.</param>
+        /// <param name="includeCookie">Include cookie value in the search.</param>
         /// <returns>Domain Name.</returns>
         /// <remarks>
         /// <para>Returns the domain name by looking at the incomming request.  Here is the order:</para>
@@ -177,14 +178,17 @@ namespace Cosmos.DynamicConfig
         /// </list>
         /// <para>Note: This should ONLY be used for login and register functionality with HTTP GET method.</para>
         /// </remarks>
-        public static string GetTenantDomainNameFromRequest(IConfiguration configuration, HttpContext httpContext)
+        public static string GetTenantDomainNameFromRequest(IConfiguration configuration, HttpContext httpContext, bool includeCookie = true)
         {
             // In order of priority
             // 1. A set cookie
-            var cookieValue = httpContext.Request.Cookies[StandardCookieName];
-            if (!string.IsNullOrWhiteSpace(cookieValue))
+            if (includeCookie)
             {
-                return CleanUpDomainName(cookieValue);
+                var cookieValue = httpContext.Request.Cookies[StandardCookieName];
+                if (!string.IsNullOrWhiteSpace(cookieValue))
+                {
+                    return CleanUpDomainName(cookieValue);
+                }
             }
 
             // 2. Query string
@@ -196,6 +200,11 @@ namespace Cosmos.DynamicConfig
 
             // 3. referer header value
             var refererValue = (string?) httpContext.Request.Headers[HttpHeader.Names.Referer];
+            if (string.IsNullOrWhiteSpace(refererValue))
+            {
+                return string.Empty;
+            }
+
             refererValue = CleanUpDomainName(refererValue);
             var host = httpContext.Request.Host.Host;
             if (!string.IsNullOrWhiteSpace(refererValue) && refererValue.ToLower() != host.ToLower())

@@ -153,33 +153,6 @@ namespace Cosmos.BlobService.Drivers
             }
         }
 
-        private async Task UpdloadBlockBlobAsync(Stream readStream, FileUploadMetaData fileMetaData, DateTimeOffset uploadDateTime)
-        {
-            var blockClient = this.GetBlobClient(fileMetaData.RelativePath);
-
-            await blockClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots);
-
-            var headers = new BlobHttpHeaders
-            {
-                // Set the MIME ContentType every time the properties are updated or the field will be cleared.
-                ContentType = fileMetaData.ContentType,
-                CacheControl = fileMetaData.CacheControl
-            };
-            await blockClient.UploadAsync(readStream, headers);
-
-            var dictionaryObject = new Dictionary<string, string>
-                {
-                    { "ccmsuploaduid", fileMetaData.UploadUid },
-                    { "ccmssize", fileMetaData.TotalFileSize.ToString() },
-                    { "ccmsdatetime", uploadDateTime.UtcDateTime.Ticks.ToString() },
-                    { "ccmsimagewidth", fileMetaData.ImageWidth },
-                    { "ccmsimageheight", fileMetaData.ImageHeight }
-                };
-
-            _ = await blockClient.SetMetadataAsync(dictionaryObject);
-
-        }
-
         /// <summary>
         ///     Determines if a blob exists.
         /// </summary>
@@ -612,6 +585,39 @@ namespace Cosmos.BlobService.Drivers
                 this.usesAzureDefaultCredential = false;
                 this.blobServiceClient = new BlobServiceClient(connectionString);
             }
+        }
+
+        /// <summary>
+        /// Uploads a block blob to Azure Storage.
+        /// </summary>
+        /// <param name="readStream">Read file stream.</param>
+        /// <param name="fileMetaData">File metadata.</param>
+        /// <param name="uploadDateTime">Upload date and time.</param>
+        /// <returns>A Task.</returns>
+        private async Task UpdloadBlockBlobAsync(Stream readStream, FileUploadMetaData fileMetaData, DateTimeOffset uploadDateTime)
+        {
+            var blockClient = this.GetBlobClient(fileMetaData.RelativePath);
+
+            await blockClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots);
+
+            var headers = new BlobHttpHeaders
+            {
+                // Set the MIME ContentType every time the properties are updated or the field will be cleared.
+                ContentType = fileMetaData.ContentType,
+                CacheControl = fileMetaData.CacheControl
+            };
+            await blockClient.UploadAsync(readStream, headers);
+
+            var dictionaryObject = new Dictionary<string, string>
+                {
+                    { "ccmsuploaduid", fileMetaData.UploadUid },
+                    { "ccmssize", fileMetaData.TotalFileSize.ToString() },
+                    { "ccmsdatetime", uploadDateTime.UtcDateTime.Ticks.ToString() },
+                    { "ccmsimagewidth", fileMetaData.ImageWidth },
+                    { "ccmsimageheight", fileMetaData.ImageHeight }
+                };
+
+            _ = await blockClient.SetMetadataAsync(dictionaryObject);
         }
 
         /// <summary>

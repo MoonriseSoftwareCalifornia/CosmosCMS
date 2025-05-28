@@ -41,27 +41,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         private readonly IConfiguration configuration;
         private readonly bool isMultiTenantEditor;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="LoginModel"/> class.
-        /// Constructor.
-        /// </summary>
-        /// <param name="logger">Log service.</param>
-        /// <param name="options">Cosmos site options.</param>
-        /// <param name="services">App services.</param>
-        /// <param name="configuration">App configuration.</param>
-        public LoginModel(
-            ILogger<LoginModel> logger,
-            IOptions<SiteSettings> options,
-            IServiceProvider services,
-            IConfiguration configuration)
-        {
-            this.logger = logger;
-            this.options = options;
-            this.services = services;
-            this.configuration = configuration;
-            isMultiTenantEditor = this.configuration.GetValue<bool?>("MultiTenantEditor") ?? false;
-        }
-
         private SignInManager<IdentityUser> SignInManager
         {
             get
@@ -87,6 +66,27 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                 var manager = services.GetService<ApplicationDbContext>();
                 return manager;
             }
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LoginModel"/> class.
+        /// Constructor.
+        /// </summary>
+        /// <param name="logger">Log service.</param>
+        /// <param name="options">Cosmos site options.</param>
+        /// <param name="services">App services.</param>
+        /// <param name="configuration">App configuration.</param>
+        public LoginModel(
+            ILogger<LoginModel> logger,
+            IOptions<SiteSettings> options,
+            IServiceProvider services,
+            IConfiguration configuration)
+        {
+            this.logger = logger;
+            this.options = options;
+            this.services = services;
+            this.configuration = configuration;
+            isMultiTenantEditor = this.configuration.GetValue<bool?>("MultiTenantEditor") ?? false;
         }
 
         /// <summary>
@@ -120,6 +120,38 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         public async Task<IActionResult> OnGetAsync(string returnUrl = "", string website = "")
         {
             returnUrl = await GetReturnUrl(returnUrl);
+
+            if (User.Identity.IsAuthenticated)
+            {
+                // Get the website domain name from the request, this is the website the user is trying to log into.
+                // This checks the website parameter first, then the request host.
+                var futureWebsite = DynamicConfigurationProvider.GetTenantDomainNameFromRequest(configuration, HttpContext, false);
+
+                // Check to see if the user is logging into a new website.
+                if (isMultiTenantEditor && !string.IsNullOrWhiteSpace(futureWebsite))
+                {
+                    // Get the current domain name from the cookie, this is the current authenticated website domain name.
+                    var cookieValue = Request.Cookies[DynamicConfigurationProvider.StandardCookieName];
+
+
+                    // Sign the user out if the cookie value does not match the website domain name.
+                    if (!cookieValue.Equals(futureWebsite, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        await SignInManager.SignOutAsync();
+                        Response.Cookies.Append(DynamicConfigurationProvider.StandardCookieName, futureWebsite);
+                        return RedirectToPage("Login");
+                    }
+                }
+
+                if (string.IsNullOrWhiteSpace(returnUrl))
+                {
+                    RedirectToAction("Index", "Home");
+                }
+                else
+                {
+                    return Redirect(returnUrl);
+                }
+            }
 
             if (!string.IsNullOrEmpty(ErrorMessage))
             {
@@ -169,8 +201,9 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         /// On post method handler.
         /// </summary>
         /// <param name="returnUrl">Return to page.</param>
+        /// <param name="website">Website domain name.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task<IActionResult> OnPostAsync(string returnUrl = null)
+        public async Task<IActionResult> OnPostAsync(string returnUrl = null, string website = null)
         {
             ViewData["IsMultiTenantEditor"] = isMultiTenantEditor;
             returnUrl = await GetReturnUrl(returnUrl);

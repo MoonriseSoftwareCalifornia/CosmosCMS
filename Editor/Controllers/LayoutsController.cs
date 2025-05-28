@@ -287,7 +287,6 @@ namespace Cosmos.Cms.Controllers
             return RedirectToAction("Index");
         }
 
-
         /// <summary>
         /// Loads the designer GUI.
         /// </summary>

@@ -58,7 +58,6 @@
             resourceId = $"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.DocumentDB/databaseAccounts/{accountName}";
         }
 
-
         /// <summary>
         /// Retrieves Cosmos DB storage and RU metrics for the specified time range and granularity.
         /// </summary>

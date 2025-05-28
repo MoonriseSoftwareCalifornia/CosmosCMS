@@ -163,7 +163,7 @@ namespace Cosmos.Editor.Data.Logic
         ///         If this is the first article, it is saved as root and published immediately.
         ///     </para>
         /// </remarks>
-        public async Task<ArticleViewModel> CreateArticle(string title, string userId, Guid? templateId = null)
+        public async Task<ArticleViewModel> CreateArticle(string title, Guid userId, Guid? templateId = null)
         {
             // Is this the first article? If so, make it the root and publish it.
             var isFirstArticle = !await DbContext.Articles.CosmosAnyAsync();
@@ -229,7 +229,7 @@ namespace Cosmos.Editor.Data.Logic
                 UrlPath = isFirstArticle ? "root" : NormailizeArticleUrl(title),
                 VersionNumber = 1,
                 Published = isFirstArticle ? DateTimeOffset.UtcNow : null,
-                UserId = userId,
+                UserId = userId.ToString(),
                 TemplateId = templateId
             };
 
@@ -281,31 +281,11 @@ namespace Cosmos.Editor.Data.Logic
         }
 
         /// <summary>
-        /// Gest the publisher URL depending if this is a multi-tenant editor or not.
-        /// </summary>
-        /// <returns>Publisher URL.</returns>
-        private string GetPublisherUrl()
-        {
-            var urlRoot = string.Empty;
-            if (this.CosmosOptions.Value.SiteSettings.MultiTenantEditor)
-            {
-                urlRoot = settings.GetEditorConfig().PublisherUrl.TrimEnd('/') + "/";
-            }
-            else
-            {
-                urlRoot = this.CosmosOptions.Value.SiteSettings.PublisherUrl.TrimEnd('/') + "/";
-            }
-
-            return urlRoot;
-        }
-
-        /// <summary>
         ///     Makes an article the new home page.
         /// </summary>
         /// <param name="model">New home page post model.</param>
-        /// <param name="userId">ID of user creating the page.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task CreateHomePage(NewHomeViewModel model, string userId)
+        public async Task CreateHomePage(NewHomeViewModel model)
         {
             // Remove the old page from home
             var oldHomeArticle = await DbContext.Articles.Where(w => w.UrlPath.ToLower() == "root").ToListAsync();
@@ -488,7 +468,7 @@ namespace Cosmos.Editor.Data.Logic
         ///     </list>
         /// </remarks>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task<ArticleUpdateResult> SaveArticle(ArticleViewModel model, string userId)
+        public async Task<ArticleUpdateResult> SaveArticle(ArticleViewModel model, Guid userId)
         {
             // Retrieve the article that we will be using.
             // This will either be used to create a new version (detached then added as new),
@@ -511,8 +491,6 @@ namespace Cosmos.Editor.Data.Logic
             // =======================================================
             model.Content = Ensure_ContentEditable_IsMarked(model.Content);
 
-            //Ensure_Oembed_Handled(model);
-
             // Make sure base tag is set properly.
             UpdateHeadBaseTag(model);
 
@@ -524,6 +502,7 @@ namespace Cosmos.Editor.Data.Logic
             article.HeaderJavaScript = model.HeadJavaScript;
             article.FooterJavaScript = model.FooterJavaScript;
             article.BannerImage = model.BannerImage;
+            article.UserId = userId.ToString();
 
             // =======================================================
             // END: MAKE MODEL CHANGES HERE
@@ -535,7 +514,7 @@ namespace Cosmos.Editor.Data.Logic
                 DbContext.Entry(article).State = EntityState.Detached;
 
                 // Ensure a user ID is set for creator
-                article.UserId = userId;
+                article.UserId = userId.ToString();
 
                 // New version, gets a new ID.
                 article.Id = Guid.NewGuid();
@@ -546,13 +525,6 @@ namespace Cosmos.Editor.Data.Logic
 
             // Make sure this saves now
             await DbContext.SaveChangesAsync();
-
-            // If we are publishing this to a static website, write it
-            // to the blob storage now.
-            if (CosmosOptions.Value.UseStaticPublisherWebsite)
-            {
-                // TODO: Write to blob storage
-            }
 
             // IMPORTANT!
             // Handle title (and URL) changes for existing 
@@ -879,7 +851,7 @@ namespace Cosmos.Editor.Data.Logic
         ///     </para>
         ///     <para>NOTE: Cannot access articles that have been deleted.</para>
         /// </remarks>
-        public async Task<ArticleViewModel> GetArticleById(Guid? id, EnumControllerName controllerName, string userId)
+        public async Task<ArticleViewModel> GetArticleById(Guid? id, EnumControllerName controllerName, Guid userId)
         {
             if (controllerName == EnumControllerName.Template)
             {
@@ -978,6 +950,20 @@ namespace Cosmos.Editor.Data.Logic
                 Id = s.Id,
                 ToUrl = s.Content
             });
+        }
+
+        /// <summary>
+        /// Gets author info for a user.
+        /// </summary>
+        /// <param name="userId">User ID.</param>
+        /// <returns>AuthorInfo</returns>
+        public async Task<AuthorInfo> GetAuthorInfoForUserId(Guid userId)
+        {
+            var id = userId.ToString();
+
+            var authorInfo = await DbContext.AuthorInfos.FirstOrDefaultAsync(f => f.Id == id);
+
+            return authorInfo;
         }
 
         /// <summary>
@@ -1392,6 +1378,25 @@ namespace Cosmos.Editor.Data.Logic
         }
 
         /// <summary>
+        /// Gest the publisher URL depending if this is a multi-tenant editor or not.
+        /// </summary>
+        /// <returns>Publisher URL.</returns>
+        private string GetPublisherUrl()
+        {
+            var urlRoot = string.Empty;
+            if (this.CosmosOptions.Value.SiteSettings.MultiTenantEditor)
+            {
+                urlRoot = settings.GetEditorConfig().PublisherUrl.TrimEnd('/') + "/";
+            }
+            else
+            {
+                urlRoot = this.CosmosOptions.Value.SiteSettings.PublisherUrl.TrimEnd('/') + "/";
+            }
+
+            return urlRoot;
+        }
+
+        /// <summary>
         ///     Provides a standard method for turning a title into a URL Encoded path.
         /// </summary>
         /// <param name="title">Title to be converted into a URL.</param>
@@ -1612,7 +1617,6 @@ namespace Cosmos.Editor.Data.Logic
             purgePaths.AddRange(newVersions.Select(s => s.UrlPath));
             purgePaths.AddRange(publishedVersions.Select(s => s.UrlPath));
 
-
             if (publishedVersions.Count > 0)
             {
                 // Mark these for deletion - do this first to avoid any conflicts
@@ -1627,7 +1631,7 @@ namespace Cosmos.Editor.Data.Logic
             // Now refresh the published pages
             foreach (var item in newVersions)
             {
-                var authorInfo = await DbContext.AuthorInfos.FirstOrDefaultAsync(f => f.Id == item.UserId && f.AuthorName != string.Empty);
+                var authorInfo = await GetAuthorInfoForUserId(Guid.Parse(item.UserId));
 
                 var newPage = new PublishedPage()
                 {
@@ -1645,7 +1649,7 @@ namespace Cosmos.Editor.Data.Logic
                     UrlPath = item.UrlPath,
                     ParentUrlPath = item.UrlPath.Substring(0, Math.Max(item.UrlPath.LastIndexOf('/'), 0)),
                     VersionNumber = item.VersionNumber,
-                    AuthorInfo = JsonConvert.SerializeObject(authorInfo).Replace("\"", "'")
+                    AuthorInfo = authorInfo == null ? string.Empty : JsonConvert.SerializeObject(authorInfo).Replace("\"", "'")
                 };
 
                 DbContext.Pages.Add(newPage);
@@ -1929,7 +1933,7 @@ namespace Cosmos.Editor.Data.Logic
             var lastVersion = await DbContext.Articles.Where(a => a.ArticleNumber == article.ArticleNumber).OrderByDescending(o => o.VersionNumber).LastOrDefaultAsync();
 
             var userId = lastVersion.UserId;
-            var authorInfo = await DbContext.AuthorInfos.FirstOrDefaultAsync(f => f.Id == userId && f.AuthorName != string.Empty);
+            AuthorInfo authorInfo = await GetAuthorInfoForUserId(Guid.Parse(article.UserId));
             var intro = string.Empty;
 
             try
@@ -1980,7 +1984,7 @@ namespace Cosmos.Editor.Data.Logic
                 Updated = article.Updated,
                 UrlPath = article.UrlPath,
                 TemplateId = article.TemplateId,
-                AuthorInfo = JsonConvert.SerializeObject(authorInfo).Replace("\"", "'"),
+                AuthorInfo = authorInfo == null ? string.Empty : JsonConvert.SerializeObject(authorInfo).Replace("\"", "'"),
                 Introduction = intro,
             };
 

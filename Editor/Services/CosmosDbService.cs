@@ -32,7 +32,6 @@ namespace Cosmos.Editor.Data
             container = cosmosClient.GetContainer(databaseName, containerName);
         }
 
-
         /// <summary>  
         /// Query the Cosmos DB container and returns a dynamic list of results.  
         /// </summary>  

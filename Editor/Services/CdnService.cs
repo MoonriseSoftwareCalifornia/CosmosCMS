@@ -238,7 +238,6 @@ namespace Cosmos.Editor.Services
 
                 var frontDoor = client.GetFrontDoorEndpointResource(frontendEndpointResourceId);
 
-
                 var purgeContent = new FrontDoorPurgeContent(purgeUrls);
 
                 var result = await frontDoor.PurgeContentAsync(WaitUntil.Started, purgeContent);
@@ -341,7 +340,6 @@ namespace Cosmos.Editor.Services
                 var sucuriService = new SucuriCdnService(SucuriApiKey, SucuriApiSecret);
                 results.AddRange(await sucuriService.PurgeContentAsync(purgeUrls.ToArray()));
             }
-
 
             return results;
         }

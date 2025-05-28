@@ -146,17 +146,6 @@ namespace Cosmos.Common.Data
             return EnsureDatabaseExists(dbContext, setup);
         }
 
-
-        /// <summary>
-        /// Gets the database connection string.
-        /// </summary>
-        /// <returns>Database name.</returns>
-        public string GetDatabaseName()
-        {
-            var connectionStringProvider = this.services.GetRequiredService<IDynamicConfigurationProvider>();
-            return connectionStringProvider.GetDatabaseName();
-        }
-
         /// <summary>
         /// Ensure database exists and returns status.
         /// </summary>
@@ -233,6 +222,16 @@ namespace Cosmos.Common.Data
             }
 
             return dbStatus;
+        }
+
+        /// <summary>
+        /// Gets the database connection string.
+        /// </summary>
+        /// <returns>Database name.</returns>
+        public string GetDatabaseName()
+        {
+            var connectionStringProvider = this.services.GetRequiredService<IDynamicConfigurationProvider>();
+            return connectionStringProvider.GetDatabaseName();
         }
 
         /// <summary>

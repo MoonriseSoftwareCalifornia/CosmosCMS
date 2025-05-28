@@ -14,9 +14,7 @@ namespace Cosmos.Common.Metrics
     /// </summary>
     /// <remarks>
     /// The following KQL Log Analytics query can get data from this table:
-    /// 
-    /// AzureDiagnostics | where ResourceProvider == "MICROSOFT.CDN" | where Category == "FrontDoorAccessLog"
-    /// 
+    /// AzureDiagnostics | where ResourceProvider == "MICROSOFT.CDN" | where Category == "FrontDoorAccessLog".
     /// </remarks>
     public class EndPointMetric
     {

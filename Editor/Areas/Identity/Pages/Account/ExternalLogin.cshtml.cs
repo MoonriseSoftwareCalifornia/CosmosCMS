@@ -167,7 +167,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
 
                 var user = await userManager.FindByEmailAsync(Input.Email);
 
-
                 if (user != null && !await userManager.IsEmailConfirmedAsync(user))
                 {
                     var admins = await userManager.GetUsersInRoleAsync(RequiredIdentityRoles.Administrators);

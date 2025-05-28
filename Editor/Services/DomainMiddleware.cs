@@ -26,7 +26,6 @@ namespace Cosmos.Editor.Services
             this.next = next;
         }
 
-
         /// <summary>
         /// Invokes the middleware.
         /// </summary>

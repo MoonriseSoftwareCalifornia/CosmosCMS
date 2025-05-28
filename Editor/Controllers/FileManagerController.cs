@@ -508,7 +508,6 @@ namespace Cosmos.Cms.Controllers
             var parsed = JsonConvert.DeserializeObject<FilePondMetadata>(files);
             var mime = MimeTypeMap.GetMimeType(Path.GetExtension(parsed.FileName));
 
-
             // Gets the file being uploaded.
             var file = Request.Form.Files.FirstOrDefault();
 
@@ -601,7 +600,6 @@ namespace Cosmos.Cms.Controllers
 
             // Mime type
             var contentType = MimeTypeMap.GetMimeType(extension);
-
 
             var metaData = new FileUploadMetaData()
             {
@@ -800,7 +798,7 @@ namespace Cosmos.Cms.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    var article = await articleLogic.GetArticleById(Id, EnumControllerName.Edit, User.Identity.Name);
+                    var article = await articleLogic.GetArticleById(Id, EnumControllerName.Edit, Guid.Parse(await GetUserId()));
 
                     var originalHtml = await articleLogic.ExportArticle(article, blobPublicAbsoluteUrl, viewRenderService);
                     var originalHtmlDoc = new HtmlAgilityPack.HtmlDocument();
@@ -894,7 +892,7 @@ namespace Cosmos.Cms.Controllers
                     // Get the user's ID for logging.
                     var user = await userManager.GetUserAsync(User);
 
-                    await articleLogic.SaveArticle(article, user.Id);
+                    await articleLogic.SaveArticle(article, Guid.Parse(user.Id));
                 }
                 else
                 {
@@ -1289,8 +1287,6 @@ namespace Cosmos.Cms.Controllers
             return Ok();
         }
 
-        #region UTILITY FUNCTIONS
-
         /// <summary>
         ///     Parses out a path into a string array.
         /// </summary>
@@ -1346,10 +1342,6 @@ namespace Cosmos.Cms.Controllers
 
             return part.Trim('/').Trim('\\').Trim();
         }
-
-        #endregion
-
-        #region EDIT (CODE | IMAGE) FUNCTIONS
 
         /// <summary>
         /// Edit code for a file.
@@ -1552,8 +1544,8 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Edit an image.
         /// </summary>
-        /// <param name="target"></param>
-        /// <returns></returns>
+        /// <param name="target">Path to image.</param>
+        /// <returns>IActionResult.</returns>
         public IActionResult EditImage(string target)
         {
             if (!ModelState.IsValid)
@@ -1581,7 +1573,7 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Image editor post image back to storage.
         /// </summary>
-        /// <param name="model"></param>
+        /// <param name="model">File robot post model.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [HttpPost]
         public async Task<IActionResult> EditImage([FromBody] FileRobotImagePost model)
@@ -1692,8 +1684,6 @@ namespace Cosmos.Cms.Controllers
 
             return File(outStream.ToArray(), "image/webp");
         }
-
-        #endregion
 
         /// <summary>
         ///     Used to upload files, one chunk at a time, and normalizes the blob name to lower case.

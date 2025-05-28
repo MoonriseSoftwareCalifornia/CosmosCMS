@@ -38,7 +38,6 @@ namespace Cosmos.Common.Metrics
             workspaceId = logAnalyticsWorkspaceId.ToString();
         }
 
-
         /// <summary>
         /// Initializes a new instance of the <see cref="FrontDoorProfileMetrics"/> class.
         /// </summary>

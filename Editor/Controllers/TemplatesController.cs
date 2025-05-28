@@ -742,7 +742,7 @@ namespace Cosmos.Cms.Controllers
             article.VersionNumber = 0;
             article.Content = templateHtmlDoc.DocumentNode.OuterHtml;
 
-            await articleLogic.SaveArticle(article, await GetUserEmail());
+            await articleLogic.SaveArticle(article, Guid.Parse(await GetUserId()));
             Console.WriteLine($"Template applied to article {articleNumber}");
         }
     }

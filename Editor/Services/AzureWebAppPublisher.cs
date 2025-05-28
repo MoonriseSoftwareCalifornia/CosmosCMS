@@ -65,7 +65,6 @@ namespace CosmosCMS.Editor.Services
             }
         }
 
-
         /// <summary>
         /// Deletes a file from the wwwroot directory of the Azure Web App using the Kudu API.
         /// </summary>
