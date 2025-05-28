@@ -1868,7 +1868,14 @@ namespace Cosmos.Cms.Controllers
                 return BadRequest(ModelState);
             }
 
-            var query = $"SELECT c.ArticleNumber, c.Title, c.UrlPath, MAX(c.Published) as Published, MAX(c.Updated) as Updated FROM Articles c WHERE c.StatusCode = {(int)StatusCodeEnum.Active} GROUP BY c.ArticleNumber, c.Title, c.UrlPath";
+            var whereClause = $"WHERE c.StatusCode = {(int)StatusCodeEnum.Active}";
+
+            if (!string.IsNullOrEmpty(term))
+            {
+                whereClause += $" AND LOWER(c.Title) LIKE '%{term.ToLower()}%'";
+            }
+
+            var query = $"SELECT c.ArticleNumber, c.Title, c.UrlPath, MAX(c.Published) as Published, MAX(c.Updated) as Updated FROM Articles c {whereClause} GROUP BY c.ArticleNumber, c.Title, c.UrlPath";
             var client = dbContext.Database.GetCosmosClient();
             var queryService = new CosmosDbService(client, dbContext.Database.GetCosmosDatabaseId(), "Articles");
 

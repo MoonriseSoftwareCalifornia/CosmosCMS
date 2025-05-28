@@ -44,7 +44,7 @@ import {
 
 import FileLink from "filelink";
 import InsertImage from "insertimage";
-import PageLinkUI from "pagelink";
+import PageLink from "pagelink";
 import VsCodeEditor from "vscodeeditor";
 import SignalR from "signalr";
 
@@ -104,20 +104,20 @@ const EditorConfig = {
         TextTransformation,
         TodoList,
         Underline,
-
         FileLink,
         InsertImage,
-        PageLinkUI,
+        PageLink,
         VsCodeEditor,
         SignalR,
     ],
-    balloonToolbar: ['bold', 'italic', 'underline', '|', 'link', 'pageLink', 'insertImage', '|', 'bulletedList', 'numberedList'],
+    balloonToolbar: ['bold', 'italic', 'underline', '|', 'pageLink', 'link',  'insertImage', '|', 'bulletedList', 'numberedList'],
     placeholder: 'Add your content here.',
     licenseKey: LICENSE_KEY,
     toolbar: {
         items: [
             'heading',
             '|',
+            'pageLink',
             'imageInsert',
             'insertImage',
             'mediaEmbed',

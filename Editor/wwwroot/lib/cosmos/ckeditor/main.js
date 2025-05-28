@@ -33,6 +33,7 @@ import {
 	ListProperties,
 	MediaEmbed,
 	Mention,
+	PageLink,
 	Paragraph,
 	PasteFromOffice,
 	SimpleUploadAdapter,
@@ -62,6 +63,7 @@ const editorConfig = {
 			'underline',
 			'|',
 			'link',
+			'pageLink',
 			'insertImage',
 			'mediaEmbed',
 			'insertTable',
@@ -105,6 +107,7 @@ const editorConfig = {
 		ListProperties,
 		MediaEmbed,
 		Mention,
+		PageLink,
 		Paragraph,
 		PasteFromOffice,
 		SimpleUploadAdapter,
@@ -118,7 +121,7 @@ const editorConfig = {
 		TodoList,
 		Underline
 	],
-	balloonToolbar: ['bold', 'italic', '|', 'link', 'insertImage', '|', 'bulletedList', 'numberedList'],
+	balloonToolbar: ['bold', 'italic', '|', 'pageLink', 'link', 'insertImage', '|', 'bulletedList', 'numberedList'],
 	heading: {
 		options: [
 			{
