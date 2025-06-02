@@ -26,5 +26,5 @@ jobs:
     - name: Publish Cosmos.BlobService Nuget Package
       run: dotnet nuget push /home/runner/work/CosmosCMS/CosmosCMS/Cosmos.BlobService/bin/Release/*.nupkg --api-key ${{ secrets.NUGET_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
     - name: Publish Cosmos.DynamicConfig Nuget Package
-      run: dotnet nuget push /home/runner/work/CosmosCMS/CosmosCMS/Cosmos.DynamicConfig/bin/Release/*.nupkg --api-key ${{ secrets.NUGET_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+      run: dotnet nuget push /home/runner/work/CosmosCMS/CosmosCMS/Cosmos.ConnectionStrings/bin/Release/*.nupkg --api-key ${{ secrets.NUGET_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
     
