@@ -5,7 +5,7 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
-namespace Cosmos.Editor.Services
+namespace Cosmos.DynamicConfig
 {
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Http;

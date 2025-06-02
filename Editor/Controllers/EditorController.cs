@@ -1483,7 +1483,7 @@ namespace Cosmos.Cms.Controllers
             article.Title = model.Title;
 
             // Save changes back to the database
-            var result = await articleLogic.SaveArticle(article, Guid.Parse(model.UserId));
+            var result = await articleLogic.SaveArticle(article, Guid.Parse(await GetUserId()));
 
             // Notify others of the changes.
             if (!string.IsNullOrWhiteSpace(model.EditorId))

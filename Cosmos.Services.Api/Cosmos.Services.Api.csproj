@@ -10,6 +10,7 @@
     <ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:9.0</ContainerBaseImage>
     <UserSecretsId>15f2be8e-95c5-4f74-9b62-04d221c1e630</UserSecretsId>
     <Version>9.0.10.8</Version>
+    <ApplicationInsightsResourceId>/subscriptions/eea20e7a-4dd0-4385-80d6-6b448e17a7da/resourceGroups/RG-EDITORS-WESTUS/providers/microsoft.insights/components/westus-cosmoscms</ApplicationInsightsResourceId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,7 +22,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.23.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="9.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.5" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="8.1.2" />
     <PackageReference Include="System.Private.Uri" Version="4.3.2" />
   </ItemGroup>
 
@@ -32,6 +36,12 @@
   <ItemGroup>
     <ProjectReference Include="..\Common\Cosmos.Common.csproj" />
     <ProjectReference Include="..\Cosmos.ConnectionStrings\Cosmos.DynamicConfig.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="wwwroot\scripts\contactform.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>
