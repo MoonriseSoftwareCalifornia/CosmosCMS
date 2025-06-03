@@ -30,6 +30,7 @@ namespace Cosmos.MultiTenant_Adminstrator.Models
             ResourceGroup = connection.ResourceGroup;
             PublisherMode = connection.PublisherMode;
             WebsiteUrl = connection.WebsiteUrl;
+            OwnerEmail = connection.OwnerEmail;
         }
 
         [Key]
@@ -90,6 +91,10 @@ namespace Cosmos.MultiTenant_Adminstrator.Models
         [Display(Name = "Website URL")]
         public string WebsiteUrl { get; set; } = null!;
 
+        [EmailAddress]
+        [Display(Name = "Owner Email Address")]
+        public string? OwnerEmail { get; set; } = null;
+
         /// <summary>
         /// Converts the view model to a <see cref="Connection"/> object.
         /// </summary>
@@ -106,7 +111,8 @@ namespace Cosmos.MultiTenant_Adminstrator.Models
                 Customer = Customer,
                 ResourceGroup = ResourceGroup,
                 PublisherMode = PublisherMode,
-                WebsiteUrl = WebsiteUrl
+                WebsiteUrl = WebsiteUrl,
+                OwnerEmail = OwnerEmail
             };
         }
     }

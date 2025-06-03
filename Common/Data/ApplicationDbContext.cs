@@ -143,7 +143,7 @@ namespace Cosmos.Common.Data
             optionsBuilder.UseCosmos(connectionString: connectionString, databaseName: databaseName);
             using var dbContext = new ApplicationDbContext(optionsBuilder.Options);
 
-            return EnsureDatabaseExists(dbContext, setup);
+            return EnsureDatabaseExists(dbContext, setup, databaseName);
         }
 
         /// <summary>
@@ -151,11 +151,10 @@ namespace Cosmos.Common.Data
         /// </summary>
         /// <param name="dbContext">Database context.</param>
         /// <param name="setup">Setup database as well as test connection.</param>
+        /// <param name="databaseName">Set the database name.</param>
         /// <returns>Success or not.</returns>
-        public static DbStatus EnsureDatabaseExists(ApplicationDbContext dbContext, bool setup)
+        public static DbStatus EnsureDatabaseExists(ApplicationDbContext dbContext, bool setup, string databaseName)
         {
-            var databaseName = dbContext.GetDatabaseName();
-
             var cosmosClient = dbContext.Database.GetCosmosClient();
 
             DbStatus dbStatus = DbStatus.DoesNotExist;

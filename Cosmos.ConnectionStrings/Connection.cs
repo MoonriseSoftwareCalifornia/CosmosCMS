@@ -68,5 +68,9 @@ namespace Cosmos.DynamicConfig
         [Required(AllowEmptyStrings = false)]
         [Display(Name = "Website URL")]
         public string WebsiteUrl { get; set; } = null!;
+
+        [EmailAddress]
+        [Display(Name = "Website Owner Email")]
+        public string? OwnerEmail { get; set; } = null;
     }
 }

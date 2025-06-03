@@ -17,6 +17,9 @@
                 @Html.DisplayNameFor(model => model.Customer)
             </th>
             <th>
+                @Html.DisplayNameFor(model => model.OwnerEmail)
+            </th>
+            <th>
                 @Html.DisplayNameFor(model => model.DatabaseStatus)
             </th>
             <th>
@@ -43,6 +46,9 @@
             <tr>
                 <td>
                     @Html.DisplayFor(modelItem => item.Customer)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.OwnerEmail)
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.DatabaseStatus)

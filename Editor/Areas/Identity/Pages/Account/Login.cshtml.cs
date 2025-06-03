@@ -235,7 +235,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
 
             if (isMultiTenantEditor)
             {
-                var databaseStatus = ApplicationDbContext.EnsureDatabaseExists(DbContext, false);
+                var databaseStatus = ApplicationDbContext.EnsureDatabaseExists(DbContext, false, DbContext.Database.GetDbConnection().Database);
                 if (databaseStatus == DbStatus.DoesNotExist)
                 {
                     ModelState.AddModelError(string.Empty, "Database not setup. Please setup using the multi-tenant administrator.");

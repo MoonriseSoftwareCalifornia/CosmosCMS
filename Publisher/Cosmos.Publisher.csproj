@@ -2,15 +2,15 @@
 
 	<PropertyGroup>
 		<TargetFramework>net9.0</TargetFramework>
-		<AssemblyVersion>9.0.10.9</AssemblyVersion>
-		<FileVersion>9.0.10.9</FileVersion>
+		<AssemblyVersion>9.0.10.10</AssemblyVersion>
+		<FileVersion>9.0.10.10</FileVersion>
 		<Nullable>disable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<UserSecretsId>aspnet-Cosmos.Cms.Publisher-F1D91233-1093-41F8-B23F-43E81E1454FF</UserSecretsId>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 		<EnableSdkContainerSupport>true</EnableSdkContainerSupport>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
-		<Version>9.0.10.9</Version>
+		<Version>9.0.10.10</Version>
 		<DockerfileContext>..\..\..</DockerfileContext>
 	</PropertyGroup>
 
@@ -57,7 +57,7 @@
 		<PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.5" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="9.0.5" />
 		<PackageReference Include="Microsoft.Extensions.Caching.Cosmos" Version="1.7.0" />
-		<PackageReference Include="Microsoft.Identity.Web" Version="3.9.2" />
+		<PackageReference Include="Microsoft.Identity.Web" Version="3.9.3" />
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.0" />
 		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
 		  <PrivateAssets>all</PrivateAssets>

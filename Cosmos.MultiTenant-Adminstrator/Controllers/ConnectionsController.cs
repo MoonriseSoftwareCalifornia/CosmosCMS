@@ -81,7 +81,7 @@ namespace Cosmos.MultiTenant_Adminstrator.Controllers
                 DbName = "cosmoscms",
                 StorageConn = string.Empty,
                 Customer = string.Empty,
-                WebsiteUrl = string.Empty
+                WebsiteUrl = string.Empty,
             });
         }
 
@@ -90,7 +90,7 @@ namespace Cosmos.MultiTenant_Adminstrator.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,DomainNames,DbConn,DbName,StorageConn,Customer,WebsiteUrl,ResourceGroup,PublisherMode")] ConnectionViewModel model)
+        public async Task<IActionResult> Create([Bind("Id,DomainNames,DbConn,DbName,StorageConn,Customer,WebsiteUrl,ResourceGroup,PublisherMode,OwnerEmail")] ConnectionViewModel model)
         {
             if (ModelState.IsValid)
             {
@@ -135,7 +135,7 @@ namespace Cosmos.MultiTenant_Adminstrator.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Id,DomainNames,DbConn,DbName,StorageConn,Customer,WebsiteUrl,ResourceGroup,PublisherMode")] ConnectionViewModel model)
+        public async Task<IActionResult> Edit(Guid id, [Bind("Id,DomainNames,DbConn,DbName,StorageConn,Customer,WebsiteUrl,ResourceGroup,PublisherMode,OwnerEmail")] ConnectionViewModel model)
         {
             if (id != model.Id)
             {
@@ -172,6 +172,7 @@ namespace Cosmos.MultiTenant_Adminstrator.Controllers
                     entity.StorageConn = model.StorageConn;
                     entity.WebsiteUrl = model.WebsiteUrl;
                     entity.ResourceGroup = model.ResourceGroup;
+                    entity.OwnerEmail = model.OwnerEmail;
 
                     await _context.SaveChangesAsync();
                 }

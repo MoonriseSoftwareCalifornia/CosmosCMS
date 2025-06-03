@@ -18,6 +18,7 @@ namespace Cosmos.MultiTenant_Adminstrator.Models
             this.Customer = connection.Customer;
             this.ResourceGroup = connection.ResourceGroup;
             this.WebsiteUrl = connection.WebsiteUrl;
+            this.OwnerEmail = connection.OwnerEmail;
         }
 
         /// <summary>
