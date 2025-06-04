@@ -1,4 +1,4 @@
-name: Publish Docker Images CI
+name: Editor and Publisher Docker Images
 
 on:
   workflow_dispatch
@@ -27,15 +27,3 @@ jobs:
       run: docker build . --file Publisher/Dockerfile --tag ${{ secrets.DOCKERLOGIN}}/cosmos-publisher:latest
     - name: Push Publisher container to Docker Hub
       run: docker push ${{ secrets.DOCKERLOGIN}}/cosmos-publisher
-    - name: Build API container Docker Image
-      run: docker build . --file Cosmos.Api/Dockerfile --tag ${{ secrets.DOCKERLOGIN}}/cosmos-api:latest
-    - name: Push API container to Docker Hub
-      run: docker push ${{ secrets.DOCKERLOGIN}}/cosmos-api
-    - name: Build Multi-tenant Administrator
-      run: docker build . --file Cosmos.MultiTenant-Adminstrator/Dockerfile --tag ${{ secrets.DOCKERLOGIN}}/cosmos-tenant-admin:latest
-    - name: Push Multi-tenant Administrator
-      run: docker push ${{ secrets.DOCKERLOGIN}}/cosmos-tenant-admin
-    - name: Build Multi-tenant Metrics FA
-      run: docker build . --file Cosmos.MultiTenant.Metrics/Dockerfile --tag ${{ secrets.DOCKERLOGIN}}/cosmos-tenant-metric-fa:latest
-    - name: Push Multi-tenant Metrics FA
-      run: docker push ${{ secrets.DOCKERLOGIN}}/cosmos-tenant-metric-fa
