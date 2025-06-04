@@ -8,7 +8,7 @@
     <DockerFastModeProjectMountDirectory>/home/site/wwwroot</DockerFastModeProjectMountDirectory>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <UserSecretsId>bf0cddab-feb4-4ea9-b08c-e23bb0b94729</UserSecretsId>
-    <Version>9.0.10.10</Version>
+    <Version>9.0.10.11</Version>
   </PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />

@@ -6,6 +6,7 @@
 // </copyright>
 
 using System;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.RateLimiting;
 using System.Threading.Tasks;
@@ -38,6 +39,22 @@ using Newtonsoft.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+if (builder.Environment.IsDevelopment())
+{
+    var envVars = builder.Configuration.AsEnumerable()?.OrderBy(a => a.Key);
+    foreach (var v in envVars)
+    {
+        Console.WriteLine($"{v.Key} = {v.Value}");
+    }
+
+    var cons = builder.Configuration.GetSection("COnnectionStrings").AsEnumerable();
+
+    foreach (var v in cons)
+    {
+        Console.WriteLine($"{v.Key} = {v.Value}");
+    }
+}
+
 // Add memory cache for Cosmos data logic and other services.
 builder.Services.AddMemoryCache();
 
@@ -62,7 +79,7 @@ builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddSingleton<IDynamicConfigurationProvider, DynamicConfigurationProvider>();
 
 // Make sure the database exists if in setup mode and is NOT in multitenant mode.
-var multi = builder.Configuration.GetValue<bool?>("MultiTenantEditor") ?? false;
+var multi = bool.Parse(builder.Configuration.GetValue<string>("MultiTenantEditor") ?? "false");
 if (option.Value.SiteSettings.AllowSetup && !multi)
 {
     var connectionString = builder.Configuration.GetConnectionString("ApplicationDbContextConnection");
