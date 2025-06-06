@@ -77,6 +77,7 @@ builder.Services.AddSingleton(option);
 // The next two services have to appear before DB Context.
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddSingleton<IDynamicConfigurationProvider, DynamicConfigurationProvider>();
+builder.Services.AddSingleton<MultiDatabaseManagementUtilities>();
 
 // Make sure the database exists if in setup mode and is NOT in multitenant mode.
 var multi = builder.Configuration.GetValue<bool?>("MultiTenantEditor") ?? false;
