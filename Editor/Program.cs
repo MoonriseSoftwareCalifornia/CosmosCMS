@@ -79,7 +79,7 @@ builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddSingleton<IDynamicConfigurationProvider, DynamicConfigurationProvider>();
 
 // Make sure the database exists if in setup mode and is NOT in multitenant mode.
-var multi = bool.Parse(builder.Configuration.GetValue<string>("MultiTenantEditor") ?? "false");
+var multi = builder.Configuration.GetValue<bool?>("MultiTenantEditor") ?? false;
 if (option.Value.SiteSettings.AllowSetup && !multi)
 {
     var connectionString = builder.Configuration.GetConnectionString("ApplicationDbContextConnection");

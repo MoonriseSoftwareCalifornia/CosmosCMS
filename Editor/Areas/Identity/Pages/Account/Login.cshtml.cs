@@ -119,30 +119,40 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> OnGetAsync(string returnUrl = "", string website = "")
         {
+            // Get a clean return URL.
             returnUrl = await GetReturnUrl(returnUrl);
 
-            if (User.Identity.IsAuthenticated)
+            // Clear the existing external cookie to ensure a clean login process
+            await SignInManager.SignOutAsync();
+            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+
+            // Get the cookie value for the website domain name.
+            var cookieValue = Request.Cookies[DynamicConfigurationProvider.StandardCookieName];
+
+            if (isMultiTenantEditor)
             {
-                // Get the website domain name from the request, this is the website the user is trying to log into.
-                // This checks the website parameter first, then the request host.
-                var futureWebsite = DynamicConfigurationProvider.GetTenantDomainNameFromRequest(configuration, HttpContext, false);
+                var cookieExists = string.IsNullOrWhiteSpace(cookieValue) == false;
+                var isValidDomain = string.IsNullOrWhiteSpace(website) ? true : await DynamicConfigurationProvider.ValidateDomainName(configuration, website);
+                website = isValidDomain ? website : string.Empty;
 
-                // Check to see if the user is logging into a new website.
-                if (isMultiTenantEditor && !string.IsNullOrWhiteSpace(futureWebsite))
+                // If person is already logged in or the cookie exists, reset and restart.
+                if (cookieExists || isValidDomain == false)
                 {
-                    // Get the current domain name from the cookie, this is the current authenticated website domain name.
-                    var cookieValue = Request.Cookies[DynamicConfigurationProvider.StandardCookieName];
-
-
-                    // Sign the user out if the cookie value does not match the website domain name.
-                    if (!cookieValue.Equals(futureWebsite, StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        await SignInManager.SignOutAsync();
-                        Response.Cookies.Append(DynamicConfigurationProvider.StandardCookieName, futureWebsite);
-                        return RedirectToPage("Login");
-                    }
+                    // Reset the login if the cookie exists or the user is logged in.
+                    // Also reset the website to nothing if it is not valid.
+                    return ResetLogin(cookieExists, returnUrl, website);
                 }
 
+                var futureWebsite = DynamicConfigurationProvider.GetTenantDomainNameFromRequest(configuration, HttpContext, false);
+                Input.NeedsCookieSet = true;
+                Input.WebsiteDomainName = futureWebsite;
+
+                return Page();
+            }
+
+            // If the user is already logged in, redirect to the home page or return URL.
+            if (User.Identity.IsAuthenticated)
+            {
                 if (string.IsNullOrWhiteSpace(returnUrl))
                 {
                     RedirectToAction("Index", "Home");
@@ -153,40 +163,15 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                 }
             }
 
-            if (!string.IsNullOrEmpty(ErrorMessage))
-            {
-                ModelState.AddModelError(string.Empty, ErrorMessage);
-            }
-
-            if (User.Identity.IsAuthenticated)
-            {
-                return RedirectToAction(returnUrl);
-            }
-
-            if (isMultiTenantEditor)
-            {
-                Input.NeedsCookieSet = await NeedsAccountCookieSet();
-
-                Input.WebsiteDomainName = DynamicConfigurationProvider.GetTenantDomainNameFromRequest(configuration, HttpContext);
-
-                if (Input.NeedsCookieSet)
-                {
-                    // We need to get the account set before processing the rest.
-                    return Page();
-                }
-            }
-
-            // Clear the existing external cookie to ensure a clean login process
-            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
-
             ExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 
-            // If there are no users yet, go strait to the register page.
-            if (options.Value.AllowSetup)
+            // Allow setup if enabled for a non-multitenant editor.
+            if (!isMultiTenantEditor && options.Value.AllowSetup)
             {
                 await DbContext.Database.EnsureCreatedAsync();
             }
 
+            // If there are no users yet, go strait to the register page.
             if (await UserManager.Users.CountAsync() == 0)
             {
                 return RedirectToPage("Register");
@@ -235,7 +220,8 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
 
             if (isMultiTenantEditor)
             {
-                var databaseStatus = ApplicationDbContext.EnsureDatabaseExists(DbContext, false, DbContext.Database.GetDbConnection().Database);
+                var database = configuration.GetValue<string>($"CosmosIdentityDbName") ?? "cosmoscms";
+                var databaseStatus = ApplicationDbContext.EnsureDatabaseExists(DbContext, false, database);
                 if (databaseStatus == DbStatus.DoesNotExist)
                 {
                     ModelState.AddModelError(string.Empty, "Database not setup. Please setup using the multi-tenant administrator.");
@@ -301,24 +287,22 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         }
 
         /// <summary>
-        /// Indicates if the account cookie needs to be set.
+        /// Resets the login removing the cookie or existing logged in session.
         /// </summary>
-        /// <returns>True or false.</returns>
-        /// <remarks>This also sets the ViewData['NeedsAccountCookieSet'] so that the view knows what to show.</remarks>
-        private async Task<bool> NeedsAccountCookieSet()
+        /// <param name="cookieExists">Cookie already exists.</param>
+        /// <param name="returnUrl">Return URL.</param>
+        /// <param name="website">Website domain name.</param>
+        /// <returns>IActionResult.</returns>
+        private IActionResult ResetLogin(bool cookieExists, string returnUrl, string website)
         {
-            if (!isMultiTenantEditor)
+            Response.Cookies.Delete(DynamicConfigurationProvider.StandardCookieName);
+
+            if (string.IsNullOrWhiteSpace(website))
             {
-                return false;
+                return RedirectToPage("Login", new { returnUrl });
             }
 
-            var domainName = DynamicConfigurationProvider.GetTenantDomainNameFromCookieOrHost(configuration, HttpContext);
-            if (await DynamicConfigurationProvider.ValidateDomainName(configuration, domainName))
-            {
-                return false;
-            }
-
-            return true;
+            return RedirectToPage("Login", new { returnUrl, website });
         }
 
         /// <summary>
