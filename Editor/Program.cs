@@ -77,6 +77,34 @@ builder.Services.AddSingleton(option);
 // The next two services have to appear before DB Context.
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddSingleton<IDynamicConfigurationProvider, DynamicConfigurationProvider>();
+
+// Add the Story Desk DB Context.
+var storyDeskEnabled = builder.Configuration.GetValue<bool?>("StoryDeskEnabled") ?? false;
+if (storyDeskEnabled)
+{
+    var configConnectionString = builder.Configuration.GetConnectionString("ConfigDbConnectionString");
+    if (string.IsNullOrEmpty(configConnectionString))
+    {
+        throw new InvalidOperationException("The ConfigDbConnectionString is not set in the configuration.");
+    }
+
+    builder.Services.AddTransient<DynamicConfigDbContext>(serviceProvider =>
+    {
+        var options = new DbContextOptionsBuilder<DynamicConfigDbContext>()
+            .UseCosmos(connectionString: configConnectionString, databaseName: "configs")
+            .Options;
+        return new DynamicConfigDbContext(options);
+    });
+
+    builder.Services.AddTransient<StoryDeskDbContext>(serviceProvider =>
+    {
+        var options = new DbContextOptionsBuilder<StoryDeskDbContext>()
+            .UseCosmos(connectionString: configConnectionString, databaseName: "configs")
+            .Options;
+        return new StoryDeskDbContext(options);
+    });
+}
+
 builder.Services.AddSingleton<MultiDatabaseManagementUtilities>();
 
 // Make sure the database exists if in setup mode and is NOT in multitenant mode.
@@ -301,7 +329,19 @@ builder.Services.AddRateLimiter(_ => _
         options.QueueLimit = 2;
     }));
 
+// This service is used to run startup tasks asynchronously.
+builder.Services.AddScoped<IStartupTaskService, StartupTaskService>();
+
+// Build the application.
 var app = builder.Build();
+
+// Run the startup tasks asynchronously.
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var startupTask = services.GetRequiredService<IStartupTaskService>();
+    await startupTask.RunAsync();
+}
 
 // Enable data protection services for Cosmos CMS.
 app.UseCosmosCmsDataProtection();
@@ -361,6 +401,11 @@ app.MapControllerRoute(
     name: "pub",
     pattern: "pub/{*index}",
     defaults: new { controller = "Pub", action = "Index" });
+
+app.MapControllerRoute(
+    "storydesk",
+    pattern: "storydesk/index/{id?}",
+    defaults: new { controller = "Cosmos___StoryDesk", action = "Index" });
 
 app.MapControllerRoute(
         "default",

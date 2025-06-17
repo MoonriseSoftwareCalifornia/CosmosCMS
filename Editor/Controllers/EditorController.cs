@@ -28,6 +28,7 @@ namespace Cosmos.Cms.Controllers
     using Cosmos.Editor.Services;
     using HtmlAgilityPack;
     using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
@@ -55,6 +56,7 @@ namespace Cosmos.Cms.Controllers
         private readonly Uri blobPublicAbsoluteUrl;
         private readonly IViewRenderService viewRenderService;
         private readonly StorageContext storageContext;
+        private readonly IWebHostEnvironment webHost;
         private readonly IHubContext<LiveEditorHub> hub;
 
         /// <summary>
@@ -69,6 +71,7 @@ namespace Cosmos.Cms.Controllers
         /// <param name="viewRenderService">View rendering service.</param>
         /// <param name="storageContext">Storage context.</param>
         /// <param name="hub">Editor SignalR hub.</param>
+        /// <param name="webHost">Host environment.</param>
         public EditorController(
             ILogger<EditorController> logger,
             ApplicationDbContext dbContext,
@@ -78,7 +81,8 @@ namespace Cosmos.Cms.Controllers
             IEditorSettings options,
             IViewRenderService viewRenderService,
             StorageContext storageContext,
-            IHubContext<LiveEditorHub> hub)
+            IHubContext<LiveEditorHub> hub,
+            IWebHostEnvironment webHost)
             : base(dbContext, userManager)
         {
             this.logger = logger;
@@ -89,6 +93,7 @@ namespace Cosmos.Cms.Controllers
             this.articleLogic = articleLogic;
             this.storageContext = storageContext;
             this.hub = hub;
+            this.webHost = webHost;
             var htmlUtilities = new HtmlUtilities();
 
             if (htmlUtilities.IsAbsoluteUri(options.BlobPublicUrl))
@@ -2249,5 +2254,6 @@ namespace Cosmos.Cms.Controllers
             // Now carry over what's being UPDATED to the original.
             return originalHtmlDoc.DocumentNode.OuterHtml;
         }
+
     }
 }

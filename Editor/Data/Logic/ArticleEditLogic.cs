@@ -1212,13 +1212,6 @@ namespace Cosmos.Editor.Data.Logic
                     html = await viewRenderService.RenderToStringAsync("~/Views/Home/Export.cshtml", model);
                 }
 
-                // Compress HTML
-                //var compressed = Uglify.Html(html).Code;
-                //if (!string.IsNullOrEmpty(compressed))
-                //{
-                //    html = compressed;
-                //}
-
                 using var stream = new MemoryStream(Encoding.UTF8.GetBytes(html));
 
                 if (string.IsNullOrEmpty(page.UrlPath))
@@ -1378,6 +1371,21 @@ namespace Cosmos.Editor.Data.Logic
         }
 
         /// <summary>
+        ///     Provides a standard method for turning a title into a URL Encoded path.
+        /// </summary>
+        /// <param name="title">Title to be converted into a URL.</param>
+        /// <remarks>
+        ///     <para>This is accomplished using <see cref="HttpUtility.UrlEncode(string)" />.</para>
+        ///     <para>Blanks are turned into underscores (i.e. "_").</para>
+        ///     <para>All strings are normalized to lower case.</para>
+        /// </remarks>
+        /// <returns>Article title turned into URL.</returns>
+        public string NormailizeArticleUrl(string title)
+        {
+            return title.Trim().Replace(" ", "_").ToLower();
+        }
+
+        /// <summary>
         /// Gest the publisher URL depending if this is a multi-tenant editor or not.
         /// </summary>
         /// <returns>Publisher URL.</returns>
@@ -1394,20 +1402,6 @@ namespace Cosmos.Editor.Data.Logic
             }
 
             return urlRoot;
-        }
-
-        /// <summary>
-        ///     Provides a standard method for turning a title into a URL Encoded path.
-        /// </summary>
-        /// <param name="title">Title to be converted into a URL.</param>
-        /// <remarks>
-        ///     <para>This is accomplished using <see cref="HttpUtility.UrlEncode(string)" />.</para>
-        ///     <para>Blanks are turned into underscores (i.e. "_").</para>
-        ///     <para>All strings are normalized to lower case.</para>
-        /// </remarks>
-        private static string NormailizeArticleUrl(string title)
-        {
-            return title.Trim().Replace(" ", "_").ToLower();
         }
 
         /// <summary>

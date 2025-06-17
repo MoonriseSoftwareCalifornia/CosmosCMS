@@ -121,7 +121,7 @@ namespace Cosmos.Cms.Controllers
             {
                 return new string[] { ".apng", ".avif", ".gif", ".jpg", "jpeg", ".png", ".svg", ".webp" };
             }
-        }
+        }   
 
         /// <summary>
         /// Fixes the path for the image asset array method.

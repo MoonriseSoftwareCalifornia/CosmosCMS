@@ -138,6 +138,19 @@ namespace Cosmos.Editor.Services
             }
         }
 
+        /// <summary>
+        /// Retrieves all connections from the dynamic configuration database.
+        /// </summary>
+        /// <returns>Gets the complete list of connections.</returns>
+        public async Task<List<Connection>> GetConnections()
+        {
+            var options = new DbContextOptionsBuilder<DynamicConfigDbContext>()
+                    .UseCosmos(connectionString, databaseName: "configs")
+                    .Options;
+            using var dbContext = new DynamicConfigDbContext(options);
+            return await dbContext.Connections.AsNoTracking().ToListAsync();
+        }
+
         private async Task<List<Connection>> GetConnectionsForEmailAddress(string emailAddress)
         {
             if (string.IsNullOrWhiteSpace(emailAddress))
@@ -172,15 +185,6 @@ namespace Cosmos.Editor.Services
                 }
             }
             return userConnections;
-        }
-
-        private async Task<List<Connection>> GetConnections()
-        {
-            var options = new DbContextOptionsBuilder<DynamicConfigDbContext>()
-                    .UseCosmos(connectionString, databaseName: "configs")
-                    .Options;
-            using var dbContext = new DynamicConfigDbContext(options);
-            return await dbContext.Connections.AsNoTracking().ToListAsync();
         }
 
         private CosmosClient GetCosmosClient(Connection connection)

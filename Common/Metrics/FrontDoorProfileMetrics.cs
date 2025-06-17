@@ -41,7 +41,7 @@ namespace Cosmos.Common.Metrics
         /// <summary>
         /// Initializes a new instance of the <see cref="FrontDoorProfileMetrics"/> class.
         /// </summary>
-        /// <param name="logAnalyticsWorkspaceId">Log analytics workspace ID</param>
+        /// <param name="logAnalyticsWorkspaceId">Log analytics workspace ID.</param>
         /// <param name="credential">Token credential.</param>
         public FrontDoorProfileMetrics(Guid logAnalyticsWorkspaceId, TokenCredential credential)
         {
@@ -53,9 +53,9 @@ namespace Cosmos.Common.Metrics
         /// Retrieves FrontDoor egress metrics for the specified time range.
         /// </summary>
         /// <param name="startDateTime">Start date and time.</param>
-        /// <param name="endDateTime">End date and time</param>
+        /// <param name="endDateTime">End date and time.</param>
         /// <param name="hostName">Filter on a particular host name (optional).</param>
-        /// <returns>EndPointMetric list</returns>
+        /// <returns>EndPointMetric list.</returns>
         public async Task<List<EndPointMetric>> RetrieveMetricsAsync(DateTimeOffset startDateTime, DateTimeOffset endDateTime, string hostName = "")
         {
             var q = query;
