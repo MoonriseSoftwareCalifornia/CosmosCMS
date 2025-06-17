@@ -202,14 +202,6 @@ namespace Cosmos.Editor.Controllers
             var body = message.Body.Content;
             var bodyContentType = message.Body.ContentType;
 
-            var attachments = message.Attachments.Count > 0
-                ? message.Attachments.Where(w => ValidImageMimeTypes.Contains(w.ContentType.ToLower()) == true).Select(a => new
-                {
-                    a.Name,
-                    a.ContentType,
-                    ContentBytes = a.Size > 0 ? a.Size : null
-                }).ToList() : null;
-
             var subjectParts = subject.Split('|');
             var path = subjectParts.Length > 1 ? subjectParts[0].Trim() : string.Empty;
 
@@ -295,17 +287,22 @@ namespace Cosmos.Editor.Controllers
 
             contentNode.InnerHtml = bodyNode.InnerHtml;
 
+            var attachments = ExtractFileAttachments(message);
+
             if (attachments != null && attachments.Count > 0)
             {
                 var attachment = attachments.FirstOrDefault();
-                if (!attachment.ContentBytes.HasValue)
+                if (attachment.ContentBytes.Length == 0)
                 {
                     logger.LogWarning($"Attachment {attachment.Name} has no content bytes.");
                 }
                 else
                 {
                     var relativePath = $"/pub/articles/{article.ArticleNumber}/{attachment.Name}";
-                    using var memoryStream = new MemoryStream(attachment.ContentBytes.Value);
+
+                    var byteArray = attachment.ContentBytes.ToArray();
+
+                    using var memoryStream = new MemoryStream(byteArray);
                     var format = SixLabors.ImageSharp.Image.DetectFormat(memoryStream);
                     var image = await SixLabors.ImageSharp.Image.LoadAsync(memoryStream);
 
@@ -375,7 +372,6 @@ namespace Cosmos.Editor.Controllers
         // 1. Identify all <style> elements in the document and remove them.
         // 2. Remove all "style" attributes from all elements in the document.
         // 3. Optionally, remove <link rel="stylesheet"> elements if you want to remove external CSS as well.
-
         private void RemoveAllCustomCss(HtmlAgilityPack.HtmlDocument storyDoc)
         {
             // Remove all <style> elements
@@ -474,6 +470,29 @@ namespace Cosmos.Editor.Controllers
 
             return antispam.Any(w => w.Value != null && values.Any(k => w.Value.Contains(k, StringComparison.CurrentCultureIgnoreCase)));
         }
+
+        /// <summary>
+        /// Extracts all file attachments from a Microsoft Graph Message.
+        /// </summary>
+        /// <param name="message">The Microsoft Graph Message object.</param>
+        /// <returns>A list of FileAttachment objects.</returns>
+        private List<FileAttachment> ExtractFileAttachments(Message message)
+        {
+            var result = new List<FileAttachment>();
+            if (message?.Attachments == null || message.Attachments.Count == 0)
+            {
+                return result;
+            }
+
+            foreach (var attachment in message.Attachments)
+            {
+                if (attachment is FileAttachment fileAttachment && ValidImageMimeTypes.Contains(attachment.ContentType))
+                {
+                    result.Add(fileAttachment);
+                }
+            }
+
+            return result;
+        }
     }
 }
-
