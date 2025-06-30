@@ -15,35 +15,24 @@ namespace Cosmos.Editor.Services
     using Azure.Storage.Blobs.Models;
     using Azure.Storage.Blobs.Specialized;
     using Microsoft.AspNetCore.Hosting;
-    using Microsoft.Extensions.Configuration;
-    using Microsoft.Extensions.Logging;
 
     /// <summary>
     /// Service implementation for running startup tasks asynchronously.
     /// </summary>
     public class StartupTaskService : IStartupTaskService
     {
-        private readonly IConfiguration configuration;
-        private readonly ILogger<StartupTaskService> logger;
         private readonly IWebHostEnvironment webHost;
         private readonly MultiDatabaseManagementUtilities managementUtilities;
-        private readonly bool isMultiTenant;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="StartupTaskService"/> class.
         /// </summary>
-        /// <param name="configuration">Application configuration.</param>
-        /// <param name="logger">Log service.</param>
         /// <param name="webHost">Web host environment.</param>
         /// <param name="managementUtilities">Database management utilities.</param>
-        /// <param name="isMultiTenant">This is a multi-tenant editor.</param>
-        public StartupTaskService(IConfiguration configuration, ILogger<StartupTaskService> logger, IWebHostEnvironment webHost, MultiDatabaseManagementUtilities managementUtilities)
+        public StartupTaskService(IWebHostEnvironment webHost, MultiDatabaseManagementUtilities managementUtilities)
         {
-            this.configuration = configuration;
-            this.logger = logger;
             this.webHost = webHost;
             this.managementUtilities = managementUtilities;
-            isMultiTenant = configuration.GetValue<bool?>("MultiTenantEditor") ?? false;
         }
 
         /// <summary>
@@ -95,7 +84,7 @@ namespace Cosmos.Editor.Services
         /// <summary>
         /// Uploads a file to the Azure Blob Storage.
         /// </summary>
-        /// <param name="storageConnection">Storage connection</param>
+        /// <param name="storageConnection">Storage connection.</param>
         /// <param name="blobName">Full blob name (including path).</param>
         /// <param name="memoryStream">Memory stream.</param>
         /// <returns>A Task.</returns>
@@ -122,7 +111,7 @@ namespace Cosmos.Editor.Services
                 var dictionaryObject = new Dictionary<string, string>
                 {
                     { "ccmsuploaduid", Guid.NewGuid().ToString() },
-                    { "ccmssize", memoryStream.Length. ToString()},
+                    { "ccmssize", memoryStream.Length.ToString() },
                     { "ccmsdatetime", DateTimeOffset.UtcNow.Ticks.ToString() },
                     { "ccmsimagewidth", string.Empty },
                     { "ccmsimageheight", string.Empty }

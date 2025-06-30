@@ -1,4 +1,4 @@
-﻿// <copyright file="FrontDoorEndpointMetrics.cs" company="Moonrise Software, LLC">
+﻿// <copyright file="FrontDoorProfileMetrics.cs" company="Moonrise Software, LLC">
 // Copyright (c) Moonrise Software, LLC. All rights reserved.
 // Licensed under the GNU Public License, Version 3.0 (https://www.gnu.org/licenses/gpl-3.0.html)
 // See https://github.com/MoonriseSoftwareCalifornia/CosmosCMS
@@ -76,12 +76,12 @@ namespace Cosmos.Common.Metrics
             {
                 foreach (var row in table.Rows)
                 {
-                    data.Add( new EndPointMetric
+                    data.Add(new EndPointMetric
                     {
                         Date = DateOnly.FromDateTime(DateTime.Parse(row["Date"].ToString())),
                         ResponseBytes = row["ResponseBytes"] == null ? 0 : long.Parse(row["ResponseBytes"].ToString()),
                         RequestBytes = row["RequestBytes"] == null ? 0 : long.Parse(row["RequestBytes"].ToString()),
-                        Host = row["Hostname"] == null ? "" : row["Hostname"].ToString()
+                        Host = row["Hostname"] == null ? string.Empty : row["Hostname"].ToString()
                     });
                 }
             }
@@ -89,5 +89,4 @@ namespace Cosmos.Common.Metrics
             return data;
         }
     }
-
 }

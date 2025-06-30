@@ -17,6 +17,7 @@ namespace Cosmos.Cms.Controllers
     using Cosmos.Common.Data;
     using Cosmos.Common.Data.Logic;
     using Cosmos.Common.Models;
+    using Cosmos.Common.Services;
     using Cosmos.Editor.Data;
     using Cosmos.Editor.Data.Logic;
     using Cosmos.Editor.Models;
@@ -345,23 +346,23 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Edit template title and description.
         /// </summary>
-        /// <param name="Id">Template ID.</param>
+        /// <param name="id">Template ID.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task<IActionResult> Edit(Guid Id)
+        public async Task<IActionResult> Edit(Guid id)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var template = await dbContext.Templates.FirstOrDefaultAsync(f => f.Id == Id);
+            var template = await dbContext.Templates.FirstOrDefaultAsync(f => f.Id == id);
             ViewData["Title"] = template.Title;
 
             var model = new TemplateEditViewModel()
             {
                 Title = template.Title,
                 Description = template.Description,
-                Id = Id
+                Id = id
             };
             return View(model);
         }
@@ -610,7 +611,7 @@ namespace Cosmos.Cms.Controllers
             var guid = Guid.NewGuid();
 
             // Template preview
-            ArticleViewModel model = new()
+            ArticleViewModel model = new ()
             {
                 ArticleNumber = 1,
                 LanguageCode = string.Empty,

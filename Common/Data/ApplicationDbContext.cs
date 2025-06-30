@@ -126,6 +126,11 @@ namespace Cosmos.Common.Data
         public DbSet<Template> Templates { get; set; }
 
         /// <summary>
+        /// Gets or sets the TOTP (Time-based One-Time Password) tokens for users.
+        /// </summary>
+        public DbSet<TotpToken> TotpTokens { get; set; } = null!;
+
+        /// <summary>
         /// Gets or sets data protection keys.
         /// </summary>
         public DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
@@ -143,7 +148,14 @@ namespace Cosmos.Common.Data
             optionsBuilder.UseCosmos(connectionString: connectionString, databaseName: databaseName);
             using var dbContext = new ApplicationDbContext(optionsBuilder.Options);
 
-            return EnsureDatabaseExists(dbContext, setup, databaseName);
+            var result = dbContext.Database.EnsureCreatedAsync().GetAwaiter().GetResult();
+
+            if (result)
+            {
+                return EnsureDatabaseExists(dbContext, setup, databaseName);
+            }
+
+            return DbStatus.CreationFailed;
         }
 
         /// <summary>
@@ -169,6 +181,22 @@ namespace Cosmos.Common.Data
 
                     // Check to see if the CMS containers exists.
                     var articleContainerResult = cosmosClient.GetContainer(databaseName, "Articles").ReadContainerAsync().Result;
+
+                    // Get the default container properties.
+                    var containerResponse = cosmosClient.GetContainer(databaseName, "CosmosCms").ReadContainerAsync().Result;
+                    var properties = containerResponse.Resource;
+
+                    // Check the default time to live setting to see if TTL is set.
+                    if (properties.DefaultTimeToLive != -1)
+                    {
+                        // Enable ttl but do not enforce default TTL. This will allow entities like TotpToken to have
+                        // its own TTL.
+                        properties.DefaultTimeToLive = -1;
+
+                        // Replace a container's properties with the updated ones.
+                        var task = cosmosClient.GetContainer(databaseName, "CosmosCms").ReplaceContainerAsync(properties);
+                        task.Wait();
+                    }
 
                     if (identityContainerResult.StatusCode == System.Net.HttpStatusCode.OK &&
                         articleContainerResult.StatusCode == System.Net.HttpStatusCode.OK)
@@ -268,6 +296,8 @@ namespace Cosmos.Common.Data
             modelBuilder.Entity<Contact>()
                 .HasKey(k => k.Id);
             modelBuilder.Entity<NodeScript>()
+                .HasKey(k => k.Id);
+            modelBuilder.Entity<TotpToken>()
                 .HasKey(k => k.Id);
 
             // Need to make a convertion so article number can be used as a partition key

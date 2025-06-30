@@ -26,9 +26,9 @@ namespace Cosmos.Cms.Services
         /// <summary>
         /// Get next random number.
         /// </summary>
-        /// <param name="minValue"></param>
-        /// <param name="maxExclusiveValue"></param>
-        /// <returns></returns>
+        /// <param name="minValue">Minimum value.</param>
+        /// <param name="maxExclusiveValue">Maximum value.</param>
+        /// <returns>Result number.</returns>
         public int Next(int minValue, int maxExclusiveValue)
         {
             if (minValue >= maxExclusiveValue)

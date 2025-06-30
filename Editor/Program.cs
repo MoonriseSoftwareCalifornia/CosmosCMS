@@ -78,9 +78,19 @@ builder.Services.AddSingleton(option);
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddSingleton<IDynamicConfigurationProvider, DynamicConfigurationProvider>();
 
-// Add the Story Desk DB Context.
-var storyDeskEnabled = builder.Configuration.GetValue<bool?>("StoryDeskEnabled") ?? false;
-if (storyDeskEnabled)
+builder.Services.AddSingleton<MultiDatabaseManagementUtilities>();
+
+// Make sure the database exists if in setup mode and is NOT in multitenant mode.
+var multi = builder.Configuration.GetValue<bool?>("MultiTenantEditor") ?? false;
+if (option.Value.SiteSettings.AllowSetup && !multi)
+{
+    var connectionString = builder.Configuration.GetConnectionString("ApplicationDbContextConnection");
+    var databaseName = builder.Configuration.GetValue<string>($"CosmosIdentityDbName") ?? "cosmoscms";
+    ApplicationDbContext.EnsureDatabaseExists(connectionString, databaseName, true);
+}
+
+// Add the Cosmos database context here.
+if (multi)
 {
     var configConnectionString = builder.Configuration.GetConnectionString("ConfigDbConnectionString");
     if (string.IsNullOrEmpty(configConnectionString))
@@ -96,29 +106,6 @@ if (storyDeskEnabled)
         return new DynamicConfigDbContext(options);
     });
 
-    builder.Services.AddTransient<StoryDeskDbContext>(serviceProvider =>
-    {
-        var options = new DbContextOptionsBuilder<StoryDeskDbContext>()
-            .UseCosmos(connectionString: configConnectionString, databaseName: "configs")
-            .Options;
-        return new StoryDeskDbContext(options);
-    });
-}
-
-builder.Services.AddSingleton<MultiDatabaseManagementUtilities>();
-
-// Make sure the database exists if in setup mode and is NOT in multitenant mode.
-var multi = builder.Configuration.GetValue<bool?>("MultiTenantEditor") ?? false;
-if (option.Value.SiteSettings.AllowSetup && !multi)
-{
-    var connectionString = builder.Configuration.GetConnectionString("ApplicationDbContextConnection");
-    var databaseName = builder.Configuration.GetValue<string>($"CosmosIdentityDbName") ?? "cosmoscms";
-    ApplicationDbContext.EnsureDatabaseExists(connectionString, databaseName, true);
-}
-
-// Add the Cosmos database context here.
-if (multi)
-{
     // Note that this is scopped, meaning for each request this is regenerated.
     // Multi-tenant support is enabled because each request may have a different domain name and connection
     // string information.
@@ -126,6 +113,18 @@ if (multi)
     {
         return new ApplicationDbContext(serviceProvider);
     });
+
+    var storyDeskEnabled = builder.Configuration.GetValue<bool?>("StoryDeskEnabled") ?? false;
+    if (storyDeskEnabled)
+    {
+        builder.Services.AddTransient<StoryDeskDbContext>(serviceProvider =>
+        {
+            var options = new DbContextOptionsBuilder<StoryDeskDbContext>()
+                .UseCosmos(connectionString: configConnectionString, databaseName: "configs")
+                .Options;
+            return new StoryDeskDbContext(options);
+        });
+    }
 }
 else
 {
@@ -150,7 +149,8 @@ builder.Services.AddTransient<IEditorSettings, EditorSettings>();
 builder.Services.AddCosmosIdentity<ApplicationDbContext, IdentityUser, IdentityRole, string>(
       options => options.SignIn.RequireConfirmedAccount = true)
     .AddDefaultUI() // Use this if Identity Scaffolding added
-    .AddDefaultTokenProviders();
+    .AddDefaultTokenProviders()
+    .AddTokenProvider<Cosmos.Common.Services.OneTimeTokenProvider<IdentityUser>>("OneTimeToken");
 
 // Add shared data protection here
 builder.Services.AddCosmosCmsDataProtection(builder.Configuration, defaultAzureCredential);
@@ -268,13 +268,22 @@ builder.Services.ConfigureApplicationCookie(options =>
     // and the DNS of the App Service is something like myappservice.azurewebsites.net.
     options.Events.OnRedirectToLogin = x =>
     {
-        var queryString = HttpUtility.UrlEncode(x.Request.QueryString.Value);
+        var queryParams = System.Web.HttpUtility.ParseQueryString(x.Request.QueryString.Value);
+
+        var website = queryParams["ccmswebsite"];
+        var opt = queryParams["ccmsopt"];
+        var email = queryParams["ccmsemail"];
+        queryParams.Remove("ccmswebsite");
+        queryParams.Remove("ccmsopt");
+        queryParams.Remove("ccmsemail");
+        var queryString = HttpUtility.UrlEncode(queryParams.ToString());
+
         if (x.Request.Path.Equals("/Preview", StringComparison.InvariantCultureIgnoreCase))
         {
-            x.Response.Redirect($"/Identity/Account/Login?returnUrl=/Home/Preview{queryString}");
+            x.Response.Redirect($"/Identity/Account/Login?returnUrl=/Home/Preview?{queryString}");
         }
 
-        x.Response.Redirect($"/Identity/Account/Login?returnUrl={x.Request.Path}{queryString}");
+        x.Response.Redirect($"/Identity/Account/Login?returnUrl={x.Request.Path}&{queryString}");
         return Task.CompletedTask;
     };
     options.Events.OnRedirectToLogout = x =>

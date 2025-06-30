@@ -271,7 +271,6 @@ namespace Cosmos.Editor.Services
             }
             else if (IsConfigured(CdnType.AzureCdn))
             {
-
                 var cdnResource = CdnEndpointResource.CreateResourceIdentifier(
                     SubscriptionId.ToString(),
                     ResourceGroup,

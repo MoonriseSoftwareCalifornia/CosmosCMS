@@ -10,6 +10,7 @@ namespace Cosmos.Cms.Hubs
     using System;
     using System.Threading.Tasks;
     using Cosmos.Cms.Models;
+    using Cosmos.Common.Services;
     using Cosmos.Editor.Services;
     using Microsoft.AspNetCore.SignalR;
     using Microsoft.Extensions.Logging;

@@ -41,6 +41,7 @@ namespace Cosmos.Editor.Data.Logic
             {
                 return html;
             }
+
             return body?.InnerHtml;
         }
 

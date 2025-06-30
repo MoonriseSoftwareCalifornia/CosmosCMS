@@ -12,6 +12,7 @@ namespace Cosmos.Cms.Controllers
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+    using System.Web;
     using Cosmos.BlobService;
     using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Cms.Models;
@@ -26,6 +27,7 @@ namespace Cosmos.Cms.Controllers
     using Microsoft.AspNetCore.Identity.UI.Services;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
     using Microsoft.Net.Http.Headers;
 
@@ -42,6 +44,7 @@ namespace Cosmos.Cms.Controllers
         private readonly ApplicationDbContext dbContext;
         private readonly UserManager<IdentityUser> userManager;
         private readonly StorageContext storageContext;
+        private readonly bool isMultiTenantEditor;
         private readonly IDynamicConfigurationProvider dynamicConfigurationProvider;
 
         /// <summary>
@@ -56,6 +59,7 @@ namespace Cosmos.Cms.Controllers
         /// <param name="powerBiTokenService">Service used to get tokens from Power BI.</param>
         /// <param name="emailSender">Email service.</param>
         /// <param name="dynamicConfigurationProvider">Multi-tenant configuration provider.</param>
+        /// <param name="configuration">Website configuration.</param>
         public HomeController(
             ILogger<HomeController> logger,
             IEditorSettings options,
@@ -65,7 +69,8 @@ namespace Cosmos.Cms.Controllers
             StorageContext storageContext,
             PowerBiTokenService powerBiTokenService,
             IEmailSender emailSender,
-            IDynamicConfigurationProvider dynamicConfigurationProvider)
+            IDynamicConfigurationProvider dynamicConfigurationProvider,
+            IConfiguration configuration)
         {
             // This handles injection manually to make sure everything is setup.
             this.dynamicConfigurationProvider = dynamicConfigurationProvider;
@@ -74,6 +79,7 @@ namespace Cosmos.Cms.Controllers
             this.dbContext = dbContext;
             this.userManager = userManager;
             this.storageContext = storageContext;
+            isMultiTenantEditor = configuration.GetValue<bool?>("MultiTenantEditor") ?? false;
         }
 
         /// <summary>
@@ -147,13 +153,36 @@ namespace Cosmos.Cms.Controllers
 
             if (User.Identity?.IsAuthenticated == false)
             {
-                // See if we need to register a new user.
-                if (await dbContext.Users.CosmosAnyAsync())
+                var queryParams = HttpUtility.ParseQueryString(Request.QueryString.Value);
+
+                var website = queryParams["ccmswebsite"];
+                var opt = queryParams["ccmsopt"];
+                var email = queryParams["ccmsemail"];
+
+                queryParams.Remove("ccmswebsite");
+                queryParams.Remove("ccmsopt");
+                queryParams.Remove("ccmsemail");
+
+                var queryString = HttpUtility.UrlEncode(queryParams.ToString());
+
+                Response.Cookies.Delete(DynamicConfigurationProvider.StandardCookieName);
+
+                if (isMultiTenantEditor && !string.IsNullOrWhiteSpace(website))
                 {
-                    return Redirect("~/Identity/Account/Login");
+                    Response.Cookies.Append(DynamicConfigurationProvider.StandardCookieName, website);
                 }
 
-                return Redirect("~/Identity/Account/Register");
+                if (!string.IsNullOrEmpty(opt))
+                {
+                    queryString = queryString + $"&ccmsopt={opt}&ccmsemail={email}";
+                }
+
+                if (!string.IsNullOrWhiteSpace(queryString))
+                {
+                    queryString = "?" + queryString;
+                }
+
+                return Redirect($"~/Identity/Account/Login{queryString}");
             }
             else
             {

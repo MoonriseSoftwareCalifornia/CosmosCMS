@@ -81,6 +81,7 @@ namespace Cosmos.Editor.Services
                     }
                 }
             }
+
             return domains.Distinct().ToList();
         }
 
@@ -148,7 +149,7 @@ namespace Cosmos.Editor.Services
                     .UseCosmos(connectionString, databaseName: "configs")
                     .Options;
             using var dbContext = new DynamicConfigDbContext(options);
-            return await dbContext.Connections.AsNoTracking().ToListAsync();
+            return await dbContext.Connections.ToListAsync();
         }
 
         private async Task<List<Connection>> GetConnectionsForEmailAddress(string emailAddress)
@@ -184,6 +185,7 @@ namespace Cosmos.Editor.Services
                     }
                 }
             }
+
             return userConnections;
         }
 

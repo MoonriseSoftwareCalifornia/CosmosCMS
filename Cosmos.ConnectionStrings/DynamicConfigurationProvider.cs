@@ -264,7 +264,7 @@ namespace Cosmos.DynamicConfig
             return result != null;
         }
 
-        public static async Task<bool> ValidateDomainName(IConfiguration configuration, string domainName, string emailAddress)
+        public static async Task<bool> ValidateDomainNameAndEmailAddress(IConfiguration configuration, string domainName, string emailAddress)
         {
             if (string.IsNullOrWhiteSpace(domainName))
             {

@@ -20,12 +20,14 @@ namespace Cosmos.Editor.Controllers
     using Cosmos.Cms.Services;
     using Cosmos.Common.Data;
     using Cosmos.Common.Models;
+    using Cosmos.Common.Services;
     using Cosmos.DynamicConfig;
     using Cosmos.Editor.Data;
     using Cosmos.Editor.Data.Logic;
     using Cosmos.EmailServices;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Identity.UI.Services;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
@@ -45,18 +47,21 @@ namespace Cosmos.Editor.Controllers
     [AllowAnonymous]
     public class Cosmos___StoryDeskController : ControllerBase
     {
-        private readonly StoryDeskConfig storyDeskConfig; private readonly TokenCredential tokenCredential;
+        private readonly StoryDeskConfig storyDeskConfig;
+        private readonly TokenCredential tokenCredential;
         private readonly IConfiguration configuration;
         private readonly DynamicConfigDbContext configDbContext;
         private readonly StoryDeskDbContext storyDeskDbContext;
         private readonly ILogger<Cosmos___StoryDeskController> logger;
-        private readonly IEditorSettings editorSettings;
+        private readonly OneTimeTokenProvider<IdentityUser> oneTimeTokenProvider;
         private readonly IViewRenderService viewRenderService;
         private readonly StorageContext storageContext;
         private readonly IMemoryCache memoryCache;
         private readonly IHttpContextAccessor accessor;
         private readonly IOptions<CosmosConfig> config;
         private readonly ICosmosEmailSender emailSender;
+        private readonly UserManager<IdentityUser> userManager;
+        private readonly ArticleEditLogic articleEditLogic;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Cosmos___StoryDeskController"/> class.
@@ -70,8 +75,11 @@ namespace Cosmos.Editor.Controllers
         /// <param name="viewRenderService">View rendering service.</param>
         /// <param name="storageContext">Storage context.</param>
         /// <param name="accessor">Accessor service.</param>
-        /// <param name="settings">Website settings.</param>
         /// <param name="emailSender">Email services.</param>
+        /// <param name="oneTimeTokenProvider">One time token provider.</param>
+        /// <param name="userManager">User manager.</param>
+        /// <param name="articleEditLogic">Article edit logic.</param>
+        /// 
         /// <exception cref="ArgumentNullException">Null argument exception.</exception>
         public Cosmos___StoryDeskController(
             IConfiguration configuration,
@@ -83,14 +91,16 @@ namespace Cosmos.Editor.Controllers
             IViewRenderService viewRenderService,
             StorageContext storageContext,
             IHttpContextAccessor accessor,
-            IEditorSettings settings,
-            IEmailSender emailSender)
+            IEmailSender emailSender,
+            OneTimeTokenProvider<IdentityUser> oneTimeTokenProvider,
+            UserManager<IdentityUser> userManager,
+            ArticleEditLogic articleEditLogic)
         {
             this.config = config;
             this.viewRenderService = viewRenderService ?? throw new ArgumentNullException(nameof(viewRenderService));
             this.storageContext = storageContext ?? throw new ArgumentNullException(nameof(storageContext));
             this.memoryCache = memoryCache ?? throw new ArgumentNullException(nameof(memoryCache));
-            this.editorSettings = settings ?? throw new ArgumentNullException(nameof(settings));
+            this.oneTimeTokenProvider = oneTimeTokenProvider;
             this.accessor = accessor;
 
             this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
@@ -107,6 +117,8 @@ namespace Cosmos.Editor.Controllers
             this.storyDeskDbContext = storyDeskDbContext;
             this.logger = logger;
             this.emailSender = (ICosmosEmailSender)emailSender;
+            this.userManager = userManager;
+            this.articleEditLogic = articleEditLogic ?? throw new ArgumentNullException(nameof(articleEditLogic));
         }
 
         private string[] ValidImageMimeTypes
@@ -124,12 +136,12 @@ namespace Cosmos.Editor.Controllers
         /// <returns>Task.</returns>
         [HttpGet]
         [AllowAnonymous]
-        public async Task Index(string id)
+        public async Task<IActionResult> Index(string id)
         {
             if (id != storyDeskConfig.ApiKey)
             {
                 logger.LogWarning($"Invalid StoryDesk API key '{id}' provided.");
-                return; // Invalid key, do not proceed
+                return Ok(); // Invalid key, do not proceed
             }
 
             var graphClient = new GraphServiceClient(tokenCredential);
@@ -149,13 +161,13 @@ namespace Cosmos.Editor.Controllers
             if (messages == null || messages.Value == null)
             {
                 // No new messages found.
-                return;
+                return Ok();
             }
 
             if (messages.Value.Count < 1)
             {
                 logger.LogInformation("No unread messages found in the shared mailbox.");
-                return; // No unread messages to process
+                return Ok(); // No unread messages to process
             }
 
             var configs = await storyDeskDbContext
@@ -179,6 +191,8 @@ namespace Cosmos.Editor.Controllers
 
                 await MarkEmailAsReadAsync(graphClient, message.Id, delete: true);
             }
+
+            return Ok();
         }
 
         private async Task ProcessMessage(Message message, List<WebsiteAuthor> websites)
@@ -189,14 +203,19 @@ namespace Cosmos.Editor.Controllers
                 return; // If the message is likely spam/phish, do not process it
             }
 
+            var user = await userManager.FindByEmailAsync(message.From.EmailAddress.Address);
+
+            if (user == null)
+            {
+                logger.LogWarning($"No user found for email address {message.From.EmailAddress.Address}.");
+                return; // No user found, do not proceed
+            }
+
             if (message == null || websites == null || websites.Count < 1)
             {
                 logger.LogWarning("Message or websites list is null or empty.");
                 return; // Nothing to process
             }
-
-            // Continue processing.
-            var from = message.From.EmailAddress.Address;
 
             var subject = message.Subject;
             var body = message.Body.Content;
@@ -209,10 +228,10 @@ namespace Cosmos.Editor.Controllers
             if (websites.Count > 1)
             {
                 website = websites
-                    .FirstOrDefault(w => w.EmailAddress.Equals(from, StringComparison.OrdinalIgnoreCase) && w.Path.Equals(path, StringComparison.OrdinalIgnoreCase));
+                    .FirstOrDefault(w => w.EmailAddress.Equals(message.From.EmailAddress.Address, StringComparison.OrdinalIgnoreCase) && w.Path.Equals(path, StringComparison.OrdinalIgnoreCase));
                 if (website == null)
                 {
-                    logger.LogWarning("Multiple websites found for email address {EmailAddress} and path {Path}. Using the first one.", from, path);
+                    logger.LogWarning($"Multiple websites found for email address '{message.From.EmailAddress.Address}' with path '{path}'.");
                     return;
                 }
             }
@@ -234,39 +253,18 @@ namespace Cosmos.Editor.Controllers
                 return; // Template not found, do not proceed
             }
 
-            Guid? userId = Guid.Parse(await dbContext.Users
-                .Where(u => u.NormalizedEmail == from.ToUpperInvariant())
-                .Select(u => u.Id)
-                .FirstOrDefaultAsync());
-
-            if (userId == null)
-            {
-                logger.LogWarning($"No user found for email address {from}.");
-                return; // No user found, do not proceed
-            }
-
             var rootPath = website.Path.Trim('/');
             var title = rootPath + "/" + (subjectParts.Length > 1 ? subjectParts[1].Trim() : subject);
-
-            var articleEditLogic = new ArticleEditLogic(
-            dbContext,
-            memoryCache,
-            config,
-            viewRenderService,
-            storageContext,
-            accessor.HttpContext.RequestServices.GetRequiredService<ILogger<ArticleEditLogic>>(),
-            accessor,
-            editorSettings);
 
             var articleUrl = articleEditLogic.NormailizeArticleUrl(title);
 
             // Retrieve the article by URL.
-            var article = await articleEditLogic.GetArticleByUrl(articleUrl);
+            var article = await articleEditLogic.GetArticleByUrl(articleUrl, string.Empty, false);
 
             // If the article does not exist, create it.
             article ??= await articleEditLogic.CreateArticle(
                 title,
-                userId.Value,
+                Guid.Parse(user.Id),
                 website.TemplateId);
 
             HtmlAgilityPack.HtmlDocument doc = new HtmlAgilityPack.HtmlDocument();
@@ -330,16 +328,19 @@ namespace Cosmos.Editor.Controllers
             article.Content = storyDoc.DocumentNode.OuterHtml;
             article.Published = null;
 
-            await articleEditLogic.SaveArticle(article, userId.Value);
+            await articleEditLogic.SaveArticle(article, Guid.Parse(user.Id));
 
             var builder = new StringBuilder();
             builder.AppendLine($"<p>New web page created from email: {message.Subject}.</p>");
 
-            var returnUrl = $"https://{Request.Host.Host}/Editor/Edit/{article.ArticleNumber}?website={websites}";
+            var uri = new Uri(website.WebsiteUrl);
+            var oneTimeToken = await oneTimeTokenProvider.GenerateAsync("Story desk submission", userManager, user);
+
+            var returnUrl = $"https://{Request.Host.Host}/Home/CcmsOTP?returnUrl=Editor/Edit/{article.ArticleNumber}&ccmsotp={oneTimeToken}&ccmswebsite={uri.Host}";
 
             builder.AppendLine($"<p><a href='{returnUrl}'>Click here to open web page to edit and publish.</a></p>");
 
-            await this.emailSender.SendEmailAsync(from, "New web page created.", builder.ToString());
+            await this.emailSender.SendEmailAsync(message.From.EmailAddress.Address, "New web page created.", builder.ToString());
 
             logger.LogInformation("Article {ArticleNumber} created from email: {Subject}", article.ArticleNumber, message.Subject);
 

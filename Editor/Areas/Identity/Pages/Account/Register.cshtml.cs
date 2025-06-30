@@ -71,7 +71,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
             isMultiTenantEditor = this.configuration.GetValue<bool?>("MultiTenantEditor") ?? false;
 
             this.emailSender = (ICosmosEmailSender)emailSender;
-
         }
 
         /// <summary>
@@ -163,7 +162,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
-
             returnUrl = returnUrl ?? Url.Content("~/");
 
             // Check to see if we need a cookie set
@@ -332,7 +330,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
             /// </summary>
             [Display(Name = "Website")]
             public string WebsiteDomainName { get; set; } = string.Empty;
-
         }
     }
 }

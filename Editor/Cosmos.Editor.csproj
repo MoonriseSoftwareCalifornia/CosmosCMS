@@ -114,6 +114,11 @@
 		</None>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Compile Include="Services\CompareUtcDateTime.cs.DELETE" />
+	  <Compile Include="Services\RNGCryptoRandomGenerator.cs.DELETE" />
+	</ItemGroup>
+
 	<ProjectExtensions>
 		<VisualStudio>
 			<UserProperties libman_1json__JsonSchema="" />

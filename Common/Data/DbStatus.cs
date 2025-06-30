@@ -31,5 +31,10 @@ namespace Cosmos.Common.Data
         /// Database exists but is missing one or more containers.
         /// </summary>
         ExistsWithMissingContainers = 3,
+
+        /// <summary>
+        /// Database failed to be created.
+        /// </summary>
+        CreationFailed = 4,
     }
 }

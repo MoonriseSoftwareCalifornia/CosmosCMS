@@ -6,6 +6,7 @@
 @model LoginModel
 @{
     ViewData["Title"] = "Log in";
+    var isMultiTenant = (bool)ViewData["IsMultiTenantEditor"];
 
     if (Model.Input.NeedsCookieSet)
     {
@@ -33,7 +34,7 @@
                         <section>
                             <form id="account" method="post" asp-antiforgery="true">
                                 <input type="hidden" asp-for="Input.Password" />
-                                <input type="hidden" asp-for="Input.NeedsCookieSet" />
+                                <input type="hidden" id="Input_NeedsCookieSet" name="Input_NeedsCookieSet" value="true" />
                                 <div class="form-group mb-3">
                                     <label asp-for="Input.Email"></label>
                                     <input asp-for="Input.Email" class="form-control" />
@@ -59,6 +60,8 @@
                             <section>
                                 <form id="account" method="post" asp-antiforgery="true">
                                     <span asp-validation-summary="All" class="badge text-bg-danger"></span>
+                                    <input type="hidden" id="Input_NeedsCookieSet" name="Input_NeedsCookieSet" value="false" />
+                                    <input type="hidden" asp-for="Input.UseTotp" />
                                     <div class="form-group mb-3">
                                         <label asp-for="Input.Email"></label>
                                         <input asp-for="Input.Email" class="form-control" />
@@ -95,7 +98,9 @@
                                         </div>
                                     </div>
                                     <div class="form-group">
-                                        <button type="submit" class="btn btn-dark">Log in</button>
+                                        <button type="submit" class="btn btn-dark me-1">Log in with password</button>
+                                        or
+                                        <button id="btnLoginLink" type="button" class="btn btn-dark ms-1">Send login link via Email <i class="fa-solid fa-circle-arrow-right"></i></button>
                                     </div>
                                 </form>
                             </section>
@@ -152,6 +157,25 @@
                 var domainName = '@DynamicConfigurationProvider.StandardCookieName';
                 document.cookie = `${domainName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
                 window.location.href = "./login";
+            });
+
+            $("#btnLoginLink").click(function (e) {
+                const isMultiTenant = @isMultiTenant.ToString().ToLower();
+                e.preventDefault();
+                var email = $("#Input_Email").val();
+                var websiteDomainName = $("#Input_WebsiteDomainName").val();
+                if (!email) {
+                    alert("Please enter your email address.");
+                    return;
+                }
+                if (isMultiTenant && !websiteDomainName) {
+                    alert("Please enter your website domain name.");
+                    return;
+                }
+                $("#Input_NeedsCookieSet").val("false");
+                $("#Input_UseTotp").val("true");
+                $("#Input_Password").val("1234567Abcdefg!");
+                $("#account").submit();
             });
         });
     </script>

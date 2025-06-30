@@ -1820,7 +1820,6 @@ namespace Cosmos.Editor.Data.Logic
             DbContext.Articles.UpdateRange(versions);
 
             await DbContext.SaveChangesAsync();
-
         }
 
         /// <summary>

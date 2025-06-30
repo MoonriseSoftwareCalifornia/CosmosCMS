@@ -70,7 +70,7 @@ namespace Cosmos.Common.Metrics
         /// <param name="startDateTime">Start date and time.</param>
         /// <param name="endDateTime">End date and time.</param>
         /// <param name="granularity">Time span.</param>
-        /// <returns></returns>
+        /// <returns>Query results list.</returns>
         /// <example>
         /// RetrieveMetricsAsync(DateTime.UtcNow.AddHours(-1), DateTime.UtcNow, TimeSpan.FromDays(1)).Wait();.
         /// </example>
@@ -102,8 +102,7 @@ namespace Cosmos.Common.Metrics
             var response = await client.QueryResourceAsync(
                 resourceId,
                 metrics,
-                options
-            );
+                options);
 
             var results = new List<QueryResultMetric>();
 

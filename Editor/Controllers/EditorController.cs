@@ -20,6 +20,7 @@ namespace Cosmos.Cms.Controllers
     using Cosmos.Common.Data;
     using Cosmos.Common.Data.Logic;
     using Cosmos.Common.Models;
+    using Cosmos.Common.Services;
     using Cosmos.Editor.Controllers;
     using Cosmos.Editor.Data;
     using Cosmos.Editor.Data.Logic;
@@ -2254,6 +2255,5 @@ namespace Cosmos.Cms.Controllers
             // Now carry over what's being UPDATED to the original.
             return originalHtmlDoc.DocumentNode.OuterHtml;
         }
-
     }
 }

@@ -16,7 +16,7 @@ namespace CosmosCMS.Editor.Services
     /// <summary>
     /// A service for publishing files to the wwwroot directory of an Azure Web App using the Kudu API.
     /// </summary>
-    public class AzureWebAppPublisher
+    internal class AzureWebAppPublisher
     {
         private readonly string webAppName;
         private readonly string resourceGroupName;

@@ -20,6 +20,7 @@ namespace Cosmos.Cms.Controllers
     using Cosmos.Cms.Services;
     using Cosmos.Common.Data;
     using Cosmos.Common.Models;
+    using Cosmos.Common.Services;
     using Cosmos.Editor.Controllers;
     using Cosmos.Editor.Data;
     using Cosmos.Editor.Data.Logic;
@@ -344,6 +345,7 @@ namespace Cosmos.Cms.Controllers
             {
                 builder.AppendLine(entity.HtmlHeader);
             }
+
             builder.AppendLine("<!--CCMS--END--HEADER-->");
             builder.AppendLine("<div data-gjs-type='grapesjs-not-editable' draggable='false' style='height:50vh;display:flex;justify-content:center;align-items: center;'>");
             builder.AppendLine("<div style='text-align: center'>PAGE CONTENT GOES IN THIS BLOCK<br/>Cannot edit with layout designer.</div>");
@@ -357,6 +359,7 @@ namespace Cosmos.Cms.Controllers
             {
                 builder.AppendLine(entity.FooterHtmlContent);
             }
+
             builder.AppendLine("<!--CCMS--END--FOOTER-->");
             builder.AppendLine("</body>");
             return Json(new project(builder.ToString()));

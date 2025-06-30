@@ -19,6 +19,7 @@ namespace Cosmos.Cms.Controllers
     using Cosmos.Cms.Models;
     using Cosmos.Cms.Services;
     using Cosmos.Common.Data;
+    using Cosmos.Common.Services;
     using Cosmos.Editor.Controllers;
     using Cosmos.Editor.Data.Logic;
     using Cosmos.Editor.Models;
@@ -138,9 +139,29 @@ namespace Cosmos.Cms.Controllers
             return "/" + path.TrimStart('/'); // just in case
         }
 
-        private static long DivideByAndRoundUp(long number, long divideBy)
+        /// <summary>
+        /// Gets images for the design editor.
+        /// </summary>
+        /// <param name="storageContext">Storage context.</param>
+        /// <param name="path">Path to retrieve images.</param>
+        /// <param name="exclude">Path to exclude images.</param>
+        /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
+        public static async Task<string[]> GetImageAssetArray(StorageContext storageContext, string path, string exclude)
         {
-            return (long)Math.Ceiling((float)number / (float)divideBy);
+            var blobs = await storageContext.GetBlobItemsAsync(path, FileManagerController.ValidImageExtensions);
+
+            if (!string.IsNullOrEmpty(exclude))
+            {
+                return blobs.Where(w => !w.Path.ToLower().StartsWith(exclude.TrimStart('/').ToLower())).Select(s => new
+                {
+                    src = FixPath(s.Path),
+                }).ToList().Select(s => s.src).ToArray();
+            }
+
+            return blobs.Select(s => new
+            {
+                src = FixPath(s.Path),
+            }).ToList().Select(s => s.src).ToArray();
         }
 
         /// <summary>
@@ -402,32 +423,6 @@ namespace Cosmos.Cms.Controllers
         public async Task<IActionResult> GetImageAssets(string path, string exclude = "")
         {
             return Json(await GetImageAssetArray(storageContext, path, exclude));
-        }
-
-        /// <summary>
-        /// Gets images for the design editor.
-        /// </summary>
-        /// <param name="storageContext">Storage context.</param>
-        /// <param name="path">Path to retrieve images.</param>
-        /// <param name="exclude">Path to exclude images.</param>
-        /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
-        public static async Task<string[]> GetImageAssetArray(StorageContext storageContext, string path, string exclude)
-        {
-
-            var blobs = await storageContext.GetBlobItemsAsync(path, FileManagerController.ValidImageExtensions);
-
-            if (!string.IsNullOrEmpty(exclude))
-            {
-                return blobs.Where(w => !w.Path.ToLower().StartsWith(exclude.TrimStart('/').ToLower())).Select(s => new
-                {
-                    src = FixPath(s.Path),
-                }).ToList().Select(s => s.src).ToArray();
-            }
-
-            return blobs.Select(s => new
-            {
-                src = FixPath(s.Path),
-            }).ToList().Select(s => s.src).ToArray();
         }
 
         /// <summary>
@@ -762,7 +757,7 @@ namespace Cosmos.Cms.Controllers
                 return BadRequest(ModelState);
             }
 
-            if (files == null || !files.Any() || !Guid.TryParse(id, out Guid Id))
+            if (files == null || !files.Any() || !Guid.TryParse(id, out Guid articleId))
             {
                 return null;
             }
@@ -798,7 +793,7 @@ namespace Cosmos.Cms.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    var article = await articleLogic.GetArticleById(Id, EnumControllerName.Edit, Guid.Parse(await GetUserId()));
+                    var article = await articleLogic.GetArticleById(articleId, EnumControllerName.Edit, Guid.Parse(await GetUserId()));
 
                     var originalHtml = await articleLogic.ExportArticle(article, blobPublicAbsoluteUrl, viewRenderService);
                     var originalHtmlDoc = new HtmlAgilityPack.HtmlDocument();
@@ -909,129 +904,6 @@ namespace Cosmos.Cms.Controllers
             return Json(uploadResult);
         }
 
-        private async Task PurgeCdnPath(FileUploadMetaData metaData)
-        {
-            if (metaData.TotalChunks - 1 == metaData.ChunkIndex)
-            {
-                // This is the last chunk, wrap things up here.  Flush the CDN if one is configured.
-                var purgeUrls = new List<string>
-                {
-                    metaData.RelativePath
-                };
-
-                var settings = await Cosmos___SettingsController.GetCdnConfiguration(dbContext);
-                var cdnService = new CdnService(settings, logger, HttpContext);
-                _ = await cdnService.PurgeCdn(purgeUrls);
-            }
-        }
-
-        private dynamic ReturnSimpleErrorMessage(string message)
-        {
-            return Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>("{ \"error\": { \"message\": \"" + message + "\"}}");
-        }
-
-        private int GetChildNodeIndex(HtmlAgilityPack.HtmlNode parent, HtmlAgilityPack.HtmlNode child)
-        {
-            var target = parent.ChildNodes.FirstOrDefault(f => NodesAreEqual(f, child));
-            if (target == null)
-            {
-                return -1;
-            }
-
-            var index = parent.ChildNodes.IndexOf(target);
-            return index;
-        }
-
-        /// <summary>
-        /// Removes nodes from a parent node by XPath.
-        /// </summary>
-        /// <param name="originalNode">Origin node.</param>
-        /// <param name="nodesToRemove">Nodes to remove.</param>
-        private void RemoveNodes(ref HtmlAgilityPack.HtmlNode originalNode, IEnumerable<HtmlAgilityPack.HtmlNode> nodesToRemove)
-        {
-            foreach (var node in nodesToRemove)
-            {
-                var doomed = originalNode.ChildNodes.FirstOrDefault(w => NodesAreEqual(w, node));
-                if (doomed != null)
-                {
-                    doomed.Remove();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Determines if nodes are equal.
-        /// </summary>
-        /// <param name="node1">HtmlNode.</param>
-        /// <param name="node2">Compare to HtmlNode.</param>
-        /// <returns>boolean.</returns>
-        /// <remarks>Compares node name, node type, and attributes.</remarks>
-        private bool NodesAreEqual(HtmlAgilityPack.HtmlNode node1, HtmlAgilityPack.HtmlNode node2)
-        {
-            if (node1.Name == node2.Name && node1.NodeType == node2.NodeType)
-            {
-                var attributeNames1 = node1.Attributes.Select(s => new
-                {
-                    Name = s.Name.ToLower(),
-                    Value = s.Value
-                }).OrderBy(o => o.Name).ToList();
-
-                var attributeNames2 = node2.Attributes.Select(s => new
-                {
-                    Name = s.Name.ToLower(),
-                    Value = s.Value
-                }).OrderBy(o => o.Name).ToList();
-
-                var firstNotInSecond = attributeNames1.Except(attributeNames2).ToList();
-                var secondNotInFirst = attributeNames2.Except(attributeNames1).ToList();
-
-                return firstNotInSecond.Count == 0 && secondNotInFirst.Count == 0;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Selects nodes between HTML comments.
-        /// </summary>
-        /// <param name="originalNode">Original node.</param>
-        /// <param name="startComment">Start comment.</param>
-        /// <param name="endComment">End comment.</param>
-        /// <returns>HTML Node.</returns>
-        private IEnumerable<HtmlAgilityPack.HtmlNode> SelectNodesBetweenComments(HtmlAgilityPack.HtmlNode originalNode, string startComment, string endComment)
-        {
-            var nodes = new List<HtmlAgilityPack.HtmlNode>();
-
-            startComment = startComment.Replace("<!--", string.Empty).Replace("-->", string.Empty).Trim();
-            endComment = endComment.Replace("<!--", string.Empty).Replace("-->", string.Empty).Trim();
-
-            var startNode = originalNode.SelectSingleNode($"//comment()[contains(., '{startComment}')]");
-            var endNode = originalNode.SelectSingleNode($"//comment()[contains(., '{endComment}')]");
-
-            if (startNode != null && endNode != null)
-            {
-                int startNodeIndex = startNode.ParentNode.ChildNodes.IndexOf(startNode);
-                int endNodeIndex = endNode.ParentNode.ChildNodes.IndexOf(endNode);
-
-                for (int i = startNodeIndex; i < endNodeIndex + 1; i++)
-                {
-                    nodes.Add(originalNode.ChildNodes[i]);
-                }
-            }
-            else if (startNode != null && endNode == null)
-            {
-                throw new Exception($"End comment: '{endComment}' not found.");
-            }
-            else if (startNode == null && endNode != null)
-            {
-                throw new Exception($"Start comment: '{startComment}' not found.");
-            }
-
-            return nodes;
-        }
-
-        #region HELPER METHODS
-
         /// <summary>
         ///     Encodes a URL.
         /// </summary>
@@ -1061,8 +933,6 @@ namespace Cosmos.Cms.Controllers
 
             return TrimPathPart(string.Join('/', urlEncodedParts));
         }
-
-        #endregion
 
         /// <summary>
         /// Creates a new file in a given folder.
@@ -1779,6 +1649,132 @@ namespace Cosmos.Cms.Controllers
                 fileUid = fileMetaData.UploadUid
             };
             return Json(fileBlob);
+        }
+
+        private async Task PurgeCdnPath(FileUploadMetaData metaData)
+        {
+            if (metaData.TotalChunks - 1 == metaData.ChunkIndex)
+            {
+                // This is the last chunk, wrap things up here.  Flush the CDN if one is configured.
+                var purgeUrls = new List<string>
+                {
+                    metaData.RelativePath
+                };
+
+                var settings = await Cosmos___SettingsController.GetCdnConfiguration(dbContext);
+                var cdnService = new CdnService(settings, logger, HttpContext);
+                _ = await cdnService.PurgeCdn(purgeUrls);
+            }
+        }
+
+        private long DivideByAndRoundUp(long number, long divideBy)
+        {
+            return (long)Math.Ceiling((float)number / (float)divideBy);
+        }
+
+        private dynamic ReturnSimpleErrorMessage(string message)
+        {
+            return Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>("{ \"error\": { \"message\": \"" + message + "\"}}");
+        }
+
+        private int GetChildNodeIndex(HtmlAgilityPack.HtmlNode parent, HtmlAgilityPack.HtmlNode child)
+        {
+            var target = parent.ChildNodes.FirstOrDefault(f => NodesAreEqual(f, child));
+            if (target == null)
+            {
+                return -1;
+            }
+
+            var index = parent.ChildNodes.IndexOf(target);
+            return index;
+        }
+
+        /// <summary>
+        /// Removes nodes from a parent node by XPath.
+        /// </summary>
+        /// <param name="originalNode">Origin node.</param>
+        /// <param name="nodesToRemove">Nodes to remove.</param>
+        private void RemoveNodes(ref HtmlAgilityPack.HtmlNode originalNode, IEnumerable<HtmlAgilityPack.HtmlNode> nodesToRemove)
+        {
+            foreach (var node in nodesToRemove)
+            {
+                var doomed = originalNode.ChildNodes.FirstOrDefault(w => NodesAreEqual(w, node));
+                if (doomed != null)
+                {
+                    doomed.Remove();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Determines if nodes are equal.
+        /// </summary>
+        /// <param name="node1">HtmlNode.</param>
+        /// <param name="node2">Compare to HtmlNode.</param>
+        /// <returns>boolean.</returns>
+        /// <remarks>Compares node name, node type, and attributes.</remarks>
+        private bool NodesAreEqual(HtmlAgilityPack.HtmlNode node1, HtmlAgilityPack.HtmlNode node2)
+        {
+            if (node1.Name == node2.Name && node1.NodeType == node2.NodeType)
+            {
+                var attributeNames1 = node1.Attributes.Select(s => new
+                {
+                    Name = s.Name.ToLower(),
+                    Value = s.Value
+                }).OrderBy(o => o.Name).ToList();
+
+                var attributeNames2 = node2.Attributes.Select(s => new
+                {
+                    Name = s.Name.ToLower(),
+                    Value = s.Value
+                }).OrderBy(o => o.Name).ToList();
+
+                var firstNotInSecond = attributeNames1.Except(attributeNames2).ToList();
+                var secondNotInFirst = attributeNames2.Except(attributeNames1).ToList();
+
+                return firstNotInSecond.Count == 0 && secondNotInFirst.Count == 0;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Selects nodes between HTML comments.
+        /// </summary>
+        /// <param name="originalNode">Original node.</param>
+        /// <param name="startComment">Start comment.</param>
+        /// <param name="endComment">End comment.</param>
+        /// <returns>HTML Node.</returns>
+        private IEnumerable<HtmlAgilityPack.HtmlNode> SelectNodesBetweenComments(HtmlAgilityPack.HtmlNode originalNode, string startComment, string endComment)
+        {
+            var nodes = new List<HtmlAgilityPack.HtmlNode>();
+
+            startComment = startComment.Replace("<!--", string.Empty).Replace("-->", string.Empty).Trim();
+            endComment = endComment.Replace("<!--", string.Empty).Replace("-->", string.Empty).Trim();
+
+            var startNode = originalNode.SelectSingleNode($"//comment()[contains(., '{startComment}')]");
+            var endNode = originalNode.SelectSingleNode($"//comment()[contains(., '{endComment}')]");
+
+            if (startNode != null && endNode != null)
+            {
+                int startNodeIndex = startNode.ParentNode.ChildNodes.IndexOf(startNode);
+                int endNodeIndex = endNode.ParentNode.ChildNodes.IndexOf(endNode);
+
+                for (int i = startNodeIndex; i < endNodeIndex + 1; i++)
+                {
+                    nodes.Add(originalNode.ChildNodes[i]);
+                }
+            }
+            else if (startNode != null && endNode == null)
+            {
+                throw new Exception($"End comment: '{endComment}' not found.");
+            }
+            else if (startNode == null && endNode != null)
+            {
+                throw new Exception($"Start comment: '{startComment}' not found.");
+            }
+
+            return nodes;
         }
     }
 }

@@ -9,6 +9,7 @@ namespace Cosmos.Editor.Data
 {
     using Cosmos.Common.Data;
     using Cosmos.DynamicConfig;
+    using Microsoft.CodeAnalysis.CSharp.Syntax;
     using Microsoft.EntityFrameworkCore;
 
     /// <summary>
