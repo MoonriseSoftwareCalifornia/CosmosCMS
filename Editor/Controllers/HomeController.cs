@@ -158,6 +158,7 @@ namespace Cosmos.Cms.Controllers
                 var website = queryParams["ccmswebsite"];
                 var opt = queryParams["ccmsopt"];
                 var email = queryParams["ccmsemail"];
+                var redirectUrl = queryParams["redirectUrl"];
 
                 queryParams.Remove("ccmswebsite");
                 queryParams.Remove("ccmsopt");
@@ -180,6 +181,12 @@ namespace Cosmos.Cms.Controllers
                 if (!string.IsNullOrWhiteSpace(queryString))
                 {
                     queryString = "?" + queryString;
+                }
+
+                if (!string.IsNullOrWhiteSpace(redirectUrl))
+                {
+                    // If we have a redirect URL, append it to the query string.
+                    queryString += $"&redirectUrl={HttpUtility.UrlEncode(redirectUrl)}";
                 }
 
                 return Redirect($"~/Identity/Account/Login{queryString}");

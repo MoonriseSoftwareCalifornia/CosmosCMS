@@ -9,7 +9,6 @@ namespace Cosmos.Common.Data
 {
     using System;
     using System.ComponentModel.DataAnnotations;
-    using Newtonsoft.Json;
 
     /// <summary>
     /// Represents a Time-based One-Time Password (TOTP) token for user authentication.
@@ -46,11 +45,5 @@ namespace Cosmos.Common.Data
         /// Gets or sets the date and time when the TOTP token expires.
         /// </summary>
         public DateTimeOffset ExpiresAt { get; set; } = DateTimeOffset.UtcNow.AddMinutes(20); // Default expiration time of 15 minutes
-
-        /// <summary>
-        /// Gets or sets the time-to-live (TTL) for the TOTP token in seconds.
-        /// </summary>
-        /// <remarks>Default is 900 seconds or 15 minutes.</remarks>
-        public int ttl { get; set; } = 900; // Time to live in seconds (15 minutes)
     }
 }

@@ -149,8 +149,9 @@ builder.Services.AddTransient<IEditorSettings, EditorSettings>();
 builder.Services.AddCosmosIdentity<ApplicationDbContext, IdentityUser, IdentityRole, string>(
       options => options.SignIn.RequireConfirmedAccount = true)
     .AddDefaultUI() // Use this if Identity Scaffolding added
-    .AddDefaultTokenProviders()
-    .AddTokenProvider<Cosmos.Common.Services.OneTimeTokenProvider<IdentityUser>>("OneTimeToken");
+    .AddDefaultTokenProviders();
+
+builder.Services.AddTransient<Cosmos.Common.Services.OneTimeTokenProvider<IdentityUser>>();
 
 // Add shared data protection here
 builder.Services.AddCosmosCmsDataProtection(builder.Configuration, defaultAzureCredential);

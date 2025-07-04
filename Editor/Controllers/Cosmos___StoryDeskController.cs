@@ -334,7 +334,7 @@ namespace Cosmos.Editor.Controllers
             builder.AppendLine($"<p>New web page created from email: {message.Subject}.</p>");
 
             var uri = new Uri(website.WebsiteUrl);
-            var oneTimeToken = await oneTimeTokenProvider.GenerateAsync("Story desk submission", userManager, user);
+            var oneTimeToken = await oneTimeTokenProvider.GenerateAsync(userManager, user);
 
             var returnUrl = $"https://{Request.Host.Host}/Home/CcmsOTP?returnUrl=Editor/Edit/{article.ArticleNumber}&ccmsotp={oneTimeToken}&ccmswebsite={uri.Host}";
 

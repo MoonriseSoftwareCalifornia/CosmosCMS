@@ -1,11 +1,9 @@
 ﻿using Cosmos.Common.Data;
 using Cosmos.DynamicConfig;
-using MailChimp.Net.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 using System;
 using System.Collections.Generic;
 using System.Net.Mail;

@@ -182,22 +182,6 @@ namespace Cosmos.Common.Data
                     // Check to see if the CMS containers exists.
                     var articleContainerResult = cosmosClient.GetContainer(databaseName, "Articles").ReadContainerAsync().Result;
 
-                    // Get the default container properties.
-                    var containerResponse = cosmosClient.GetContainer(databaseName, "CosmosCms").ReadContainerAsync().Result;
-                    var properties = containerResponse.Resource;
-
-                    // Check the default time to live setting to see if TTL is set.
-                    if (properties.DefaultTimeToLive != -1)
-                    {
-                        // Enable ttl but do not enforce default TTL. This will allow entities like TotpToken to have
-                        // its own TTL.
-                        properties.DefaultTimeToLive = -1;
-
-                        // Replace a container's properties with the updated ones.
-                        var task = cosmosClient.GetContainer(databaseName, "CosmosCms").ReplaceContainerAsync(properties);
-                        task.Wait();
-                    }
-
                     if (identityContainerResult.StatusCode == System.Net.HttpStatusCode.OK &&
                         articleContainerResult.StatusCode == System.Net.HttpStatusCode.OK)
                     {

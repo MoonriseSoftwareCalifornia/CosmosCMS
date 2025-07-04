@@ -64,28 +64,17 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Azure.Extensions.AspNetCore.DataProtection.Blobs" Version="1.5.0" />
-		<PackageReference Include="Azure.Identity" Version="1.14.0" />
 		<PackageReference Include="Azure.ResourceManager" Version="1.13.1" />
 		<PackageReference Include="Azure.ResourceManager.Cdn" Version="1.4.0" />
-		<PackageReference Include="Azure.ResourceManager.FrontDoor" Version="1.4.0" />
+		<PackageReference Include="Cosmos.EmailServices" Version="9.0.1" />
 		<PackageReference Include="CsvHelper" Version="33.1.0" />
 		<PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.23.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="9.0.6" />
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.6" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.MicrosoftAccount" Version="9.0.6" />
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.6" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="9.0.6" />
-		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="9.0.6" />
-		<PackageReference Include="Microsoft.Azure.SignalR" Version="1.30.3" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Cosmos" Version="9.0.6" />
-		<PackageReference Include="Microsoft.Extensions.Azure" Version="1.12.0" />
-		<PackageReference Include="Microsoft.Extensions.Caching.Cosmos" Version="1.7.0" />
-		<PackageReference Include="Microsoft.Graph" Version="5.81.0" />
+		<PackageReference Include="Microsoft.Graph" Version="5.84.0" />
 		
-		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.0" />
-		
-		<PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="9.0.0" />
+		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
 		<PackageReference Include="NUglify" Version="1.21.15" />
 		<PackageReference Include="PasswordGenerator" Version="2.1.0" />
 		<PackageReference Include="RestSharp" Version="112.1.0" />
@@ -96,7 +85,6 @@
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="System.Drawing.Common" Version="9.0.6" />
-		<PackageReference Include="System.Formats.Asn1" Version="9.0.6" />
 		<PackageReference Include="System.Private.Uri" Version="4.3.2" />
 	</ItemGroup>
 

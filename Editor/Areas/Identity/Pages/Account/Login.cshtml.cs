@@ -272,8 +272,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                     var user = await UserManager.FindByEmailAsync(Input.Email);
                     if (user != null)
                     {
-
-
                         if (user.EmailConfirmed == false)
                         {
                             ModelState.AddModelError(string.Empty, "Email address not confirmed.");
@@ -286,7 +284,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                             return Page();
                         }
 
-                        var token = await this.totpProvider.GenerateAsync("Login link.", UserManager, user);
+                        var token = await this.totpProvider.GenerateAsync(UserManager, user);
                         if (token != null)
                         {
                             var port = Request.Host.Port.HasValue ? $":{Request.Host.Port.Value}" : string.Empty;
@@ -309,12 +307,12 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                             }
 
                             var msg = new StringBuilder();
-                            msg.AppendLine($"<p><a href='{link}'>Click this link</a> to log into your website or paste the following URL into your web browser:</p>");
-                            msg.AppendLine($"<p></p>");
-                            msg.AppendLine($"<p>{link}</p>");
-                            msg.AppendLine($"<p></p>");
-                            msg.AppendLine($"<p>Please note, this link is active for 15 minutes and can only be used once.</p>");
+                            msg.AppendLine($"<p><a href='{link}'>Click this link</a> to log into your website.</p>");
+                            msg.AppendLine($"<p>Please note, this link is active for 20 minutes and can only be used once.</p>");
                             msg.AppendLine("<p>If you did not request this link, please ignore this email and contact your website administrator.</p>");
+                            msg.AppendLine($"<p></p>");
+                            msg.AppendLine($"<p>If the link does not work, paste the following URL into your web browser:</p>");
+                            msg.AppendLine($"<p>{link}</p>");
 
                             // Send the token via email.
                             await this.emailSender.SendEmailAsync(
@@ -323,6 +321,8 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                                     msg.ToString());
 
                             logger.LogInformation($"Login link sent to user '{Input.Email}' via email.");
+
+                            ViewData["TOTP_Sent"] = true;
                         }
                         else
                         {
@@ -399,23 +399,32 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                 return Page();
             }
 
-            var result = await this.totpProvider.ValidateAsync("Login link.", totpToken, UserManager, user, true);
+            var result = await this.totpProvider.ValidateAsync(totpToken, UserManager, user, true);
 
-            if (!result)
+            if (result == OneTimeTokenProvider<IdentityUser>.VerificationResult.Valid)
+            {
+                await SignInManager.SignInAsync(user, true, "TOTP");
+
+                var principal = await SignInManager.CreateUserPrincipalAsync(user);
+
+
+                if (SignInManager.IsSignedIn(principal))
+                {
+                    return LocalRedirect(returnUrl);
+                }
+            }
+
+            if (result == OneTimeTokenProvider<IdentityUser>.VerificationResult.Invalid)
             {
                 ModelState.AddModelError(string.Empty, "Invalid login link.");
                 return Page();
             }
-
-            await SignInManager.SignInAsync(user, true, "Login link");
-
-            var principal = await SignInManager.CreateUserPrincipalAsync(user);
-
-
-            if (SignInManager.IsSignedIn(principal))
+            else if (result == OneTimeTokenProvider<IdentityUser>.VerificationResult.Expired)
             {
-                return LocalRedirect(returnUrl);
+                ModelState.AddModelError(string.Empty, "Login link has expired.");
+                return Page();
             }
+
 
             ModelState.AddModelError(string.Empty, "Could not log in user account.");
             return Page();

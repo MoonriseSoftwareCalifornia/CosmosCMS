@@ -8,47 +8,86 @@
 namespace Cosmos.Common.Services
 {
     using System;
-    using System.ComponentModel;
+    using System.Linq;
     using System.Threading.Tasks;
     using Cosmos.Common.Data;
-    using Microsoft.AspNetCore.DataProtection;
     using Microsoft.AspNetCore.Identity;
-    using Microsoft.Azure.Cosmos;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Options;
+    using OtpNet;
 
     /// <summary>
     /// One time token provider with default set to 15 minutes.
     /// </summary>
     /// <typeparam name="TUser">Identity user type.</typeparam>
-    public class OneTimeTokenProvider<TUser> : DataProtectorTokenProvider<TUser>
+    public class OneTimeTokenProvider<TUser>
         where TUser : IdentityUser
     {
         private readonly ApplicationDbContext dbContext;
+        private readonly string key;
+        private readonly Totp totp;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OneTimeTokenProvider{TUser}"/> class.
         /// </summary>
         /// <param name="dbContext">Database context.</param>
-        /// <param name="dataProtectionProvider">IDataProtectionProvider.</param>
-        /// <param name="options">Options.</param>
         /// <param name="logger">Log service.</param>
         public OneTimeTokenProvider(
             ApplicationDbContext dbContext,
-            IDataProtectionProvider dataProtectionProvider,
-            IOptions<OneTimeTokenProviderOptions> options,
             ILogger<DataProtectorTokenProvider<TUser>> logger)
-            : base(dataProtectionProvider, options, logger)
         {
             this.dbContext = dbContext;
+            var otpKey = dbContext.Settings
+                .FirstOrDefaultAsync(s => s.Name == "OneTimeTokenProviderKey").Result;
+
+            if (otpKey == null)
+            {
+                var value = KeyGeneration.GenerateRandomKey(20);
+                otpKey = new Setting()
+                {
+                    Name = "OneTimeTokenProviderKey",
+                    Value = Base32Encoding.ToString(value),
+                    Description = "Key used to generate one-time tokens for users.",
+                    Group = "Security"
+                };
+                dbContext.Settings.Add(otpKey);
+                _ = dbContext.SaveChangesAsync().Result;
+            }
+
+            totp = new Totp(Base32Encoding.ToBytes(otpKey.Value), step: 600, totpSize: 8, mode: OtpHashMode.Sha256);
         }
 
-        /// <inheritdoc />
-        public override async Task<string> GenerateAsync(string purpose, UserManager<TUser> manager, TUser user)
+        /// <summary>
+        ///  Indicates the verification window for a one-time token.
+        /// </summary>
+        public enum VerificationResult
+        {
+            /// <summary>
+            /// Token is valid.
+            /// </summary>
+            Valid,
+
+            /// <summary>
+            /// Token is invalid.
+            /// </summary>
+            Invalid,
+
+            /// <summary>
+            /// Token is expired.
+            /// </summary>
+            Expired
+        }
+
+        /// <summary>
+        ///  Generates a one-time token for a given user.
+        /// </summary>
+        /// <param name="manager">User manager.</param>
+        /// <param name="user">Identity user.</param>
+        /// <returns>Token value.</returns>
+        public async Task<string> GenerateAsync(UserManager<TUser> manager, TUser user)
         {
             var userEntity = (IdentityUser)user;
-            var token = await base.GenerateAsync(purpose, manager, user);
+            var token = totp.ComputeTotp();
 
             var entity = new TotpToken()
             {
@@ -63,41 +102,75 @@ namespace Cosmos.Common.Services
             return token;
         }
 
-        /// <inheritdoc />
-        public override async Task<bool> ValidateAsync(string purpose, string token, UserManager<TUser> manager, TUser user)
-        {
-            return await ValidateAsync(purpose, token, manager, user, true);
-        }
-
         /// <summary>
         ///  Validates a login token for a given user.
         /// </summary>
-        /// <param name="purpose">Reason for token.</param>
         /// <param name="token">Token value to validate.</param>
         /// <param name="manager">User manager.</param>
         /// <param name="user">IdentityUser.</param>
         /// <param name="removeToken">Remove token if present.</param>
         /// <returns>Results.</returns>
-        public async Task<bool> ValidateAsync(string purpose, string token, UserManager<TUser> manager, TUser user, bool removeToken = true)
+        public async Task<VerificationResult> ValidateAsync(string token, UserManager<TUser> manager, TUser user, bool removeToken = true)
         {
-            var result = await base.ValidateAsync(purpose, token, manager, user);
-            var userObject = await manager.FindByIdAsync(user.Id);
-            if (userObject != null)
-            {
-                var totpEntity = await dbContext.TotpTokens.FirstOrDefaultAsync(f => f.Token == token);
-                if (totpEntity != null)
-                {
-                    if (removeToken)
-                    {
-                        dbContext.TotpTokens.Remove(totpEntity);
-                        await dbContext.SaveChangesAsync();
-                    }
+            var identityUser = await manager.FindByIdAsync(user.Id);
 
-                    return true;
-                }
+            if (identityUser == null)
+            {
+                return VerificationResult.Invalid;
             }
 
-            return false;
+            if (!identityUser.EmailConfirmed)
+            {
+                // User email is not confirmed, so we cannot verify the token.
+                return VerificationResult.Invalid;
+            }
+
+            if (identityUser.LockoutEnabled && identityUser.LockoutEnd.HasValue && identityUser.LockoutEnd > DateTimeOffset.UtcNow)
+            {
+                // User is locked out, so we cannot verify the token.
+                return VerificationResult.Invalid;
+            }
+
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                return VerificationResult.Invalid;
+            }
+
+            // Add one step verification window to allow for clock skew and network delay.
+            var window = new VerificationWindow(previous: 1, future: 1);
+
+            var result = totp.VerifyTotp(token, out long timeStepMatched, window);
+            if (!result)
+            {
+                return VerificationResult.Invalid;
+            }
+
+            if (timeStepMatched < 0)
+            {
+                // Token is too old
+                return VerificationResult.Expired;
+            }
+
+            var totpEntity = await dbContext.TotpTokens.FirstOrDefaultAsync(f => f.Token == token);
+            if (totpEntity == null)
+            {
+                // Token does not exist in the database
+                return VerificationResult.Invalid;
+            }
+
+            if (totpEntity.UserId != identityUser.Id || totpEntity.Email != identityUser.NormalizedEmail)
+            {
+                // Token does not match the user
+                return VerificationResult.Invalid;
+            }
+
+            if (removeToken)
+            {
+                dbContext.TotpTokens.Remove(totpEntity);
+                await dbContext.SaveChangesAsync();
+            }
+
+            return VerificationResult.Valid;
         }
     }
 }
