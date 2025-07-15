@@ -16,8 +16,6 @@ namespace Cosmos.Editor.Controllers
     using Azure.Core;
     using Azure.Identity;
     using Cosmos.BlobService;
-    using Cosmos.Cms.Common.Services.Configurations;
-    using Cosmos.Cms.Services;
     using Cosmos.Common.Data;
     using Cosmos.Common.Models;
     using Cosmos.Common.Services;
@@ -33,12 +31,9 @@ namespace Cosmos.Editor.Controllers
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.Extensions.Configuration;
-    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Options;
     using Microsoft.Graph;
     using Microsoft.Graph.Models;
-    using Microsoft.Graph.Models.Security;
     using SixLabors.ImageSharp;
 
     /// <summary>
@@ -54,13 +49,8 @@ namespace Cosmos.Editor.Controllers
         private readonly StoryDeskDbContext storyDeskDbContext;
         private readonly ILogger<Cosmos___StoryDeskController> logger;
         private readonly OneTimeTokenProvider<IdentityUser> oneTimeTokenProvider;
-        private readonly IViewRenderService viewRenderService;
         private readonly StorageContext storageContext;
-        private readonly IMemoryCache memoryCache;
-        private readonly IHttpContextAccessor accessor;
-        private readonly IOptions<CosmosConfig> config;
         private readonly ICosmosEmailSender emailSender;
-        private readonly UserManager<IdentityUser> userManager;
         private readonly ArticleEditLogic articleEditLogic;
 
         /// <summary>
@@ -71,15 +61,10 @@ namespace Cosmos.Editor.Controllers
         /// <param name="storyDeskDbContext">Story desk DB context.</param>
         /// <param name="logger">Log service.</param>
         /// <param name="memoryCache">Memory cache.</param>
-        /// <param name="config">Cosmos Configuration.</param>
-        /// <param name="viewRenderService">View rendering service.</param>
         /// <param name="storageContext">Storage context.</param>
-        /// <param name="accessor">Accessor service.</param>
         /// <param name="emailSender">Email services.</param>
         /// <param name="oneTimeTokenProvider">One time token provider.</param>
-        /// <param name="userManager">User manager.</param>
         /// <param name="articleEditLogic">Article edit logic.</param>
-        /// 
         /// <exception cref="ArgumentNullException">Null argument exception.</exception>
         public Cosmos___StoryDeskController(
             IConfiguration configuration,
@@ -87,21 +72,13 @@ namespace Cosmos.Editor.Controllers
             StoryDeskDbContext storyDeskDbContext,
             ILogger<Cosmos___StoryDeskController> logger,
             IMemoryCache memoryCache,
-            IOptions<CosmosConfig> config,
-            IViewRenderService viewRenderService,
             StorageContext storageContext,
-            IHttpContextAccessor accessor,
             IEmailSender emailSender,
             OneTimeTokenProvider<IdentityUser> oneTimeTokenProvider,
-            UserManager<IdentityUser> userManager,
             ArticleEditLogic articleEditLogic)
         {
-            this.config = config;
-            this.viewRenderService = viewRenderService ?? throw new ArgumentNullException(nameof(viewRenderService));
             this.storageContext = storageContext ?? throw new ArgumentNullException(nameof(storageContext));
-            this.memoryCache = memoryCache ?? throw new ArgumentNullException(nameof(memoryCache));
             this.oneTimeTokenProvider = oneTimeTokenProvider;
-            this.accessor = accessor;
 
             this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
 
@@ -117,7 +94,6 @@ namespace Cosmos.Editor.Controllers
             this.storyDeskDbContext = storyDeskDbContext;
             this.logger = logger;
             this.emailSender = (ICosmosEmailSender)emailSender;
-            this.userManager = userManager;
             this.articleEditLogic = articleEditLogic ?? throw new ArgumentNullException(nameof(articleEditLogic));
         }
 
@@ -203,14 +179,6 @@ namespace Cosmos.Editor.Controllers
                 return; // If the message is likely spam/phish, do not process it
             }
 
-            var user = await userManager.FindByEmailAsync(message.From.EmailAddress.Address);
-
-            if (user == null)
-            {
-                logger.LogWarning($"No user found for email address {message.From.EmailAddress.Address}.");
-                return; // No user found, do not proceed
-            }
-
             if (message == null || websites == null || websites.Count < 1)
             {
                 logger.LogWarning("Message or websites list is null or empty.");
@@ -244,6 +212,17 @@ namespace Cosmos.Editor.Controllers
                 .FirstOrDefaultAsync(c => c.Id == website.ConnectionId);
 
             var dbContext = ApplicationDbContextUtilities.GetApplicationDbContext(connection);
+
+            // Check for the author.
+            var normalizedEmail = message.From.EmailAddress.Address.ToUpper();
+            var user = await dbContext.Users.FirstOrDefaultAsync(f => f.NormalizedEmail == normalizedEmail && f.EmailConfirmed == true);
+
+            if (user == null)
+            {
+                logger.LogWarning($"No user found for email address {message.From.EmailAddress.Address}.");
+                return; // No user found, do not proceed
+            }
+
             var template = dbContext.Templates
                 .FirstOrDefault(t => t.Id == website.TemplateId);
 
@@ -334,9 +313,9 @@ namespace Cosmos.Editor.Controllers
             builder.AppendLine($"<p>New web page created from email: {message.Subject}.</p>");
 
             var uri = new Uri(website.WebsiteUrl);
-            var oneTimeToken = await oneTimeTokenProvider.GenerateAsync(userManager, user);
+            var oneTimeToken = await oneTimeTokenProvider.GenerateAsync(user);
 
-            var returnUrl = $"https://{Request.Host.Host}/Home/CcmsOTP?returnUrl=Editor/Edit/{article.ArticleNumber}&ccmsotp={oneTimeToken}&ccmswebsite={uri.Host}";
+            var returnUrl = $"https://{Request.Host.Host}/Identity/Account/Login?ccmsotp={oneTimeToken}&website={uri.Host}&returnUrl=Editor/Edit/{article.ArticleNumber}";
 
             builder.AppendLine($"<p><a href='{returnUrl}'>Click here to open web page to edit and publish.</a></p>");
 

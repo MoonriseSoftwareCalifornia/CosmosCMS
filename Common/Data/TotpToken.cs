@@ -44,6 +44,6 @@ namespace Cosmos.Common.Data
         /// <summary>
         /// Gets or sets the date and time when the TOTP token expires.
         /// </summary>
-        public DateTimeOffset ExpiresAt { get; set; } = DateTimeOffset.UtcNow.AddMinutes(20); // Default expiration time of 15 minutes
+        public DateTimeOffset ExpiresAt { get; set; } = DateTimeOffset.UtcNow.AddMinutes(15); // Default expiration time of 15 minutes
     }
 }

@@ -8,11 +8,6 @@
     ViewData["Title"] = "Log in";
     var isMultiTenant = (bool)ViewData["IsMultiTenantEditor"];
     var totpSent = (bool?)ViewData["TOTP_Sent"] ?? false;
-
-    if (Model.Input.NeedsCookieSet)
-    {
-        Model.Input.Password = Guid.NewGuid().ToString();
-    }
 }
 
 <div class="container">
@@ -56,113 +51,85 @@
                                 Do you need an account? <a asp-page="./Register" class="btn btn-sm btn-dark" asp-route-returnUrl="@Model.ReturnUrl">Create Account</a>
                             </p>
                         </section>
-                        @if (Model.Input.NeedsCookieSet)
+                        @if (options.Value.SiteSettings.AllowLocalAccounts)
                         {
                             <section>
                                 <form id="account" method="post" asp-antiforgery="true">
-                                    <input type="hidden" asp-for="Input.Password" />
-                                    <input type="hidden" id="Input_NeedsCookieSet" name="Input_NeedsCookieSet" value="true" />
+                                    <span asp-validation-summary="All" class="badge text-bg-danger"></span>
+                                    <input type="hidden" id="Input_NeedsCookieSet" name="Input_NeedsCookieSet" value="false" />
+                                    <input type="hidden" asp-for="Input.UseTotp" />
                                     <div class="form-group mb-3">
                                         <label asp-for="Input.Email"></label>
                                         <input asp-for="Input.Email" class="form-control" />
                                         <span asp-validation-for="Input.Email" class="badge text-bg-danger"></span>
                                         <a id="resend-confirmation" class="text-light" asp-page="./ResendEmailConfirmation">Resend email confirmation</a>
                                     </div>
-                                    <div id="websiteDomainNameGroup" class="form-group mb-3">
+                                    @if (isMultiTenant)
+                                    {
                                         <label asp-for="Input.WebsiteDomainName"></label>
-                                        <input asp-for="Input.WebsiteDomainName" class="form-control" />
-                                        <span class="text-light text-mute">Example: www.acme.com</span>
-                                        <span asp-validation-for="Input.WebsiteDomainName" class="badge text-bg-danger"></span>
+                                        <div class="input-group mb-3">
+                                            <input asp-for="Input.WebsiteDomainName" class="form-control" />
+                                        </div>
+                                    }
+                                    <div>
+                                        @if (Model.ExternalLogins?.Count > 0)
+                                        {
+                                            <hr />
+                                            <h5 class="card-title text-center">Login with password or choose an option below.</h5>
+                                        }
+                                    </div>
+                                    <div id="passwordGroup" class="form-group mb-3">
+                                        <label asp-for="Input.Password"></label>
+                                        <input asp-for="Input.Password" class="form-control" />
+                                        <span asp-validation-for="Input.Password" class="badge text-bg-danger"></span>
+                                        <a id="forgot-password" class="text-light" asp-page="./ForgotPassword">Forgot your password?</a>
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <div class="checkbox" style="display:none">
+                                            <label asp-for="Input.RememberMe">
+                                                <input asp-for="Input.RememberMe" />
+                                                @Html.DisplayNameFor(m => m.Input.RememberMe)
+                                            </label>
+                                        </div>
                                     </div>
                                     <div class="form-group">
-                                        <button type="submit" class="btn btn-dark">Continue <i class="fa-solid fa-circle-arrow-right"></i></button>
+                                        <button type="submit" class="btn btn-dark me-1">Log in with password</button>
+                                        or
+                                        <button id="btnLoginLink" type="button" class="btn btn-dark ms-1">Send login link via Email <i class="fa-solid fa-circle-arrow-right"></i></button>
                                     </div>
                                 </form>
                             </section>
                         }
-                        else
-                        {
-                            @if (options.Value.SiteSettings.AllowLocalAccounts)
-                            {
-                                <section>
-                                    <form id="account" method="post" asp-antiforgery="true">
-                                        <span asp-validation-summary="All" class="badge text-bg-danger"></span>
-                                        <input type="hidden" id="Input_NeedsCookieSet" name="Input_NeedsCookieSet" value="false" />
-                                        <input type="hidden" asp-for="Input.UseTotp" />
-                                        <div class="form-group mb-3">
-                                            <label asp-for="Input.Email"></label>
-                                            <input asp-for="Input.Email" class="form-control" />
-                                            <span asp-validation-for="Input.Email" class="badge text-bg-danger"></span>
-                                            <a id="resend-confirmation" class="text-light" asp-page="./ResendEmailConfirmation">Resend email confirmation</a>
-                                        </div>
-                                        @if (!string.IsNullOrWhiteSpace(Model.Input.WebsiteDomainName))
+                        <section>
+                            <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" asp-route-emailAddr="@Model.Input.Email" method="post" class="form-horizontal">
+                                <div class="d-grid gap-3 mb-3">
+                                    @if (Model.ExternalLogins != null)
+                                    {
+                                        @foreach (var provider in Model.ExternalLogins)
                                         {
-                                            <label asp-for="Input.WebsiteDomainName"></label>
-                                            <div class="input-group mb-3">
-                                                <a id="btnChange" class="btn btn-dark">Change <i class="fa-solid fa-circle-arrow-right"></i></a>
-                                                <input asp-for="Input.WebsiteDomainName" class="form-control" readonly />
-                                            </div>
-                                        }
-                                        <div>
-                                            @if (Model.ExternalLogins?.Count > 0)
+                                            @if (provider.Name == "Facebook")
                                             {
-                                                <hr />
-                                                <h5 class="card-title text-center">Login with password or choose an option below.</h5>
+                                                <button type="submit" class="btn btn-outline-primary" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">
+                                                    <img height="35" alt="Facebook Login Icon" src="~/lib/images/facebook.png" /> Login using @provider.DisplayName
+                                                </button>
                                             }
-                                        </div>
-                                        <div id="passwordGroup" class="form-group mb-3">
-                                            <label asp-for="Input.Password"></label>
-                                            <input asp-for="Input.Password" class="form-control" />
-                                            <span asp-validation-for="Input.Password" class="badge text-bg-danger"></span>
-                                            <a id="forgot-password" class="text-light" asp-page="./ForgotPassword">Forgot your password?</a>
-                                        </div>
-                                        <div class="form-group mb-3">
-                                            <div class="checkbox" style="display:none">
-                                                <label asp-for="Input.RememberMe">
-                                                    <input asp-for="Input.RememberMe" />
-                                                    @Html.DisplayNameFor(m => m.Input.RememberMe)
-                                                </label>
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <button type="submit" class="btn btn-dark me-1">Log in with password</button>
-                                            or
-                                            <button id="btnLoginLink" type="button" class="btn btn-dark ms-1">Send login link via Email <i class="fa-solid fa-circle-arrow-right"></i></button>
-                                        </div>
-                                    </form>
-                                </section>
-                            }
-                            <section>
-                                <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" asp-route-emailAddr="@Model.Input.Email" method="post" class="form-horizontal">
-                                    <div class="d-grid gap-3 mb-3">
-                                        @if (Model.ExternalLogins != null)
-                                        {
-                                            @foreach (var provider in Model.ExternalLogins)
+                                            else if (provider.Name == "Google")
                                             {
-                                                @if (provider.Name == "Facebook")
-                                                {
-                                                    <button type="submit" class="btn btn-outline-primary" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">
-                                                        <img height="35" alt="Facebook Login Icon" src="~/lib/images/facebook.png" /> Login using @provider.DisplayName
-                                                    </button>
-                                                }
-                                                else if (provider.Name == "Google")
-                                                {
-                                                    <button type="submit" class="btn btn-dark" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">
-                                                        <img height="35" alt="Google Login Icon" src="~/lib/images/img_login_google2.2x.png" /> Login using @provider.DisplayName
-                                                    </button>
-                                                }
-                                                else if (provider.Name == "Microsoft")
-                                                {
-                                                    <button type="submit" class="btn btn-dark" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">
-                                                        <img height="35" alt="Microsoft Login Icon" src="~/lib/images/img_login_microsoft2.2x.png" /> Login using @provider.DisplayName
-                                                    </button>
-                                                }
+                                                <button type="submit" class="btn btn-dark" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">
+                                                    <img height="35" alt="Google Login Icon" src="~/lib/images/img_login_google2.2x.png" /> Login using @provider.DisplayName
+                                                </button>
+                                            }
+                                            else if (provider.Name == "Microsoft")
+                                            {
+                                                <button type="submit" class="btn btn-dark" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">
+                                                    <img height="35" alt="Microsoft Login Icon" src="~/lib/images/img_login_microsoft2.2x.png" /> Login using @provider.DisplayName
+                                                </button>
                                             }
                                         }
-                                    </div>
-                                </form>
-                            </section>
-                        }
+                                    }
+                                </div>
+                            </form>
+                        </section>
                     </div>
                 </div>
             }
@@ -170,39 +137,68 @@
     </div>
 
     <script>
+        const isMultiTenant = @isMultiTenant.ToString().ToLower();
+
         $(document).ready(function () {
 
             $("#resend-confirmation").click(function (e) {
                 e.preventDefault();
-                var url = $(this).attr("href");
+                const url = $(this).attr("href");
                 $.get(url, function (data) {
                     alert(data);
                 });
             });
 
-            $("#btnChange").click(function (e) {
-                e.preventDefault();
-                var domainName = '@DynamicConfigurationProvider.StandardCookieName';
-                document.cookie = `${domainName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-                window.location.href = "./login";
-            });
+            $("#account").submit(function (e) {
+                e.preventDefault(); // Prevent default form action.
 
-            $("#btnLoginLink").click(function (e) {
-                const isMultiTenant = @isMultiTenant.ToString().ToLower();
-                e.preventDefault();
-                var email = $("#Input_Email").val();
-                var websiteDomainName = $("#Input_WebsiteDomainName").val();
+                const email = $("#Input_Email").val();
+                const websiteDomainName = $("#Input_WebsiteDomainName").val();
+
                 if (!email) {
                     alert("Please enter your email address.");
                     return;
                 }
-                if (isMultiTenant && !websiteDomainName) {
-                    alert("Please enter your website domain name.");
-                    return;
+
+                if (isMultiTenant) {
+                    if (!websiteDomainName) {
+                        alert("Please enter your website domain name.");
+                        return;
+                    }
+                    // Set the cookie here
+                    const daysToExpire = 30;
+                    const date = new Date();
+                    date.setTime(date.getTime() + (daysToExpire * 24 * 60 * 60 * 1000));
+                    const expires = ';expires=' + date.toUTCString();
+                    
+                    // Set the action here
+                    const actionUrl = '@Url.Page("./Login", new { ReturnUrl = Model.ReturnUrl })';
+                    if (isMultiTenant) {
+                        $("#account").attr("action", actionUrl + "?website=" + encodeURIComponent(websiteDomainName));
+                    } else {
+                        $("#account").attr("action", actionUrl);
+                    }
                 }
+
+                this.submit(); // Allow form to proceed.
+            });
+
+            $("#btnLoginLink").click(function (e) {
+                e.preventDefault();
                 $("#Input_NeedsCookieSet").val("false");
                 $("#Input_UseTotp").val("true");
-                $("#Input_Password").val("1234567Abcdefg!");
+                $("#Input_Password").val("1234567Abcdefg!"); // Password not used for TOTP but still must be preset for validation.
+
+                const websiteDomainName = $("#Input_WebsiteDomainName").val();
+
+                // Set the action here
+                const actionUrl = '@Url.Page("./Login", new { ReturnUrl = Model.ReturnUrl })';
+                if (isMultiTenant) {
+                    $("#account").attr("action", actionUrl + "?website=" + encodeURIComponent(websiteDomainName));
+                } else {
+                    $("#account").attr("action", actionUrl);
+                }
+
                 $("#account").submit();
             });
         });

@@ -151,8 +151,6 @@ builder.Services.AddCosmosIdentity<ApplicationDbContext, IdentityUser, IdentityR
     .AddDefaultUI() // Use this if Identity Scaffolding added
     .AddDefaultTokenProviders();
 
-builder.Services.AddTransient<Cosmos.Common.Services.OneTimeTokenProvider<IdentityUser>>();
-
 // Add shared data protection here
 builder.Services.AddCosmosCmsDataProtection(builder.Configuration, defaultAzureCredential);
 

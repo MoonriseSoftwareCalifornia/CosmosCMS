@@ -135,7 +135,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         {
             if (isMultiTenantEditor)
             {
-                Input.NeedsCookieSet = await NeedsAccountCookieSet();
+                Input.NeedsCookieSet = await DynamicConfigurationProvider.NeedsAccountCookieSet(configuration, HttpContext);
 
                 Input.WebsiteDomainName = DynamicConfigurationProvider.GetTenantDomainNameFromRequest(configuration, HttpContext);
 
@@ -256,27 +256,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
 
             // If we got this far, something failed, redisplay form
             return Page();
-        }
-
-        /// <summary>
-        /// Indicates if the account cookie needs to be set.
-        /// </summary>
-        /// <returns>True or false.</returns>
-        /// <remarks>This also sets the ViewData['NeedsAccountCookieSet'] so that the view knows what to show.</remarks>
-        private async Task<bool> NeedsAccountCookieSet()
-        {
-            if (!isMultiTenantEditor)
-            {
-                return false;
-            }
-
-            var domainName = DynamicConfigurationProvider.GetTenantDomainNameFromCookieOrHost(configuration, HttpContext);
-            if (await DynamicConfigurationProvider.ValidateDomainName(configuration, domainName))
-            {
-                return false;
-            }
-
-            return true;
         }
 
         /// <summary>

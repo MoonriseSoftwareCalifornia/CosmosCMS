@@ -61,6 +61,8 @@ namespace Cosmos.Editor.Services
                     await UploadFile(connection.StorageConn, file.BlobName, memoryStream);
                 }
             }
+
+            await managementUtilities.EnsureDatabasesAreConfigured();
         }
 
         /// <summary>

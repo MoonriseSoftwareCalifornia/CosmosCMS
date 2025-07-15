@@ -75,11 +75,20 @@ namespace Cosmos.DynamicConfig
         /// <summary>
         /// Gets the domain name from the HTTP context.
         /// </summary>
+        /// <remarks>
+        /// <para>Returns the domain name by looking at the incomming request.  Here is the order:</para>
+        /// <list type="number">
+        /// <item>Query string value 'website'.</item>
+        /// <item>Standard cookie.</item>
+        /// <item>Referer request header value.</item>
+        /// </list>
+        /// <para>Note: This should ONLY be used for multi-tenant, single editor website setup.</para>
+        /// </remarks>
         private string Domain
         {
             get
             {
-                return GetTenantDomainNameFromCookieOrHost(configuration, httpContextAccessor.HttpContext);
+                return GetTenantDomainNameFromRequest(configuration, httpContextAccessor.HttpContext);
             }
         }
 
@@ -147,19 +156,21 @@ namespace Cosmos.DynamicConfig
         }
 
         /// <summary>
-        /// Gets the domain name from the cookie or query string, or default to the host name.
+        ///  Gets
         /// </summary>
         /// <param name="configuration"></param>
         /// <param name="httpContext"></param>
         /// <returns></returns>
-        public static string GetTenantDomainNameFromCookieOrHost(IConfiguration configuration, HttpContext httpContext)
+        public static string GetTenantDomainNameFromCookie(IConfiguration configuration, HttpContext httpContext)
         {
+            // In order of priority
+            // 1. A set cookie
             var cookieValue = httpContext.Request.Cookies[StandardCookieName];
             if (!string.IsNullOrWhiteSpace(cookieValue))
             {
-                return cookieValue.ToLower();
+                return CleanUpDomainName(cookieValue);
             }
-            return httpContext.Request.Host.Host?.ToLower() ?? string.Empty;
+            return string.Empty;
         }
 
         /// <summary>
@@ -172,47 +183,40 @@ namespace Cosmos.DynamicConfig
         /// <remarks>
         /// <para>Returns the domain name by looking at the incomming request.  Here is the order:</para>
         /// <list type="number">
+        /// <item>Query string value 'website'. Sets the standard cookie if it exists.</item>
         /// <item>Standard cookie.</item>
-        /// <item>Query string value 'website'.</item>
         /// <item>Referer request header value.</item>
+        /// <item>Otherwise returns the host name of the request.</item>
         /// </list>
-        /// <para>Note: This should ONLY be used for login and register functionality with HTTP GET method.</para>
+        /// <para>Note: This should ONLY be used for multi-tenant, single editor website setup.</para>
         /// </remarks>
-        public static string GetTenantDomainNameFromRequest(IConfiguration configuration, HttpContext httpContext, bool includeCookie = true)
+        public static string GetTenantDomainNameFromRequest(IConfiguration configuration, HttpContext httpContext)
         {
             // In order of priority
-            // 1. A set cookie
-            if (includeCookie)
-            {
-                var cookieValue = httpContext.Request.Cookies[StandardCookieName];
-                if (!string.IsNullOrWhiteSpace(cookieValue))
-                {
-                    return CleanUpDomainName(cookieValue);
-                }
-            }
 
-            // 2. Query string
-            var queryValue = (string?) httpContext.Request.Query["website"];
+            // 1. Query string
+            var queryValue = (string?)httpContext.Request.Query["website"];
             if (!string.IsNullOrWhiteSpace(queryValue))
             {
                 return CleanUpDomainName(queryValue);
             }
 
-            // 3. referer header value
-            var refererValue = (string?) httpContext.Request.Headers[HttpHeader.Names.Referer];
-            if (string.IsNullOrWhiteSpace(refererValue))
+            // 2. A set cookie
+            var cookieValue = httpContext.Request.Cookies[StandardCookieName];
+            if (!string.IsNullOrWhiteSpace(cookieValue))
             {
-                return string.Empty;
+                return CleanUpDomainName(cookieValue);
             }
 
-            refererValue = CleanUpDomainName(refererValue);
-            var host = httpContext.Request.Host.Host;
-            if (!string.IsNullOrWhiteSpace(refererValue) && refererValue.ToLower() != host.ToLower())
+            // 3. referer header value
+            var refererValue = (string?) httpContext.Request.Headers[HttpHeader.Names.Referer];
+            if (!string.IsNullOrWhiteSpace(refererValue))
             {
                 return CleanUpDomainName(refererValue);
             }
 
-            return string.Empty;
+            // 4. If the referer is not set, then use the host name from the request.
+            return httpContext.Request.Host.Host;
         }
 
         /// <summary>
@@ -236,11 +240,34 @@ namespace Cosmos.DynamicConfig
         }
 
         /// <summary>
+        /// Indicates if the account cookie needs to be set.
+        /// </summary>
+        /// <returns>True or false.</returns>
+        /// <remarks>This also sets the ViewData['NeedsAccountCookieSet'] so that the view knows what to show.</remarks>
+        public static async Task<bool> NeedsAccountCookieSet(IConfiguration configuration, HttpContext httpContext)
+        {
+            var isMultiTenantEditor = configuration.GetValue<bool?>("MultiTenantEditor") ?? false;
+            if (!isMultiTenantEditor)
+            {
+                return false;
+            }
+
+            var cookieValue = DynamicConfigurationProvider.GetTenantDomainNameFromCookie(configuration, httpContext);
+            var domainName = DynamicConfigurationProvider.GetTenantDomainNameFromRequest(configuration, httpContext);
+            if ((domainName.Equals(cookieValue, StringComparison.CurrentCultureIgnoreCase) == true) && await DynamicConfigurationProvider.ValidateDomainName(configuration, domainName))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// Tests to see if there is a connection defined for the specified domain name.
         /// </summary>
         /// <param name="configuration"></param>
         /// <param name="domainName"></param>
-        /// <returns></returns>
+        /// <returns>Domain is valid (true) or not (false).</returns>
         /// <exception cref="ArgumentException"></exception>
         public static async Task<bool> ValidateDomainName(IConfiguration configuration, string domainName)
         {
@@ -345,5 +372,6 @@ namespace Cosmos.DynamicConfig
 
             return connection;
         }
+
     }
 }

@@ -8,13 +8,11 @@
 namespace Cosmos.Common.Services
 {
     using System;
-    using System.Linq;
     using System.Threading.Tasks;
     using Cosmos.Common.Data;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
-    using OtpNet;
 
     /// <summary>
     /// One time token provider with default set to 15 minutes.
@@ -24,8 +22,7 @@ namespace Cosmos.Common.Services
         where TUser : IdentityUser
     {
         private readonly ApplicationDbContext dbContext;
-        private readonly string key;
-        private readonly Totp totp;
+        private readonly ILogger logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OneTimeTokenProvider{TUser}"/> class.
@@ -34,27 +31,10 @@ namespace Cosmos.Common.Services
         /// <param name="logger">Log service.</param>
         public OneTimeTokenProvider(
             ApplicationDbContext dbContext,
-            ILogger<DataProtectorTokenProvider<TUser>> logger)
+            ILogger logger)
         {
-            this.dbContext = dbContext;
-            var otpKey = dbContext.Settings
-                .FirstOrDefaultAsync(s => s.Name == "OneTimeTokenProviderKey").Result;
-
-            if (otpKey == null)
-            {
-                var value = KeyGeneration.GenerateRandomKey(20);
-                otpKey = new Setting()
-                {
-                    Name = "OneTimeTokenProviderKey",
-                    Value = Base32Encoding.ToString(value),
-                    Description = "Key used to generate one-time tokens for users.",
-                    Group = "Security"
-                };
-                dbContext.Settings.Add(otpKey);
-                _ = dbContext.SaveChangesAsync().Result;
-            }
-
-            totp = new Totp(Base32Encoding.ToBytes(otpKey.Value), step: 600, totpSize: 8, mode: OtpHashMode.Sha256);
+            this.dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>
@@ -81,13 +61,12 @@ namespace Cosmos.Common.Services
         /// <summary>
         ///  Generates a one-time token for a given user.
         /// </summary>
-        /// <param name="manager">User manager.</param>
         /// <param name="user">Identity user.</param>
         /// <returns>Token value.</returns>
-        public async Task<string> GenerateAsync(UserManager<TUser> manager, TUser user)
+        public async Task<string> GenerateAsync(TUser user)
         {
             var userEntity = (IdentityUser)user;
-            var token = totp.ComputeTotp();
+            var token = RandomKeyGenerator();
 
             var entity = new TotpToken()
             {
@@ -99,6 +78,7 @@ namespace Cosmos.Common.Services
 
             dbContext.TotpTokens.Add(entity);
             _ = await dbContext.SaveChangesAsync();
+            logger.LogInformation("Generated one-time token for user {UserId} with token {Token}", userEntity.Id, token);
             return token;
         }
 
@@ -112,23 +92,14 @@ namespace Cosmos.Common.Services
         /// <returns>Results.</returns>
         public async Task<VerificationResult> ValidateAsync(string token, UserManager<TUser> manager, TUser user, bool removeToken = true)
         {
-            var identityUser = await manager.FindByIdAsync(user.Id);
-
-            if (identityUser == null)
+            if (manager == null)
             {
-                return VerificationResult.Invalid;
+                throw new ArgumentNullException(nameof(manager));
             }
 
-            if (!identityUser.EmailConfirmed)
+            if (user == null)
             {
-                // User email is not confirmed, so we cannot verify the token.
-                return VerificationResult.Invalid;
-            }
-
-            if (identityUser.LockoutEnabled && identityUser.LockoutEnd.HasValue && identityUser.LockoutEnd > DateTimeOffset.UtcNow)
-            {
-                // User is locked out, so we cannot verify the token.
-                return VerificationResult.Invalid;
+                throw new ArgumentNullException(nameof(user));
             }
 
             if (string.IsNullOrWhiteSpace(token))
@@ -136,32 +107,47 @@ namespace Cosmos.Common.Services
                 return VerificationResult.Invalid;
             }
 
-            // Add one step verification window to allow for clock skew and network delay.
-            var window = new VerificationWindow(previous: 1, future: 1);
+            var identityUser = await manager.FindByIdAsync(user.Id);
 
-            var result = totp.VerifyTotp(token, out long timeStepMatched, window);
-            if (!result)
+            if (!identityUser.EmailConfirmed)
             {
+                logger.LogWarning("User {UserId} email is not confirmed, cannot verify token.", identityUser.Id);
+
+                // User email is not confirmed, so we cannot verify the token.
                 return VerificationResult.Invalid;
             }
 
-            if (timeStepMatched < 0)
+            if (identityUser.LockoutEnabled && identityUser.LockoutEnd.HasValue && identityUser.LockoutEnd > DateTimeOffset.UtcNow)
             {
-                // Token is too old
-                return VerificationResult.Expired;
+                logger.LogWarning("User {UserId} is locked out, cannot verify token.", identityUser.Id);
+
+                // User is locked out, so we cannot verify the token.
+                return VerificationResult.Invalid;
             }
 
             var totpEntity = await dbContext.TotpTokens.FirstOrDefaultAsync(f => f.Token == token);
             if (totpEntity == null)
             {
+                logger.LogWarning("Token {Token} does not exist in the database.", token);
+
                 // Token does not exist in the database
                 return VerificationResult.Invalid;
             }
 
             if (totpEntity.UserId != identityUser.Id || totpEntity.Email != identityUser.NormalizedEmail)
             {
+                logger.LogWarning("Token {Token} does not match user {UserId}.", token, identityUser.Id);
+
                 // Token does not match the user
                 return VerificationResult.Invalid;
+            }
+
+            if (totpEntity.ExpiresAt < DateTimeOffset.UtcNow)
+            {
+                logger.LogWarning("Token {Token} has expired for user {UserId}.", token, identityUser.Id);
+
+                // Token has expired
+                return VerificationResult.Expired;
             }
 
             if (removeToken)
@@ -170,7 +156,23 @@ namespace Cosmos.Common.Services
                 await dbContext.SaveChangesAsync();
             }
 
+            logger.LogInformation("Token {Token} is valid for user {UserId}.", token, identityUser.Id);
             return VerificationResult.Valid;
+        }
+
+        private string RandomKeyGenerator(int length = 32)
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            var data = new byte[length];
+            System.Security.Cryptography.RandomNumberGenerator.Fill(data);
+            var result = new char[length];
+
+            for (int i = 0; i < length; i++)
+            {
+                result[i] = chars[data[i] % chars.Length];
+            }
+
+            return new string(result);
         }
     }
 }

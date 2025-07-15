@@ -277,11 +277,20 @@ namespace Cosmos.Common.Data
         {
             // DEFAULT CONTAINER ENTITIES
             modelBuilder.HasDefaultContainer("CosmosCms");
+
             modelBuilder.Entity<Contact>()
+                .ToContainer("CosmosCms")
+                .HasPartitionKey(k => k.Id)
                 .HasKey(k => k.Id);
+
             modelBuilder.Entity<NodeScript>()
+                .ToContainer("CosmosCms")
+                .HasPartitionKey(k => k.Id)
                 .HasKey(k => k.Id);
+
             modelBuilder.Entity<TotpToken>()
+                .ToContainer("CosmosCms")
+                .HasPartitionKey(k => k.Id)
                 .HasKey(k => k.Id);
 
             // Need to make a convertion so article number can be used as a partition key

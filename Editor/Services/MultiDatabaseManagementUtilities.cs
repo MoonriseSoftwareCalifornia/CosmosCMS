@@ -152,6 +152,38 @@ namespace Cosmos.Editor.Services
             return await dbContext.Connections.ToListAsync();
         }
 
+        /// <summary>
+        ///  Ensures that all databases are configured and created if they do not exist.
+        /// </summary>
+        /// <returns>Task.</returns>
+        public async Task EnsureDatabasesAreConfigured()
+        {
+            if (!isMultiTenant)
+            {
+                return; // Go no further if not multi-tenant.
+            }
+
+            var connections = await GetConnections();
+            foreach (var connection in connections)
+            {
+                var dbConextOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
+                    .UseCosmos(connection.DbConn, connection.DbName)
+                    .Options;
+
+                using var dbContext = new ApplicationDbContext(dbConextOptions);
+
+                try
+                {
+                    await dbContext.Database.EnsureCreatedAsync();
+                }
+                catch (CosmosException ex)
+                {
+                    // Handle exceptions as needed, e.g., log them.
+                    Console.WriteLine($"Error configuring database {connection.DbName}: {ex.Message}");
+                }
+            }
+        }
+
         private async Task<List<Connection>> GetConnectionsForEmailAddress(string emailAddress)
         {
             if (string.IsNullOrWhiteSpace(emailAddress))
