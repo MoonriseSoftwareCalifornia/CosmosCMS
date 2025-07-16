@@ -315,7 +315,7 @@ namespace Cosmos.Editor.Controllers
             var uri = new Uri(website.WebsiteUrl);
             var oneTimeToken = await oneTimeTokenProvider.GenerateAsync(user);
 
-            var returnUrl = $"https://{Request.Host.Host}/Identity/Account/Login?ccmsotp={oneTimeToken}&website={uri.Host}&returnUrl=Editor/Edit/{article.ArticleNumber}";
+            var returnUrl = $"https://{Request.Host.Host}/Identity/Account/Login?ccmsotp={oneTimeToken}&website={uri.Host}&returnUrl=/Editor/Edit/{article.ArticleNumber}";
 
             builder.AppendLine($"<p><a href='{returnUrl}'>Click here to open web page to edit and publish.</a></p>");
 

@@ -135,6 +135,12 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
 
             ViewData["IsMultiTenantEditor"] = isMultiTenantEditor;
 
+            //// Allow setup if enabled for a non-multitenant editor.
+            if (!isMultiTenantEditor && options.Value.AllowSetup)
+            {
+                await DbContext.Database.EnsureCreatedAsync();
+            }
+
             // If the user is already logged in, redirect to the home page or return URL.
             if (User.Identity.IsAuthenticated)
             {
@@ -162,14 +168,8 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
 
             ExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 
-            // Allow setup if enabled for a non-multitenant editor.
-            if (!isMultiTenantEditor && options.Value.AllowSetup)
-            {
-                await DbContext.Database.EnsureCreatedAsync();
-            }
-
             // If there are no users yet, go strait to the register page.
-            if (await UserManager.Users.CountAsync() == 0)
+            if (!isMultiTenantEditor && await UserManager.Users.CountAsync() == 0)
             {
                 return RedirectToPage("Register");
             }
@@ -178,6 +178,12 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
             var totpToken = Request.Query["ccmsopt"].ToString().Trim('"');
             if (!string.IsNullOrWhiteSpace(totpToken))
             {
+                if (string.IsNullOrWhiteSpace(website))
+                {
+                    ModelState.AddModelError(string.Empty, "Website domain name is required for TOTP login.");
+                    return Page();
+                }
+
                 // Process the TOTP token.
                 return await ProcessTotp(returnUrl, totpToken, website);
             }
@@ -195,7 +201,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         {
             ViewData["IsMultiTenantEditor"] = isMultiTenantEditor;
             returnUrl = await GetReturnUrl(returnUrl);
-
+                        
             if (isMultiTenantEditor)
             {
                 if (string.IsNullOrWhiteSpace(Input.WebsiteDomainName))
@@ -255,9 +261,11 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                         {
                             ModelState.AddModelError(string.Empty, "User account is locked out.");
                             return Page();
-                        }
+                        } 
 
-                        var totpProvider = new OneTimeTokenProvider<IdentityUser>(DbContext, logger);
+                        var db = Editor.Data.ApplicationDbContextUtilities.GetDbContextForDomain(Input.WebsiteDomainName, services);
+
+                        var totpProvider = new OneTimeTokenProvider<IdentityUser>(db, logger);
                         var token = await totpProvider.GenerateAsync(user);
                         if (token != null)
                         {
