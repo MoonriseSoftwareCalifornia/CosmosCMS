@@ -179,7 +179,8 @@ namespace Cosmos.Editor.Data.Logic
 
             if (templateId.HasValue)
             {
-                var template = await DbContext.Templates.FindAsync(templateId.Value);
+                var templates = await DbContext.Templates.ToListAsync();
+                var template = await DbContext.Templates.FirstOrDefaultAsync(f => f.Id == templateId.Value);
 
                 // For backward compatibility, make sure the templates are properly marked.
                 // This ensures if the template are updated, the pages that use this page are properly updated.
@@ -922,6 +923,12 @@ namespace Cosmos.Editor.Data.Logic
                     .Where(a => a.Published <= DateTimeOffset.UtcNow &&
                                 activeStatusCodes.Contains(a.StatusCode)) // Now filter on active status code.
                     .OrderByDescending(o => o.VersionNumber).FirstOrDefaultAsync();
+
+                if (article == null)
+                {
+                    return null;
+                }
+
                 return await BuildArticleViewModel(article, lang, null);
             }
             else
@@ -931,6 +938,12 @@ namespace Cosmos.Editor.Data.Logic
                     .Where(a => a.UrlPath == urlPath)
                     .OrderByDescending(o => o.VersionNumber)
                     .FirstOrDefaultAsync();
+
+                if (article == null)
+                {
+                    return null;
+                }
+
                 return await BuildArticleViewModel(article, lang);
             }
         }
