@@ -33,6 +33,7 @@ namespace Cosmos.Editor.Controllers
     using Microsoft.Extensions.Options;
     using Microsoft.Graph;
     using Microsoft.Graph.Models;
+    using Microsoft.Graph.Models.Security;
     using SixLabors.ImageSharp;
     using System;
     using System.Collections.Generic;
@@ -175,7 +176,8 @@ namespace Cosmos.Editor.Controllers
                     continue; // If no websites are found, do not process the email
                 }
 
-                await ProcessMessage(message, configs);
+                var storyConfig = GetConfigFromMessage(message, websites);
+                await ProcessMessage(message, configs, storyConfig);
 
                 // await MarkEmailAsReadAsync(graphClient, message.Id, delete: true);
             }
@@ -183,7 +185,7 @@ namespace Cosmos.Editor.Controllers
             return Ok();
         }
 
-        private string GetTitleFromMessage(Microsoft.Graph.Models.Message message)
+        private string GetTitle(Microsoft.Graph.Models.Message message, WebsiteAuthor config)
         {
             if (string.IsNullOrEmpty(message.Subject))
             {
@@ -191,12 +193,24 @@ namespace Cosmos.Editor.Controllers
             }
 
             var subjectParts = message.Subject.Split('|');
+            var title = string.Empty;
+            var parentPage = config.Path.Trim('/');
+
             if (subjectParts.Length > 1)
             {
-                return subjectParts[1];
+                title = subjectParts[1];
+            }
+            else
+            {
+                title = message.Subject;
             }
 
-            return subjectParts[0];
+            if (string.IsNullOrWhiteSpace(parentPage))
+            {
+                return title;
+            }
+
+            return parentPage + "/" + title;
         }
 
         private string GetHtmlFromMessage(Microsoft.Graph.Models.Message message)
@@ -230,9 +244,9 @@ namespace Cosmos.Editor.Controllers
             return html;
         }
 
-        private StoryAuthorConfig GetConfigFromMessage(Microsoft.Graph.Models.Message message, List<StoryAuthorConfig> websites)
+        private WebsiteAuthor GetConfigFromMessage(Microsoft.Graph.Models.Message message, List<WebsiteAuthor> websites)
         {
-            StoryAuthorConfig config = null;
+            WebsiteAuthor config = null;
 
             if (string.IsNullOrEmpty(message.Subject))
             {
@@ -252,7 +266,7 @@ namespace Cosmos.Editor.Controllers
                         var domainName = subjectParts[0];
                         config = websites.FirstOrDefault(
                             w => w.EmailAddress.Equals(message.From.EmailAddress.Address, StringComparison.OrdinalIgnoreCase)
-                            && w.WebsiteDomain.Equals(domainName, StringComparison.OrdinalIgnoreCase));
+                            && w.WebsiteUrl.Equals(domainName, StringComparison.OrdinalIgnoreCase));
                     }
 
                     break;
@@ -262,7 +276,7 @@ namespace Cosmos.Editor.Controllers
                         var templateName = subjectParts[2];
                         config = websites.FirstOrDefault(
                             w => w.EmailAddress.Equals(message.From.EmailAddress.Address, StringComparison.OrdinalIgnoreCase)
-                            && w.WebsiteDomain.Equals(domainName, StringComparison.OrdinalIgnoreCase)
+                            && w.WebsiteUrl.Equals(domainName, StringComparison.OrdinalIgnoreCase)
                             && w.TemplateName.Equals(templateName, StringComparison.OrdinalIgnoreCase));
                     }
 
@@ -277,93 +291,15 @@ namespace Cosmos.Editor.Controllers
             return config;
         }
 
-        private async Task ProcessMessage(Microsoft.Graph.Models.Message message, List<StoryAuthorConfig> websites)
+
+        private async Task<List<string>> UploadImagesAndReturnPaths(Microsoft.Graph.Models.Message message, int articleNumer)
         {
-            if (IsLikelySpamOrPhish(message))
-            {
-                logger.LogWarning("Message {MessageId} is likely spam or phishing. Skipping processing.", message.Id);
-                return; // If the message is likely spam/phish, do not process it
-            }
+            var attachments = message.Attachments
+                .Where(a => a is FileAttachment && ValidImageMimeTypes.Contains(a.ContentType))
+                .Select(a => (FileAttachment)a)
+                .ToList();
 
-            if (message == null || websites == null || websites.Count < 1)
-            {
-                logger.LogWarning("Message or websites list is null or empty.");
-                return; // Nothing to process
-            }
-
-            var title = GetTitleFromMessage(message);
-            var body = GetHtmlFromMessage(message);
-            var storyConfig = GetConfigFromMessage(message, websites);
-
-            var connection = await configDbContext.Connections
-                .FirstOrDefaultAsync(c => c.Id == storyConfig.ConnectionId);
-
-            // Get the database context for the website.
-            var dbContext = ApplicationDbContextUtilities.GetApplicationDbContext(connection);
-
-            // Create an instance of ArticleEditLogic to handle article creation and updates.
-            var articleEditLogic = new ArticleEditLogic(
-                dbContext,
-                memoryCache,
-                config,
-                viewRenderService,
-                storageContext,
-                accessor.HttpContext.RequestServices.GetRequiredService<ILogger<ArticleEditLogic>>(),
-                accessor,
-                settings);
-
-            // Check for the author.
-            var normalizedEmail = message.From.EmailAddress.Address.ToUpper();
-            var user = await dbContext.Users.FirstOrDefaultAsync(f => f.NormalizedEmail == normalizedEmail && f.EmailConfirmed == true);
-
-            if (user == null)
-            {
-                logger.LogWarning($"No user found for email address {message.From.EmailAddress.Address}.");
-                return; // No user found, do not proceed
-            }
-
-            var allTemplates = await dbContext.Templates.ToListAsync();
-
-            var template = dbContext.Templates
-                .FirstOrDefault(t => t.Id == storyConfig.TemplateId);
-
-            if (template == null)
-            {
-                logger.LogError(exception: new Exception($"Template with ID {storyConfig.TemplateId} not found for website {storyConfig.WebsiteDomain}."), message: $"Template with ID {storyConfig.TemplateId} not found for website {storyConfig.WebsiteDomain}.");
-                return; // Template not found, do not proceed
-            }
-
-            var rootPath = storyConfig.Path.Trim('/');
-            var title = rootPath + "/" + (subjectParts.Length > 1 ? subjectParts[1].Trim() : subject);
-
-            var articleUrl = articleEditLogic.NormailizeArticleUrl(title);
-
-            // Retrieve the article by URL.
-            var article = await articleEditLogic.GetArticleByUrl(articleUrl);
-
-            // If the article does not exist, create it.
-            article ??= await articleEditLogic.CreateArticle(
-                title,
-                Guid.Parse(user.Id),
-                storyConfig.TemplateId);
-
-            HtmlAgilityPack.HtmlDocument doc = new HtmlAgilityPack.HtmlDocument();
-            doc.LoadHtml(article.Content);
-
-            var contentNode = doc.DocumentNode.SelectSingleNode("//*[@data-storydesk-id='content']");
-           
-            var titleNode = doc.DocumentNode.SelectSingleNode("//*[@data-storydesk-id='title']");
-            var imageNode = doc.DocumentNode.SelectSingleNode("//*[@data-storydesk-id='image']");
-
-            titleNode.InnerHtml = subjectParts.Length > 1 ? subjectParts[1].Trim() : subject.Trim();
-
-
-            // To select the <body> element using HtmlAgilityPack's HtmlDocument:
-            var bodyNode = storyDoc.DocumentNode.SelectSingleNode("//body");
-
-            contentNode.InnerHtml = bodyNode.InnerHtml;
-
-            var attachments = ExtractFileAttachments(message);
+            var paths = new List<string>();
 
             if (attachments != null && attachments.Count > 0)
             {
@@ -374,13 +310,12 @@ namespace Cosmos.Editor.Controllers
                 }
                 else
                 {
-                    var relativePath = $"/pub/articles/{article.ArticleNumber}/{attachment.Name}";
-
                     var byteArray = attachment.ContentBytes.ToArray();
 
                     using var memoryStream = new MemoryStream(byteArray);
                     var format = SixLabors.ImageSharp.Image.DetectFormat(memoryStream);
                     var image = await SixLabors.ImageSharp.Image.LoadAsync(memoryStream);
+                    var relativePath = $"/pub/articles/{articleNumer}/{attachment.Name}";
 
                     storageContext.AppendBlob(
                         memoryStream,
@@ -398,33 +333,156 @@ namespace Cosmos.Editor.Controllers
                         },
                         "block");
 
-                    imageNode.SetAttributeValue("src", relativePath);
+                    paths.Add(relativePath);
                 }
             }
 
-            // Set the article content to the processed HTML.
-            article.Content = storyDoc.DocumentNode.OuterHtml;
+            return paths;
+        }
+
+        private async Task InsertMessageIntoArticle(ArticleViewModel article, Microsoft.Graph.Models.Message message)
+        {
+            var body = GetHtmlFromMessage(message);
+            var imagePaths = await UploadImagesAndReturnPaths(message, article.ArticleNumber);
+
+            HtmlAgilityPack.HtmlDocument doc = new HtmlAgilityPack.HtmlDocument();
+            doc.LoadHtml(article.Content);
+
+            var contentNode = doc.DocumentNode.SelectSingleNode("//*[@data-storydesk-id='content']");
+            if (contentNode == null)
+            {
+                logger.LogError("Content node not found in the article template.");
+                return; // Content node not found, do not proceed
+            }
+
+            var titleNode = doc.DocumentNode.SelectSingleNode("//*[@data-storydesk-id='title']");
+            if (titleNode == null)
+            {
+                logger.LogError("Title node not found in the article template.");
+                return; // Title node not found, do not proceed
+            }
+
+            var imageNode = doc.DocumentNode.SelectSingleNode("//*[@data-storydesk-id='image']");
+            if (imageNode == null)
+            {
+                logger.LogError("Image node not found in the article template.");
+                return; // Image node not found, do not proceed
+            }
+
+            // Find the img tag within the image node.
+            var imgTag = imageNode.SelectSingleNode(".//img");
+
+            contentNode.InnerHtml = body;
+            titleNode.InnerHtml = article.Title;
+
+            if (imgTag != null && imagePaths.Any())
+            {
+                imgTag.SetAttributeValue("src", imagePaths.FirstOrDefault());
+            }
+
+            // Set the article content to the
+            SetArticleContentFromHtmlDocument(doc, article);
             article.Published = null;
+        }
 
-            await articleEditLogic.SaveArticle(article, Guid.Parse(user.Id));
+        private ArticleEditLogic GetArticleEditLogic(ApplicationDbContext dbContext)
+        {
+            return new ArticleEditLogic(
+                dbContext,
+                memoryCache,
+                config,
+                viewRenderService,
+                storageContext,
+                accessor.HttpContext.RequestServices.GetRequiredService<ILogger<ArticleEditLogic>>(),
+                accessor,
+                settings);
+        }
 
+        private async Task ProcessMessage(Microsoft.Graph.Models.Message message, List<WebsiteAuthor> websites, WebsiteAuthor storyConfig)
+        {
+            if (IsLikelySpamOrPhish(message))
+            {
+                logger.LogWarning("Message {MessageId} is likely spam or phishing. Skipping processing.", message.Id);
+                return; // If the message is likely spam/phish, do not process it
+            }
+
+            if (message == null || websites == null || websites.Count < 1)
+            {
+                logger.LogWarning("Message or websites list is null or empty.");
+                return; // Nothing to process
+            }
+
+            var connection = await configDbContext.Connections
+                .FirstOrDefaultAsync(c => c.Id == storyConfig.ConnectionId);
+            var dbContext = ApplicationDbContextUtilities.GetApplicationDbContext(connection);
+            var articleEditLogic = GetArticleEditLogic(dbContext);
+            var normalizedEmail = message.From.EmailAddress.Address.ToUpper();
+
+            // Check if the user exists in the database.
+            var user = await dbContext.Users.FirstOrDefaultAsync(f => f.NormalizedEmail == normalizedEmail && f.EmailConfirmed == true);
+            if (user == null)
+            {
+                logger.LogWarning($"No user found for email address {message.From.EmailAddress.Address}.");
+                return; // No user found, do not proceed
+            }
+
+            // Find the template for the article.
+            var template = dbContext.Templates
+                .FirstOrDefault(t => t.Id == storyConfig.TemplateId);
+            if (template == null)
+            {
+                logger.LogError(exception: new Exception($"Template with ID {storyConfig.TemplateId} not found for website {storyConfig.WebsiteUrl}."), message: $"Template with ID {storyConfig.TemplateId} not found for website {storyConfig.WebsiteUrl}.");
+                return; // Template not found, do not proceed
+            }
+
+            // Build the article title and URL.
+            var title = GetTitle(message, storyConfig);
+            var articleUrl = articleEditLogic.NormailizeArticleUrl(title);
+            var article = await articleEditLogic.GetArticleByUrl(articleUrl, string.Empty, false);
+
+            if (article == null)
+            {
+                article ??= await articleEditLogic.CreateArticle(
+                title,
+                Guid.Parse(user.Id),
+                storyConfig.TemplateId);
+            }
+            else
+            {
+                // If the article already exists, we can update it.
+                article.Title = title;
+                article.Content = template.Content; // Reset the content to the template content.
+            }
+
+            // Insert the article content.
+            await InsertMessageIntoArticle(article, message);
+            _ = await articleEditLogic.SaveArticle(article, Guid.Parse(user.Id));
+            await SendEmail(message, dbContext, storyConfig, user, article.ArticleNumber);
+        }
+
+        private async Task SendEmail(Microsoft.Graph.Models.Message message, ApplicationDbContext dbContext, WebsiteAuthor storyConfig, IdentityUser user, int articleNumber)
+        {
             var builder = new StringBuilder();
             builder.AppendLine($"<p>New web page created from email: {message.Subject}.</p>");
 
-            var uri = new Uri(storyConfig.WebsiteDomain);
+            var uri = new Uri(storyConfig.WebsiteUrl);
 
             var oneTimeTokenProvider = new OneTimeTokenProvider<IdentityUser>(dbContext, logger);
             var oneTimeToken = await oneTimeTokenProvider.GenerateAsync(user);
 
-            var returnUrl = $"https://{Request.Host.Host}/Identity/Account/Login?ccmsopt={oneTimeToken}&website={uri.Host}&returnUrl=/Editor/Edit/{article.ArticleNumber}&ccmsemail={user.Email}";
+            var port = string.Empty;
+            if (Request.Host.Port != null && Request.Host.Port.Value != 443)
+            {
+                port = $":{Request.Host.Port.Value}";
+            }
+
+            var returnUrl = $"https://{Request.Host.Host}{port}/Identity/Account/Login?ccmsopt={oneTimeToken}&website={uri.Host}&returnUrl=/Editor/Edit/{articleNumber}&ccmsemail={user.Email}";
 
             builder.AppendLine($"<p><a href='{returnUrl}'>Click here to open web page to edit and publish.</a></p>");
 
             await this.emailSender.SendEmailAsync(message.From.EmailAddress.Address, "New web page created.", builder.ToString());
 
-            logger.LogInformation("Article {ArticleNumber} created from email: {Subject}", article.ArticleNumber, message.Subject);
-
-            return;
+            logger.LogInformation("Article {ArticleNumber} created from email: {Subject}", articleNumber, message.Subject);
         }
 
         /// <summary>
@@ -437,7 +495,7 @@ namespace Cosmos.Editor.Controllers
         {
             // Mark as read
             await graphClient.Users[storyDeskConfig.Mailbox].Messages[messageId]
-                .PatchAsync(new Message
+                .PatchAsync(new Microsoft.Graph.Models.Message
                 {
                     IsRead = true
                 });
@@ -493,7 +551,7 @@ namespace Cosmos.Editor.Controllers
         /// </summary>
         /// <param name="message">The Microsoft Graph Message object.</param>
         /// <returns>True if message is not likely spam/phish, false otherwise.</returns>
-        private bool IsLikelySpamOrPhish(Message message)
+        private bool IsLikelySpamOrPhish(Microsoft.Graph.Models.Message message)
         {
             if (message == null || message.InternetMessageHeaders == null)
             {
@@ -552,28 +610,17 @@ namespace Cosmos.Editor.Controllers
             return antispam.Any(w => w.Value != null && values.Any(k => w.Value.Contains(k, StringComparison.CurrentCultureIgnoreCase)));
         }
 
-        /// <summary>
-        /// Extracts all file attachments from a Microsoft Graph Message.
-        /// </summary>
-        /// <param name="message">The Microsoft Graph Message object.</param>
-        /// <returns>A list of FileAttachment objects.</returns>
-        private List<FileAttachment> ExtractFileAttachments(Message message)
+        private void SetArticleContentFromHtmlDocument(HtmlAgilityPack.HtmlDocument doc, ArticleViewModel article)
         {
-            var result = new List<FileAttachment>();
-            if (message?.Attachments == null || message.Attachments.Count == 0)
+            var bodyNode = doc.DocumentNode.SelectSingleNode("//body");
+            if (bodyNode != null)
             {
-                return result;
+                article.Content = bodyNode.InnerHtml;
             }
-
-            foreach (var attachment in message.Attachments)
+            else
             {
-                if (attachment is FileAttachment fileAttachment && ValidImageMimeTypes.Contains(attachment.ContentType))
-                {
-                    result.Add(fileAttachment);
-                }
+                article.Content = doc.DocumentNode.InnerHtml;
             }
-
-            return result;
         }
     }
 }

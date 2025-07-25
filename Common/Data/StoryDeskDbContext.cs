@@ -26,7 +26,7 @@ namespace Cosmos.Common.Data
         /// <summary>
         /// Gets or sets the collection of website authors in the database.
         /// </summary>
-        public DbSet<StoryAuthorConfig> WebsiteAuthors { get; set; }
+        public DbSet<WebsiteAuthor> WebsiteAuthors { get; set; }
 
         /// <summary>
         /// Configures the model for the StoryDesk database context.
@@ -38,7 +38,7 @@ namespace Cosmos.Common.Data
 
             // Configure your entities here
             // Example: modelBuilder.Entity<YourEntity>().ToTable("YourTableName");
-            modelBuilder.Entity<StoryAuthorConfig>()
+            modelBuilder.Entity<WebsiteAuthor>()
                 .ToContainer("WebsiteAuthors")
                 .HasPartitionKey(k => k.Id);
         }

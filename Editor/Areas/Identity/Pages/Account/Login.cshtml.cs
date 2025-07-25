@@ -398,7 +398,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
 
                 var principal = await SignInManager.CreateUserPrincipalAsync(user);
 
-
                 if (SignInManager.IsSignedIn(principal))
                 {
                     if (isMultiTenantEditor)

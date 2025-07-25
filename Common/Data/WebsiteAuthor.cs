@@ -13,7 +13,7 @@ namespace Cosmos.Common.Data
     /// <summary>
     /// Represents a website author in the StoryDesk system.
     /// </summary>
-    public class StoryAuthorConfig
+    public class WebsiteAuthor
     {
         /// <summary>
         /// Gets or sets the unique identifier for the website author.
@@ -29,7 +29,7 @@ namespace Cosmos.Common.Data
         /// <summary>
         /// Gets or sets the name of the website domain.
         /// </summary>
-        public string WebsiteDomain { get; set; }
+        public string WebsiteUrl { get; set; }
 
         /// <summary>
         /// Gets or sets the email address of the website author.
