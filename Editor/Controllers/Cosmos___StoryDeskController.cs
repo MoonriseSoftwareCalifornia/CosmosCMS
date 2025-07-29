@@ -172,7 +172,7 @@ namespace Cosmos.Editor.Controllers
                 var storyConfig = GetConfigFromMessage(message, websites);
                 await ProcessMessage(message, configs, storyConfig);
 
-                // await MarkEmailAsReadAsync(graphClient, message.Id, delete: true);
+                await MarkEmailAsReadAsync(graphClient, message.Id, delete: true);
             }
 
             return Ok();
@@ -489,7 +489,7 @@ namespace Cosmos.Editor.Controllers
         /// <param name="user">User from the email.</param>
         /// <param name="articleNumber">Article number.</param>
         /// <returns>Task.</returns>
-        private async Task SendEmail(Microsoft.Graph.Models.Message message, ApplicationDbContext dbContext, WebsiteAuthor storyConfig, IdentityUser user, int articleNumber)
+        private async Task SendEmail(Message message, ApplicationDbContext dbContext, WebsiteAuthor storyConfig, IdentityUser user, int articleNumber)
         {
             var builder = new StringBuilder();
             builder.AppendLine($"<p>New web page created from email: {message.Subject}.</p>");

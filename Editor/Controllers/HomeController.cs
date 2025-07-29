@@ -43,6 +43,7 @@ namespace Cosmos.Cms.Controllers
         private readonly EditorSettings options;
         private readonly ApplicationDbContext dbContext;
         private readonly UserManager<IdentityUser> userManager;
+        private readonly SignInManager<IdentityUser> signInManager;
         private readonly StorageContext storageContext;
         private readonly bool isMultiTenantEditor;
         private readonly IDynamicConfigurationProvider dynamicConfigurationProvider;
@@ -55,6 +56,7 @@ namespace Cosmos.Cms.Controllers
         /// <param name="dbContext"><see cref="ApplicationDbContext">Database context</see>.</param>
         /// <param name="articleLogic"><see cref="ArticleEditLogic">Article edit logic.</see>.</param>
         /// <param name="userManager">User manager.</param>
+        /// <param name="signInManager">Sign in manager service.</param>
         /// <param name="storageContext"><see cref="StorageContext">File storage context</see>.</param>
         /// <param name="powerBiTokenService">Service used to get tokens from Power BI.</param>
         /// <param name="emailSender">Email service.</param>
@@ -66,6 +68,7 @@ namespace Cosmos.Cms.Controllers
             ApplicationDbContext dbContext,
             ArticleEditLogic articleLogic,
             UserManager<IdentityUser> userManager,
+            SignInManager<IdentityUser> signInManager,
             StorageContext storageContext,
             PowerBiTokenService powerBiTokenService,
             IEmailSender emailSender,
@@ -78,6 +81,7 @@ namespace Cosmos.Cms.Controllers
             this.articleLogic = articleLogic;
             this.dbContext = dbContext;
             this.userManager = userManager;
+            this.signInManager = signInManager;
             this.storageContext = storageContext;
             isMultiTenantEditor = configuration.GetValue<bool?>("MultiTenantEditor") ?? false;
         }
@@ -146,52 +150,27 @@ namespace Cosmos.Cms.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Index(string lang = "", string mode = "")
         {
-            if (options.IsMultiTenantEditor && !EnsureMultiTenantConfigured())
+            if (options.IsMultiTenantEditor)
             {
-                return Redirect("~/Identity/Account/Login");
+                if (!dynamicConfigurationProvider.IsMultiTenantConfigured)
+                {
+                    throw new InvalidOperationException("Multi-tenant editor is not configured properly. Please check your settings.");
+                }
+
+                // Check if we have a ccmswebsite query parameter.
+                if (!string.IsNullOrEmpty(Request.Query["ccmswebsite"]))
+                {
+                    // If person is signed in, we need to sign that person out, so we can set the cookie.
+                    if (User.Identity?.IsAuthenticated == true)
+                    {
+                        await signInManager.SignOutAsync();
+                    }
+
+                    return Redirect(await MutliSiteRedirect(Request));
+                }
             }
 
-            if (User.Identity?.IsAuthenticated == false)
-            {
-                var queryParams = HttpUtility.ParseQueryString(Request.QueryString.Value);
-
-                var website = queryParams["ccmswebsite"];
-                var opt = queryParams["ccmsopt"];
-                var email = queryParams["ccmsemail"];
-                var redirectUrl = queryParams["redirectUrl"];
-
-                queryParams.Remove("ccmswebsite");
-                queryParams.Remove("ccmsopt");
-                queryParams.Remove("ccmsemail");
-
-                var queryString = HttpUtility.UrlEncode(queryParams.ToString());
-
-                Response.Cookies.Delete(DynamicConfigurationProvider.StandardCookieName);
-
-                if (isMultiTenantEditor && !string.IsNullOrWhiteSpace(website))
-                {
-                    Response.Cookies.Append(DynamicConfigurationProvider.StandardCookieName, website);
-                }
-
-                if (!string.IsNullOrEmpty(opt))
-                {
-                    queryString = queryString + $"&ccmsopt={opt}&ccmsemail={email}";
-                }
-
-                if (!string.IsNullOrWhiteSpace(queryString))
-                {
-                    queryString = "?" + queryString;
-                }
-
-                if (!string.IsNullOrWhiteSpace(redirectUrl))
-                {
-                    // If we have a redirect URL, append it to the query string.
-                    queryString += $"&redirectUrl={HttpUtility.UrlEncode(redirectUrl)}";
-                }
-
-                return Redirect($"~/Identity/Account/Login{queryString}");
-            }
-            else
+            if (User.Identity?.IsAuthenticated == true)
             {
                 // Make sure the user's claims identity has an account here.
                 var user = await userManager.GetUserAsync(User);
@@ -212,6 +191,12 @@ namespace Cosmos.Cms.Controllers
                 {
                     return View("~/Views/Home/AccessPending.cshtml");
                 }
+            }
+            else
+            {
+                // If we require authentication, redirect to the login page.
+                Response.Cookies.Delete("CosmosAuthCookie");
+                return Redirect("~/Identity/Account/Login");
             }
 
             if (options.AllowSetup)
@@ -284,6 +269,52 @@ namespace Cosmos.Cms.Controllers
             article.ReadWriteMode = true;
 
             return View(article);
+        }
+
+
+        /// <summary>Handles a new multisite login.</summary>
+        /// <Remarks>
+        /// Handles login logic for multi-site (multi-tenant) scenarios. If a "ccmswebsite" query parameter is present,
+        /// signs out the current user (if authenticated), sets the appropriate cookie for the selected website, and
+        /// constructs a redirect URL to the login page with any remaining query parameters preserved. This enables
+        /// seamless switching between different tenant sites within the editor.
+        /// </Remarks>
+        /// <param name="request">Current request.</param>
+        /// <returns>Path to redirect to if applicable.</returns>
+        private async Task<string> MutliSiteRedirect(HttpRequest request)
+        {
+            var queryParams = HttpUtility.ParseQueryString(Request.QueryString.Value);
+
+            var website = queryParams["ccmswebsite"];
+            var opt = queryParams["ccmsopt"];
+            var email = queryParams["ccmsemail"];
+            var redirectUrl = queryParams["redirectUrl"];
+
+            queryParams.Remove("ccmswebsite");
+            queryParams.Remove("ccmsopt");
+            queryParams.Remove("ccmsemail");
+            var queryString = HttpUtility.UrlEncode(queryParams.ToString());
+
+            Response.Cookies.Delete(DynamicConfigurationProvider.StandardCookieName);
+            Response.Cookies.Append(DynamicConfigurationProvider.StandardCookieName, website);
+
+            if (!string.IsNullOrEmpty(opt))
+            {
+                queryString = queryString + $"&ccmsopt={opt}&ccmsemail={email}";
+            }
+
+            if (!string.IsNullOrWhiteSpace(queryString))
+            {
+                queryString = "?" + queryString;
+            }
+
+            if (!string.IsNullOrWhiteSpace(redirectUrl))
+            {
+                // If we have a redirect URL, append it to the query string.
+                queryString += $"&redirectUrl={HttpUtility.UrlEncode(redirectUrl)}";
+            }
+
+            return $"~/Identity/Account/Login{queryString}";
         }
 
         /// <summary>
@@ -391,15 +422,6 @@ namespace Cosmos.Cms.Controllers
         private async Task<bool> EnsureArticleExists()
         {
             return await dbContext.Articles.CosmosAnyAsync();
-        }
-
-        /// <summary>
-        /// Ensures the multi-tenant configuration is set up.
-        /// </summary>
-        /// <returns>Success or not.</returns>
-        private bool EnsureMultiTenantConfigured()
-        {
-            return dynamicConfigurationProvider.IsMultiTenantConfigured;
         }
     }
 }
