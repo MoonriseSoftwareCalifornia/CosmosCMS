@@ -78,4 +78,14 @@ public class FileManagerEntry
     /// Gets or sets the image DPI.
     /// </summary>
     public int? ImageDpi { get; set; }
+
+    /// <summary>
+    /// Gets or sets the title of the file or folder.
+    /// </summary>
+    public string Title { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the description of the file or folder.
+    /// </summary>
+    public string Description { get; set; } = string.Empty;
 }

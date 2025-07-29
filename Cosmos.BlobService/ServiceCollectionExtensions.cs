@@ -42,6 +42,7 @@ namespace Cosmos.BlobService
 
             var azureBlobStorageContainerName = GetKeyValue(config, "AzureBlobStorageContainerName");
             var azureBlobStorageEndPoint = GetKeyValue(config, "AzureBlobStorageEndPoint");
+            var isMultiTenant = config.GetValue<bool?>("MultiTenantEditor") ?? false;
 
             var cosmosConfig = new CosmosStorageConfig();
 

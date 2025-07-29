@@ -75,7 +75,7 @@
 		<PackageReference Include="Microsoft.Graph" Version="5.87.0" />
 		
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
-		<PackageReference Include="NUglify" Version="1.21.15" />
+		<PackageReference Include="NUglify" Version="1.21.17" />
 		<PackageReference Include="PasswordGenerator" Version="2.1.0" />
 		<PackageReference Include="RestSharp" Version="112.1.0" />
 		<PackageReference Include="SixLabors.ImageSharp" Version="3.1.10" />

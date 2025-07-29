@@ -17,8 +17,10 @@ namespace Cosmos.BlobService
     using Cosmos.BlobService.Config;
     using Cosmos.BlobService.Drivers;
     using Cosmos.BlobService.Models;
+    using Cosmos.DynamicConfig;
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Options;
 
     /// <summary>
@@ -27,29 +29,9 @@ namespace Cosmos.BlobService
     public sealed class StorageContext
     {
         /// <summary>
-        /// Cosmos storage configuration.
-        /// </summary>
-        private readonly IOptions<CosmosStorageConfig> config;
-
-        /// <summary>
         /// Default Azure token credential.
         /// </summary>
         private readonly DefaultAzureCredential credential;
-
-        /// <summary>
-        /// Service provider.
-        /// </summary>
-        private readonly IServiceProvider services;
-
-        /// <summary>
-        /// Multi-tenant editor flag.
-        /// </summary>
-        private readonly bool? isMultiTenant;
-
-        /// <summary>
-        /// Configuration.
-        /// </summary>
-        private readonly IConfiguration configuration;
 
         /// <summary>
         /// Used to brefly store chuk data while uploading.
@@ -57,26 +39,65 @@ namespace Cosmos.BlobService
         private readonly IMemoryCache memoryCache;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="StorageContext"/> class.
+        /// Represents a provider for dynamic configuration settings.
+        /// </summary>
+        /// <remarks>This field holds a reference to an implementation of <see
+        /// cref="IDynamicConfigurationProvider"/>. It is used to access configuration settings that can change at
+        /// runtime.</remarks>
+        private readonly IDynamicConfigurationProvider dynamicConfigurationProvider;
+
+        /// <summary>
+        /// Multi-tenant editor flag.
+        /// </summary>
+        private bool isMultiTenant;
+
+        /// <summary>
+        /// Cosmos storage configuration.
+        /// </summary>
+        private IOptions<CosmosStorageConfig> config;
+
+        /// <summary>
+        /// Drivers for the storage context.
+        /// </summary>
+        private List<ICosmosStorage> drivers = new List<ICosmosStorage>();
+
+        private ICosmosStorage primaryDriver;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StorageContext"/> class for multitenant instances.
         /// </summary>
         /// <param name="cosmosConfig">Storage context configuration as a <see cref="CosmosStorageConfig"/>.</param>
         /// <param name="cache"><see cref="IMemoryCache"/> used by context.</param>
         /// <param name="defaultAzureCredential">Default Azure Credential.</param>
-        /// <param name="services">Service provider.</param>
-        /// <param name="configuration">Configuration.</param>
+        /// <param name="dynamicConfiguration">Configuration.</param>
         public StorageContext(
             IOptions<CosmosStorageConfig> cosmosConfig,
             IMemoryCache cache,
             DefaultAzureCredential defaultAzureCredential,
-            IServiceProvider services,
-            IConfiguration configuration)
+            IDynamicConfigurationProvider dynamicConfiguration)
         {
             this.config = cosmosConfig;
             this.memoryCache = cache;
             this.credential = defaultAzureCredential;
-            this.isMultiTenant = configuration.GetValue<bool>("MultiTenantEditor");
-            this.services = services;
-            this.configuration = configuration;
+            this.isMultiTenant = true;
+            this.dynamicConfigurationProvider = dynamicConfiguration;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StorageContext"/> class for single tenant instances.
+        /// </summary>
+        /// <param name="cosmosConfig">Storage context configuration as a <see cref="CosmosStorageConfig"/>.</param>
+        /// <param name="cache"><see cref="IMemoryCache"/> used by context.</param>
+        /// <param name="defaultAzureCredential">Default Azure Credential.</param>
+        public StorageContext(
+            IOptions<CosmosStorageConfig> cosmosConfig,
+            IMemoryCache cache,
+            DefaultAzureCredential defaultAzureCredential)
+        {
+            this.config = cosmosConfig;
+            this.memoryCache = cache;
+            this.credential = defaultAzureCredential;
+            this.isMultiTenant = false;
         }
 
         /// <summary>
@@ -293,6 +314,8 @@ namespace Cosmos.BlobService
         {
             // Ensure leading slash is removed.
             path = path.TrimStart('/');
+
+            // Get the primary driver based on the configuration.
             var driver = (AzureStorage)this.GetPrimaryDriver();
             var blob = await driver.GetBlobAsync(path);
             return await blob.OpenReadAsync();
@@ -319,7 +342,9 @@ namespace Cosmos.BlobService
         {
             var mark = DateTimeOffset.UtcNow;
 
+            // Gets the primary driver based on the configuration.
             var drivers = this.GetDrivers();
+
             var data = stream.ToArray();
             var uploadTasks = new List<Task>();
             foreach (var cosmosStorage in drivers)
@@ -356,7 +381,9 @@ namespace Cosmos.BlobService
 
             var tasks = new List<Task>();
 
+            // Gets the primary driver based on the configuration.
             var primary = this.GetPrimaryDriver();
+
             if (!primary.BlobExistsAsync(path + "/folder.stubxx").Result)
             {
                 foreach (var cosmosStorage in drivers)
@@ -390,76 +417,6 @@ namespace Cosmos.BlobService
         }
 
         /// <summary>
-        ///     Gets files and subfolders for a given path.
-        /// </summary>
-        /// <param name="path">Path to objects.</param>
-        /// <returns>Returns metadata for the objects as a <see cref="FileManagerEntry"/> <see cref="List{T}"/>.</returns>
-        public async Task<List<FileManagerEntry>> GetObjectsAsync(string path)
-        {
-            if (!string.IsNullOrEmpty(path))
-            {
-                path = path.TrimStart('/');
-            }
-
-            var entries = new List<FileManagerEntry>();
-
-            var azureDriver = (AzureStorage)this.GetPrimaryDriver();
-
-            var azureResults = await azureDriver.GetObjectsAsync(path);
-
-            foreach (var azureResult in azureResults)
-            {
-                if (azureResult.IsBlob)
-                {
-                    if (azureResult.Blob.Name.EndsWith("folder.stubxx"))
-                    {
-                        continue;
-                    }
-
-                    var fileName = Path.GetFileNameWithoutExtension(azureResult.Blob.Name);
-
-                    var modified = azureResult.Blob.Properties.LastModified?.UtcDateTime ?? DateTime.UtcNow;
-
-                    entries.Add(new FileManagerEntry
-                    {
-                        Created = DateTime.Now,
-                        CreatedUtc = DateTime.UtcNow,
-                        Extension = Path.GetExtension(azureResult.Blob.Name),
-                        HasDirectories = false,
-                        IsDirectory = false,
-                        Modified = modified,
-                        ModifiedUtc = modified,
-                        Name = fileName,
-                        Path = azureResult.Blob.Name,
-                        Size = azureResult.Blob.Properties.ContentLength ?? 0
-                    });
-                }
-                else
-                {
-                    var parse = azureResult.Prefix.TrimEnd('/').Split('/');
-
-                    var subDirectory = await azureDriver.GetObjectsAsync(azureResult.Prefix);
-
-                    entries.Add(new FileManagerEntry
-                    {
-                        Created = DateTime.Now,
-                        CreatedUtc = DateTime.UtcNow,
-                        Extension = string.Empty,
-                        HasDirectories = subDirectory.Any(a => a.IsPrefix),
-                        IsDirectory = true,
-                        Modified = DateTime.Now,
-                        ModifiedUtc = DateTime.UtcNow,
-                        Name = parse.Last(),
-                        Path = azureResult.Prefix.TrimEnd('/'),
-                        Size = 0
-                    });
-                }
-            }
-
-            return entries;
-        }
-
-        /// <summary>
         ///    Gets the blob items for a given path.
         /// </summary>
         /// <param name="path">Path to search.</param>
@@ -473,8 +430,14 @@ namespace Cosmos.BlobService
             }
 
             var entries = new List<FileManagerEntry>();
+
+            // Get the primary driver based on the configuration.
             var azureDriver = (AzureStorage)this.GetPrimaryDriver();
+
+            // Get the blob items from Azure storage.
             var azureResults = await azureDriver.GetBlobItemsAsync(path);
+
+            // Filter the results based on the provided extensions.
             foreach (var azureResult in azureResults)
             {
                 var extension = Path.GetExtension(azureResult.Name).ToLower();
@@ -508,7 +471,7 @@ namespace Cosmos.BlobService
                     }
 
                     entries.Add(entry);
-            }
+                }
             }
 
             return entries;
@@ -541,6 +504,93 @@ namespace Cosmos.BlobService
             return await this.GetObjectsAsync(path);
         }
 
+        /// <summary>
+        ///     Gets files and subfolders for a given path.
+        /// </summary>
+        /// <param name="path">Path to objects.</param>
+        /// <returns>Returns metadata for the objects as a <see cref="FileManagerEntry"/> <see cref="List{T}"/>.</returns>
+        public async Task<List<FileManagerEntry>> GetObjectsAsync(string path)
+        {
+            if (!string.IsNullOrEmpty(path))
+            {
+                path = path.TrimStart('/');
+            }
+
+            var entries = new List<FileManagerEntry>();
+
+            // Gets the primary driver based on the configuration.
+            var azureDriver = (AzureStorage)this.GetPrimaryDriver();
+
+            var blobOjects = await azureDriver.GetObjectsAsync(path);
+
+            foreach (var blob in blobOjects)
+            {
+                if (blob.IsBlob)
+                {
+                    if (blob.Blob.Name.EndsWith("folder.stubxx"))
+                    {
+                        continue;
+                    }
+
+                    var fileName = Path.GetFileNameWithoutExtension(blob.Blob.Name);
+
+                    var modified = blob.Blob.Properties.LastModified?.UtcDateTime ?? DateTime.UtcNow;
+
+                    entries.Add(new FileManagerEntry
+                    {
+                        Created = DateTime.Now,
+                        CreatedUtc = DateTime.UtcNow,
+                        Extension = Path.GetExtension(blob.Blob.Name),
+                        HasDirectories = false,
+                        IsDirectory = false,
+                        Modified = modified,
+                        ModifiedUtc = modified,
+                        Name = fileName,
+                        Path = blob.Blob.Name,
+                        Size = blob.Blob.Properties.ContentLength ?? 0
+                    });
+                }
+                else
+                {
+                    var parse = blob.Prefix.TrimEnd('/').Split('/');
+
+                    var subDirectory = await azureDriver.GetObjectsAsync(blob.Prefix);
+
+                    entries.Add(new FileManagerEntry
+                    {
+                        Created = DateTime.Now,
+                        CreatedUtc = DateTime.UtcNow,
+                        Extension = string.Empty,
+                        HasDirectories = subDirectory.Any(a => a.IsPrefix),
+                        IsDirectory = true,
+                        Modified = DateTime.Now,
+                        ModifiedUtc = DateTime.UtcNow,
+                        Name = parse.Last(),
+                        Path = blob.Prefix.TrimEnd('/'),
+                        Size = 0
+                    });
+                }
+            }
+
+            return entries;
+        }
+
+        /// <summary>
+        /// Asynchronously copies objects from a source path to a destination path, with an option to delete the source
+        /// objects after copying.
+        /// </summary>
+        /// <remarks>This method ensures that the leading slashes are removed from both the source and
+        /// destination paths before processing. It checks for the existence of destination objects before copying and
+        /// throws an exception if any destination object already exists. If the copy operation is successful and
+        /// <paramref name="deleteSource"/> is <see langword="true"/>, the source objects are deleted.</remarks>
+        /// <param name="target">The source path from which objects are to be copied. Must not be null or empty, and cannot be the root
+        /// folder.</param>
+        /// <param name="destination">The destination path to which objects are to be copied. Must not be null or empty.</param>
+        /// <param name="deleteSource">A boolean value indicating whether to delete the source objects after a successful copy. If <see
+        /// langword="true"/>, the source objects will be deleted; otherwise, they will be retained.</param>
+        /// <returns>Task.</returns>
+        /// <exception cref="Exception">Thrown if the <paramref name="target"/> is null or empty, if the root folder is specified as the target, or
+        /// if a destination object already exists.</exception>
         private async Task CopyObjectsAsync(string target, string destination, bool deleteSource)
         {
             // Make sure leading slashes are removed.
@@ -552,6 +602,7 @@ namespace Cosmos.BlobService
                 throw new Exception("Cannot move the root folder.");
             }
 
+            // Get the blob storage drivers.
             var drivers = this.GetDrivers();
 
             // Get a list of blobs to rename.
@@ -565,26 +616,26 @@ namespace Cosmos.BlobService
                 var destBlobName = srcBlobName.Replace(target, destination);
 
                 // Check to see if the destination already exists
-                foreach (var cosmosStorage in drivers)
+                foreach (var driver in drivers)
                 {
-                    if (await cosmosStorage.BlobExistsAsync(destBlobName))
+                    if (await driver.BlobExistsAsync(destBlobName))
                     {
                         throw new Exception($"Could not copy {srcBlobName} as {destBlobName} already exists.");
                     }
                 }
 
                 // Copy the blob here
-                foreach (var cosmosStorage in drivers)
+                foreach (var driver in drivers)
                 {
-                    await cosmosStorage.CopyBlobAsync(srcBlobName, destBlobName);
+                    await driver.CopyBlobAsync(srcBlobName, destBlobName);
                 }
 
                 // Now check to see if files were copied
                 var success = true;
 
-                foreach (var cosmosStorage in drivers)
+                foreach (var driver in drivers)
                 {
-                    success = await cosmosStorage.BlobExistsAsync(destBlobName);
+                    success = await driver.BlobExistsAsync(destBlobName);
                 }
 
                 if (success)
@@ -613,16 +664,11 @@ namespace Cosmos.BlobService
             }
         }
 
-        private ICosmosStorage GetPrimaryDriver()
-        {
-            if (this.isMultiTenant == true)
-            {
-                return new AzureStorage(this.services, this.credential, this.isMultiTenant ?? false);
-            }
-
-            return new AzureStorage(this.config.Value.StorageConfig.AzureConfigs.FirstOrDefault(), this.credential);
-        }
-
+        /// <summary>
+        /// Converts a path to an array of folder names.
+        /// </summary>
+        /// <param name="path">Path to convert to array.</param>
+        /// <returns>Array of folder names.</returns>
         private string[] ParseFirstFolder(string path)
         {
             var parts = path.Split('/');
@@ -642,22 +688,45 @@ namespace Cosmos.BlobService
         }
 
         /// <summary>
+        /// Gets the primary driver based on the configuration.
+        /// </summary>
+        /// <returns>ICosmosStorage.</returns>
+        private ICosmosStorage GetPrimaryDriver()
+        {
+            if (this.isMultiTenant == true)
+            {
+                var connectionString = this.dynamicConfigurationProvider.GetStorageConnectionString();
+                return new AzureStorage(connectionString, this.credential);
+            }
+
+            if (this.primaryDriver == null)
+            {
+                primaryDriver = new AzureStorage(this.config.Value.StorageConfig.AzureConfigs.FirstOrDefault(), this.credential);
+            }
+
+            return primaryDriver;
+        }
+
+        /// <summary>
         /// Gets the drivers.
         /// </summary>
         /// <returns>ICosmosStorage.</returns>
         private List<ICosmosStorage> GetDrivers()
         {
-            var drivers = new List<ICosmosStorage>();
-
             if (this.isMultiTenant == true)
             {
-                drivers.Add(new AzureStorage(this.services, this.credential, this.isMultiTenant ?? false));
+                drivers.Clear();
+                var connectionString = this.dynamicConfigurationProvider.GetStorageConnectionString();
+                drivers.Add(new AzureStorage(connectionString, this.credential));
             }
             else
             {
-                foreach (var storageConfigAzureConfig in this.config.Value.StorageConfig.AzureConfigs)
+                if (!drivers.Any())
                 {
-                    drivers.Add(new AzureStorage(storageConfigAzureConfig, this.credential));
+                    foreach (var storageConfigAzureConfig in this.config.Value.StorageConfig.AzureConfigs)
+                    {
+                        drivers.Add(new AzureStorage(storageConfigAzureConfig, this.credential));
+                    }
                 }
             }
 

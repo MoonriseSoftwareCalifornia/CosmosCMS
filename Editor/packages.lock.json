@@ -106,9 +106,9 @@
       },
       "NUglify": {
         "type": "Direct",
-        "requested": "[1.21.15, )",
-        "resolved": "1.21.15",
-        "contentHash": "Vxwg0EjbM/gmILPtzfmzlf0MDu9a17OQb8b57oTgoHoRsZNHWIFQFa00Izcvuam3Hbw2eH272TfczDRHSXgSlA=="
+        "requested": "[1.21.17, )",
+        "resolved": "1.21.17",
+        "contentHash": "K2ywYpoPEvU3+Ooq6wxz+FJOkmbDeoE41q/sJZWv9tI7qbTmH2A5R0E4hWzruvl/9pnUhqwbu1mxT06C45D0ZQ=="
       },
       "PasswordGenerator": {
         "type": "Direct",
@@ -1782,7 +1782,7 @@
           "Azure.Extensions.AspNetCore.DataProtection.Blobs": "[1.5.1, )",
           "Azure.Identity": "[1.14.2, )",
           "Azure.Storage.Files.Shares": "[12.23.0, )",
-          "Cosmos.DynamicConfig": "[9.0.11.18, )"
+          "Cosmos.DynamicConfig": "[9.0.12.19, )"
         }
       },
       "cosmos.common": {
@@ -1791,8 +1791,8 @@
           "AspNetCore.Identity.CosmosDb": "[9.0.1, )",
           "Azure.Extensions.AspNetCore.Configuration.Secrets": "[1.4.0, )",
           "Azure.Monitor.Query": "[1.7.0, )",
-          "Cosmos.BlobService": "[9.0.11.18, )",
-          "Cosmos.DynamicConfig": "[9.0.11.18, )",
+          "Cosmos.BlobService": "[9.0.12.19, )",
+          "Cosmos.DynamicConfig": "[9.0.12.19, )",
           "MailChimp.Net.V3": "[5.7.0, )",
           "Microsoft.AspNetCore.DataProtection.EntityFrameworkCore": "[9.0.7, )",
           "Microsoft.AspNetCore.Identity.EntityFrameworkCore": "[9.0.7, )",

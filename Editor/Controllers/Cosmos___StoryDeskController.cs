@@ -7,6 +7,12 @@
 
 namespace Cosmos.Editor.Controllers
 {
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
     using Azure.Core;
     using Azure.Identity;
     using Cosmos.BlobService;
@@ -19,7 +25,6 @@ namespace Cosmos.Editor.Controllers
     using Cosmos.Editor.Data;
     using Cosmos.Editor.Data.Logic;
     using Cosmos.EmailServices;
-    using MailChimp.Net.Models;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Identity;
@@ -33,14 +38,7 @@ namespace Cosmos.Editor.Controllers
     using Microsoft.Extensions.Options;
     using Microsoft.Graph;
     using Microsoft.Graph.Models;
-    using Microsoft.Graph.Models.Security;
     using SixLabors.ImageSharp;
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// Controller for handling StoryDesk operations using Microsoft Graph API.
@@ -54,7 +52,6 @@ namespace Cosmos.Editor.Controllers
         private readonly DynamicConfigDbContext configDbContext;
         private readonly StoryDeskDbContext storyDeskDbContext;
         private readonly ILogger<Cosmos___StoryDeskController> logger;
-        private readonly StorageContext storageContext;
         private readonly ICosmosEmailSender emailSender;
         private readonly IMemoryCache memoryCache;
         private readonly IOptions<CosmosConfig> config;
@@ -70,7 +67,6 @@ namespace Cosmos.Editor.Controllers
         /// <param name="storyDeskDbContext">Story desk DB context.</param>
         /// <param name="logger">Log service.</param>
         /// <param name="memoryCache">Memory cache.</param>
-        /// <param name="storageContext">Storage context.</param>
         /// <param name="emailSender">Email services.</param>
         /// <param name="config">Cosmos options.</param>
         /// <param name="viewRenderService">View rendering service.</param>
@@ -83,15 +79,12 @@ namespace Cosmos.Editor.Controllers
             StoryDeskDbContext storyDeskDbContext,
             ILogger<Cosmos___StoryDeskController> logger,
             IMemoryCache memoryCache,
-            StorageContext storageContext,
             IEmailSender emailSender,
             IOptions<CosmosConfig> config,
             IViewRenderService viewRenderService,
             IHttpContextAccessor accessor,
             IEditorSettings settings)
         {
-            this.storageContext = storageContext ?? throw new ArgumentNullException(nameof(storageContext));
-
             this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
 
             this.storyDeskConfig = this.configuration?.GetSection("StoryDesk")
@@ -185,7 +178,7 @@ namespace Cosmos.Editor.Controllers
             return Ok();
         }
 
-        private string GetTitle(Microsoft.Graph.Models.Message message, WebsiteAuthor config)
+        private string GetTitle(Message message, WebsiteAuthor config)
         {
             if (string.IsNullOrEmpty(message.Subject))
             {
@@ -291,8 +284,7 @@ namespace Cosmos.Editor.Controllers
             return config;
         }
 
-
-        private async Task<List<string>> UploadImagesAndReturnPaths(Microsoft.Graph.Models.Message message, int articleNumer)
+        private async Task<List<string>> UploadImagesAndReturnPaths(Message message, int articleNumer, StorageContext storageContext)
         {
             var attachments = message.Attachments
                 .Where(a => a is FileAttachment && ValidImageMimeTypes.Contains(a.ContentType))
@@ -311,27 +303,27 @@ namespace Cosmos.Editor.Controllers
                 else
                 {
                     var byteArray = attachment.ContentBytes.ToArray();
-
                     using var memoryStream = new MemoryStream(byteArray);
                     var format = SixLabors.ImageSharp.Image.DetectFormat(memoryStream);
                     var image = await SixLabors.ImageSharp.Image.LoadAsync(memoryStream);
-                    var relativePath = $"/pub/articles/{articleNumer}/{attachment.Name}";
+                    var relativePath = $"/pub/articles/{articleNumer}/{attachment.Name.ToLower()}";
+
+                    var metadata = new BlobService.Models.FileUploadMetaData()
+                    {
+                        ChunkIndex = 0,
+                        ContentType = attachment.ContentType,
+                        FileName = attachment.Name.ToLower(),
+                        RelativePath = relativePath,
+                        TotalChunks = 1,
+                        TotalFileSize = memoryStream.Length,
+                        UploadUid = Guid.NewGuid().ToString(),
+                        ImageHeight = image.Height.ToString(),
+                        ImageWidth = image.Width.ToString(),
+                    };
 
                     storageContext.AppendBlob(
                         memoryStream,
-                        new BlobService.Models.FileUploadMetaData()
-                        {
-                            ChunkIndex = 0,
-                            ContentType = attachment.ContentType,
-                            FileName = attachment.Name,
-                            RelativePath = relativePath,
-                            TotalChunks = 1,
-                            TotalFileSize = memoryStream.Length,
-                            UploadUid = Guid.NewGuid().ToString(),
-                            ImageHeight = image.Height.ToString(),
-                            ImageWidth = image.Width.ToString(),
-                        },
-                        "block");
+                        metadata);
 
                     paths.Add(relativePath);
                 }
@@ -340,10 +332,10 @@ namespace Cosmos.Editor.Controllers
             return paths;
         }
 
-        private async Task InsertMessageIntoArticle(ArticleViewModel article, Microsoft.Graph.Models.Message message)
+        private async Task InsertMessageIntoArticle(ArticleViewModel article, Message message, StorageContext storageContext)
         {
             var body = GetHtmlFromMessage(message);
-            var imagePaths = await UploadImagesAndReturnPaths(message, article.ArticleNumber);
+            var imagePaths = await UploadImagesAndReturnPaths(message, article.ArticleNumber, storageContext);
 
             HtmlAgilityPack.HtmlDocument doc = new HtmlAgilityPack.HtmlDocument();
             doc.LoadHtml(article.Content);
@@ -385,7 +377,7 @@ namespace Cosmos.Editor.Controllers
             article.Published = null;
         }
 
-        private ArticleEditLogic GetArticleEditLogic(ApplicationDbContext dbContext)
+        private ArticleEditLogic GetArticleEditLogic(ApplicationDbContext dbContext, StorageContext storageContext)
         {
             return new ArticleEditLogic(
                 dbContext,
@@ -415,7 +407,8 @@ namespace Cosmos.Editor.Controllers
             var connection = await configDbContext.Connections
                 .FirstOrDefaultAsync(c => c.Id == storyConfig.ConnectionId);
             var dbContext = ApplicationDbContextUtilities.GetApplicationDbContext(connection);
-            var articleEditLogic = GetArticleEditLogic(dbContext);
+            var storageContext = GetStorageContext(connection);
+            var articleEditLogic = GetArticleEditLogic(dbContext, storageContext);
             var normalizedEmail = message.From.EmailAddress.Address.ToUpper();
 
             // Check if the user exists in the database.
@@ -455,11 +448,47 @@ namespace Cosmos.Editor.Controllers
             }
 
             // Insert the article content.
-            await InsertMessageIntoArticle(article, message);
+            await InsertMessageIntoArticle(article, message, storageContext);
             _ = await articleEditLogic.SaveArticle(article, Guid.Parse(user.Id));
             await SendEmail(message, dbContext, storyConfig, user, article.ArticleNumber);
         }
 
+        private StorageContext GetStorageContext(Connection connection)
+        {
+            var cosmosStorageConfig = new BlobService.Config.CosmosStorageConfig()
+            {
+                PrimaryCloud = "azure",
+                StorageConfig = new BlobService.Config.StorageConfig()
+                {
+                    AzureConfigs = new List<BlobService.Config.AzureStorageConfig>()
+                    {
+                        new BlobService.Config.AzureStorageConfig()
+                        {
+                             AzureBlobStorageConnectionString = connection.StorageConn,
+                             AzureBlobStorageEndPoint = connection.WebsiteUrl
+                        }
+                    }
+                }
+            };
+            var options = Microsoft.Extensions.Options.Options.Create(cosmosStorageConfig);
+            var defaultAzureCredential = new DefaultAzureCredential();
+
+            var services = accessor.HttpContext.RequestServices;
+            var config = services.GetRequiredService<IConfiguration>();
+            var storageContext = new StorageContext(options, memoryCache, defaultAzureCredential);
+
+            return storageContext;
+        }
+
+        /// <summary>
+        ///  Sends email letting user know story has been posted.
+        /// </summary>
+        /// <param name="message">The original email message.</param>
+        /// <param name="dbContext">The database context.</param>
+        /// <param name="storyConfig">Story configuration.</param>
+        /// <param name="user">User from the email.</param>
+        /// <param name="articleNumber">Article number.</param>
+        /// <returns>Task.</returns>
         private async Task SendEmail(Microsoft.Graph.Models.Message message, ApplicationDbContext dbContext, WebsiteAuthor storyConfig, IdentityUser user, int articleNumber)
         {
             var builder = new StringBuilder();

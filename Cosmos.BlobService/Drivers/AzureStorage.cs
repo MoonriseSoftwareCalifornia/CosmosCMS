@@ -20,8 +20,6 @@ namespace Cosmos.BlobService.Drivers
     using Azure.Storage.Blobs.Specialized;
     using Cosmos.BlobService.Config;
     using Cosmos.BlobService.Models;
-    using Cosmos.DynamicConfig;
-    using Microsoft.Extensions.DependencyInjection;
 
     /// <summary>
     ///     Azure blob storage driver.
@@ -35,16 +33,11 @@ namespace Cosmos.BlobService.Drivers
         /// <summary>
         /// Initializes a new instance of the <see cref="AzureStorage"/> class.
         /// </summary>
-        /// <param name="services">Services provider.</param>
+        /// <param name="connectionString">Connection string.</param>
         /// <param name="defaultAzureCredential">Default azure credential.</param>
-        /// <param name="isMultiTenant">Is multitenant configuration.</param>
         /// <param name="containerName">Name of container (default is $web).</param>
-        public AzureStorage(IServiceProvider services, DefaultAzureCredential defaultAzureCredential, bool isMultiTenant, string containerName = "$web")
+        public AzureStorage(string connectionString, DefaultAzureCredential defaultAzureCredential, string containerName = "$web")
         {
-            var connectionStringProvider = services.GetRequiredService<IDynamicConfigurationProvider>();
-
-            var connectionString = connectionStringProvider.GetStorageConnectionString();
-
             this.Initialize(containerName, connectionString, defaultAzureCredential);
         }
 
@@ -523,6 +516,126 @@ namespace Cosmos.BlobService.Drivers
                 this.blobServiceClient.GetBlobContainerClient(this.containerName);
 
             return containerClient.GetAppendBlobClient(path);
+        }
+
+        /// <summary>
+        /// Inserts or updates metadata for a blob by path.
+        /// </summary>
+        /// <param name="path">Path to blob.</param>
+        /// <param name="data">Metadata.</param>
+        /// <returns>Task.</returns>
+        public async Task UpsertMetadata(string path, IEnumerable<BlobMetadataItem> data)
+        {
+            var blobClient = await this.GetBlobAsync(path);
+            if (blobClient != null && data != null & data.Count() > 0)
+            {
+                await UpsertMetadata(blobClient, data);
+            }
+        }
+
+        /// <summary>
+        ///  Inserts or updates metadata for a blob  by <see cref="BlobClient"/>.
+        /// </summary>
+        /// <param name="blobClient">Blob client.</param>
+        /// <param name="data">Data to insert or update.</param>
+        /// <returns>Task.</returns>
+        public async Task UpsertMetadata(BlobClient blobClient, IEnumerable<BlobMetadataItem> data)
+        {
+            if (blobClient != null && data != null & data.Count() > 0)
+            {
+                var properties = await blobClient.GetPropertiesAsync();
+                var metadata = properties.Value.Metadata;
+
+                foreach (var item in data)
+                {
+                    var dataItem = data.FirstOrDefault(d => d.Key.Equals(item.Key, StringComparison.OrdinalIgnoreCase));
+                    if (dataItem != null)
+                    {
+                        item.Value = dataItem.Value;
+                    }
+                    else
+                    {
+                        metadata.Add(dataItem.Key, dataItem.Value);
+                    }
+                }
+
+                await blobClient.SetMetadataAsync(metadata);
+            }
+        }
+
+        /// <summary>
+        /// Deletes metadata for a blob by key.
+        /// </summary>
+        /// <param name="path">Path to blob.</param>
+        /// <param name="key">Key to remove.</param>
+        /// <returns>Indication of success.</returns>
+        public async Task<bool> DeleteMetadata(string path, string key)
+        {
+            var blobClient = await this.GetBlobAsync(path);
+            return await DeleteMetadata(blobClient, key);
+        }
+
+        /// <summary>
+        ///  Deletes metadata for a blob by key using <see cref="BlobClient"/>.
+        /// </summary>
+        /// <param name="blobClient">Blob client.</param>
+        /// <param name="key">Key to remove.</param>
+        /// <returns>Indication of success.</returns>
+        public async Task<bool> DeleteMetadata(BlobClient blobClient, string key)
+        {
+            if (blobClient == null)
+            {
+                return false;
+            }
+
+            var properties = await blobClient.GetPropertiesAsync();
+            if (properties.Value.Metadata.ContainsKey(key))
+            {
+                properties.Value.Metadata.Remove(key);
+                await blobClient.SetMetadataAsync(properties.Value.Metadata);
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        ///  Gets metadata for a blob by key.
+        /// </summary>
+        /// <param name="path">Path to blob storage.</param>
+        /// <returns>Metadata list.</returns>
+        public async Task<IEnumerable<BlobMetadataItem>> GetMetadata(string path)
+        {
+            var blobClient = await this.GetBlobAsync(path);
+
+            return await GetMetadata(blobClient);
+        }
+
+        /// <summary>
+        /// Gets metadata for a blob by <see cref="BlobClient"/>.
+        /// </summary>
+        /// <param name="blobClient">Blob client.</param>
+        /// <returns>Metadata list.</returns>
+        public async Task<IEnumerable<BlobMetadataItem>> GetMetadata(BlobClient blobClient)
+        {
+            if (blobClient == null)
+            {
+                return null;
+            }
+
+            var properties = await blobClient.GetPropertiesAsync();
+
+            if (properties == null || properties.Value.Metadata == null || properties.Value.Metadata.Count == 0)
+            {
+                return null;
+            }
+
+            var metadata = properties.Value.Metadata.Values.Select(value => new BlobMetadataItem
+            {
+                Key = properties.Value.Metadata.FirstOrDefault(kv => kv.Value == value).Key,
+                Value = value
+            });
+            return metadata;
         }
 
         /// <summary>
