@@ -154,7 +154,8 @@ namespace Cosmos.Cms.Controllers
             {
                 if (!dynamicConfigurationProvider.IsMultiTenantConfigured)
                 {
-                    throw new InvalidOperationException("Multi-tenant editor is not configured properly. Please check your settings.");
+                    Response.Cookies.Delete("CosmosAuthCookie");
+                    return Redirect("~/Identity/Account/Login");
                 }
 
                 // Check if we have a ccmswebsite query parameter.
