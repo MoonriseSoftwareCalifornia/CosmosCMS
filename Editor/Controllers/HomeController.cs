@@ -28,6 +28,7 @@ namespace Cosmos.Cms.Controllers
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using Microsoft.Net.Http.Headers;
 
@@ -60,8 +61,8 @@ namespace Cosmos.Cms.Controllers
         /// <param name="storageContext"><see cref="StorageContext">File storage context</see>.</param>
         /// <param name="powerBiTokenService">Service used to get tokens from Power BI.</param>
         /// <param name="emailSender">Email service.</param>
-        /// <param name="dynamicConfigurationProvider">Multi-tenant configuration provider.</param>
         /// <param name="configuration">Website configuration.</param>
+        /// <param name="services">Services provider.</param>
         public HomeController(
             ILogger<HomeController> logger,
             IEditorSettings options,
@@ -72,11 +73,10 @@ namespace Cosmos.Cms.Controllers
             StorageContext storageContext,
             PowerBiTokenService powerBiTokenService,
             IEmailSender emailSender,
-            IDynamicConfigurationProvider dynamicConfigurationProvider,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IServiceProvider services)
         {
             // This handles injection manually to make sure everything is setup.
-            this.dynamicConfigurationProvider = dynamicConfigurationProvider;
             this.options = (EditorSettings)options;
             this.articleLogic = articleLogic;
             this.dbContext = dbContext;
@@ -84,6 +84,11 @@ namespace Cosmos.Cms.Controllers
             this.signInManager = signInManager;
             this.storageContext = storageContext;
             isMultiTenantEditor = configuration.GetValue<bool?>("MultiTenantEditor") ?? false;
+
+            if (isMultiTenantEditor)
+            {
+                this.dynamicConfigurationProvider = services.GetRequiredService<IDynamicConfigurationProvider>();
+            }
         }
 
         /// <summary>
@@ -167,7 +172,7 @@ namespace Cosmos.Cms.Controllers
                         await signInManager.SignOutAsync();
                     }
 
-                    return Redirect(await MutliSiteRedirect(Request));
+                    return Redirect(MutliSiteRedirect(Request));
                 }
             }
 
@@ -282,7 +287,7 @@ namespace Cosmos.Cms.Controllers
         /// </Remarks>
         /// <param name="request">Current request.</param>
         /// <returns>Path to redirect to if applicable.</returns>
-        private async Task<string> MutliSiteRedirect(HttpRequest request)
+        private string MutliSiteRedirect(HttpRequest request)
         {
             var queryParams = HttpUtility.ParseQueryString(Request.QueryString.Value);
 
