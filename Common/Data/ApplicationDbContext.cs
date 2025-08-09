@@ -380,24 +380,44 @@ namespace Cosmos.Common.Data
 
             var databaseName = connectionStringProvider.GetDatabaseName();
 
+            var optionsBuilder = GetDbOptionsFromConnectionString(connectionString, databaseName);
+
+            return optionsBuilder;
+        }
+
+        /// <summary>
+        /// Returns DbContextOptions from a connection string depending on if connection string is for Cosmos DB or SQL Server.
+        /// </summary>
+        /// <param name="connectionString">Connection string</param>
+        /// <param name="databaseName">Database name</param>
+        /// <returns>DbContextOptions<ApplicationDbContext></returns>
+        private static DbContextOptions<ApplicationDbContext> GetDbOptionsFromConnectionString(string connectionString, string databaseName)
+        {
             var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
 
-            if (connectionString.Contains("AccountKey=AccessToken", StringComparison.CurrentCultureIgnoreCase))
+            // If the connection string contains "AccountEndpoint", we assume it's a Cosmos DB connection string.
+            if (connectionString.Contains("AccountEndpoint", StringComparison.CurrentCultureIgnoreCase))
             {
-                var conpartsDict =
-                    connectionString.Split(";").Where(w =>
-                    !string.IsNullOrEmpty(w)).Select(part => part.Split('='))
-                    .ToDictionary(sp => sp[0], sp => sp[1], StringComparer.OrdinalIgnoreCase);
+                if (connectionString.Contains("AccountKey=AccessToken", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    var connectionParts =
+                        connectionString.Split(";").Where(w =>
+                        !string.IsNullOrEmpty(w)).Select(part => part.Split('='))
+                        .ToDictionary(sp => sp[0], sp => sp[1], StringComparer.OrdinalIgnoreCase);
+                    var defaultAzureCredential = new DefaultAzureCredential();
+                    var endpoint = connectionParts["AccountEndpoint"];
+                    optionsBuilder.UseCosmos(accountEndpoint: endpoint, new DefaultAzureCredential(), databaseName);
+                }
+                else
+                {
+                    optionsBuilder.UseCosmos(connectionString, databaseName: databaseName);
+                }
 
-                var defaultAzureCredential = services.GetRequiredService<DefaultAzureCredential>();
-                var endpoint = conpartsDict["AccountEndpoint"];
-                optionsBuilder.UseCosmos(accountEndpoint: endpoint, defaultAzureCredential, databaseName);
-            }
-            else
-            {
-                optionsBuilder.UseCosmos(connectionString, databaseName: databaseName);
+                return optionsBuilder.Options;
             }
 
+            // Otherwise, we assume it's a SQL Server connection string.
+            optionsBuilder.UseSqlServer(connectionString);
             return optionsBuilder.Options;
         }
     }
