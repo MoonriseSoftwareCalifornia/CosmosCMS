@@ -2,6 +2,24 @@
   "version": 1,
   "dependencies": {
     "net9.0": {
+      "AspNetCore.Identity.CosmosDb": {
+        "type": "Direct",
+        "requested": "[9.1.0.2-preview, )",
+        "resolved": "9.1.0.2-preview",
+        "contentHash": "gSoBKD52OISiuYx+UZRvBthavKx5pXKNperzoeQch7e+BwCqtuGfg/EhxE7DmfjzQJ0JUtu36u990uvXMc4iRQ==",
+        "dependencies": {
+          "Duende.IdentityServer.EntityFramework.Storage": "7.2.4",
+          "Microsoft.AspNetCore.Identity.EntityFrameworkCore": "9.0.8",
+          "Microsoft.AspNetCore.Identity.UI": "9.0.8",
+          "Microsoft.EntityFrameworkCore.Cosmos": "9.0.8",
+          "Microsoft.EntityFrameworkCore.Relational": "9.0.8",
+          "Microsoft.EntityFrameworkCore.SqlServer": "9.0.8",
+          "Microsoft.Extensions.Caching.Memory": "9.0.8",
+          "MySql.EntityFrameworkCore": "9.0.6",
+          "Newtonsoft.Json": "13.0.3",
+          "System.Text.Json": "9.0.8"
+        }
+      },
       "Azure.Extensions.AspNetCore.Configuration.Secrets": {
         "type": "Direct",
         "requested": "[1.4.0, )",
@@ -15,11 +33,12 @@
       },
       "Azure.Monitor.Query": {
         "type": "Direct",
-        "requested": "[1.7.0, )",
-        "resolved": "1.7.0",
-        "contentHash": "mdzicZXt3OZkXo/8UMCk8ELMkylbSTnZ1WlFc17I7bUEd71IR44MVR8eLTLQ57hrpzLmZfrwvpB7aE0BlbceUA==",
+        "requested": "[1.7.1, )",
+        "resolved": "1.7.1",
+        "contentHash": "HJnal+BIaBiuiba1p2X5lNyx6I+CnqcjEMNv19R1jtjas5hk9sdUcPmZOLaECFRExFBxLDc2xuLJkXmglFXQbg==",
         "dependencies": {
-          "Azure.Core": "1.46.2"
+          "Azure.Core": "1.47.1",
+          "System.ClientModel": "1.6.0"
         }
       },
       "MailChimp.Net.V3": {
@@ -105,18 +124,18 @@
       },
       "X.Web.Sitemap": {
         "type": "Direct",
-        "requested": "[2.10.5, )",
-        "resolved": "2.10.5",
-        "contentHash": "QGlwUfhKWdHnFXlKUtXW0zaQ3wyBuJMDIZKUl+sZqa/bLVXosvM6VzxtxWKJUj8tk3dJNRkRhTZ4Xib5I7huKw=="
+        "requested": "[2.10.7, )",
+        "resolved": "2.10.7",
+        "contentHash": "1+f1qnm/Yn6ekfjY7Y/Kbqs9Ab753fNnY2T1U+iX5F+YBWOH84gNAtLd74qn+fyCErh1XzzEbAVUSi1eh8zrBg=="
       },
       "Azure.Core": {
         "type": "Transitive",
-        "resolved": "1.46.2",
-        "contentHash": "HFcvd1besmgBFPIZ7iSFHZOgzGfHTZNTzG8gWYdIP8ZJQySrb+vAdArcmFw7je3kFRMDbbtMoWKNVGj2vvH1sw==",
+        "resolved": "1.47.1",
+        "contentHash": "oPcncSsDHuxB8SC522z47xbp2+ttkcKv2YZ90KXhRKN0YQd2+7l1UURT9EBzUNEXtkLZUOAB5xbByMTrYRh3yA==",
         "dependencies": {
           "Microsoft.Bcl.AsyncInterfaces": "8.0.0",
-          "System.ClientModel": "1.4.2",
-          "System.Memory.Data": "6.0.1"
+          "System.ClientModel": "1.5.1",
+          "System.Memory.Data": "8.0.1"
         }
       },
       "Azure.Extensions.AspNetCore.DataProtection.Blobs": {
@@ -774,11 +793,11 @@
       },
       "System.ClientModel": {
         "type": "Transitive",
-        "resolved": "1.4.2",
-        "contentHash": "goGitN7trB9hoQ01dIpxaSYcruI+lGt/xq471AUv8irFvsIX+4HCqk1pDT/4ZPTLmU6ZUuNzhCb4MJAIwG7+Uw==",
+        "resolved": "1.6.0",
+        "contentHash": "cG2Nvpipe/d2Zkll9lknO/A6slINLYR36I49Uysd76NnGf7DKWnLNBLcaqSBxxfUXwk6fw1ncQ8n4RIjG88bMg==",
         "dependencies": {
           "Microsoft.Extensions.Logging.Abstractions": "8.0.3",
-          "System.Memory.Data": "6.0.1"
+          "System.Memory.Data": "8.0.1"
         }
       },
       "System.Collections": {
@@ -964,8 +983,8 @@
       },
       "System.Memory.Data": {
         "type": "Transitive",
-        "resolved": "6.0.1",
-        "contentHash": "yliDgLh9S9Mcy5hBIdZmX6yphYIW3NH+3HN1kV1m7V1e0s7LNTw/tHNjJP4U9nSMEgl3w1TzYv/KA1Tg9NYy6w=="
+        "resolved": "8.0.1",
+        "contentHash": "BVYuec3jV23EMRDeR7Dr1/qhx7369dZzJ9IWy2xylvb4YfXsrUxspWc4UWYid/tj4zZK58uGZqn2WQiaDMhmAg=="
       },
       "System.Net.Http": {
         "type": "Transitive",
@@ -1362,21 +1381,6 @@
         "type": "Transitive",
         "resolved": "0.8.5",
         "contentHash": "TR4j17WeVSEb3ncgL2NqlXEqcy04I+Kk9CaebNDplUeL8XOgjkZ7fP4Wg4grBdPLIqsV86p2QaXTkZoRMVOsew=="
-      },
-      "aspnetcore.identity.cosmosdb": {
-        "type": "Project",
-        "dependencies": {
-          "Duende.IdentityServer.EntityFramework.Storage": "[7.2.4, )",
-          "Microsoft.AspNetCore.Identity.EntityFrameworkCore": "[9.0.8, )",
-          "Microsoft.AspNetCore.Identity.UI": "[9.0.8, )",
-          "Microsoft.EntityFrameworkCore.Cosmos": "[9.0.8, )",
-          "Microsoft.EntityFrameworkCore.Relational": "[9.0.8, )",
-          "Microsoft.EntityFrameworkCore.SqlServer": "[9.0.8, )",
-          "Microsoft.Extensions.Caching.Memory": "[9.0.8, )",
-          "MySql.EntityFrameworkCore": "[9.0.6, )",
-          "Newtonsoft.Json": "[13.0.3, )",
-          "System.Text.Json": "[9.0.8, )"
-        }
       },
       "cosmos.blobservice": {
         "type": "Project",
