@@ -172,7 +172,7 @@
                             return data ? JSON.parse(data) : false;
                         },
                         layout:"fitColumns",
-                        ajaxURL:"@Url.Action("GetArticleList", "Editor")", //ajax URL
+                        ajaxURL:"@Url.Action("GetArticleList", "Editor")?publishedOnly=false", //ajax URL
                         columns:[
                             {title:"UrlPath", field:"UrlPath", visible: false },
                             {title:"No.", field:"ArticleNumber", visible: false },

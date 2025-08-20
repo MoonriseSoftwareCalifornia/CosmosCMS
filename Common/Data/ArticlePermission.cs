@@ -5,6 +5,8 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
+using System.ComponentModel.DataAnnotations;
+
 namespace Cosmos.Common.Data
 {
     /// <summary>
@@ -15,6 +17,7 @@ namespace Cosmos.Common.Data
         /// <summary>
         /// Gets or sets the article number.
         /// </summary>
+        [Key]
         public int ArticleId { get; set; }
 
         /// <summary>

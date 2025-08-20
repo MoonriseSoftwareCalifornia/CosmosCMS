@@ -102,44 +102,31 @@ namespace Cosmos.Editor.Boot
             // 1. Create the database if it does not already exist.
             // 2. Create the required containers if they do not already exist.
             // IMPORTANT: Remove this variable if after first run. It will improve startup performance.
-
             // If the following is set, it will create the Cosmos database and
-
             //  required containers.
             if (option.Value.SiteSettings.AllowSetup)
             {
-                var tempParts = connectionString.Split(";").Where(w => !string.IsNullOrEmpty(w)).Select(part => part.Split('=')).ToDictionary(sp => sp[0], sp => sp[1], StringComparer.OrdinalIgnoreCase);
-                var tempEndPoint = tempParts["AccountEndpoint"];
-                var tempBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-                if (!tempParts.ContainsKey("AccountKey"))
+                var options = new DbContextOptionsBuilder<ApplicationDbContext>();
+                if (connectionString.Contains("User ID", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    throw new ArgumentException("AccountKey not found in database connection string.");
+                    options.UseSqlServer(connectionString);
                 }
-
-                if (tempParts["AccountKey"] == "AccessToken")
+                else if (connectionString.Contains("uid=", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    tempBuilder.UseCosmos(tempEndPoint, defaultAzureCredential, cosmosIdentityDbName);
+                    options.UseMySQL(connectionString);
                 }
                 else
                 {
-                    tempBuilder.UseCosmos(connectionString, cosmosIdentityDbName);
-                    using var dbContext = new ApplicationDbContext(tempBuilder.Options);
-                    _ = dbContext.Database.EnsureCreatedAsync().Result;
-                }
-            }
+                    // Add the Cosmos database context here
+                    var cosmosRegionName = builder.Configuration.GetValue<string>("CosmosRegionName");
+                    var conpartsDict = connectionString.Split(";").Where(w => !string.IsNullOrEmpty(w)).Select(part => part.Split('=')).ToDictionary(sp => sp[0], sp => sp[1]);
+                    var endpoint = conpartsDict["AccountEndpoint"];
 
-            // Add the Cosmos database context here
-            var cosmosRegionName = builder.Configuration.GetValue<string>("CosmosRegionName");
-            var conpartsDict = connectionString.Split(";").Where(w => !string.IsNullOrEmpty(w)).Select(part => part.Split('=')).ToDictionary(sp => sp[0], sp => sp[1]);
-            var endpoint = conpartsDict["AccountEndpoint"];
-            builder.Services.AddDbContext<ApplicationDbContext>(
-                options =>
-                {
                     if (string.IsNullOrEmpty(cosmosRegionName))
                     {
                         if (conpartsDict["AccountKey"] == "AccessToken")
                         {
-                            options.UseCosmos(endpoint, defaultAzureCredential, cosmosIdentityDbName);
+                            options.UseCosmos(endpoint, new DefaultAzureCredential(), cosmosIdentityDbName);
                         }
                         else
                         {
@@ -150,11 +137,57 @@ namespace Cosmos.Editor.Boot
                     {
                         if (conpartsDict["AccountKey"] == "AccessToken")
                         {
-                            options.UseCosmos(endpoint, defaultAzureCredential, cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
+                            options.UseCosmos(endpoint, new DefaultAzureCredential(), cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
                         }
                         else
                         {
                             options.UseCosmos(connectionString, cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
+                        }
+                    }
+                }
+
+                using var context = new ApplicationDbContext(options.Options);
+                await context.Database.EnsureCreatedAsync();
+            }
+
+            builder.Services.AddDbContext<ApplicationDbContext>(
+                options =>
+                {
+                    if (connectionString.Contains("User ID", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        options.UseSqlServer(connectionString);
+                    }
+                    else if (connectionString.Contains("uid=", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        options.UseMySQL(connectionString);
+                    }
+                    else
+                    {
+                        // Add the Cosmos database context here
+                        var cosmosRegionName = builder.Configuration.GetValue<string>("CosmosRegionName");
+                        var conpartsDict = connectionString.Split(";").Where(w => !string.IsNullOrEmpty(w)).Select(part => part.Split('=')).ToDictionary(sp => sp[0], sp => sp[1]);
+                        var endpoint = conpartsDict["AccountEndpoint"];
+                        if (string.IsNullOrEmpty(cosmosRegionName))
+                        {
+                            if (conpartsDict["AccountKey"] == "AccessToken")
+                            {
+                                options.UseCosmos(endpoint, new DefaultAzureCredential(), cosmosIdentityDbName);
+                            }
+                            else
+                            {
+                                options.UseCosmos(connectionString, cosmosIdentityDbName);
+                            }
+                        }
+                        else
+                        {
+                            if (conpartsDict["AccountKey"] == "AccessToken")
+                            {
+                                options.UseCosmos(endpoint, new DefaultAzureCredential(), cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
+                            }
+                            else
+                            {
+                                options.UseCosmos(connectionString, cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
+                            }
                         }
                     }
                 }, optionsLifetime: ServiceLifetime.Singleton); // https://github.com/dotnet/efcore/issues/34918
@@ -169,18 +202,23 @@ namespace Cosmos.Editor.Boot
                 .AddDefaultTokenProviders();
 
             // Add shared data protection here
-            // Add shared data protection here
-            var containerClient = BlobService.ServiceCollectionExtensions.GetBlobContainerClient(builder.Configuration, new DefaultAzureCredential(), "dataprotection");
-            containerClient.CreateIfNotExists();
+
+            var dataProtectionContainer = BlobService.ServiceCollectionExtensions.GetBlobContainerClient(builder.Configuration, new DefaultAzureCredential(), "dataprotection");
+            if (option.Value.SiteSettings.AllowSetup)
+            {
+                var webContainer = BlobService.ServiceCollectionExtensions.GetBlobContainerClient(builder.Configuration, new DefaultAzureCredential(), "$web");
+                dataProtectionContainer.CreateIfNotExistsAsync().GetAwaiter().GetResult();
+                webContainer.CreateIfNotExistsAsync().GetAwaiter().GetResult();
+            }
 
             builder.Services.AddDataProtection()
-                .UseCryptographicAlgorithms(
-                new AuthenticatedEncryptorConfiguration
-                {
-                    EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
-                    ValidationAlgorithm = ValidationAlgorithm.HMACSHA256
-                })
-                .PersistKeysToAzureBlobStorage(containerClient.GetBlobClient("editorkeys.xml"));
+            .UseCryptographicAlgorithms(
+            new AuthenticatedEncryptorConfiguration
+            {
+                EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
+                ValidationAlgorithm = ValidationAlgorithm.HMACSHA256
+            })
+            .PersistKeysToAzureBlobStorage(dataProtectionContainer.GetBlobClient("editorkeys.xml"));
 
             // ===========================================================
             // SUPPORTED OAuth Providers

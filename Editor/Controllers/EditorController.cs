@@ -125,7 +125,7 @@ namespace Cosmos.Cms.Controllers
 
             ViewData["ShowFirstPageBtn"] = false; // Default unless changed below.
 
-            if (!await dbContext.Articles.CosmosAnyAsync())
+            if ((await dbContext.Articles.CountAsync()) == 0)
             {
                 var template = await dbContext.Templates.Where(w => w.Title.ToLower().Contains("home page")).FirstOrDefaultAsync();
 
@@ -406,11 +406,26 @@ namespace Cosmos.Cms.Controllers
         [Authorize(Roles = "Administrators, Editors, Authors")]
         public async Task<IActionResult> GetTrashList()
         {
-            var query = "SELECT c.ArticleNumber, c.Title, c.UrlPath, MAX(c.Published) as Published, MAX(c.Updated) as Updated FROM Articles c WHERE c.StatusCode = 2 GROUP BY c.ArticleNumber, c.Title, c.UrlPath";
-            var client = dbContext.Database.GetCosmosClient();
-            var queryService = new CosmosDbService(client, dbContext.Database.GetCosmosDatabaseId(), "Articles");
+            if (dbContext.Database.IsCosmos())
+            {
+                var query = "SELECT c.ArticleNumber, c.Title, c.UrlPath, MAX(c.Published) as Published, MAX(c.Updated) as Updated FROM Articles c WHERE c.StatusCode = 2 GROUP BY c.ArticleNumber, c.Title, c.UrlPath";
+                var client = dbContext.Database.GetCosmosClient();
+                var queryService = new CosmosDbService(client, dbContext.Database.GetCosmosDatabaseId(), "Articles");
 
-            var data = await queryService.QueryWithGroupByAsync(query);
+                return Json(await queryService.QueryWithGroupByAsync(query));
+            }
+
+            var data = await dbContext.Articles
+                .Where(w => w.StatusCode == (int)StatusCodeEnum.Deleted)
+                .GroupBy(g => new { g.ArticleNumber, g.Title, g.UrlPath })
+                .Select(s => new
+                {
+                    ArticleNumber = s.Key.ArticleNumber,
+                    Title = s.Key.Title,
+                    UrlPath = s.Key.UrlPath,
+                    Published = s.Max(m => m.Published),
+                    Updated = s.Max(m => m.Updated)
+                }).ToListAsync();
 
             return Json(data);
         }
@@ -525,7 +540,7 @@ namespace Cosmos.Cms.Controllers
                 return BadRequest(ModelState);
             }
 
-            if (!await dbContext.Articles.CosmosAnyAsync())
+            if ((await dbContext.Articles.CountAsync()) == 0)
             {
                 var template = await dbContext.Templates.Where(w => w.Title.ToLower().Contains("home page")).FirstOrDefaultAsync();
 
@@ -1865,39 +1880,82 @@ namespace Cosmos.Cms.Controllers
         /// Gets a list of articles (web pages).
         /// </summary>
         /// <param name="term">search text value (optional).</param>
+        /// <param name="publishedOnly">Only retrieve published articles.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [HttpGet]
-        public async Task<IActionResult> GetArticleList(string term = "")
+        public async Task<IActionResult> GetArticleList(string term = "", bool publishedOnly = true)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var whereClause = $"WHERE c.StatusCode = {(int)StatusCodeEnum.Active}";
-
-            if (!string.IsNullOrEmpty(term))
+            if (dbContext.Database.IsCosmos())
             {
-                whereClause += $" AND LOWER(c.Title) LIKE '%{term.ToLower()}%'";
+                var whereClause = publishedOnly ? $"WHERE c.Published != null AND " : "WHERE ";
+                whereClause += $"c.StatusCode = {(int)StatusCodeEnum.Active}";
+
+                if (!string.IsNullOrEmpty(term))
+                {
+                    whereClause += $" AND LOWER(c.Title) LIKE '%{term.ToLower()}%'";
+                }
+
+                var query = $"SELECT c.ArticleNumber, c.Title, c.UrlPath, MAX(c.Published) as Published, MAX(c.Updated) as Updated FROM Articles c {whereClause} GROUP BY c.ArticleNumber, c.Title, c.UrlPath";
+                var client = dbContext.Database.GetCosmosClient();
+                var queryService = new CosmosDbService(client, dbContext.Database.GetCosmosDatabaseId(), "Articles");
+
+                var data = await queryService.QueryWithGroupByAsync<ArticleListViewItem>(query);
+
+                var model = data.Select(s => new
+                {
+                    s.ArticleNumber,
+                    s.Title,
+                    IsDefault = s.UrlPath == "root",
+                    LastPublished = s.Published.HasValue ? s.Published.Value.UtcDateTime.ToString("o") : null,
+                    UrlPath = HttpUtility.UrlEncode(s.UrlPath).Replace("%2f", "/"),
+                    Updated = s.Updated.UtcDateTime.ToString("o")
+                }).OrderBy(o => o.Title).ToList();
+
+                return Json(model);
             }
-
-            var query = $"SELECT c.ArticleNumber, c.Title, c.UrlPath, MAX(c.Published) as Published, MAX(c.Updated) as Updated FROM Articles c {whereClause} GROUP BY c.ArticleNumber, c.Title, c.UrlPath";
-            var client = dbContext.Database.GetCosmosClient();
-            var queryService = new CosmosDbService(client, dbContext.Database.GetCosmosDatabaseId(), "Articles");
-
-            var data = await queryService.QueryWithGroupByAsync<ArticleListViewItem>(query);
-
-            var model = data.Select(s => new
+            else
             {
-                s.ArticleNumber,
-                s.Title,
-                IsDefault = s.UrlPath == "root",
-                LastPublished = s.Published.HasValue ? s.Published.Value.UtcDateTime.ToString("o") : null,
-                UrlPath = HttpUtility.UrlEncode(s.UrlPath).Replace("%2f", "/"),
-                Updated = s.Updated.UtcDateTime.ToString("o")
-            }).OrderBy(o => o.Title).ToList();
+                // LINQ equivalent for the SQL GROUP BY and MAX aggregate
+                var query = publishedOnly ? dbContext.Articles
+                    .Where(a => a.Published != null && a.StatusCode == (int)StatusCodeEnum.Active) :
+                    dbContext.Articles
+                    .Where(a => a.StatusCode == (int)StatusCodeEnum.Active);
 
-            return Json(model);
+                if (!string.IsNullOrEmpty(term))
+                {
+                    query = query.Where(a => a.Title.ToLower().Contains(term.ToLower()));
+                }
+
+                var grouped = await query
+                .GroupBy(a => new { a.ArticleNumber, a.Title, a.UrlPath })
+                .Select(g => new
+                {
+                    ArticleNumber = g.Key.ArticleNumber,
+                    Title = g.Key.Title,
+                    UrlPath = g.Key.UrlPath,
+                    Published = g.Max(x => x.Published),
+                    Updated = g.Max(x => x.Updated)
+                })
+                .OrderBy(o => o.Title)
+                .ToListAsync();
+
+                var model = grouped.Select(s => new
+                {
+                    s.ArticleNumber,
+                    s.Title,
+                    IsDefault = s.UrlPath == "root",
+                    LastPublished = s.Published.HasValue ? s.Published.Value.UtcDateTime.ToString("o") : null,
+                    UrlPath = HttpUtility.UrlEncode(s.UrlPath).Replace("%2f", "/"),
+                    Updated = s.Updated
+                }).ToList();
+
+                return Json(model);
+            }
         }
 
         /// <summary>

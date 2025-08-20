@@ -289,8 +289,8 @@ namespace Cosmos.Common.Data.Logic
 
             if (memoryCache == null || cacheSpan == null)
             {
-                var entity = await DbContext.Pages.WithPartitionKey(urlPath)
-               .Where(a => a.Published <= DateTimeOffset.UtcNow)
+                var entity = await DbContext.Pages
+               .Where(a => a.UrlPath == urlPath && a.Published <= DateTimeOffset.UtcNow)
                .OrderByDescending(o => o.VersionNumber).AsNoTracking().FirstOrDefaultAsync();
 
                 if (entity == null)
@@ -305,8 +305,8 @@ namespace Cosmos.Common.Data.Logic
 
             if (model == null)
             {
-                var data = await DbContext.Pages.WithPartitionKey(urlPath)
-                   .Where(a => a.Published.HasValue && a.Published <= DateTimeOffset.UtcNow)
+                var data = await DbContext.Pages
+                   .Where(a => a.UrlPath == urlPath && a.Published.HasValue && a.Published <= DateTimeOffset.UtcNow)
                    .OrderByDescending(o => o.VersionNumber).AsNoTracking().FirstOrDefaultAsync();
 
                 if (data == null)
@@ -335,8 +335,8 @@ namespace Cosmos.Common.Data.Logic
                 urlPath = "root";
             }
 
-            return await DbContext.Pages.WithPartitionKey(urlPath)
-                       .Where(a => a.Published.HasValue && a.Published <= DateTimeOffset.UtcNow)
+            return await DbContext.Pages
+                       .Where(a => a.UrlPath == urlPath && a.Published.HasValue && a.Published <= DateTimeOffset.UtcNow)
                        .Select(s => new ArticleViewModel
                        {
                            ArticleNumber = s.ArticleNumber,

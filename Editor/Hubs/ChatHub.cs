@@ -135,12 +135,6 @@ namespace Cosmos.Cms.Hubs
         {
             switch (editorType)
             {
-                case "ScriptEditor":
-                    {
-                        var model = await dbContext.NodeScripts.FindAsync(Guid.Parse(id));
-                        return JsonConvert.SerializeObject(model);
-                    }
-
                 case "FileEditor":
                     {
                         // Open a stream

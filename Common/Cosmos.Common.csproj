@@ -91,7 +91,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="AspNetCore.Identity.CosmosDb" Version="9.0.1" />
 		<PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.4.0" />
 		<PackageReference Include="Azure.Monitor.Query" Version="1.7.0" />
 		<PackageReference Include="MailChimp.Net.V3" Version="5.7.0" />
@@ -111,6 +110,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\..\AspNetCore.Identity.CosmosDb\AspNetCore.Identity.CosmosDb\AspNetCore.Identity.CosmosDb.csproj" />
 	  <ProjectReference Include="..\Cosmos.BlobService\Cosmos.BlobService.csproj" />
 	  <ProjectReference Include="..\Cosmos.ConnectionStrings\Cosmos.DynamicConfig.csproj" />
 	</ItemGroup>

@@ -162,18 +162,14 @@ namespace Cosmos.Editor.Data.Logic
         ///     <para>
         ///         If this is the first article, it is saved as root and published immediately.
         ///     </para>
+        ///     <para>
+        ///         Also creates a catalog entry for the article.
+        ///     </para>
         /// </remarks>
         public async Task<ArticleViewModel> CreateArticle(string title, Guid userId, Guid? templateId = null)
         {
             // Is this the first article? If so, make it the root and publish it.
-            var isFirstArticle = !await DbContext.Articles.CosmosAnyAsync();
-
-            var isValidTitle = await ValidateTitle(title, null);
-
-            if (!isValidTitle)
-            {
-                throw new ArgumentException($"Title '{title}' conflicts with another article or reserved word.");
-            }
+            var isFirstArticle = (await DbContext.Articles.CountAsync()) == 0;
 
             var defaultTemplate = string.Empty;
 
@@ -204,25 +200,14 @@ namespace Cosmos.Editor.Data.Logic
             }
 
             // Max returns the incorrect result.
-            int max;
-            if (!await DbContext.ArticleNumbers.CosmosAnyAsync())
-            {
-                max = 0;
-            }
-            else
-            {
-                max = await DbContext.ArticleNumbers.MaxAsync(m => m.LastNumber);
-            }
-
-            // Increment
-            max++;
+            int nextArticleNumber = isFirstArticle ? 1 : (await DbContext.ArticleNumbers.MaxAsync(m => m.LastNumber)) + 1;
 
             // New article
             title = title.Trim('/');
 
             var article = new Article()
             {
-                ArticleNumber = max,
+                ArticleNumber = nextArticleNumber,
                 Content = Ensure_ContentEditable_IsMarked(defaultTemplate),
                 StatusCode = (int)StatusCodeEnum.Active,
                 Title = title,
@@ -231,23 +216,27 @@ namespace Cosmos.Editor.Data.Logic
                 VersionNumber = 1,
                 Published = isFirstArticle ? DateTimeOffset.UtcNow : null,
                 UserId = userId.ToString(),
-                TemplateId = templateId
+                TemplateId = templateId,
+                BannerImage = string.Empty,
+
             };
 
             DbContext.Articles.Add(article);
             DbContext.ArticleNumbers.Add(new ArticleNumber()
             {
-                LastNumber = max
+                LastNumber = nextArticleNumber
             });
 
             await DbContext.SaveChangesAsync();
+
+            // Update the catalog.
+            await UpsertCatalogEntry(article);
 
             if (isFirstArticle)
             {
                 await PublishArticle(article);
             }
 
-            await CreateCatalogEntry(article);
 
             return await BuildArticleViewModel(article, "en-US");
         }
@@ -275,14 +264,14 @@ namespace Cosmos.Editor.Data.Logic
 
             if (entry == null)
             {
-                entry = await CreateCatalogEntry(article);
+                entry = await UpsertCatalogEntry(article);
             }
 
             return entry;
         }
 
         /// <summary>
-        ///     Makes an article the new home page.
+        ///     Makes an article the new home page and updates the page catalog.
         /// </summary>
         /// <param name="model">New home page post model.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
@@ -313,9 +302,6 @@ namespace Cosmos.Editor.Data.Logic
 
             await DbContext.SaveChangesAsync();
 
-            // Publish the old home page as a regular page (also update catalog entry).
-            await PublishArticle(oldHomeArticle.OrderBy(o => o.VersionNumber).LastOrDefault(f => f.Published.HasValue));
-
             foreach (var article in newHomeArticle)
             {
                 article.UrlPath = "root";
@@ -323,10 +309,16 @@ namespace Cosmos.Editor.Data.Logic
 
             await DbContext.SaveChangesAsync();
 
-            var published = newHomeArticle.OrderBy(o => o.VersionNumber).LastOrDefault(f => f.Published.HasValue);
+            var oldHome = oldHomeArticle.OrderBy(o => o.VersionNumber).LastOrDefault(f => f.Published.HasValue);
+            var newHome = newHomeArticle.OrderBy(o => o.VersionNumber).LastOrDefault(f => f.Published.HasValue);
+
+            // Publish the old home page as a regular page (also update catalog entry).
+            await PublishArticle(oldHome);
+            await UpsertCatalogEntry(oldHome);
 
             // Publish the new home page as a regular page (also update catalog entry).
-            await PublishArticle(published);
+            await PublishArticle(newHome);
+            await UpsertCatalogEntry(newHome);
         }
 
         /// <summary>
@@ -464,6 +456,9 @@ namespace Cosmos.Editor.Data.Logic
         ///             <see cref="ArticleLogic.BuildArticleViewModel(Article, string, bool)" />.
         ///         </item>
         ///         <item>
+        ///             Creates or updates the catalog entry.
+        ///         </item>
+        ///         <item>
         ///            <see cref="Article.Updated"/> property is automatically updated with current UTC date and time.
         ///         </item>
         ///     </list>
@@ -532,7 +527,7 @@ namespace Cosmos.Editor.Data.Logic
             await SaveTitleChange(article, oldTitle);
 
             // Update the catalog entry -- happens before publishing.
-            await CreateCatalogEntry(article);
+            await UpsertCatalogEntry(article);
 
             // HANDLE PUBLISHING OF AN ARTICLE
             // This can be a new or existing article.
@@ -710,7 +705,7 @@ namespace Cosmos.Editor.Data.Logic
         }
 
         /// <summary>
-        /// Unpublishes an article.
+        /// Unpublishes an article and updates the catalog.
         /// </summary>
         /// <param name="articleNumber">Article nymber.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
@@ -731,6 +726,7 @@ namespace Cosmos.Editor.Data.Logic
 
             await DbContext.SaveChangesAsync();
 
+            // Update the catalog entry for this article.
             var catalog = await DbContext.ArticleCatalog.Where(w => w.ArticleNumber == articleNumber).ToListAsync();
             foreach (var item in catalog)
             {
@@ -1379,7 +1375,7 @@ namespace Cosmos.Editor.Data.Logic
             foreach (var articleNumber in missing)
             {
                 var last = await DbContext.Articles.Where(w => w.ArticleNumber == articleNumber && w.Published != null).OrderBy(o => o.VersionNumber).LastOrDefaultAsync();
-                await CreateCatalogEntry(last);
+                await UpsertCatalogEntry(last);
             }
         }
 
@@ -1428,61 +1424,60 @@ namespace Cosmos.Editor.Data.Logic
         /// </remarks>
         private async Task<List<CdnResult>> PublishArticle(Article article)
         {
-            if (article.Published.HasValue)
+            if (!article.Published.HasValue)
             {
-                // If the article is already published, then remove the other published versions.
-                var others = await DbContext.Articles.Where(
-                    w => w.ArticleNumber == article.ArticleNumber
-                    && w.Published != null
-                    && w.Id != article.Id).ToListAsync();
-
-                var now = DateTimeOffset.Now;
-
-                // If published in the future, then keep the last published article
-                if (article.Published.Value > now)
-                {
-                    // Keep the article pulished just before this one
-                    var oneTokeep = others.Where(
-                        w => w.Published <= now // other published date is before the article
-                        && w.VersionNumber < article.VersionNumber).OrderByDescending(o => o.VersionNumber).FirstOrDefault();
-
-                    if (oneTokeep != null)
-                    {
-                        others.Remove(oneTokeep);
-                    }
-
-                    // Also keep the other articles that are published between now and before the current article
-                    var othersToKeep = others.Where(
-                        w => w.Published.Value > now // Save items published after now, and...
-                        && w.Published.Value < article.Published.Value // published before the current article
-                        && w.VersionNumber < article.VersionNumber) // and are a version number before this one.
-                        .ToList();
-
-                    foreach (var o in othersToKeep)
-                    {
-                        others.Remove(o);
-                    }
-                }
-
-                // Now remove the other ones published
-                foreach (var item in others)
-                {
-                    item.Published = null;
-                }
-
-                await DbContext.SaveChangesAsync();
-
-                // Resets the expiration dates, based on the last published article
-                await UpdateVersionExpirations(article.ArticleNumber);
-
-                // Update the published pages collection
-                return await UpsertPublishedPage(article.ArticleNumber);
+                return null;
             }
+            // If the article is already published, then remove the other published versions.
+            var others = await DbContext.Articles.Where(
+                w => w.ArticleNumber == article.ArticleNumber
+                && w.Published != null
+                && w.Id != article.Id).ToListAsync();
+
+            var now = DateTimeOffset.Now;
+
+            // If published in the future, then keep the last published article
+            if (article.Published.Value > now)
+            {
+                // Keep the article pulished just before this one
+                var oneTokeep = others.Where(
+                    w => w.Published <= now // other published date is before the article
+                    && w.VersionNumber < article.VersionNumber).OrderByDescending(o => o.VersionNumber).FirstOrDefault();
+
+                if (oneTokeep != null)
+                {
+                    others.Remove(oneTokeep);
+                }
+
+                // Also keep the other articles that are published between now and before the current article
+                var othersToKeep = others.Where(
+                    w => w.Published.Value > now // Save items published after now, and...
+                    && w.Published.Value < article.Published.Value // published before the current article
+                    && w.VersionNumber < article.VersionNumber) // and are a version number before this one.
+                    .ToList();
+
+                foreach (var o in othersToKeep)
+                {
+                    others.Remove(o);
+                }
+            }
+
+            // Now remove the other ones published
+            foreach (var item in others)
+            {
+                item.Published = null;
+            }
+
+            await DbContext.SaveChangesAsync();
+
+            // Resets the expiration dates, based on the last published article
+            await UpdateVersionExpirations(article.ArticleNumber);
 
             // Make sure the catalog is up to date.
             await CheckCatalogEntries();
 
-            return null;
+            // Update the published pages collection
+            return await UpsertPublishedPage(article.ArticleNumber);
         }
 
         /// <summary>
@@ -1704,7 +1699,7 @@ namespace Cosmos.Editor.Data.Logic
         /// Upon title change:
         /// <list type="bullet">
         /// <item>Updates title for article and it's versions</item>
-        /// <item>Updates the article catalog</item>
+        /// <item>Updates the article catalog for child entries.</item>
         /// <item>Updates title of all child articles</item>
         /// <item>Creates an automatic redirect</item>
         /// <item>Updates base tags for all articles changed</item>
@@ -1727,12 +1722,6 @@ namespace Cosmos.Editor.Data.Logic
                 article.ArticleNumber
             };
 
-            // Validate that title is not already taken.
-            if (!await ValidateTitle(newTitle, article.ArticleNumber))
-            {
-                throw new ArgumentException($"Title '{newTitle}' already taken");
-            }
-
             var oldUrl = NormailizeArticleUrl(oldTitle);
             var newUrl = NormailizeArticleUrl(newTitle);
 
@@ -1754,11 +1743,11 @@ namespace Cosmos.Editor.Data.Logic
 
                     // Make sure base tag is set properly.
                     UpdateHeadBaseTag(subArticle);
-
+                    await DbContext.SaveChangesAsync();
+                    await UpsertCatalogEntry(subArticle);
                     articleNumbersToUpdate.Add(article.ArticleNumber);
                 }
 
-                DbContext.Articles.UpdateRange(subArticles);
 
                 // Remove any conflicting redirects
                 var conflictingRedirects = await DbContext.Articles.Where(a => a.Content == newUrl && a.Title.ToLower().Equals("redirect")).ToListAsync();
@@ -1771,6 +1760,7 @@ namespace Cosmos.Editor.Data.Logic
 
                 // Update base href
                 UpdateHeadBaseTag(article);
+                await DbContext.SaveChangesAsync();
 
                 // Add redirects if published
                 if (article.Published.HasValue)
@@ -1795,9 +1785,8 @@ namespace Cosmos.Editor.Data.Logic
 
                     // Add redirect here
                     DbContext.Pages.Add(entity);
+                    await DbContext.SaveChangesAsync();
                 }
-
-                await DbContext.SaveChangesAsync();
             }
 
             // We have to change the title and paths for all versions now, since the last publish.
@@ -1829,8 +1818,6 @@ namespace Cosmos.Editor.Data.Logic
                 art.Updated = DateTime.Now.ToUniversalTime();
                 art.UrlPath = article.UrlPath;
             }
-
-            DbContext.Articles.UpdateRange(versions);
 
             await DbContext.SaveChangesAsync();
         }
@@ -1934,7 +1921,7 @@ namespace Cosmos.Editor.Data.Logic
         /// Creates or updates a catalog entry.
         /// </summary>
         /// <param name="article">Article from which to derive the catalog entry.</param>
-        private async Task<CatalogEntry> CreateCatalogEntry(Article article)
+        private async Task<CatalogEntry> UpsertCatalogEntry(Article article)
         {
             var lastVersion = await DbContext.Articles.Where(a => a.ArticleNumber == article.ArticleNumber).OrderByDescending(o => o.VersionNumber).LastOrDefaultAsync();
 

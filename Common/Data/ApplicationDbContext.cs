@@ -18,6 +18,7 @@ namespace Cosmos.Common.Data
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Diagnostics;
     using Microsoft.Extensions.DependencyInjection;
+    using MySql.EntityFrameworkCore.Extensions;
 
     /// <summary>
     ///     Database Context for Cosmos CMS.
@@ -99,11 +100,6 @@ namespace Cosmos.Common.Data
         ///     Gets or sets website layouts.
         /// </summary>
         public DbSet<Layout> Layouts { get; set; }
-
-        /// <summary>
-        /// Gets or sets node Scripts.
-        /// </summary>
-        public DbSet<NodeScript> NodeScripts { get; set; }
 
         /// <summary>
         /// Gets or sets metrics for the site.
@@ -275,94 +271,104 @@ namespace Cosmos.Common.Data
         /// <param name="modelBuilder">DB Context model builder.</param>
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // DEFAULT CONTAINER ENTITIES
-            modelBuilder.HasDefaultContainer("CosmosCms");
+            if (this.Database.IsCosmos())
+            {
+                // DEFAULT CONTAINER ENTITIES
+                modelBuilder.HasDefaultContainer("CosmosCms");
 
-            modelBuilder.Entity<Contact>()
-                .ToContainer("CosmosCms")
-                .HasPartitionKey(k => k.Id)
-                .HasKey(k => k.Id);
+                modelBuilder.Entity<Contact>()
+                    .ToContainer("CosmosCms")
+                    .HasPartitionKey(k => k.Id)
+                    .HasKey(k => k.Id);
 
-            modelBuilder.Entity<NodeScript>()
-                .ToContainer("CosmosCms")
-                .HasPartitionKey(k => k.Id)
-                .HasKey(k => k.Id);
+                modelBuilder.Entity<TotpToken>()
+                    .ToContainer("CosmosCms")
+                    .HasPartitionKey(k => k.Id)
+                    .HasKey(k => k.Id);
 
-            modelBuilder.Entity<TotpToken>()
-                .ToContainer("CosmosCms")
-                .HasPartitionKey(k => k.Id)
-                .HasKey(k => k.Id);
+                // Need to make a convertion so article number can be used as a partition key
+                modelBuilder.Entity<ArticleNumber>()
+                    .ToContainer("ArticleNumber")
+                    .HasPartitionKey(k => k.Id)
+                    .HasKey(k => k.Id);
 
-            // Need to make a convertion so article number can be used as a partition key
-            modelBuilder.Entity<ArticleNumber>()
-                .ToContainer("ArticleNumber")
-                .HasPartitionKey(k => k.Id)
-                .HasKey(k => k.Id);
+                modelBuilder.Entity<Article>()
+                    .Property(e => e.ArticleNumber)
+                    .HasConversion<string>();
 
-            modelBuilder.Entity<Article>()
-                .Property(e => e.ArticleNumber)
-                .HasConversion<string>();
+                modelBuilder.Entity<Article>()
+                    .ToContainer("Articles")
+                    .HasPartitionKey(a => a.ArticleNumber)
+                    .HasKey(article => article.Id);
 
-            modelBuilder.Entity<Article>()
-                .ToContainer("Articles")
-                .HasPartitionKey(a => a.ArticleNumber)
-                .HasKey(article => article.Id);
+                modelBuilder.Entity<ArticleLock>()
+                    .ToContainer("ArticleLocks")
+                    .HasPartitionKey(a => a.Id)
+                    .HasKey(article => article.Id);
 
-            modelBuilder.Entity<ArticleLock>()
-                .ToContainer("ArticleLocks")
-                .HasPartitionKey(a => a.Id)
-                .HasKey(article => article.Id);
+                modelBuilder.Entity<ArticleLog>()
+                    .ToContainer("ArticleLogs")
+                    .HasPartitionKey(k => k.Id)
+                    .HasKey(log => log.Id);
 
-            modelBuilder.Entity<ArticleLog>()
-                .ToContainer("ArticleLogs")
-                .HasPartitionKey(k => k.Id)
-                .HasKey(log => log.Id);
+                modelBuilder.Entity<CatalogEntry>().OwnsMany(o => o.ArticlePermissions);
 
-            modelBuilder.Entity<CatalogEntry>().OwnsMany(o => o.ArticlePermissions);
+                modelBuilder.Entity<CatalogEntry>()
+                    .Property(e => e.ArticleNumber)
+                    .HasConversion<string>();
 
-            modelBuilder.Entity<CatalogEntry>()
-                .Property(e => e.ArticleNumber)
-                .HasConversion<string>();
+                modelBuilder.Entity<CatalogEntry>()
+                    .ToContainer("ArticleCatalog")
+                    .HasPartitionKey(k => k.ArticleNumber)
+                    .HasKey(log => log.ArticleNumber);
 
-            modelBuilder.Entity<CatalogEntry>()
-                .ToContainer("ArticleCatalog")
-                .HasPartitionKey(k => k.ArticleNumber)
-                .HasKey(log => log.ArticleNumber);
+                modelBuilder.Entity<Layout>()
+                    .ToContainer("Layouts")
+                    .HasPartitionKey(a => a.Id)
+                    .HasKey(article => article.Id);
 
-            modelBuilder.Entity<Layout>()
-                .ToContainer("Layouts")
-                .HasPartitionKey(a => a.Id)
-                .HasKey(article => article.Id);
+                modelBuilder.Entity<PublishedPage>()
+                    .ToContainer("Pages")
+                    .HasPartitionKey(a => a.UrlPath)
+                    .HasKey(article => article.Id);
 
-            modelBuilder.Entity<PublishedPage>()
-                .ToContainer("Pages")
-                .HasPartitionKey(a => a.UrlPath)
-                .HasKey(article => article.Id);
+                modelBuilder.Entity<Setting>()
+                    .ToContainer("Settings")
+                    .HasPartitionKey(a => a.Id)
+                    .HasKey(article => article.Id);
 
-            modelBuilder.Entity<Setting>()
-                .ToContainer("Settings")
-                .HasPartitionKey(a => a.Id)
-                .HasKey(article => article.Id);
+                modelBuilder.Entity<Template>()
+                    .ToContainer("Templates")
+                    .HasPartitionKey(k => k.Id)
+                    .HasKey(node => node.Id);
 
-            modelBuilder.Entity<Template>()
-                .ToContainer("Templates")
-                .HasPartitionKey(k => k.Id)
-                .HasKey(node => node.Id);
+                modelBuilder.Entity<AuthorInfo>()
+                    .ToContainer("AuthorInfo")
+                    .HasPartitionKey(k => k.Id)
+                    .HasKey(k => k.Id);
 
-            modelBuilder.Entity<AuthorInfo>()
-                .ToContainer("AuthorInfo")
-                .HasPartitionKey(k => k.Id)
-                .HasKey(k => k.Id);
+                modelBuilder.Entity<Metric>()
+                    .ToContainer("Metrics")
+                    .HasPartitionKey(k => k.Id)
+                    .HasKey(k => k.Id);
 
-            modelBuilder.Entity<Metric>()
-                .ToContainer("Metrics")
-                .HasPartitionKey(k => k.Id)
-                .HasKey(k => k.Id);
+                modelBuilder.Entity<DataProtectionKey>()
+                    .ToContainer("DataProtection")
+                    .HasPartitionKey(k => k.Id)
+                    .HasKey(k => k.Id);
+            }
+            else if (Database.IsMySql())
+            {
+                modelBuilder.Entity<Article>()
+                    .HasIndex(a => a.ArticleNumber);
 
-            modelBuilder.Entity<DataProtectionKey>()
-                .ToContainer("DataProtection")
-                .HasPartitionKey(k => k.Id)
-                .HasKey(k => k.Id);
+                modelBuilder.Entity<PublishedPage>()
+                    .HasIndex(p => p.UrlPath);
+
+                modelBuilder.Entity<CatalogEntry>()
+                    .HasIndex(p => new { p.UrlPath });
+            }
+
 
             base.OnModelCreating(modelBuilder);
         }

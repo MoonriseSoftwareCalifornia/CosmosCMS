@@ -38,33 +38,6 @@ namespace Cosmos.Cms.Common.Services.Configurations
         public CosmosStartup(IConfiguration configuration)
         {
             this.configuration = configuration;
-
-            // Add Azure Key Vault to config?
-            var useAzureVault = GetValue<bool>("CosmosUseAzureVault");
-            if (useAzureVault)
-            {
-                var builder = new ConfigurationBuilder();
-
-                builder.AddConfiguration(this.configuration);
-
-                var useDefaultCredential = GetValue<bool>("CosmosUseDefaultCredential");
-
-                if (useDefaultCredential)
-                {
-                    builder.AddAzureKeyVault(new Uri(GetValue<string>("CosmosAzureVaultUrl")), new DefaultAzureCredential());
-                }
-                else
-                {
-                    builder.AddAzureKeyVault(
-                        new Uri(GetValue<string>("CosmosAzureVaultUrl")),
-                        new ClientSecretCredential(
-                                GetValue<string>("CosmosAzureVaultTenantId"),
-                                GetValue<string>("CosmosAzureVaultClientId"),
-                                GetValue<string>("CosmosAzureVaultClientSecret")));
-                }
-
-                this.configuration = builder.Build();
-            }
         }
 
         /// <summary>

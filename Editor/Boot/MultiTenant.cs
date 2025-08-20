@@ -7,11 +7,6 @@
 
 namespace Cosmos.Editor.Boot
 {
-    using System;
-    using System.Text.RegularExpressions;
-    using System.Threading.RateLimiting;
-    using System.Threading.Tasks;
-    using System.Web;
     using AspNetCore.Identity.CosmosDb.Extensions;
     using Azure.Identity;
     using Cosmos.BlobService;
@@ -37,6 +32,12 @@ namespace Cosmos.Editor.Boot
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Newtonsoft.Json.Serialization;
+    using System;
+    using System.Linq;
+    using System.Text.RegularExpressions;
+    using System.Threading.RateLimiting;
+    using System.Threading.Tasks;
+    using System.Web;
 
     /// <summary>
     ///  Creates a multi-tenant web application.
@@ -88,10 +89,33 @@ namespace Cosmos.Editor.Boot
 
             builder.Services.AddTransient(serviceProvider =>
             {
-                var options = new DbContextOptionsBuilder<DynamicConfigDbContext>()
-                    .UseCosmos(connectionString: configConnectionString, databaseName: "configs")
-                    .Options;
-                return new DynamicConfigDbContext(options);
+                var options = new DbContextOptionsBuilder<DynamicConfigDbContext>();
+
+                if (connectionString.Contains("User ID", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    options.UseSqlServer(connectionString);
+                }
+                else if (connectionString.Contains("uid=", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    options.UseMySQL(connectionString);
+                }
+                else
+                {
+                    var conpartsDict = connectionString.Split(";").Where(w => !string.IsNullOrEmpty(w)).Select(part => part.Split('=')).ToDictionary(sp => sp[0], sp => sp[1]);
+                    var endpoint = conpartsDict["AccountEndpoint"];
+                    var cosmosIdentityDbName = builder.Configuration.GetValue<string>("CosmosIdentityDbName");
+
+                    if (conpartsDict["AccountKey"] == "AccessToken")
+                    {
+                        options.UseCosmos(endpoint, new DefaultAzureCredential(), cosmosIdentityDbName);
+                    }
+                    else
+                    {
+                        options.UseCosmos(connectionString, cosmosIdentityDbName);
+                    }
+                }
+
+                return new DynamicConfigDbContext(options.Options);
             });
 
             // Note that this is scoped, meaning for each request this is regenerated.
@@ -99,6 +123,45 @@ namespace Cosmos.Editor.Boot
             // string information.
             builder.Services.AddTransient((serviceProvider) =>
             {
+                var options = new DbContextOptionsBuilder<ApplicationDbContext>();
+                if (connectionString.Contains("User ID", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    options.UseSqlServer(connectionString);
+                }
+                else if (connectionString.Contains("uid=", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    options.UseMySQL(connectionString);
+                }
+                else
+                {
+                    var cosmosIdentityDbName = builder.Configuration.GetValue<string>("CosmosIdentityDbName");
+                    var cosmosRegionName = builder.Configuration.GetValue<string>("CosmosRegionName");
+                    var conpartsDict = connectionString.Split(";").Where(w => !string.IsNullOrEmpty(w)).Select(part => part.Split('=')).ToDictionary(sp => sp[0], sp => sp[1]);
+                    var endpoint = conpartsDict["AccountEndpoint"];
+                    if (string.IsNullOrEmpty(cosmosRegionName))
+                    {
+                        if (conpartsDict["AccountKey"] == "AccessToken")
+                        {
+                            options.UseCosmos(endpoint, new DefaultAzureCredential(), cosmosIdentityDbName);
+                        }
+                        else
+                        {
+                            options.UseCosmos(connectionString, cosmosIdentityDbName);
+                        }
+                    }
+                    else
+                    {
+                        if (conpartsDict["AccountKey"] == "AccessToken")
+                        {
+                            options.UseCosmos(endpoint, new DefaultAzureCredential(), cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
+                        }
+                        else
+                        {
+                            options.UseCosmos(connectionString, cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
+                        }
+                    }
+                }
+
                 return new ApplicationDbContext(serviceProvider);
             });
 
