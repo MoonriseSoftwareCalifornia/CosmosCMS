@@ -77,7 +77,7 @@ namespace Cosmos.Publisher.Controllers
 
             var client = storageContext.GetAppendBlobClient(HttpContext.Request.Path);
 
-            if (client != null || await client.ExistsAsync())
+            if (client != null && await client.ExistsAsync())
             {
                 try
                 {

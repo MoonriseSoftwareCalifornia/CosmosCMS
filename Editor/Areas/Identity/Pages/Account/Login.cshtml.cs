@@ -263,7 +263,8 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                             return Page();
                         } 
 
-                        var db = Editor.Data.ApplicationDbContextUtilities.GetDbContextForDomain(Input.WebsiteDomainName, services);
+                        var db = isMultiTenantEditor ? Editor.Data.ApplicationDbContextUtilities.GetDbContextForDomain(Input.WebsiteDomainName, services) :
+                            services.GetRequiredService<ApplicationDbContext>();
 
                         var totpProvider = new OneTimeTokenProvider<IdentityUser>(db, logger);
                         var token = await totpProvider.GenerateAsync(user);
@@ -315,6 +316,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
                 var result =
                     await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, false);
+
                 if (result.Succeeded)
                 {
                     if (isMultiTenantEditor)
