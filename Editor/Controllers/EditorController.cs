@@ -950,15 +950,15 @@ namespace Cosmos.Cms.Controllers
                     return View(viewName: "__NewHomePage", model: model);
                 }
 
-                try
-                {
-                    _ = await articleLogic.CreateArticle(model.Title, Guid.Parse(await GetUserId()), model.TemplateId);
-                }
-                catch (Exception ex)
-                {
-                    ModelState.AddModelError("Title", ex.Message);
-                    return View(viewName: "__NewHomePage", model: model);
-                }
+                //try
+                //{
+                 _ = await articleLogic.CreateArticle(model.Title, Guid.Parse(await GetUserId()), model.TemplateId);
+                //}
+                //catch (Exception ex)
+                //{
+                //    ModelState.AddModelError("Title", ex.Message);
+                //    return View(viewName: "__NewHomePage", model: model);
+                //}
 
                 return Redirect("/");
             }

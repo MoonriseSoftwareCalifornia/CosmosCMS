@@ -73,11 +73,7 @@ namespace Cosmos.Cms.Common.Services.Configurations
 
             cosmosConfig.SiteSettings.CosmosRequiresAuthentication = GetValue<bool?>("CosmosRequiresAuthentication") ?? false;
 
-            var localLogin = GetValue<bool?>("AllowLocalAccounts");
-            if (localLogin.HasValue)
-            {
-                cosmosConfig.SiteSettings.AllowLocalAccounts = localLogin.Value;
-            }
+            cosmosConfig.SiteSettings.AllowLocalAccounts = GetValue<bool?>("AllowLocalAccounts") ?? true;
 
             // Gets the architecture type.
             cosmosConfig.SiteSettings.CosmosArchitecture = GetValue<string>("CosmosArchitecture");
@@ -101,6 +97,11 @@ namespace Cosmos.Cms.Common.Services.Configurations
 
             // Cosmos storage Endpoints
             cosmosConfig.SiteSettings.BlobPublicUrl = GetValue<string>("AzureBlobStorageEndPoint");
+            if (string.IsNullOrEmpty(cosmosConfig.SiteSettings.BlobPublicUrl))
+            {
+                // If no blob storage endpoint is set, default to the root.
+                cosmosConfig.SiteSettings.BlobPublicUrl = "/";
+            }
 
             // With static website, the public website is the blob storage static website.
             cosmosConfig.SiteSettings.PublisherUrl = GetValue<string>("CosmosPublisherUrl");

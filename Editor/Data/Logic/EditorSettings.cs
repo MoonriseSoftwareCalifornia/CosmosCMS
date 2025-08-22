@@ -211,7 +211,7 @@ namespace Cosmos.Editor.Data.Logic
 
                 if (string.IsNullOrWhiteSpace(config.BlobPublicUrl))
                 {
-                    throw new ArgumentNullException("'AzureBlobStorageEndPoint' is not set.");
+                    config.BlobPublicUrl = "/";
                 }
 
                 if (string.IsNullOrWhiteSpace(config.PublisherUrl))
