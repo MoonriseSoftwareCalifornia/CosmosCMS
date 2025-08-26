@@ -178,12 +178,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
             var totpToken = Request.Query["ccmsopt"].ToString().Trim('"');
             if (!string.IsNullOrWhiteSpace(totpToken))
             {
-                if (string.IsNullOrWhiteSpace(website))
-                {
-                    ModelState.AddModelError(string.Empty, "Website domain name is required for TOTP login.");
-                    return Page();
-                }
-
                 // Process the TOTP token.
                 return await ProcessTotp(returnUrl, totpToken, website);
             }
@@ -271,22 +265,34 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                         if (token != null)
                         {
                             var port = Request.Host.Port.HasValue ? $":{Request.Host.Port.Value}" : string.Empty;
-                            
-                            var link = $"https://{Request.Host.Host}";
+
+                            var link = new StringBuilder();
+
+                            link.Append($"https://{Request.Host.Host}");
                             if (!string.IsNullOrWhiteSpace(port) && port != ":80" && port != ":443")
                             {
-                                link += port;
+                                link.Append(port);
                             }
 
-                            link += $"/Identity/Account/Login?ccmsopt={token}&ccmsemail={Uri.EscapeDataString(user.Email)}&website={Uri.EscapeDataString(Input.WebsiteDomainName)}&returnUrl={Uri.EscapeDataString(returnUrl)}";
+                            link.Append($"/Identity/Account/Login?ccmsopt={token}&ccmsemail={Uri.EscapeDataString(user.Email)}");
+
+                            if (isMultiTenantEditor)
+                            {
+                                link.Append($"&website={Uri.EscapeDataString(Input.WebsiteDomainName)}");
+                            }
+
+                            if (!string.IsNullOrWhiteSpace(returnUrl) && returnUrl != "/")
+                            {
+                                link.Append($"&returnUrl={Uri.EscapeDataString(returnUrl)}");
+                            }
 
                             var msg = new StringBuilder();
-                            msg.AppendLine($"<p><a href='{link}'>Click this link</a> to log into your website.</p>");
+                            msg.AppendLine($"<p><a href='{link.ToString()}'>Click this link</a> to log into your website.</p>");
                             msg.AppendLine($"<p>This link is active for 20 minutes and can only be used once.</p>");
                             msg.AppendLine("<p>If you did not request this, please contact your website administrator.</p>");
                             msg.AppendLine($"<p></p>");
                             msg.AppendLine($"<p>If the link does not work, paste the following URL into your web browser:</p>");
-                            msg.AppendLine($"<p>{link}</p>");
+                            msg.AppendLine($"<p>{link.ToString()}</p>");
 
                             // Send the token via email.
                             await this.emailSender.SendEmailAsync(
