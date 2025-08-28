@@ -74,7 +74,10 @@
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.MicrosoftAccount" Version="9.0.8" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="9.0.8" />
 		<PackageReference Include="Microsoft.Graph" Version="5.91.0" />
-		
+		<PackageReference Include="Microsoft.TypeScript.MSBuild" Version="5.8.5">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
 		<PackageReference Include="NUglify" Version="1.21.17" />
 		<PackageReference Include="PasswordGenerator" Version="2.1.0" />

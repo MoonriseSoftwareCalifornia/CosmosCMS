@@ -98,6 +98,12 @@
           "Microsoft.Graph.Core": "3.2.4"
         }
       },
+      "Microsoft.TypeScript.MSBuild": {
+        "type": "Direct",
+        "requested": "[5.8.5, )",
+        "resolved": "5.9.2",
+        "contentHash": "gSGqCVSkuRbuPn/kt0pdfOW+DiP5Ewc9KAL4KqF+huJFXCFqx0mJIegWq0ER9GYguaPi+KwDSXFeNVlqkPiODA=="
+      },
       "Microsoft.VisualStudio.Azure.Containers.Tools.Targets": {
         "type": "Direct",
         "requested": "[1.22.1, )",
@@ -1882,7 +1888,7 @@
           "Azure.Extensions.AspNetCore.DataProtection.Blobs": "[1.5.1, )",
           "Azure.Identity": "[1.14.2, )",
           "Azure.Storage.Files.Shares": "[12.23.0, )",
-          "Cosmos.DynamicConfig": "[9.0.12.25, )"
+          "Cosmos.DynamicConfig": "[9.0.12.26, )"
         }
       },
       "cosmos.common": {
@@ -1891,8 +1897,8 @@
           "AspNetCore.Identity.CosmosDb": "[9.1.0.2-preview, )",
           "Azure.Extensions.AspNetCore.Configuration.Secrets": "[1.4.0, )",
           "Azure.Monitor.Query": "[1.7.1, )",
-          "Cosmos.BlobService": "[9.0.12.25, )",
-          "Cosmos.DynamicConfig": "[9.0.12.25, )",
+          "Cosmos.BlobService": "[9.0.12.26, )",
+          "Cosmos.DynamicConfig": "[9.0.12.26, )",
           "MailChimp.Net.V3": "[5.7.0, )",
           "Microsoft.AspNetCore.DataProtection.EntityFrameworkCore": "[9.0.8, )",
           "Microsoft.AspNetCore.Identity.EntityFrameworkCore": "[9.0.8, )",
