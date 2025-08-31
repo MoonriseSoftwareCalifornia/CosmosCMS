@@ -1277,7 +1277,7 @@ namespace Cosmos.Cms.Controllers
 
             query = query.Skip(pageNo * pageSize).Take(pageSize);
 
-            return View(await query.ToListAsync());
+            return View(query.ToList());
         }
 
         /// <summary>
