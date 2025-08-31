@@ -54,6 +54,11 @@ namespace Cosmos.BlobService
                 azureBlobStorageContainerName = "$web";
             }
 
+            if (string.IsNullOrEmpty(azureBlobStorageEndPoint))
+            {
+                azureBlobStorageEndPoint = "/";
+            }
+
             if (string.IsNullOrEmpty(azureBlobStorageConnectionString) == false &&
                 string.IsNullOrEmpty(azureBlobStorageContainerName) == false &&
                 string.IsNullOrEmpty(azureBlobStorageEndPoint) == false)

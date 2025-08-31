@@ -3,7 +3,7 @@
     Layout = null;
     var article = (ArticleViewModel)ViewData["Article"];
 
-    var frameUrl = "/Home/CcmsContentIndex?target=" + Model.UrlPath;
+    var frameUrl = "/Home/CcmsContentIndex?target=" + Model.UrlPath.Replace("/Home/CcmsContentIndex?target=", "");
 
     if (!string.IsNullOrEmpty(Context.Request.Query["articleNumber"]))
     {

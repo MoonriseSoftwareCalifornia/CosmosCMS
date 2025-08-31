@@ -100,7 +100,7 @@ namespace Cosmos.Common.Models
         ///    Gets or sets information about the editor or author who created the article.
         /// </summary>
         [Display(Name = "Author information")]
-        public virtual string AuthorInfo { get; set; } = null;
+        public virtual string AuthorInfo { get; set; } = string.Empty;
 
         /// <summary>
         ///     Gets or sets date and time of when this was published.
@@ -145,26 +145,26 @@ namespace Cosmos.Common.Models
         /// <remarks>
         /// Calculated using the expires value (if present).
         /// </remarks>
-        public int CacheDuration { get; set; }
+        public int CacheDuration { get; set; } = 0;
 
         /// <summary>
         /// Gets or sets article banner image.
         /// </summary>
-        public string BannerImage { get; set; }
+        public string BannerImage { get; set; } = string.Empty;
 
         /// <summary>
         /// Gets or sets the open graph image.
         /// </summary>
-        public string OGImage { get; set; }
+        public string OGImage { get; set; } = string.Empty;
 
         /// <summary>
         /// Gets or sets the open graph description.
         /// </summary>
-        public string OGDescription { get; set; }
+        public string OGDescription { get; set; } = string.Empty;
 
         /// <summary>
         /// Gets or sets the open graph URL.
         /// </summary>
-        public string OGUrl { get; set; }
+        public string OGUrl { get; set; } = string.Empty;
     }
 }

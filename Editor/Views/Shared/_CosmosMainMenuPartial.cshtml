@@ -144,22 +144,18 @@
 
         ddMenu.html("Loading...");
 
-        //var urlPath = $("#navbarEditDropdown").attr("data-ccms-urlpath");
-
         const iframe = document.getElementById("iFrameWebPage");
         const iframeWin = iframe.contentWindow || iframe.contentDocument.parentWindow;
 
         pageTitle = iframeWin.document.head.querySelector("meta[name='cwps-meta-path-title']").content;
         pagePath = iframeWin.document.head.querySelector("meta[name='cwps-meta-path-url']").content;
 
-        const urlPath = iframeWin.ccmsUrlPath;
-
         let loadList = @((Model != null).ToString().ToLower());
 
         let showEditDropDown = false;
 
         if (loadList) {
-            $.get("/Home/EditList?target=" + urlPath, function (data) {
+            $.get("/Home/EditList?target=" + iframeWin.parent.location.pathname, function (data) {
 
                 ddMenu.html("");
                 $.each(data, function (index, element) {

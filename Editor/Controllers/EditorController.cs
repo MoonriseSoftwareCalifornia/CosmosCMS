@@ -1450,7 +1450,7 @@ namespace Cosmos.Cms.Controllers
                 return Unauthorized();
             }
 
-            var article = await dbContext.Articles.Where(w => w.ArticleNumber == id).LastOrDefaultAsync();
+            var article = await dbContext.Articles.Where(w => w.ArticleNumber == id).OrderBy(o => o.VersionNumber).LastOrDefaultAsync();
 
             var entry = await articleLogic.GetCatalogEntry(article);
 

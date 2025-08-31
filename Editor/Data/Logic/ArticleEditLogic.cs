@@ -497,7 +497,7 @@ namespace Cosmos.Editor.Data.Logic
             article.Updated = DateTimeOffset.UtcNow;
             article.HeaderJavaScript = model.HeadJavaScript;
             article.FooterJavaScript = model.FooterJavaScript;
-            article.BannerImage = model.BannerImage;
+            article.BannerImage = model.BannerImage ?? string.Empty;
             article.UserId = userId.ToString();
 
             // =======================================================
@@ -516,6 +516,7 @@ namespace Cosmos.Editor.Data.Logic
                 article.Id = Guid.NewGuid();
                 article.VersionNumber = article.VersionNumber + 1;
                 model.VersionNumber = article.VersionNumber;
+                model.BannerImage = string.Empty;
                 DbContext.Articles.Add(article);
             }
 

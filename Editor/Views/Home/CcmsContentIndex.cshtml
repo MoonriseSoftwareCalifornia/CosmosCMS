@@ -36,52 +36,9 @@
     @Html.Raw(Model.Layout.FooterHtmlContent)
     @Html.Raw(Model.FooterJavaScript)
     <script>
-        var ccmsUrlPath = "@Model.UrlPath";
         window.addEventListener("load", () => {
             window.parent.setupIframe();
-            // var anchors = document.querySelectorAll("a");
-            // anchors.forEach(function (a) {
-            //     const url = a.href.toLowerCase();
-            //     if (url.startsWith("http:") || url.startsWith("https:")) {
-            //             // Possible external URL
-            //         a.addEventListener("click", function (event) {
-            //             event.preventDefault();
-            //             window.parent.location.href = url;
-            //         });
-            //     } else {
-            //         // Internal URL
-            //         a.href = "/Home/CcmsContentIndex?target=" + a.href;
-            //     }
-            // });
         });
-
-        // $(document).ready(function() {
-        //     $(document).on('click', function(event) {
-        //         event.preventDefault();
-        //         var target = $(event.target);
-        //         if (target.is('a')) {
-        //             alert('You clicked an anchor!');
-        //         } else {
-        //             alert('You clicked something else.');
-        //         }
-        //     });
-        // });
-        // window.addEventListener("click", function (e) {
-        //     const target = e.delegateTarget ?? e.target;
-        //     if (target.tagName.toLowerCase() === "a") {
-        //         e.preventDefault();
-        //         parent.closeDropDowns();
-        //         const a = e.delegateTarget.activeElement;
-        //         const url = a.getAttribute("href").toLowerCase();
-        //         if (url.startsWith("http:") || url.startsWith("https:")) {
-        //             window.parent.location.href = url;
-        //         } else {
-        //             // Internal URL
-        //             window.location.href = "/Home/CcmsContentIndex?target=" + url;
-        //         }
-        //     }
-        // });
-
     </script>
 </body>
 </html>
