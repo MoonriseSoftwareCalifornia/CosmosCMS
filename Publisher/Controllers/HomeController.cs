@@ -17,7 +17,6 @@ using Cosmos.Common;
 using Cosmos.Common.Data;
 using Cosmos.Common.Data.Logic;
 using Cosmos.Common.Models;
-using Cosmos.Common.Services.PowerBI;
 using Cosmos.MicrosoftGraph;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -48,7 +47,6 @@ namespace Cosmos.Cms.Publisher.Controllers
         /// <param name="options">Cosmos options.</param>
         /// <param name="dbContext">Database Context.</param>
         /// <param name="storageContext">Storage context.</param>
-        /// <param name="powerBiTokenService">Service used to get tokens from Power BI.</param>
         /// <param name="emailSender">Email services.</param>
         public HomeController(
             IServiceProvider services,
@@ -58,9 +56,8 @@ namespace Cosmos.Cms.Publisher.Controllers
             IOptions<CosmosConfig> options,
             ApplicationDbContext dbContext,
             StorageContext storageContext,
-            PowerBiTokenService powerBiTokenService,
             IEmailSender emailSender)
-            : base(articleLogic, dbContext, storageContext, logger, powerBiTokenService, emailSender)
+            : base(articleLogic, dbContext, storageContext, logger, emailSender)
         {
             this.configuration = configuration;
             this.logger = logger;

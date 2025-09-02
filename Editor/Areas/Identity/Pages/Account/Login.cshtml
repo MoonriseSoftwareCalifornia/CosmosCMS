@@ -6,7 +6,6 @@
 @model LoginModel
 @{
     ViewData["Title"] = "Log in";
-    var isMultiTenant = (bool)ViewData["IsMultiTenantEditor"];
     var totpSent = (bool?)ViewData["TOTP_Sent"] ?? false;
 }
 
@@ -64,13 +63,6 @@
                                         <span asp-validation-for="Input.Email" class="badge text-bg-danger"></span>
                                         <a id="resend-confirmation" class="text-light" asp-page="./ResendEmailConfirmation">Resend email confirmation</a>
                                     </div>
-                                    @if (isMultiTenant)
-                                    {
-                                        <label asp-for="Input.WebsiteDomainName"></label>
-                                        <div class="input-group mb-3">
-                                            <input asp-for="Input.WebsiteDomainName" class="form-control" />
-                                        </div>
-                                    }
                                     <div>
                                         @if (Model.ExternalLogins?.Count > 0)
                                         {
@@ -94,8 +86,8 @@
                                     </div>
                                     <div class="form-group">
                                         <button type="submit" class="btn btn-dark me-1">Log in with password</button>
-                                        or
-                                        <button id="btnLoginLink" type="button" class="btn btn-dark ms-1">Send login link via Email <i class="fa-solid fa-circle-arrow-right"></i></button>
+                                       @*  or
+                                        <button id="btnLoginLink" type="button" class="btn btn-dark ms-1">Send login link via Email <i class="fa-solid fa-circle-arrow-right"></i></button> *@
                                     </div>
                                 </form>
                             </section>
@@ -137,7 +129,6 @@
     </div>
 
     <script>
-        const isMultiTenant = @isMultiTenant.ToString().ToLower();
 
         $(document).ready(function () {
 
@@ -160,26 +151,6 @@
                     return;
                 }
 
-                if (isMultiTenant) {
-                    if (!websiteDomainName) {
-                        alert("Please enter your website domain name.");
-                        return;
-                    }
-                    // Set the cookie here
-                    const daysToExpire = 30;
-                    const date = new Date();
-                    date.setTime(date.getTime() + (daysToExpire * 24 * 60 * 60 * 1000));
-                    const expires = ';expires=' + date.toUTCString();
-                    
-                    // Set the action here
-                    const actionUrl = '@Url.Page("./Login", new { ReturnUrl = Model.ReturnUrl })';
-                    if (isMultiTenant) {
-                        $("#account").attr("action", actionUrl + "?website=" + encodeURIComponent(websiteDomainName));
-                    } else {
-                        $("#account").attr("action", actionUrl);
-                    }
-                }
-
                 this.submit(); // Allow form to proceed.
             });
 
@@ -193,11 +164,7 @@
 
                 // Set the action here
                 const actionUrl = '@Url.Page("./Login", new { ReturnUrl = Model.ReturnUrl })';
-                if (isMultiTenant) {
-                    $("#account").attr("action", actionUrl + "?website=" + encodeURIComponent(websiteDomainName));
-                } else {
-                    $("#account").attr("action", actionUrl);
-                }
+                $("#account").attr("action", actionUrl);
 
                 $("#account").submit();
             });

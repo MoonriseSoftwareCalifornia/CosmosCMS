@@ -73,6 +73,8 @@ namespace Cosmos.Editor.Data.Logic
                 dbContext,
                 config,
                 memoryCache,
+                ((EditorSettings)settings).PublisherUrl,
+                ((EditorSettings)settings).BlobPublicUrl,
                 true)
         {
             this.viewRenderService = viewRenderService;
@@ -1199,7 +1201,7 @@ namespace Cosmos.Editor.Data.Logic
         /// <remarks>Only works if the environment variable 'CosmosStaticWebPages' is set to 'true'.</remarks>
         public async Task CreateStaticWebpage(PublishedPage page)
         {
-            if (CosmosOptions.Value.SiteSettings.StaticWebPages)
+            if (settings.StaticWebPages)
             {
                 if (page.UrlPath.StartsWith("/pub", StringComparison.OrdinalIgnoreCase))
                 {
@@ -1401,17 +1403,7 @@ namespace Cosmos.Editor.Data.Logic
         /// <returns>Publisher URL.</returns>
         private string GetPublisherUrl()
         {
-            var urlRoot = string.Empty;
-            if (this.CosmosOptions.Value.SiteSettings.MultiTenantEditor)
-            {
-                urlRoot = settings.GetEditorConfig().PublisherUrl.TrimEnd('/') + "/";
-            }
-            else
-            {
-                urlRoot = this.CosmosOptions.Value.SiteSettings.PublisherUrl.TrimEnd('/') + "/";
-            }
-
-            return urlRoot;
+            return settings.GetEditorConfig().PublisherUrl.TrimEnd('/') + "/";
         }
 
         /// <summary>
@@ -1487,7 +1479,7 @@ namespace Cosmos.Editor.Data.Logic
         /// <param name="filePath">Path to page to remove.</param>
         private void DeleteStaticWebpage(string filePath)
         {
-            if (CosmosOptions.Value.SiteSettings.StaticWebPages)
+            if (settings.StaticWebPages)
             {
                 if (filePath.StartsWith("/pub", StringComparison.OrdinalIgnoreCase))
                 {
@@ -1501,7 +1493,7 @@ namespace Cosmos.Editor.Data.Logic
 
         private async Task CreateStaticRedirectPage(string fromUrl, string toUrl)
         {
-            if (CosmosOptions.Value.SiteSettings.StaticWebPages)
+            if (settings.StaticWebPages)
             {
                 if (fromUrl.Equals(toUrl, StringComparison.OrdinalIgnoreCase))
                 {
@@ -1908,8 +1900,11 @@ namespace Cosmos.Editor.Data.Logic
         private async Task DeleteCatalogEntry(int articleNumber)
         {
             var catalogEntry = await DbContext.ArticleCatalog.FirstOrDefaultAsync(f => f.ArticleNumber == articleNumber);
-            DbContext.ArticleCatalog.Remove(catalogEntry);
-            await DbContext.SaveChangesAsync();
+            if (catalogEntry != null)
+            {
+                DbContext.ArticleCatalog.Remove(catalogEntry);
+                await DbContext.SaveChangesAsync();
+            }
         }
 
         private string UpdatePrefix(string oldprefix, string newPrefix, string targetString)

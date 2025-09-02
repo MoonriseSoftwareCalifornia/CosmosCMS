@@ -45,8 +45,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         private readonly ILogger<RegisterModel> logger;
         private readonly IOptions<SiteSettings> options;
         private readonly IServiceProvider services;
-        private readonly IConfiguration configuration;
-        private readonly bool isMultiTenantEditor;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RegisterModel"/> class.
@@ -67,9 +65,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
             this.logger = logger;
             this.options = options;
             this.services = services;
-            this.configuration = configuration;
-            isMultiTenantEditor = this.configuration.GetValue<bool?>("MultiTenantEditor") ?? false;
-
             this.emailSender = (ICosmosEmailSender)emailSender;
         }
 
@@ -133,20 +128,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> OnGetAsync(string returnUrl = null, string website = "")
         {
-            if (isMultiTenantEditor)
-            {
-                Input.NeedsCookieSet = await DynamicConfigurationProvider.NeedsAccountCookieSet(configuration, HttpContext);
-
-                Input.WebsiteDomainName = DynamicConfigurationProvider.GetTenantDomainNameFromRequest(configuration, HttpContext);
-
-                if (Input.NeedsCookieSet)
-                {
-                    // We need to get the account set before processing the rest.
-                    ViewData["ShowLogin"] = false;
-                    return Page();
-                }
-            }
-
             ReturnUrl = returnUrl;
             ExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 
@@ -164,32 +145,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         {
             returnUrl = returnUrl ?? Url.Content("~/");
 
-            // Check to see if we need a cookie set
-            // to distinguish which tenant to log in to.
-            if (Input.NeedsCookieSet)
-            {
-                if (string.IsNullOrWhiteSpace(Input.WebsiteDomainName))
-                {
-                    ModelState.AddModelError(string.Empty, "Please enter a valid domain name.");
-                    return Page();
-                }
-
-                // Automatically add the website domain name if given in the query string.
-                if (await DynamicConfigurationProvider.ValidateDomainName(configuration, Input.WebsiteDomainName))
-                {
-                    // Automatically add the website domain name if given in the query string.
-                    Response.Cookies.Append(DynamicConfigurationProvider.StandardCookieName, Input.WebsiteDomainName);
-                    Input.NeedsCookieSet = false;
-                }
-                else
-                {
-                    ModelState.AddModelError("Input.WebsiteDomainName", "Please enter a valid domain name.");
-                }
-
-                ViewData["ShowLogin"] = false;
-                return Page();
-            }
-
             ExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 
             if (!Input.AgreeToTerms)
@@ -199,7 +154,9 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
 
             if (ModelState.IsValid)
             {
-                DbContext.Database.EnsureCreated();
+                var t = DbContext.Database.EnsureCreatedAsync();
+                t.Wait();
+
                 var user = new IdentityUser { UserName = Input.Email, Email = Input.Email };
                 var result = await UserManager.CreateAsync(user, Input.Password);
                 if (result.Succeeded)
@@ -293,22 +250,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
             [Display(Name = "Confirm password")]
             [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
             public string ConfirmPassword { get; set; }
-
-            /// <summary>
-            /// Gets or sets a value indicating whether the cookie needs to be set.
-            /// </summary>
-            public bool NeedsCookieSet { get; set; }
-
-            /// <summary>
-            /// Gets or sets the website that forwarded the registration request.
-            /// </summary>
-            public string Referrer { get; set; }
-
-            /// <summary>
-            /// Gets or sets website domain name.
-            /// </summary>
-            [Display(Name = "Website")]
-            public string WebsiteDomainName { get; set; } = string.Empty;
         }
     }
 }

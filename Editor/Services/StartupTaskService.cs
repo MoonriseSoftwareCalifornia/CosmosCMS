@@ -62,7 +62,7 @@ namespace Cosmos.Editor.Services
                 }
             }
 
-            await managementUtilities.EnsureDatabasesAreConfigured();
+            // await managementUtilities.EnsureDatabasesAreConfigured();
         }
 
         /// <summary>

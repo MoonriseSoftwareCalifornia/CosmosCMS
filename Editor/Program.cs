@@ -16,12 +16,12 @@ var versionNumber = Assembly.GetExecutingAssembly().GetName().Version.ToString()
 if (isMultiTenantEditor)
 {
     System.Console.WriteLine($"Starting Cosmos CMS Editor in Multi-Tenant Mode (v.{versionNumber}).");
-    var app = Cosmos.Editor.Boot.MultiTenant.BuildApp(builder).Result;
+    var app = Cosmos.Editor.Boot.MultiTenant.BuildApp(builder);
     await app.RunAsync();
 }
 else
 {
     System.Console.WriteLine($"Starting Cosmos CMS Editor in Single-Tenant Mode (v.{versionNumber}).");
-    var app = Cosmos.Editor.Boot.SingleTenant.BuildApp(builder).Result;
+    var app = Cosmos.Editor.Boot.SingleTenant.BuildApp(builder);
     await app.RunAsync();
 }

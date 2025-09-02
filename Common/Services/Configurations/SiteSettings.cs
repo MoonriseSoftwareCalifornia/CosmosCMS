@@ -54,53 +54,6 @@ namespace Cosmos.Cms.Common.Services.Configurations
         public string CosmosArchitecture { get; set; } = string.Empty;
 
         /// <summary>
-        /// Gets or sets uRI of the blob public website (can be same as publisher URL).
-        /// </summary>
-        /// <remarks>
-        /// Publisher URL can be the same as blob public url, but this requires
-        /// request rules to be setup that route requests to blob storage. See documentation
-        /// for more information.
-        /// </remarks>
-        [Required]
-        [Display(Name = "Blob Url")]
-        public string BlobPublicUrl { get; set; } = string.Empty;
-
-        /// <summary>
-        ///     Gets or sets a value indicating whether determines if current instance is an editor.
-        /// </summary>
-        /// <remarks>Set in ArticleEditLogic constructor and no where else.</remarks>
-        public bool IsEditor { get; set; } = false;
-
-        /// <summary>
-        ///     Gets or sets uRI of the publisher website.
-        /// </summary>
-        [Url]
-        [Required]
-        [Display(Name = "Website (Publisher) Url")]
-        public string PublisherUrl { get; set; } = string.Empty;
-
-        /// <summary>
-        ///    Gets or sets a value indicating whether publish to static website.
-        /// </summary>
-        public bool StaticWebPages { get; set; } = false;
-
-        /// <summary>
-        /// Gets or sets content Security Policy (CSP).
-        /// </summary>
-        /// <remarks>
-        /// <para>
-        /// Content Security Policy (CSP) is an added layer of security
-        /// that helps to detect and mitigate certain types of attacks,
-        /// including Cross Site Scripting (XSS) and data injection attacks.
-        /// These attacks are used for everything from data theft to site
-        /// defacement to distribution of malware.
-        /// </para>
-        /// <para>See: <see href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP"/>.</para>
-        /// </remarks>
-        [Display(Name = "Content-Security-Policy")]
-        public string ContentSecurityPolicy { get; set; } = string.Empty;
-
-        /// <summary>
         /// Gets or sets a value indicating whether publisher requires authentication.
         /// </summary>
         public bool CosmosRequiresAuthentication { get; set; } = false;

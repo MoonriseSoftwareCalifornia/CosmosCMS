@@ -42,9 +42,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         private readonly ILogger<LoginModel> logger;
         private readonly IOptions<SiteSettings> options;
         private readonly IServiceProvider services;
-        private readonly IConfiguration configuration;
-        private readonly bool isMultiTenantEditor;
-        private readonly ICosmosEmailSender emailSender;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LoginModel"/> class.
@@ -65,9 +62,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
             this.logger = logger;
             this.options = options;
             this.services = services;
-            this.configuration = configuration;
-            isMultiTenantEditor = this.configuration.GetValue<bool?>("MultiTenantEditor") ?? false;
-            this.emailSender = emailSender as ICosmosEmailSender ?? throw new ArgumentNullException(nameof(emailSender), "Email sender cannot be null.");
         }
 
         /// <summary>
@@ -127,16 +121,11 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> OnGetAsync(string returnUrl = "", string website = "")
         {
-
-            HttpContext.Response.Cookies.Delete(DynamicConfigurationProvider.StandardCookieName);
-
             // Get a clean return URL.
             returnUrl = await GetReturnUrl(returnUrl);
 
-            ViewData["IsMultiTenantEditor"] = isMultiTenantEditor;
-
             //// Allow setup if enabled for a non-multitenant editor.
-            if (!isMultiTenantEditor && options.Value.AllowSetup)
+            if (options.Value.AllowSetup)
             {
                 await DbContext.Database.EnsureCreatedAsync();
             }
@@ -154,22 +143,11 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                 }
             }
 
-            if (isMultiTenantEditor)
-            {
-                // Get the cookie value for the website domain name.
-                Input.WebsiteDomainName = DynamicConfigurationProvider.GetTenantDomainNameFromRequest(configuration, HttpContext);
-
-                if (!await DynamicConfigurationProvider.ValidateDomainName(configuration, Input.WebsiteDomainName))
-                {
-                    Input.WebsiteDomainName = string.Empty;
-                    HttpContext.Response.Cookies.Delete(DynamicConfigurationProvider.StandardCookieName);
-                }
-            }
-
             ExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 
             // If there are no users yet, go strait to the register page.
-            if (!isMultiTenantEditor && await UserManager.Users.CountAsync() == 0)
+            var userCount = await DbContext.Users.CountAsync();
+            if (userCount == 0)
             {
                 return RedirectToPage("Register");
             }
@@ -178,12 +156,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
             var totpToken = Request.Query["ccmsopt"].ToString().Trim('"');
             if (!string.IsNullOrWhiteSpace(totpToken))
             {
-                if (string.IsNullOrWhiteSpace(website))
-                {
-                    ModelState.AddModelError(string.Empty, "Website domain name is required for TOTP login.");
-                    return Page();
-                }
-
                 // Process the TOTP token.
                 return await ProcessTotp(returnUrl, totpToken, website);
             }
@@ -199,119 +171,12 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> OnPostAsync(string returnUrl = "", string website = "")
         {
-            ViewData["IsMultiTenantEditor"] = isMultiTenantEditor;
             returnUrl = await GetReturnUrl(returnUrl);
                         
-            if (isMultiTenantEditor)
-            {
-                if (string.IsNullOrWhiteSpace(Input.WebsiteDomainName))
-                {
-                    ModelState.AddModelError("Input.WebsiteDomainName", "Please enter youe website's domain name.");
-                    return Page();
-                }
-
-                var domainName = DynamicConfigurationProvider.GetTenantDomainNameFromRequest(configuration, HttpContext);
-                if (string.IsNullOrWhiteSpace(domainName))
-                {
-                    throw new InvalidOperationException("Website domain name is required for multi-tenant editor.");
-                }
-
-                if (!await DynamicConfigurationProvider.ValidateDomainNameAndEmailAddress(configuration, Input.WebsiteDomainName, Input.Email))
-                {
-                    ModelState.AddModelError("Input.Email", $"Email address '{Input.Email}' for website '{Input.WebsiteDomainName}' not found.");
-                    return Page();
-                }
-
-                var database = configuration.GetValue<string>($"CosmosIdentityDbName") ?? "cosmoscms";
-                var databaseStatus = ApplicationDbContext.EnsureDatabaseExists(DbContext, false, database);
-                if (databaseStatus == DbStatus.DoesNotExist)
-                {
-                    ModelState.AddModelError(string.Empty, "Database not setup. Please setup using the multi-tenant administrator.");
-                    return Page();
-                }
-
-                if (databaseStatus == DbStatus.ExistsWithMissingContainers)
-                {
-                    ModelState.AddModelError(string.Empty, "Database setup not complete. Complete setup using the multi-tenant administrator.");
-                    return Page();
-                }
-
-                if (databaseStatus == DbStatus.ExistsWithNoUsers)
-                {
-                    return RedirectToPage("Register");
-                }
-            }
-
             ExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 
             if (ModelState.IsValid)
             {
-                if (Input.UseTotp)
-                {
-                    var user = await UserManager.FindByEmailAsync(Input.Email);
-                    if (user != null)
-                    {
-                        if (user.EmailConfirmed == false)
-                        {
-                            ModelState.AddModelError(string.Empty, "Email address not confirmed.");
-                            return Page();
-                        }
-
-                        if (user.LockoutEnabled && user.LockoutEnd.HasValue && user.LockoutEnd > DateTimeOffset.UtcNow)
-                        {
-                            ModelState.AddModelError(string.Empty, "User account is locked out.");
-                            return Page();
-                        } 
-
-                        var db = isMultiTenantEditor ? Editor.Data.ApplicationDbContextUtilities.GetDbContextForDomain(Input.WebsiteDomainName, services) :
-                            services.GetRequiredService<ApplicationDbContext>();
-
-                        var totpProvider = new OneTimeTokenProvider<IdentityUser>(db, logger);
-                        var token = await totpProvider.GenerateAsync(user);
-                        if (token != null)
-                        {
-                            var port = Request.Host.Port.HasValue ? $":{Request.Host.Port.Value}" : string.Empty;
-                            
-                            var link = $"https://{Request.Host.Host}";
-                            if (!string.IsNullOrWhiteSpace(port) && port != ":80" && port != ":443")
-                            {
-                                link += port;
-                            }
-
-                            link += $"/Identity/Account/Login?ccmsopt={token}&ccmsemail={Uri.EscapeDataString(user.Email)}&website={Uri.EscapeDataString(Input.WebsiteDomainName)}&returnUrl={Uri.EscapeDataString(returnUrl)}";
-
-                            var msg = new StringBuilder();
-                            msg.AppendLine($"<p><a href='{link}'>Click this link</a> to log into your website.</p>");
-                            msg.AppendLine($"<p>This link is active for 20 minutes and can only be used once.</p>");
-                            msg.AppendLine("<p>If you did not request this, please contact your website administrator.</p>");
-                            msg.AppendLine($"<p></p>");
-                            msg.AppendLine($"<p>If the link does not work, paste the following URL into your web browser:</p>");
-                            msg.AppendLine($"<p>{link}</p>");
-
-                            // Send the token via email.
-                            await this.emailSender.SendEmailAsync(
-                                    Input.Email,
-                                    "Login Link",
-                                    msg.ToString());
-
-                            logger.LogInformation($"Login link sent to user '{Input.Email}' via email.");
-
-                            ViewData["TOTP_Sent"] = true;
-                            return Page();
-                        }
-                        else
-                        {
-                            ModelState.AddModelError(string.Empty, "Failed to generate login link.");
-                            return Page();
-                        }
-                    }
-                    else
-                    {
-                        ModelState.AddModelError("Input_Email", "Invalid email address.");
-                        return Page();
-                    }
-                }
-
                 // This doesn't count login failures towards account lockout
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
                 var result =
@@ -319,21 +184,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
 
                 if (result.Succeeded)
                 {
-                    if (isMultiTenantEditor)
-                    {
-                        HttpContext.Response.Cookies.Delete(DynamicConfigurationProvider.StandardCookieName);
-
-                        // Set the cookie for the website domain name.
-                        HttpContext.Response.Cookies.Append(
-                            DynamicConfigurationProvider.StandardCookieName,
-                            Input.WebsiteDomainName,
-                            new CookieOptions
-                            {
-                                HttpOnly = true,
-                                Secure = true
-                            });
-                    }
-
                     logger.LogInformation("User logged in.");
                     var test = SignInManager.IsSignedIn(User);
                     return LocalRedirect(returnUrl);
@@ -392,7 +242,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
             }
 
             var totpProvider = new OneTimeTokenProvider<IdentityUser>(DbContext, logger);
-            var result = await totpProvider.ValidateAsync(totpToken, UserManager, user, true);
+            var result = await totpProvider.ValidateAsync(totpToken, user, true);
 
             if (result == OneTimeTokenProvider<IdentityUser>.VerificationResult.Valid)
             {
@@ -402,21 +252,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
 
                 if (SignInManager.IsSignedIn(principal))
                 {
-                    if (isMultiTenantEditor)
-                    {
-                        HttpContext.Response.Cookies.Delete(DynamicConfigurationProvider.StandardCookieName);
-
-                        // Set the cookie for the website domain name.
-                        HttpContext.Response.Cookies.Append(
-                            DynamicConfigurationProvider.StandardCookieName,
-                            website,
-                            new CookieOptions
-                            {
-                                HttpOnly = true,
-                                Secure = true
-                            });
-                    }
-
                     return LocalRedirect(returnUrl);
                 }
             }
@@ -431,7 +266,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
                 ModelState.AddModelError(string.Empty, "Login link has expired.");
                 return Page();
             }
-
 
             ModelState.AddModelError(string.Empty, "Could not log in user account.");
             return Page();

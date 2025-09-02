@@ -20,6 +20,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.BlobService", "Cosmo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.Editor", "Editor\Cosmos.Editor.csproj", "{AC03A22A-54ED-5D8A-9B92-90FD1178AD85}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetCore.Identity.FlexDb", "AspNetCore.Identity.FlexDb\AspNetCore.Identity.FlexDb.csproj", "{F9CA3D7A-2839-16ED-5B32-587FE415EDDF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -46,6 +48,10 @@ Global
 		{AC03A22A-54ED-5D8A-9B92-90FD1178AD85}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AC03A22A-54ED-5D8A-9B92-90FD1178AD85}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AC03A22A-54ED-5D8A-9B92-90FD1178AD85}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F9CA3D7A-2839-16ED-5B32-587FE415EDDF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F9CA3D7A-2839-16ED-5B32-587FE415EDDF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F9CA3D7A-2839-16ED-5B32-587FE415EDDF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F9CA3D7A-2839-16ED-5B32-587FE415EDDF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

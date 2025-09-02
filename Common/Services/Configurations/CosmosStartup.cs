@@ -75,9 +75,6 @@ namespace Cosmos.Cms.Common.Services.Configurations
 
             cosmosConfig.SiteSettings.AllowLocalAccounts = GetValue<bool?>("AllowLocalAccounts") ?? true;
 
-            // Gets the architecture type.
-            cosmosConfig.SiteSettings.CosmosArchitecture = GetValue<string>("CosmosArchitecture");
-
             // Microsoft App ID
             cosmosConfig.SecretName = GetValue<string>("CosmosSecretName");
 
@@ -91,24 +88,6 @@ namespace Cosmos.Cms.Common.Services.Configurations
 
             cosmosConfig.SendGridConfig.EmailFrom = "no-reply@moonrise.net";
             cosmosConfig.SendGridConfig.SendGridKey = GetValue<string>("CosmosSendGridApiKey");
-
-            // Publish static web pages?
-            cosmosConfig.SiteSettings.StaticWebPages = GetValue<bool?>("CosmosStaticWebPages") ?? false;
-
-            // Cosmos storage Endpoints
-            cosmosConfig.SiteSettings.BlobPublicUrl = GetValue<string>("AzureBlobStorageEndPoint");
-            if (string.IsNullOrEmpty(cosmosConfig.SiteSettings.BlobPublicUrl))
-            {
-                // If no blob storage endpoint is set, default to the root.
-                cosmosConfig.SiteSettings.BlobPublicUrl = "/";
-            }
-
-            // With static website, the public website is the blob storage static website.
-            cosmosConfig.SiteSettings.PublisherUrl = GetValue<string>("CosmosPublisherUrl");
-
-            // Set the blob storage endpoint based on settings or configuration.
-            cosmosConfig.SiteSettings.BlobPublicUrl = (cosmosConfig.SiteSettings.MultiTenantEditor || cosmosConfig.SiteSettings.StaticWebPages) ? "/" :
-                cosmosConfig.SiteSettings.BlobPublicUrl?.TrimEnd('/');
 
             var editorUrl = GetValue<string>("CosmosEditorUrl");
 

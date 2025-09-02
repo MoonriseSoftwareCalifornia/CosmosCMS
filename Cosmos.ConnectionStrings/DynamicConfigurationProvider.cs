@@ -10,9 +10,11 @@ namespace Cosmos.DynamicConfig
     using Azure.Core;
     using Microsoft.AspNetCore.Http;
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore.Infrastructure;
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.Extensions.Configuration;
     using System.Text;
+    using System.Web;
 
     /// <summary>
     /// Gets connection strings and configuration values from the configuration file.
@@ -25,9 +27,8 @@ namespace Cosmos.DynamicConfig
         private readonly IConfiguration configuration;
         private readonly IHttpContextAccessor httpContextAccessor;
         private readonly IMemoryCache memoryCache;
-        private readonly bool isMultiTenantEditor;
-        private readonly StringBuilder errorMessages = new StringBuilder();
-        private readonly string? connectionString;
+        private readonly StringBuilder errorMessages = new();
+        private readonly string connectionString;
 
         /// <summary>
         /// Gets the database connection
@@ -45,11 +46,6 @@ namespace Cosmos.DynamicConfig
         public string ErrorMesages => errorMessages.ToString();
 
         /// <summary>
-        ///  Gets the standard cookie name.
-        /// </summary>
-        public static string StandardCookieName => "CosmosWebsiteDomain";
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="ConnectionStringProvider"/> class.
         /// </summary>
         /// <param name="configuration">Connection configuration.</param>
@@ -63,12 +59,22 @@ namespace Cosmos.DynamicConfig
         {
             this.configuration = configuration;
             this.httpContextAccessor = httpContextAccessor;
-            this.memoryCache = memoryCache;
-            isMultiTenantEditor = this.configuration.GetValue<bool?>("MultiTenantEditor") ?? false;
-            var domainName = Domain.ToLower(); // Get the domain name from the HTTP context.
-            if (isMultiTenantEditor && !string.IsNullOrWhiteSpace(domainName))
+            if (this.httpContextAccessor == null || this.httpContextAccessor.HttpContext == null)
             {
-                connectionString = this.configuration.GetConnectionString("ConfigDbConnectionString") ?? string.Empty;
+                throw new ArgumentNullException(nameof(httpContextAccessor));
+            }
+            // Replace this line:
+            // connectionString = this.configuration.GetConnectionString("ConfigDbConnectionString");
+            // With the following to ensure non-null assignment:
+            connectionString = this.configuration.GetConnectionString("ConfigDbConnectionString") ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                throw new ArgumentException("Connection string 'ConfigDbConnectionString' not found or is empty.");
+            }
+            this.memoryCache = memoryCache;
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                throw new ArgumentException("Connection string 'ConfigDbConnectionString' not found.");
             }
         }
 
@@ -84,26 +90,12 @@ namespace Cosmos.DynamicConfig
         /// </list>
         /// <para>Note: This should ONLY be used for multi-tenant, single editor website setup.</para>
         /// </remarks>
-        private string Domain
+        public string DomainName
         {
             get
             {
-                return GetTenantDomainNameFromRequest(configuration, httpContextAccessor.HttpContext);
+                return GetTenantDomainNameFromRequest();
             }
-        }
-
-        /// <summary>
-        /// Gets the database name.
-        /// </summary>
-        /// <param name="domainName">Domain name</param>
-        /// <returns>Database name.</returns>
-        public string? GetDatabaseName(string domainName = "")
-        {
-            if (this.isMultiTenantEditor)
-            {
-                return GetTenantConnection(domainName)?.DbName;
-            }
-            return configuration.GetValue<string>($"CosmosIdentityDbName") ?? "cosmoscms";
         }
 
         /// <summary>
@@ -111,13 +103,14 @@ namespace Cosmos.DynamicConfig
         /// </summary>
         /// <param name="domainName">Domain name</param>
         /// <returns>Database connection string.</returns>
-        public string? GetDatabaseConnectionString(string domainName = "")
+        public string? GetDatabaseConnectionString(string domainName)
         {
-            if (this.isMultiTenantEditor)
+            if (string.IsNullOrWhiteSpace(domainName))
             {
-                return GetTenantConnection(domainName)?.DbConn;
+                domainName = GetTenantDomainNameFromRequest();
             }
-            return configuration.GetConnectionString("ApplicationDbContextConnection");
+            var connection = GetTenantConnection(domainName);
+            return connection?.DbConn;
         }
 
         /// <summary>
@@ -127,12 +120,12 @@ namespace Cosmos.DynamicConfig
         /// <returns>Database connection string.</returns>
         public string? GetStorageConnectionString(string domainName = "")
         {
-            var con = GetTenantConnection(domainName);
-            if (this.isMultiTenantEditor && con != null && !string.IsNullOrEmpty(con.StorageConn))
+            if (string.IsNullOrWhiteSpace(domainName))
             {
-                return con?.StorageConn;
+                domainName = GetTenantDomainNameFromRequest();
             }
-            return configuration.GetConnectionString("DataProtectionStorage");
+            var connection = GetTenantConnection(domainName);
+            return connection?.StorageConn;
         }
 
         /// <summary>
@@ -156,24 +149,6 @@ namespace Cosmos.DynamicConfig
         }
 
         /// <summary>
-        ///  Gets
-        /// </summary>
-        /// <param name="configuration"></param>
-        /// <param name="httpContext"></param>
-        /// <returns></returns>
-        public static string GetTenantDomainNameFromCookie(IConfiguration configuration, HttpContext httpContext)
-        {
-            // In order of priority
-            // 1. A set cookie
-            var cookieValue = httpContext.Request.Cookies[StandardCookieName];
-            if (!string.IsNullOrWhiteSpace(cookieValue))
-            {
-                return CleanUpDomainName(cookieValue);
-            }
-            return string.Empty;
-        }
-
-        /// <summary>
         /// Gets the tenant website domain name from the request.
         /// </summary>
         /// <param name="configuration">App configuration.</param>
@@ -190,33 +165,11 @@ namespace Cosmos.DynamicConfig
         /// </list>
         /// <para>Note: This should ONLY be used for multi-tenant, single editor website setup.</para>
         /// </remarks>
-        public static string GetTenantDomainNameFromRequest(IConfiguration configuration, HttpContext httpContext)
+        public string GetTenantDomainNameFromRequest()
         {
-            // In order of priority
-
-            // 1. Query string
-            var queryValue = (string?)httpContext.Request.Query["website"];
-            if (!string.IsNullOrWhiteSpace(queryValue))
-            {
-                return CleanUpDomainName(queryValue);
-            }
-
-            // 2. A set cookie
-            var cookieValue = httpContext.Request.Cookies[StandardCookieName];
-            if (!string.IsNullOrWhiteSpace(cookieValue))
-            {
-                return CleanUpDomainName(cookieValue);
-            }
-
-            // 3. referer header value
-            var refererValue = (string?) httpContext.Request.Headers[HttpHeader.Names.Referer];
-            if (!string.IsNullOrWhiteSpace(refererValue))
-            {
-                return CleanUpDomainName(refererValue);
-            }
-
-            // 4. If the referer is not set, then use the host name from the request.
-            return httpContext.Request.Host.Host;
+            var httpContext = httpContextAccessor.HttpContext ?? throw new InvalidOperationException("HTTP context is not available.");
+            var request = httpContext.Request;
+            return request == null ? throw new InvalidOperationException("HTTP request is not available.") : request.Host.Host;
         }
 
         /// <summary>
@@ -240,134 +193,58 @@ namespace Cosmos.DynamicConfig
         }
 
         /// <summary>
-        /// Indicates if the account cookie needs to be set.
-        /// </summary>
-        /// <returns>True or false.</returns>
-        /// <remarks>This also sets the ViewData['NeedsAccountCookieSet'] so that the view knows what to show.</remarks>
-        public static async Task<bool> NeedsAccountCookieSet(IConfiguration configuration, HttpContext httpContext)
-        {
-            var isMultiTenantEditor = configuration.GetValue<bool?>("MultiTenantEditor") ?? false;
-            if (!isMultiTenantEditor)
-            {
-                return false;
-            }
-
-            var cookieValue = DynamicConfigurationProvider.GetTenantDomainNameFromCookie(configuration, httpContext);
-            var domainName = DynamicConfigurationProvider.GetTenantDomainNameFromRequest(configuration, httpContext);
-            if ((domainName.Equals(cookieValue, StringComparison.CurrentCultureIgnoreCase) == true) && await DynamicConfigurationProvider.ValidateDomainName(configuration, domainName))
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        /// <summary>
         /// Tests to see if there is a connection defined for the specified domain name.
         /// </summary>
         /// <param name="configuration"></param>
         /// <param name="domainName"></param>
         /// <returns>Domain is valid (true) or not (false).</returns>
         /// <exception cref="ArgumentException"></exception>
-        public static async Task<bool> ValidateDomainName(IConfiguration configuration, string domainName)
+        public async Task<bool> ValidateDomainName(string domainName)
         {
             if (string.IsNullOrWhiteSpace(domainName))
             {
                 return false;
             }
 
-            var connectionString = configuration.GetConnectionString("ConfigDbConnectionString");
-
             if (string.IsNullOrWhiteSpace(connectionString))
             {
                 throw new ArgumentException("Connection string 'ConfigDbConnectionString' not found.");
             }
-
-            var options = new DbContextOptionsBuilder<DynamicConfigDbContext>()
-                    .UseCosmos(connectionString, databaseName: "configs")
-                    .Options;
-            using var dbContext = new DynamicConfigDbContext(options);
+            using var dbContext = GetDbContext();
             var result = await dbContext.Connections.FirstOrDefaultAsync(c => c.DomainNames.Any(a => a == domainName));
             return result != null;
         }
 
-        public static async Task<bool> ValidateDomainNameAndEmailAddress(IConfiguration configuration, string domainName, string emailAddress)
+        private DynamicConfigDbContext GetDbContext()
         {
-            if (string.IsNullOrWhiteSpace(domainName))
-            {
-                return false;
-            }
-
-            var connectionString = configuration.GetConnectionString("ConfigDbConnectionString");
-
-            if (string.IsNullOrWhiteSpace(connectionString))
-            {
-                throw new ArgumentException("Connection string 'ConfigDbConnectionString' not found.");
-            }
-
-            var options = new DbContextOptionsBuilder<DynamicConfigDbContext>()
-                    .UseCosmos(connectionString, databaseName: "configs")
-                    .Options;
-            using var dbContext = new DynamicConfigDbContext(options);
-            var result = await dbContext.Connections.FirstOrDefaultAsync(c => c.DomainNames.Any(a => a == domainName));
-
-            return result != null;
+            var options = AspNetCore.Identity.FlexDb.CosmosDbOptionsBuilder.GetDbOptions<DynamicConfigDbContext>(this.connectionString);
+            return new DynamicConfigDbContext(options);
         }
 
         private Connection? GetTenantConnection(string domainName)
         {
-            if (string.IsNullOrWhiteSpace(domainName))
-            {
-                domainName = Domain;
-            }
 
             if (string.IsNullOrEmpty(domainName))
-            {
-                var connectionString = configuration.GetConnectionString("ConfigDbConnectionString");
-
-                if (string.IsNullOrWhiteSpace(connectionString))
-                {
-                    throw new ArgumentException("Connection string 'ConfigDbConnectionString' not found.");
-                }
-
-                var storageConnection = configuration.GetConnectionString("AzureBlobStorageConnectionString");
-
-                if (string.IsNullOrWhiteSpace(storageConnection))
-                {
-                    throw new ArgumentException("Connection string 'AzureBlobStorageConnectionString' not found.");
-                }
-
-                return new Connection()
-                {
-                    Customer = "Moonrise Software LLC",
-                    DomainNames = new[] { "www.moonrise.net" },
-                    DbConn = connectionString,
-                    DbName = "cosmoscms",
-                    StorageConn = storageConnection
-                };
-            }
-
-            if (string.IsNullOrWhiteSpace(connectionString))
             {
                 return null;
             }
 
-            memoryCache.TryGetValue<Connection>(domainName, out var connection);
+            //memoryCache.TryGetValue<Connection>(domainName, out var connection);
 
-            if (connection == null)
+            //if (connection != null)
+            //{
+            //    return connection;
+            //}
+
+            var dbContext = GetDbContext();
+
+            var connections = dbContext.Connections.ToListAsync().Result;
+
+            var connection = dbContext.Connections.FirstOrDefaultAsync(c => c.DomainNames.Any(a => a == domainName)).Result;
+
+            if (connection != null)
             {
-                var options = new DbContextOptionsBuilder<DynamicConfigDbContext>()
-                        .UseCosmos(connectionString, databaseName: "configs")
-                        .Options;
-
-                using var dbContext = new DynamicConfigDbContext(options);
-                var result = dbContext.Connections.FirstOrDefaultAsync(c => c.DomainNames.Any(a => a == domainName));
-                result.Wait();
-                connection = result.Result;
-                if (connection != null)
-                {
-                    memoryCache.Set(Domain, connection, TimeSpan.FromMinutes(20));
-                }
+                memoryCache.Set<Connection>(domainName, connection, TimeSpan.FromMinutes(10));
             }
 
             return connection;

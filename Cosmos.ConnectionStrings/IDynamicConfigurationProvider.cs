@@ -17,13 +17,6 @@ namespace Cosmos.DynamicConfig
         bool IsMultiTenantConfigured { get; }
 
         /// <summary>
-        /// Get database name by domain name.
-        /// </summary>
-        /// <param name="domainName">Domain name.</param>
-        /// <returns>Database name.</returns>
-        string? GetDatabaseName(string domainName = "");
-
-        /// <summary>
         /// Get database connection string based on domain.
         /// </summary>
         /// <param name="domainName">domain name.</param>

@@ -7,13 +7,12 @@
 
 using System.Text.RegularExpressions;
 using System.Threading.RateLimiting;
-using AspNetCore.Identity.CosmosDb.Extensions;
+using AspNetCore.Identity.FlexDb.Extensions;
 using Azure.Identity;
 using Cosmos.BlobService;
 using Cosmos.Cms.Common.Services.Configurations;
 using Cosmos.Common.Data;
 using Cosmos.Common.Data.Logic;
-using Cosmos.Common.Services.PowerBI;
 using Cosmos.EmailServices;
 using Cosmos.MicrosoftGraph;
 using Microsoft.AspNetCore.Antiforgery;
@@ -146,10 +145,6 @@ if (entraIdOAuth != null && entraIdOAuth.IsConfigured())
         }
     });
 }
-
-// Add Power BI Token Service.
-builder.Services.AddScoped(typeof(PowerBiTokenService));
-builder.Services.Configure<PowerBiAuth>(builder.Configuration.GetSection("PowerBiAuth"));
 
 // https://docs.microsoft.com/en-us/aspnet/core/security/authentication/accconfirm?view=aspnetcore-3.1&tabs=visual-studio
 builder.Services.ConfigureApplicationCookie(o =>

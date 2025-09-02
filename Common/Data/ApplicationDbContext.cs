@@ -8,49 +8,23 @@
 namespace Cosmos.Common.Data
 {
     using System;
+    using System.Configuration;
     using System.Linq;
     using System.Threading.Tasks;
-    using Azure.Identity;
+    using AspNetCore.Identity.FlexDb;
     using Cosmos.DynamicConfig;
     using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.Azure.Cosmos;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Diagnostics;
-    using Microsoft.Extensions.DependencyInjection;
     using MySql.EntityFrameworkCore.Extensions;
 
     /// <summary>
     ///     Database Context for Cosmos CMS.
     /// </summary>
-    public class ApplicationDbContext : AspNetCore.Identity.CosmosDb.CosmosIdentityDbContext<IdentityUser, IdentityRole, string>, IDataProtectionKeyContext
+    public class ApplicationDbContext : CosmosIdentityDbContext<IdentityUser, IdentityRole, string>, IDataProtectionKeyContext
     {
-        private readonly IServiceProvider services;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ApplicationDbContext"/> class.
-        /// </summary>
-        /// <param name="options">Database context options.</param>
-        /// <param name="services">Service provider.</param>
-        public ApplicationDbContext(
-            DbContextOptions<ApplicationDbContext> options,
-            IServiceProvider services)
-            : base(options, true)
-        {
-            this.services = services;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ApplicationDbContext"/> class.
-        /// </summary>
-        /// <param name="services">Service provider.</param>
-        public ApplicationDbContext(
-            IServiceProvider services)
-            : base(GetDynamicOptions(services), true)
-        {
-            this.services = services;
-        }
-
         /// <summary>
         /// Initializes a new instance of the <see cref="ApplicationDbContext"/> class.
         /// </summary>
@@ -58,6 +32,18 @@ namespace Cosmos.Common.Data
         public ApplicationDbContext(
             DbContextOptions<ApplicationDbContext> options)
             : base(options, true)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ApplicationDbContext"/> class with connection string.
+        /// </summary>
+        /// <param name="connectionString">Connection string.</param>
+        /// <remarks>
+        /// Automatically determines if connection string is for Cosmos DB, MySQL or SQL Server.
+        /// </remarks>
+        public ApplicationDbContext(string connectionString)
+            : base(CosmosDbOptionsBuilder.GetDbOptions<ApplicationDbContext>(connectionString), true)
         {
         }
 
@@ -135,20 +121,47 @@ namespace Cosmos.Common.Data
         /// Ensure database exists and returns status.
         /// </summary>
         /// <param name="connectionString">Connection string.</param>
-        /// <param name="databaseName">Database name.</param>
-        /// <param name="setup">Setup database as well as test connection.</param>
         /// <returns>Success or not.</returns>
-        public static DbStatus EnsureDatabaseExists(string connectionString, string databaseName, bool setup)
+        public static DbStatus EnsureDatabaseExists(string connectionString)
         {
-            var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-            optionsBuilder.UseCosmos(connectionString: connectionString, databaseName: databaseName);
-            using var dbContext = new ApplicationDbContext(optionsBuilder.Options);
+            using var dbContext = new ApplicationDbContext(connectionString);
+            if (dbContext.Database.IsCosmos())
+            {
+                var databaseName = connectionString.Split(';').FirstOrDefault(s => s.StartsWith("Database=", StringComparison.InvariantCultureIgnoreCase))?.Split('=')[1];
+                var cosmosClient = dbContext.Database.GetCosmosClient();
+                var exists = DoesCosmosDatabaseExist(cosmosClient, databaseName).Result;
 
-            var result = dbContext.Database.EnsureCreatedAsync().GetAwaiter().GetResult();
+                if (exists == false)
+                {
+                    var task = dbContext.Database.EnsureCreatedAsync();
+                    task.Wait();
+
+                    if (task.IsFaulted)
+                    {
+                        return DbStatus.CreationFailed;
+                    }
+                }
+
+                var userCount = dbContext.Users.Select(s => s.Id).ToListAsync().Result;
+                if (userCount.Count == 0)
+                {
+                    return DbStatus.ExistsWithNoUsers;
+                }
+
+                return DbStatus.ExistsWithUsers;
+            }
+
+            var result = dbContext.Database.EnsureCreatedAsync().Result;
 
             if (result)
             {
-                return EnsureDatabaseExists(dbContext, setup, databaseName);
+                var userCount = dbContext.Users.CountAsync().Result;
+                if (userCount == 0)
+                {
+                    return DbStatus.ExistsWithNoUsers;
+                }
+
+                return DbStatus.ExistsWithUsers;
             }
 
             return DbStatus.CreationFailed;
@@ -232,16 +245,6 @@ namespace Cosmos.Common.Data
         }
 
         /// <summary>
-        /// Gets the database connection string.
-        /// </summary>
-        /// <returns>Database name.</returns>
-        public string GetDatabaseName()
-        {
-            var connectionStringProvider = this.services.GetRequiredService<IDynamicConfigurationProvider>();
-            return connectionStringProvider.GetDatabaseName();
-        }
-
-        /// <summary>
         ///     Determine if this service is configured.
         /// </summary>
         /// <returns>Indicates if context is configured and can connect.</returns>
@@ -256,11 +259,16 @@ namespace Cosmos.Common.Data
         /// <param name="optionsBuilder">DbContextOptionsBuilder.</param>
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            // Synchronous blocking on asynchronous methods can result in deadlock, and the
-            // Azure Cosmos DB SDK only supports async methods.
-            // https://docs.microsoft.com/en-us/ef/core/providers/cosmos/limitations#synchronous-and-blocking-calls
-            // TODO: Remove all synchronous calls to the database.
-            optionsBuilder.ConfigureWarnings(w => w.Ignore(CosmosEventId.SyncNotSupported));
+            var isCosmosDb = optionsBuilder.IsConfigured && optionsBuilder.Options.Extensions.Any(e => e is Microsoft.EntityFrameworkCore.Cosmos.Infrastructure.Internal.CosmosOptionsExtension);
+
+            if (isCosmosDb)
+            {
+                // Synchronous blocking on asynchronous methods can result in deadlock, and the
+                // Azure Cosmos DB SDK only supports async methods.
+                // https://docs.microsoft.com/en-us/ef/core/providers/cosmos/limitations#synchronous-and-blocking-calls
+                // TODO: Remove all synchronous calls to the database.
+                optionsBuilder.ConfigureWarnings(w => w.Ignore(CosmosEventId.SyncNotSupported));
+            }
 
             base.OnConfiguring(optionsBuilder);
         }
@@ -369,62 +377,25 @@ namespace Cosmos.Common.Data
                     .HasIndex(p => new { p.UrlPath });
             }
 
-
             base.OnModelCreating(modelBuilder);
         }
 
-        private static DbContextOptions<ApplicationDbContext> GetDynamicOptions(IServiceProvider services)
+        private static async Task<bool> DoesCosmosDatabaseExist(CosmosClient client, string databaseId)
         {
-            var connectionStringProvider = services.GetRequiredService<IDynamicConfigurationProvider>();
-            var connectionString = connectionStringProvider.GetDatabaseConnectionString();
+            QueryDefinition query = new QueryDefinition(
+                "select * from c where c.id = @databaseId")
+                    .WithParameter("@databaseId", databaseId);
 
-            // Note: This may be null if the cookie or website URL has not yet been set.
-            if (string.IsNullOrEmpty(connectionString))
+            FeedIterator<dynamic> resultSet = client.GetDatabaseQueryIterator<dynamic>(query);
+
+            while (resultSet.HasMoreResults)
             {
-                return new DbContextOptions<ApplicationDbContext>();
+                FeedResponse<dynamic> response = await resultSet.ReadNextAsync();
+
+                return response.Count > 0;
             }
 
-            var databaseName = connectionStringProvider.GetDatabaseName();
-
-            var optionsBuilder = GetDbOptionsFromConnectionString(connectionString, databaseName);
-
-            return optionsBuilder;
-        }
-
-        /// <summary>
-        /// Returns DbContextOptions from a connection string depending on if connection string is for Cosmos DB or SQL Server.
-        /// </summary>
-        /// <param name="connectionString">Connection string</param>
-        /// <param name="databaseName">Database name</param>
-        /// <returns>DbContextOptions<ApplicationDbContext></returns>
-        private static DbContextOptions<ApplicationDbContext> GetDbOptionsFromConnectionString(string connectionString, string databaseName)
-        {
-            var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-
-            // If the connection string contains "AccountEndpoint", we assume it's a Cosmos DB connection string.
-            if (connectionString.Contains("AccountEndpoint", StringComparison.CurrentCultureIgnoreCase))
-            {
-                if (connectionString.Contains("AccountKey=AccessToken", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    var connectionParts =
-                        connectionString.Split(";").Where(w =>
-                        !string.IsNullOrEmpty(w)).Select(part => part.Split('='))
-                        .ToDictionary(sp => sp[0], sp => sp[1], StringComparer.OrdinalIgnoreCase);
-                    var defaultAzureCredential = new DefaultAzureCredential();
-                    var endpoint = connectionParts["AccountEndpoint"];
-                    optionsBuilder.UseCosmos(accountEndpoint: endpoint, new DefaultAzureCredential(), databaseName);
-                }
-                else
-                {
-                    optionsBuilder.UseCosmos(connectionString, databaseName: databaseName);
-                }
-
-                return optionsBuilder.Options;
-            }
-
-            // Otherwise, we assume it's a SQL Server connection string.
-            optionsBuilder.UseSqlServer(connectionString);
-            return optionsBuilder.Options;
+            return false;
         }
     }
 }

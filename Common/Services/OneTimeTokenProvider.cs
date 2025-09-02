@@ -86,15 +86,14 @@ namespace Cosmos.Common.Services
         ///  Validates a login token for a given user.
         /// </summary>
         /// <param name="token">Token value to validate.</param>
-        /// <param name="manager">User manager.</param>
         /// <param name="user">IdentityUser.</param>
         /// <param name="removeToken">Remove token if present.</param>
         /// <returns>Results.</returns>
-        public async Task<VerificationResult> ValidateAsync(string token, UserManager<TUser> manager, TUser user, bool removeToken = true)
+        public async Task<VerificationResult> ValidateAsync(string token, TUser user, bool removeToken = true)
         {
-            if (manager == null)
+            if (dbContext == null)
             {
-                throw new ArgumentNullException(nameof(manager));
+                throw new ArgumentNullException(nameof(dbContext));
             }
 
             if (user == null)
@@ -107,7 +106,7 @@ namespace Cosmos.Common.Services
                 return VerificationResult.Invalid;
             }
 
-            var identityUser = await manager.FindByIdAsync(user.Id);
+            var identityUser = await dbContext.Users.FirstOrDefaultAsync(u => u.NormalizedEmail == user.NormalizedEmail);
 
             if (!identityUser.EmailConfirmed)
             {

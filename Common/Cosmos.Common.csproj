@@ -15,9 +15,9 @@
 		<SignAssembly>false</SignAssembly>
 		<AnalysisLevel>5.0</AnalysisLevel>
 		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-		<Version>9.0.12.26</Version>
-		<AssemblyVersion>9.0.12.26</AssemblyVersion>
-		<FileVersion>9.0.12.26</FileVersion>
+		<Version>9.0.12.27</Version>
+		<AssemblyVersion>9.0.12.27</AssemblyVersion>
+		<FileVersion>9.0.12.27</FileVersion>
 		<UserSecretsId>498e495c-d772-4d44-870d-92009f01de57</UserSecretsId>
 		<PackageProjectUrl>https://www.moonrise.net/cosmos</PackageProjectUrl>
 		<NeutralLanguage></NeutralLanguage>
@@ -91,10 +91,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="AspNetCore.Identity.CosmosDb" Version="9.1.0.2-preview" />
 		<PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.4.0" />
 		<PackageReference Include="Azure.Monitor.Query" Version="1.7.1" />
-		<PackageReference Include="MailChimp.Net.V3" Version="5.7.0" />
+		<PackageReference Include="MailChimp.Net.V3" Version="5.8.2" />
 		<PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="9.0.8" />
 		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.8" />
 		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.8" />
@@ -111,6 +110,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\AspNetCore.Identity.FlexDb\AspNetCore.Identity.FlexDb.csproj" />
 	  <ProjectReference Include="..\Cosmos.BlobService\Cosmos.BlobService.csproj" />
 	  <ProjectReference Include="..\Cosmos.ConnectionStrings\Cosmos.DynamicConfig.csproj" />
 	</ItemGroup>

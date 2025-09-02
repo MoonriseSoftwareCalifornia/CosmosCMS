@@ -25,9 +25,7 @@ namespace Cosmos.Editor.Data
         /// <returns>ApplicationDbContext.</returns>
         internal static ApplicationDbContext GetApplicationDbContext(Connection connection)
         {
-            DbContextOptionsBuilder<ApplicationDbContext> dbContextOptionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-            dbContextOptionsBuilder.UseCosmos(connection.DbConn, connection.DbName);
-            return new ApplicationDbContext(dbContextOptionsBuilder.Options);
+            return new ApplicationDbContext(connection.DbConn);
         }
 
         /// <summary>
@@ -62,19 +60,8 @@ namespace Cosmos.Editor.Data
                 throw new InvalidOperationException($"No connection string found for domain '{domainName}'.");
             }
 
-            var databaseName = provider.GetDatabaseName(domainName);
-
-            if (string.IsNullOrEmpty(databaseName))
-            {
-                throw new InvalidOperationException($"No database name found for domain '{domainName}'.");
-            }
-
             // Create a new instance of ApplicationDbContext with the same options but for the specified domain.
-            var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-            optionsBuilder.UseCosmos(
-                connectionString: connectionString,
-                databaseName: databaseName);
-            return new ApplicationDbContext(optionsBuilder.Options, services);
+            return new ApplicationDbContext(connectionString);
         }
     }
 }

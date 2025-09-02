@@ -28,21 +28,6 @@ namespace Cosmos.Cms.Common.Services.Configurations
         }
 
         /// <summary>
-        /// Gets or sets primary ISO-639-1 language code for this website.
-        /// </summary>
-        /// <remarks>
-        /// <para>Default value is "en-US".</para>
-        /// <para>
-        /// When Google translate is configured and a page translation is requested, the
-        /// translation is based on what language code is requested.  To see a list of
-        /// codes see <see href="https://cloud.google.com/translate/docs/languages">Google's
-        /// list of supported codes.</see>.
-        /// </para>
-        /// </remarks>
-        [Display(Name = "Primary language code.")]
-        public string PrimaryLanguageCode { get; set; } = "en-US";
-
-        /// <summary>
         ///     Gets or sets editor Urls.
         /// </summary>
         public List<EditorUrl> EditorUrls { get; set; }
@@ -66,11 +51,6 @@ namespace Cosmos.Cms.Common.Services.Configurations
         ///     Gets or sets blob service configuration.
         /// </summary>
         public StorageConfig StorageConfig { get; set; }
-
-        /// <summary>
-        ///    Gets or sets a value indicating whether to use static website for the publisher.
-        /// </summary>
-        public bool UseStaticPublisherWebsite { get; set; } = false;
 
         /// <summary>
         ///     Gets or sets environment Variable Name.

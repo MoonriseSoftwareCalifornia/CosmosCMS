@@ -31,6 +31,8 @@ namespace Cosmos.Common.Data.Logic
     {
         private readonly bool isEditor;
         private readonly IMemoryCache memoryCache;
+        private readonly string publisherUrl;
+        private readonly string blobPublicUrl;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ArticleLogic"/> class.
@@ -38,13 +40,23 @@ namespace Cosmos.Common.Data.Logic
         /// <param name="dbContext">Database context.</param>
         /// <param name="config">Cosmos configuration.</param>
         /// <param name="memoryCache">Memory cache used only by Publishers.</param>
+        /// <param name="publisherUrl">Publisher URL override.</param>
+        /// <param name="blobPublicUrl">Blob public URL.</param>
         /// <param name="isEditor">Is in edit mode or not.</param>
-        public ArticleLogic(ApplicationDbContext dbContext, IOptions<CosmosConfig> config, IMemoryCache memoryCache, bool isEditor = false)
+        public ArticleLogic(
+            ApplicationDbContext dbContext,
+            IOptions<CosmosConfig> config,
+            IMemoryCache memoryCache,
+            string publisherUrl,
+            string blobPublicUrl,
+            bool isEditor = false)
         {
             this.memoryCache = memoryCache;
             DbContext = dbContext;
             CosmosOptions = config;
             this.isEditor = isEditor;
+            this.publisherUrl = publisherUrl;
+            this.blobPublicUrl = blobPublicUrl;
         }
 
         /// <summary>
@@ -248,8 +260,8 @@ namespace Cosmos.Common.Data.Logic
                 PageNo = pageNo,
                 PageSize = pageSize,
                 Items = items,
-                PublisherUrl = CosmosOptions.Value.SiteSettings.PublisherUrl,
-                BlobPublicUrl = CosmosOptions.Value.SiteSettings.BlobPublicUrl
+                PublisherUrl = publisherUrl,
+                BlobPublicUrl = blobPublicUrl
             };
 
             return model;
@@ -524,19 +536,19 @@ namespace Cosmos.Common.Data.Logic
                 Expires = article.Expires ?? null,
                 AuthorInfo = article.AuthorInfo,
                 OGDescription = string.Empty,
-                OGImage = string.IsNullOrEmpty(article.BannerImage) ? string.Empty : article.BannerImage.StartsWith("http") ? article.BannerImage : CosmosOptions.Value.SiteSettings.PublisherUrl.TrimEnd('/') + "/" + article.BannerImage.TrimStart('/'),
+                OGImage = string.IsNullOrEmpty(article.BannerImage) ? string.Empty : article.BannerImage.StartsWith("http") ? article.BannerImage : publisherUrl.TrimEnd('/') + "/" + article.BannerImage.TrimStart('/'),
                 OGUrl = GetOGUrl(article.UrlPath),
             };
         }
 
         private string GetOGUrl(string urlPath)
         {
-            if (string.IsNullOrWhiteSpace(CosmosOptions.Value.SiteSettings.PublisherUrl))
+            if (string.IsNullOrWhiteSpace(publisherUrl))
             {
                 return urlPath;
             }
 
-            return CosmosOptions.Value.SiteSettings.PublisherUrl.TrimEnd('/') + "/" + urlPath.TrimStart('/');
+            return publisherUrl.TrimEnd('/') + "/" + urlPath.TrimStart('/');
         }
     }
 }

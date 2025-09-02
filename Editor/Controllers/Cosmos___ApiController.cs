@@ -1,16 +1,24 @@
-﻿using Cosmos.Common.Data;
-using Cosmos.DynamicConfig;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Net.Mail;
-using System.Threading.Tasks;
+﻿// <copyright file="Cosmos___ApiController.cs" company="Moonrise Software, LLC">
+// Copyright (c) Moonrise Software, LLC. All rights reserved.
+// Licensed under the GNU Public License, Version 3.0 (https://www.gnu.org/licenses/gpl-3.0.html)
+// See https://github.com/MoonriseSoftwareCalifornia/CosmosCMS
+// for more information concerning the license and the contributors participating to this project.
+// </copyright>
 
 namespace Cosmos.Editor.Controllers
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Net.Mail;
+    using System.Threading.Tasks;
+    using AspNetCore.Identity.FlexDb;
+    using Cosmos.Common.Data;
+    using Cosmos.DynamicConfig;
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Configuration;
+
     /// <summary>
     /// Cosmos___ApiController class.
     /// </summary>
@@ -65,19 +73,14 @@ namespace Cosmos.Editor.Controllers
                 throw new ArgumentException("Connection string 'ConfigDbConnectionString' not found.");
             }
 
-            var options = new DbContextOptionsBuilder<DynamicConfigDbContext>()
-                    .UseCosmos(connectionString, databaseName: "configs")
-                    .Options;
+            var options = CosmosDbOptionsBuilder.GetDbOptions<DynamicConfigDbContext>(connectionString);
             using var dynamicDbContext = new DynamicConfigDbContext(options);
 
             var result = await dynamicDbContext.Connections.ToListAsync();
 
             foreach (var connection in result)
             {
-                var dbOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
-                    .UseCosmos(connection.DbConn, connection.DbName)
-                    .Options;
-                var dbContext = new ApplicationDbContext(dbOptions);
+                using var dbContext = new ApplicationDbContext(connection.DbConn);
                 var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Email == emailAddress);
                 if (user != null)
                 {

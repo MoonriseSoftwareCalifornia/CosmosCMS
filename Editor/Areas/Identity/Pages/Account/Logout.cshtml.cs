@@ -42,7 +42,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         /// <returns>IActionResult.</returns>
         public async Task<IActionResult> OnGet()
         {
-            Response.Cookies.Delete(DynamicConfigurationProvider.StandardCookieName);
             await signInManager.SignOutAsync();
             logger.LogInformation("User logged out.");
             return Redirect("/");
@@ -55,7 +54,6 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> OnPost(string returnUrl = null)
         {
-            Response.Cookies.Delete(DynamicConfigurationProvider.StandardCookieName);
             await signInManager.SignOutAsync();
             logger.LogInformation("User logged out.");
             if (returnUrl != null)

@@ -1,4 +1,4 @@
-﻿// <copyright file="MultiTenantEditorStartup.cs" company="Moonrise Software, LLC">
+﻿// <copyright file="SingleTenant.cs" company="Moonrise Software, LLC">
 // Copyright (c) Moonrise Software, LLC. All rights reserved.
 // Licensed under the GNU Public License, Version 3.0 (https://www.gnu.org/licenses/gpl-3.0.html)
 // See https://github.com/MoonriseSoftwareCalifornia/CosmosCMS
@@ -16,7 +16,7 @@ namespace Cosmos.Editor.Boot
     using System.Threading.RateLimiting;
     using System.Threading.Tasks;
     using System.Web;
-    using AspNetCore.Identity.CosmosDb.Extensions;
+    using AspNetCore.Identity.FlexDb.Extensions;
     using Azure.Identity;
     using Cosmos.BlobService;
     using Cosmos.Cms.Common.Services.Configurations;
@@ -24,7 +24,6 @@ namespace Cosmos.Editor.Boot
     using Cosmos.Cms.Services;
     using Cosmos.Common.Data;
     using Cosmos.Common.Services.Configurations;
-    using Cosmos.Common.Services.PowerBI;
     using Cosmos.Editor.Data.Logic;
     using Cosmos.Editor.Services;
     using Cosmos.EmailServices;
@@ -39,6 +38,7 @@ namespace Cosmos.Editor.Boot
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.RateLimiting;
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore.Infrastructure;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
@@ -54,7 +54,7 @@ namespace Cosmos.Editor.Boot
         /// </summary>
         /// <param name="builder">Web application builder.</param>
         /// <returns>Returns a web application ready to run.</returns>
-        internal static async Task<WebApplication> BuildApp(WebApplicationBuilder builder)
+        internal static WebApplication BuildApp(WebApplicationBuilder builder)
         {
             // Add memory cache for Cosmos data logic and other services.
             builder.Services.AddMemoryCache();
@@ -90,14 +90,7 @@ namespace Cosmos.Editor.Boot
 
                 throw new ArgumentException($"STARTUP: ApplicationDbContextConnection is null or empty. Did find: {string.Join(';', keys)}");
             }
-
-            // Name of the Cosmos database to use
-            var cosmosIdentityDbName = builder.Configuration.GetValue<string>("CosmosIdentityDbName");
-            if (string.IsNullOrEmpty(cosmosIdentityDbName))
-            {
-                cosmosIdentityDbName = "cosmoscms";
-            }
-
+                        
             // If this is set, the Cosmos identity provider will:
             // 1. Create the database if it does not already exist.
             // 2. Create the required containers if they do not already exist.
@@ -106,92 +99,17 @@ namespace Cosmos.Editor.Boot
             //  required containers.
             if (option.Value.SiteSettings.AllowSetup)
             {
-                var options = new DbContextOptionsBuilder<ApplicationDbContext>();
-                if (connectionString.Contains("User ID", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    options.UseSqlServer(connectionString);
-                }
-                else if (connectionString.Contains("uid=", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    options.UseMySQL(connectionString);
-                }
-                else
-                {
-                    // Add the Cosmos database context here
-                    var cosmosRegionName = builder.Configuration.GetValue<string>("CosmosRegionName");
-                    var conpartsDict = connectionString.Split(";").Where(w => !string.IsNullOrEmpty(w)).Select(part => part.Split('=')).ToDictionary(sp => sp[0], sp => sp[1]);
-                    var endpoint = conpartsDict["AccountEndpoint"];
-
-                    if (string.IsNullOrEmpty(cosmosRegionName))
-                    {
-                        if (conpartsDict["AccountKey"] == "AccessToken")
-                        {
-                            options.UseCosmos(endpoint, new DefaultAzureCredential(), cosmosIdentityDbName);
-                        }
-                        else
-                        {
-                            options.UseCosmos(connectionString, cosmosIdentityDbName);
-                        }
-                    }
-                    else
-                    {
-                        if (conpartsDict["AccountKey"] == "AccessToken")
-                        {
-                            options.UseCosmos(endpoint, new DefaultAzureCredential(), cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
-                        }
-                        else
-                        {
-                            options.UseCosmos(connectionString, cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
-                        }
-                    }
-                }
-
-                using var context = new ApplicationDbContext(options.Options);
-                await context.Database.EnsureCreatedAsync();
+                using var context = new ApplicationDbContext(connectionString);
+                var t = context.Database.EnsureCreatedAsync();
+                t.Wait();
             }
 
-            builder.Services.AddDbContext<ApplicationDbContext>(
-                options =>
-                {
-                    if (connectionString.Contains("User ID", StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        options.UseSqlServer(connectionString);
-                    }
-                    else if (connectionString.Contains("uid=", StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        options.UseMySQL(connectionString);
-                    }
-                    else
-                    {
-                        // Add the Cosmos database context here
-                        var cosmosRegionName = builder.Configuration.GetValue<string>("CosmosRegionName");
-                        var conpartsDict = connectionString.Split(";").Where(w => !string.IsNullOrEmpty(w)).Select(part => part.Split('=')).ToDictionary(sp => sp[0], sp => sp[1]);
-                        var endpoint = conpartsDict["AccountEndpoint"];
-                        if (string.IsNullOrEmpty(cosmosRegionName))
-                        {
-                            if (conpartsDict["AccountKey"] == "AccessToken")
-                            {
-                                options.UseCosmos(endpoint, new DefaultAzureCredential(), cosmosIdentityDbName);
-                            }
-                            else
-                            {
-                                options.UseCosmos(connectionString, cosmosIdentityDbName);
-                            }
-                        }
-                        else
-                        {
-                            if (conpartsDict["AccountKey"] == "AccessToken")
-                            {
-                                options.UseCosmos(endpoint, new DefaultAzureCredential(), cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
-                            }
-                            else
-                            {
-                                options.UseCosmos(connectionString, cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
-                            }
-                        }
-                    }
-                }, optionsLifetime: ServiceLifetime.Singleton); // https://github.com/dotnet/efcore/issues/34918
-
+            // Add the DB context using this approach instead of AddDbContext.
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+            {
+                AspNetCore.Identity.FlexDb.CosmosDbOptionsBuilder.ConfigureDbOptions(options, connectionString);
+            });
+            
             // This service has to appear right after DB Context.
             builder.Services.AddTransient<IEditorSettings, EditorSettings>();
 
@@ -202,7 +120,6 @@ namespace Cosmos.Editor.Boot
                 .AddDefaultTokenProviders();
 
             // Add shared data protection here
-
             var dataProtectionContainer = BlobService.ServiceCollectionExtensions.GetBlobContainerClient(builder.Configuration, new DefaultAzureCredential(), "dataprotection");
             if (option.Value.SiteSettings.AllowSetup)
             {
@@ -265,10 +182,6 @@ namespace Cosmos.Editor.Boot
                     }
                 });
             }
-
-            // Add Power BI Token Service.
-            builder.Services.AddScoped(typeof(PowerBiTokenService));
-            builder.Services.Configure<PowerBiAuth>(builder.Configuration.GetSection("PowerBiAuth"));
 
             // Add Azure CDN/Front door configuration here.
             builder.Services.Configure<CdnService>(builder.Configuration.GetSection("AzureCdnConfig"));
@@ -389,6 +302,7 @@ namespace Cosmos.Editor.Boot
             // If there is a DB connection, then use SQL backplane.
             // See: https://github.com/IntelliTect/IntelliTect.AspNetCore.SignalR.SqlServer
             var signalRConnection = builder.Configuration.GetConnectionString("CosmosSignalRConnection");
+
             // Add the SignalR service.
             // If there is a DB connection, then use SQL backplane.
             // See: https://github.com/IntelliTect/IntelliTect.AspNetCore.SignalR.SqlServer
@@ -405,32 +319,7 @@ namespace Cosmos.Editor.Boot
                 }));
 
             var app = builder.Build();
-
-            if (option.Value.SiteSettings.StaticWebPages)
-            {
-                // Get the static files copied over to blob storage as needed.
-                var env = app.Services.GetRequiredService<IWebHostEnvironment>();
-                var storageContext = app.Services.GetRequiredService<StorageContext>();
-
-                // Copy the required static pages to the blob storage.
-                var ckeditorFile = "lib/ckeditor/ckeditor5-content.css";
-
-                var path = Path.Combine(env.WebRootPath, ckeditorFile);
-                using var r = new StreamReader(path);
-                using var memStream = new MemoryStream(Encoding.UTF8.GetBytes(await r.ReadToEndAsync()));
-
-                storageContext.AppendBlob(memStream, new BlobService.Models.FileUploadMetaData()
-                {
-                    ContentType = "text/css",
-                    FileName = "ckeditor5-content.css",
-                    ChunkIndex = 0,
-                    TotalChunks = 1,
-                    TotalFileSize = memStream.Length,
-                    UploadUid = Guid.NewGuid().ToString(),
-                    RelativePath = "lib/ckeditor/ckeditor5-content.css"
-                });
-            }
-
+                        
             // https://seankilleen.com/2020/06/solved-net-core-azure-ad-in-docker-container-incorrectly-uses-an-non-https-redirect-uri/
             app.UseForwardedHeaders();
 

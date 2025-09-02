@@ -7,19 +7,11 @@
 
 namespace Cosmos.Cms.Controllers
 {
-    using System;
-    using System.Diagnostics;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
-    using System.Web;
     using Cosmos.BlobService;
     using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Cms.Models;
     using Cosmos.Common.Data;
     using Cosmos.Common.Models;
-    using Cosmos.Common.Services.PowerBI;
-    using Cosmos.DynamicConfig;
     using Cosmos.Editor.Data.Logic;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
@@ -27,10 +19,16 @@ namespace Cosmos.Cms.Controllers
     using Microsoft.AspNetCore.Identity.UI.Services;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore.Infrastructure;
     using Microsoft.Extensions.Configuration;
-    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using Microsoft.Net.Http.Headers;
+    using System;
+    using System.Diagnostics;
+    using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
+    using System.Web;
 
     /// <summary>
     /// Home page controller.
@@ -46,8 +44,7 @@ namespace Cosmos.Cms.Controllers
         private readonly UserManager<IdentityUser> userManager;
         private readonly SignInManager<IdentityUser> signInManager;
         private readonly StorageContext storageContext;
-        private readonly bool isMultiTenantEditor;
-        private readonly IDynamicConfigurationProvider dynamicConfigurationProvider;
+        private readonly bool isMultiTenant;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HomeController"/> class.
@@ -59,7 +56,6 @@ namespace Cosmos.Cms.Controllers
         /// <param name="userManager">User manager.</param>
         /// <param name="signInManager">Sign in manager service.</param>
         /// <param name="storageContext"><see cref="StorageContext">File storage context</see>.</param>
-        /// <param name="powerBiTokenService">Service used to get tokens from Power BI.</param>
         /// <param name="emailSender">Email service.</param>
         /// <param name="configuration">Website configuration.</param>
         /// <param name="services">Services provider.</param>
@@ -71,7 +67,6 @@ namespace Cosmos.Cms.Controllers
             UserManager<IdentityUser> userManager,
             SignInManager<IdentityUser> signInManager,
             StorageContext storageContext,
-            PowerBiTokenService powerBiTokenService,
             IEmailSender emailSender,
             IConfiguration configuration,
             IServiceProvider services)
@@ -83,12 +78,7 @@ namespace Cosmos.Cms.Controllers
             this.userManager = userManager;
             this.signInManager = signInManager;
             this.storageContext = storageContext;
-            isMultiTenantEditor = configuration.GetValue<bool?>("MultiTenantEditor") ?? false;
-
-            if (isMultiTenantEditor)
-            {
-                this.dynamicConfigurationProvider = services.GetRequiredService<IDynamicConfigurationProvider>();
-            }
+            this.isMultiTenant = configuration.GetValue<bool?>("MultiTenantEditor") ?? false;
         }
 
         /// <summary>
@@ -155,25 +145,10 @@ namespace Cosmos.Cms.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Index(string lang = "", string mode = "")
         {
-            if (options.IsMultiTenantEditor)
+            
+            if (isMultiTenant && !IsDbContextConfigured())
             {
-                if (!dynamicConfigurationProvider.IsMultiTenantConfigured)
-                {
-                    Response.Cookies.Delete("CosmosAuthCookie");
-                    return Redirect("~/Identity/Account/Login");
-                }
-
-                // Check if we have a ccmswebsite query parameter.
-                if (!string.IsNullOrEmpty(Request.Query["ccmswebsite"]))
-                {
-                    // If person is signed in, we need to sign that person out, so we can set the cookie.
-                    if (User.Identity?.IsAuthenticated == true)
-                    {
-                        await signInManager.SignOutAsync();
-                    }
-
-                    return Redirect(MutliSiteRedirect(Request));
-                }
+                return NotFound("This site is not yet configured. Please contact your administrator.");
             }
 
             if (User.Identity?.IsAuthenticated == true)
@@ -275,52 +250,6 @@ namespace Cosmos.Cms.Controllers
             article.ReadWriteMode = true;
 
             return View(article);
-        }
-
-
-        /// <summary>Handles a new multisite login.</summary>
-        /// <Remarks>
-        /// Handles login logic for multi-site (multi-tenant) scenarios. If a "ccmswebsite" query parameter is present,
-        /// signs out the current user (if authenticated), sets the appropriate cookie for the selected website, and
-        /// constructs a redirect URL to the login page with any remaining query parameters preserved. This enables
-        /// seamless switching between different tenant sites within the editor.
-        /// </Remarks>
-        /// <param name="request">Current request.</param>
-        /// <returns>Path to redirect to if applicable.</returns>
-        private string MutliSiteRedirect(HttpRequest request)
-        {
-            var queryParams = HttpUtility.ParseQueryString(Request.QueryString.Value);
-
-            var website = queryParams["ccmswebsite"];
-            var opt = queryParams["ccmsopt"];
-            var email = queryParams["ccmsemail"];
-            var redirectUrl = queryParams["redirectUrl"];
-
-            queryParams.Remove("ccmswebsite");
-            queryParams.Remove("ccmsopt");
-            queryParams.Remove("ccmsemail");
-            var queryString = HttpUtility.UrlEncode(queryParams.ToString());
-
-            Response.Cookies.Delete(DynamicConfigurationProvider.StandardCookieName);
-            Response.Cookies.Append(DynamicConfigurationProvider.StandardCookieName, website);
-
-            if (!string.IsNullOrEmpty(opt))
-            {
-                queryString = queryString + $"&ccmsopt={opt}&ccmsemail={email}";
-            }
-
-            if (!string.IsNullOrWhiteSpace(queryString))
-            {
-                queryString = "?" + queryString;
-            }
-
-            if (!string.IsNullOrWhiteSpace(redirectUrl))
-            {
-                // If we have a redirect URL, append it to the query string.
-                queryString += $"&redirectUrl={HttpUtility.UrlEncode(redirectUrl)}";
-            }
-
-            return $"~/Identity/Account/Login{queryString}";
         }
 
         /// <summary>
@@ -428,6 +357,29 @@ namespace Cosmos.Cms.Controllers
         private async Task<bool> EnsureArticleExists()
         {
             return await dbContext.Articles.CosmosAnyAsync();
+        }
+
+        // Replace the following line in IsDbContextConfigured():
+        // var databaseProvider = dbContext?.GetService<Microsoft.EntityFrameworkCore.Infrastructure.IDatabaseProvider>();
+        // with a check for ProviderName only, since IDatabaseProvider does not exist in EF Core public API.
+
+        private bool IsDbContextConfigured()
+        {
+            // ProviderName is set when the database is configured
+            try
+            {
+                var databaseProvider = dbContext?.Database.ProviderName;
+                if (string.IsNullOrEmpty(databaseProvider))
+                {
+                    return false;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

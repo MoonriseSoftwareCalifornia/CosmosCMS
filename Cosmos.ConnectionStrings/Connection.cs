@@ -29,13 +29,6 @@ namespace Cosmos.DynamicConfig
         public string DbConn { get; set; } = null!;
 
         /// <summary>
-        /// Gets or sets the database name.
-        /// </summary>
-        [Required(AllowEmptyStrings = false)]
-        [Display(Name = "Database Name")]
-        public string DbName { get; set; } = "cosmoscms";
-
-        /// <summary>
         /// Gets or sets the storage connection string.
         /// </summary>
         [Required(AllowEmptyStrings = false)]

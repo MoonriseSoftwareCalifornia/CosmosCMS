@@ -7,7 +7,14 @@
 
 namespace Cosmos.Editor.Boot
 {
-    using AspNetCore.Identity.CosmosDb.Extensions;
+    using System;
+    using System.Configuration;
+    using System.Text.RegularExpressions;
+    using System.Threading.RateLimiting;
+    using System.Threading.Tasks;
+    using System.Web;
+    using AspNetCore.Identity.FlexDb;
+    using AspNetCore.Identity.FlexDb.Extensions;
     using Azure.Identity;
     using Cosmos.BlobService;
     using Cosmos.Cms.Common.Services.Configurations;
@@ -15,7 +22,6 @@ namespace Cosmos.Editor.Boot
     using Cosmos.Cms.Services;
     using Cosmos.Common.Data;
     using Cosmos.Common.Services.Configurations;
-    using Cosmos.Common.Services.PowerBI;
     using Cosmos.DynamicConfig;
     using Cosmos.Editor.Data.Logic;
     using Cosmos.Editor.Services;
@@ -32,12 +38,6 @@ namespace Cosmos.Editor.Boot
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Newtonsoft.Json.Serialization;
-    using System;
-    using System.Linq;
-    using System.Text.RegularExpressions;
-    using System.Threading.RateLimiting;
-    using System.Threading.Tasks;
-    using System.Web;
 
     /// <summary>
     ///  Creates a multi-tenant web application.
@@ -49,7 +49,7 @@ namespace Cosmos.Editor.Boot
         /// </summary>
         /// <param name="builder">Web application builder.</param>
         /// <returns>Returns a web application ready to run.</returns>
-        internal static async Task<WebApplication> BuildApp(WebApplicationBuilder builder)
+        internal static WebApplication BuildApp(WebApplicationBuilder builder)
         {
             // Add memory cache for Cosmos data logic and other services.
             builder.Services.AddMemoryCache();
@@ -76,107 +76,14 @@ namespace Cosmos.Editor.Boot
 
             builder.Services.AddSingleton<MultiDatabaseManagementUtilities>();
 
-            var connectionString = builder.Configuration.GetConnectionString("ApplicationDbContextConnection");
-            var databaseName = builder.Configuration.GetValue<string>($"CosmosIdentityDbName") ?? "cosmoscms";
-            ApplicationDbContext.EnsureDatabaseExists(connectionString, databaseName, true);
-
-            // Add the Cosmos database context here.
-            var configConnectionString = builder.Configuration.GetConnectionString("ConfigDbConnectionString");
-            if (string.IsNullOrEmpty(configConnectionString))
-            {
-                throw new InvalidOperationException("The ConfigDbConnectionString is not set in the configuration.");
-            }
-
-            builder.Services.AddTransient(serviceProvider =>
-            {
-                var options = new DbContextOptionsBuilder<DynamicConfigDbContext>();
-
-                if (connectionString.Contains("User ID", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    options.UseSqlServer(connectionString);
-                }
-                else if (connectionString.Contains("uid=", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    options.UseMySQL(connectionString);
-                }
-                else
-                {
-                    var conpartsDict = connectionString.Split(";").Where(w => !string.IsNullOrEmpty(w)).Select(part => part.Split('=')).ToDictionary(sp => sp[0], sp => sp[1]);
-                    var endpoint = conpartsDict["AccountEndpoint"];
-                    var cosmosIdentityDbName = builder.Configuration.GetValue<string>("CosmosIdentityDbName");
-
-                    if (conpartsDict["AccountKey"] == "AccessToken")
-                    {
-                        options.UseCosmos(endpoint, new DefaultAzureCredential(), cosmosIdentityDbName);
-                    }
-                    else
-                    {
-                        options.UseCosmos(connectionString, cosmosIdentityDbName);
-                    }
-                }
-
-                return new DynamicConfigDbContext(options.Options);
-            });
-
-            // Note that this is scoped, meaning for each request this is regenerated.
+            // Note that this is transient, meaning for each request this is regenerated.
             // Multi-tenant support is enabled because each request may have a different domain name and connection
             // string information.
-            builder.Services.AddTransient((serviceProvider) =>
+            builder.Services.AddTransient<ApplicationDbContext>(serviceProvider =>
             {
-                var options = new DbContextOptionsBuilder<ApplicationDbContext>();
-                if (connectionString.Contains("User ID", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    options.UseSqlServer(connectionString);
-                }
-                else if (connectionString.Contains("uid=", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    options.UseMySQL(connectionString);
-                }
-                else
-                {
-                    var cosmosIdentityDbName = builder.Configuration.GetValue<string>("CosmosIdentityDbName");
-                    var cosmosRegionName = builder.Configuration.GetValue<string>("CosmosRegionName");
-                    var conpartsDict = connectionString.Split(";").Where(w => !string.IsNullOrEmpty(w)).Select(part => part.Split('=')).ToDictionary(sp => sp[0], sp => sp[1]);
-                    var endpoint = conpartsDict["AccountEndpoint"];
-                    if (string.IsNullOrEmpty(cosmosRegionName))
-                    {
-                        if (conpartsDict["AccountKey"] == "AccessToken")
-                        {
-                            options.UseCosmos(endpoint, new DefaultAzureCredential(), cosmosIdentityDbName);
-                        }
-                        else
-                        {
-                            options.UseCosmos(connectionString, cosmosIdentityDbName);
-                        }
-                    }
-                    else
-                    {
-                        if (conpartsDict["AccountKey"] == "AccessToken")
-                        {
-                            options.UseCosmos(endpoint, new DefaultAzureCredential(), cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
-                        }
-                        else
-                        {
-                            options.UseCosmos(connectionString, cosmosIdentityDbName, cosmosOps => cosmosOps.Region(cosmosRegionName));
-                        }
-                    }
-                }
-
-                return new ApplicationDbContext(serviceProvider);
+                var optionsBuilder = GetDynamicOptionsBuilder(serviceProvider);
+                return new ApplicationDbContext(optionsBuilder.Options);
             });
-
-            // Story desk configuration.
-            var storyDeskEnabled = builder.Configuration.GetValue<bool?>("StoryDeskEnabled") ?? false;
-            if (storyDeskEnabled)
-            {
-                builder.Services.AddTransient<StoryDeskDbContext>(serviceProvider =>
-                {
-                    var options = new DbContextOptionsBuilder<StoryDeskDbContext>()
-                        .UseCosmos(connectionString: configConnectionString, databaseName: "configs")
-                        .Options;
-                    return new StoryDeskDbContext(options);
-                });
-            }
 
             // This service has to appear right after DB Context.
             builder.Services.AddTransient<IEditorSettings, EditorSettings>();
@@ -234,10 +141,6 @@ namespace Cosmos.Editor.Boot
                     }
                 });
             }
-
-            // Add Power BI Token Service.
-            builder.Services.AddScoped(typeof(PowerBiTokenService));
-            builder.Services.Configure<PowerBiAuth>(builder.Configuration.GetSection("PowerBiAuth"));
 
             // Add Azure CDN/Front door configuration here.
             builder.Services.Configure<CdnService>(builder.Configuration.GetSection("AzureCdnConfig"));
@@ -384,7 +287,8 @@ namespace Cosmos.Editor.Boot
             {
                 var services = scope.ServiceProvider;
                 var startupTask = services.GetRequiredService<IStartupTaskService>();
-                await startupTask.RunAsync();
+                var t = startupTask.RunAsync();
+                t.Wait();
             }
 
             // Enable data protection services for Cosmos CMS.
@@ -411,12 +315,7 @@ namespace Cosmos.Editor.Boot
             // app.UseHttpsRedirection(); // See: https://github.com/dotnet/aspnetcore/issues/18594
             app.UseStaticFiles();
             app.UseRouting();
-
             app.UseCors();
-
-            // Disable for the editor.
-            // app.UseResponseCaching(); // https://docs.microsoft.com/en-us/aspnet/core/performance/caching/middleware?view=aspnetcore-3.1
-
             app.UseAuthentication();
             app.UseAuthorization();
 
@@ -461,6 +360,25 @@ namespace Cosmos.Editor.Boot
             app.MapRazorPages();
 
             return app;
+        }
+
+        /// <summary>
+        /// Gets the DbContext options using the dynamic configuration provider.
+        /// </summary>
+        /// <param name="services">Services collection.</param>
+        /// <returns>DbApplicationContext.</returns>
+        private static DbContextOptionsBuilder<ApplicationDbContext> GetDynamicOptionsBuilder(IServiceProvider services)
+        {
+            var connectionStringProvider = services.GetRequiredService<IDynamicConfigurationProvider>();
+            var connectionString = connectionStringProvider.GetDatabaseConnectionString();
+
+            // Note: This may be null if the cookie or website URL has not yet been set.
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                return new DbContextOptionsBuilder<ApplicationDbContext>();
+            }
+
+            return CosmosDbOptionsBuilder.GetDbOptionsBuilder<ApplicationDbContext>(connectionString);
         }
     }
 }

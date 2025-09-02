@@ -68,18 +68,15 @@ namespace Cosmos.Editor.Services
             // Iterate through each connection to query the Cosmos DB
             foreach (var connection in connections)
             {
-                using var client = GetCosmosClient(connection);
-                var container = client.GetContainer(connection.DbName, "Identity");
-                var query = new QueryDefinition($"SELECT TOP 1 c.Id FROM c WHERE c.NormalizedEmail = '{emailAddress}'");
-                using var iterator = container.GetItemQueryIterator<dynamic>(query);
-                if (iterator.HasMoreResults)
+                using var dbContext = new ApplicationDbContext(connection.DbConn);
+                var user = await dbContext.Users.FirstOrDefaultAsync(u => u.NormalizedEmail == emailAddress);
+
+                if (user == null)
                 {
-                    var response = await iterator.ReadNextAsync();
-                    if (response.Any())
-                    {
-                        domains.AddRange(connection.WebsiteUrl);
-                    }
+                    continue; // No user found in this database, skip to the next connection.
                 }
+
+                domains.Add(connection.WebsiteUrl);
             }
 
             return domains.Distinct().ToList();
@@ -109,10 +106,7 @@ namespace Cosmos.Editor.Services
             // Iterate through each connection to update the user in Cosmos DB
             foreach (var connection in connections)
             {
-                var dbOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
-                    .UseCosmos(connection.DbConn, connection.DbName)
-                    .Options;
-                using var applicationDbContext = new ApplicationDbContext(dbOptions);
+                using var applicationDbContext = new ApplicationDbContext(connection.DbConn);
 
                 var identity = await applicationDbContext.Users
                     .FirstOrDefaultAsync(u => u.NormalizedEmail == identityUser.NormalizedEmail);
@@ -166,20 +160,16 @@ namespace Cosmos.Editor.Services
             var connections = await GetConnections();
             foreach (var connection in connections)
             {
-                var dbConextOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
-                    .UseCosmos(connection.DbConn, connection.DbName)
-                    .Options;
-
-                using var dbContext = new ApplicationDbContext(dbConextOptions);
+                using var dbContext = new ApplicationDbContext(connection.DbConn);
 
                 try
                 {
-                    await dbContext.Database.EnsureCreatedAsync();
+                    //var test = await dbContext.Users.CountAsync();
                 }
                 catch (CosmosException ex)
                 {
                     // Handle exceptions as needed, e.g., log them.
-                    Console.WriteLine($"Error configuring database {connection.DbName}: {ex.Message}");
+                    Console.WriteLine($"Error configuring database for {connection.WebsiteUrl}: {ex.Message}");
                 }
             }
         }
@@ -203,27 +193,17 @@ namespace Cosmos.Editor.Services
             // Iterate through each connection to query the Cosmos DB.
             foreach (var connection in connections)
             {
-                using var client = GetCosmosClient(connection);
-                var container = client.GetContainer(connection.DbName, "Identity");
-                var query = new QueryDefinition($"SELECT TOP 1 c.Id FROM c WHERE c.NormalizedEmail = '{emailAddress}'");
-                using var iterator = container.GetItemQueryIterator<dynamic>(query);
-                if (iterator.HasMoreResults)
+                using var applicationDbContext = new ApplicationDbContext(connection.DbConn);
+                var user = await applicationDbContext.Users.FirstOrDefaultAsync(u => u.NormalizedEmail == emailAddress);
+                if (user == null)
                 {
-                    var response = await iterator.ReadNextAsync();
-                    if (response.Any())
-                    {
-                        // If the email address is found, add the connection to the list.
-                        userConnections.AddRange(connection);
-                    }
+                    continue; // No user found in this database, skip to the next connection.
                 }
+
+                userConnections.Add(connection);
             }
 
             return userConnections;
-        }
-
-        private CosmosClient GetCosmosClient(Connection connection)
-        {
-            return new CosmosClient(connection.DbConn, connection.DbName);
         }
     }
 }

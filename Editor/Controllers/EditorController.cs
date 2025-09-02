@@ -1277,7 +1277,7 @@ namespace Cosmos.Cms.Controllers
 
             query = query.Skip(pageNo * pageSize).Take(pageSize);
 
-            return View(query.ToList());
+            return View(await query.ToListAsync());
         }
 
         /// <summary>
@@ -1450,7 +1450,7 @@ namespace Cosmos.Cms.Controllers
                 return Unauthorized();
             }
 
-            var article = await dbContext.Articles.Where(w => w.ArticleNumber == id).OrderBy(o => o.VersionNumber).LastOrDefaultAsync();
+            var article = await dbContext.Articles.Where(w => w.ArticleNumber == id).LastOrDefaultAsync();
 
             var entry = await articleLogic.GetCatalogEntry(article);
 

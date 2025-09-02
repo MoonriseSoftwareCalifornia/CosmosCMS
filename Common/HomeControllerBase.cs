@@ -14,7 +14,6 @@ namespace Cosmos.Common
     using Cosmos.Common.Data;
     using Cosmos.Common.Data.Logic;
     using Cosmos.Common.Models;
-    using Cosmos.Common.Services.PowerBI;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Cors;
     using Microsoft.AspNetCore.Identity.UI.Services;
@@ -33,7 +32,6 @@ namespace Cosmos.Common
         private readonly ApplicationDbContext dbContext;
         private readonly StorageContext storageContext;
         private readonly ILogger logger;
-        private readonly PowerBiTokenService powerBiTokenService;
         private readonly IEmailSender emailSender;
 
         /// <summary>
@@ -43,21 +41,18 @@ namespace Cosmos.Common
         /// <param name="dbContext">Database context.</param>
         /// <param name="storageContext">Storage context.</param>
         /// <param name="logger">Logger service.</param>
-        /// <param name="powerBiTokenService">Power BI Token Service.</param>
         /// <param name="emailSender">Email sender service.</param>
         public HomeControllerBase(
             ArticleLogic articleLogic,
             ApplicationDbContext dbContext,
             StorageContext storageContext,
             ILogger logger,
-            PowerBiTokenService powerBiTokenService,
             IEmailSender emailSender)
         {
             this.articleLogic = articleLogic;
             this.dbContext = dbContext;
             this.storageContext = storageContext;
             this.logger = logger;
-            this.powerBiTokenService = powerBiTokenService;
             this.emailSender = emailSender;
         }
 
@@ -138,69 +133,6 @@ namespace Cosmos.Common
             }
 
             return BadRequest(ModelState);
-        }
-
-        /// <summary>
-        /// Gets the power BI token.
-        /// </summary>
-        /// <param name="reportId">Power BI report ID.</param>
-        /// <param name="workspaceId">Power BI workspace (group) ID.</param>
-        /// <param name="additionalDataset">Additional dataset ID.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        /// <remarks>This method works only with new Power BI V2 workspace experience.</remarks>
-        /// <returns>Returns <see cref="EmbedParams"/> as a Json object.</returns>
-        [HttpGet]
-        public async Task<IActionResult> CCMS_GET_POWER_BI_TOKEN(Guid? reportId, Guid? workspaceId, Guid? additionalDataset = null)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            if (!reportId.HasValue || !workspaceId.HasValue)
-            {
-                return NotFound("Report or workspace ID missing or not found.");
-            }
-
-            if (powerBiTokenService.IsConfigured)
-            {
-                // TODO: This is to check security.
-                // var articleNumber = await GetArticleNumberFromRequestHeaders();
-                if (additionalDataset.HasValue)
-                {
-                    return Json(await powerBiTokenService.GetEmbedParams(workspaceId.Value, reportId.Value, additionalDataset.Value));
-                }
-                else
-                {
-                    return Json(await powerBiTokenService.GetEmbedParams(workspaceId.Value, reportId.Value));
-                }
-            }
-
-            return BadRequest("Not configured.");
-        }
-
-        /// <summary>
-        /// Gets an embed token for a Power BI RDL report.
-        /// </summary>
-        /// <param name="reportId">Report ID.</param>
-        /// <param name="workspaceId">Workspace ID.</param>
-        /// <returns>Returns an <see cref="EmbedToken"/> as a Json object.</returns>
-        [HttpGet]
-        public async Task<IActionResult> CCMS_GET_POWER_BI_RDL_TOKEN(Guid reportId, Guid workspaceId)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            if (powerBiTokenService.IsConfigured)
-            {
-                // TODO: This is to check security.
-                var result = await powerBiTokenService.GetEmbedParams(workspaceId, reportId);
-                return Json(result);
-            }
-
-            return BadRequest("Not configured.");
         }
 
         /// <summary>
