@@ -1384,7 +1384,7 @@
           "Azure.Extensions.AspNetCore.DataProtection.Blobs": "[1.5.1, )",
           "Azure.Identity": "[1.15.0, )",
           "Azure.Storage.Files.Shares": "[12.23.0, )",
-          "Cosmos.DynamicConfig": "[9.0.12.27, )"
+          "Cosmos.DynamicConfig": "[9.0.12.28, )"
         }
       },
       "cosmos.dynamicconfig": {

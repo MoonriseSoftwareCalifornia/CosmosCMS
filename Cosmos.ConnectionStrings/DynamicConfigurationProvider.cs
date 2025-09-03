@@ -7,14 +7,11 @@
 
 namespace Cosmos.DynamicConfig
 {
-    using Azure.Core;
     using Microsoft.AspNetCore.Http;
     using Microsoft.EntityFrameworkCore;
-    using Microsoft.EntityFrameworkCore.Infrastructure;
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.Extensions.Configuration;
     using System.Text;
-    using System.Web;
 
     /// <summary>
     /// Gets connection strings and configuration values from the configuration file.
@@ -79,26 +76,6 @@ namespace Cosmos.DynamicConfig
         }
 
         /// <summary>
-        /// Gets the domain name from the HTTP context.
-        /// </summary>
-        /// <remarks>
-        /// <para>Returns the domain name by looking at the incomming request.  Here is the order:</para>
-        /// <list type="number">
-        /// <item>Query string value 'website'.</item>
-        /// <item>Standard cookie.</item>
-        /// <item>Referer request header value.</item>
-        /// </list>
-        /// <para>Note: This should ONLY be used for multi-tenant, single editor website setup.</para>
-        /// </remarks>
-        public string DomainName
-        {
-            get
-            {
-                return GetTenantDomainNameFromRequest();
-            }
-        }
-
-        /// <summary>
         /// Gets the database connection string.
         /// </summary>
         /// <param name="domainName">Domain name</param>
@@ -151,24 +128,29 @@ namespace Cosmos.DynamicConfig
         /// <summary>
         /// Gets the tenant website domain name from the request.
         /// </summary>
-        /// <param name="configuration">App configuration.</param>
-        /// <param name="httpContext">Current HTTP request context.</param>
-        /// <param name="includeCookie">Include cookie value in the search.</param>
+        /// <param name="useReferer">Get the domain name from the referer instead of the domain name of website.</param>
         /// <returns>Domain Name.</returns>
         /// <remarks>
         /// <para>Returns the domain name by looking at the incomming request.  Here is the order:</para>
         /// <list type="number">
         /// <item>Query string value 'website'. Sets the standard cookie if it exists.</item>
-        /// <item>Standard cookie.</item>
-        /// <item>Referer request header value.</item>
+        /// <item>Referer request header value if requested.</item>
         /// <item>Otherwise returns the host name of the request.</item>
         /// </list>
         /// <para>Note: This should ONLY be used for multi-tenant, single editor website setup.</para>
         /// </remarks>
-        public string GetTenantDomainNameFromRequest()
+        public string GetTenantDomainNameFromRequest(bool useReferer = false)
         {
             var httpContext = httpContextAccessor.HttpContext ?? throw new InvalidOperationException("HTTP context is not available.");
             var request = httpContext.Request;
+            if (useReferer)
+            {
+                var referer = request.Headers["Referer"].ToString();
+                if (!string.IsNullOrWhiteSpace(referer) && Uri.TryCreate(referer, UriKind.Absolute, out var refererUri))
+                {
+                    return refererUri.Host.ToLower();
+                }
+            }
             return request == null ? throw new InvalidOperationException("HTTP request is not available.") : request.Host.Host;
         }
 
@@ -229,22 +211,22 @@ namespace Cosmos.DynamicConfig
                 return null;
             }
 
-            //memoryCache.TryGetValue<Connection>(domainName, out var connection);
+            memoryCache.TryGetValue<Connection>(domainName, out var connection);
 
-            //if (connection != null)
-            //{
-            //    return connection;
-            //}
+            if (connection != null)
+            {
+                return connection;
+            }
 
             var dbContext = GetDbContext();
 
             var connections = dbContext.Connections.ToListAsync().Result;
 
-            var connection = dbContext.Connections.FirstOrDefaultAsync(c => c.DomainNames.Any(a => a == domainName)).Result;
+            connection = dbContext.Connections.FirstOrDefaultAsync(c => c.DomainNames.Any(a => a == domainName)).Result;
 
             if (connection != null)
             {
-                memoryCache.Set<Connection>(domainName, connection, TimeSpan.FromMinutes(10));
+                memoryCache.Set<Connection>(domainName, connection, TimeSpan.FromSeconds(10));
             }
 
             return connection;
