@@ -1,18 +1,10 @@
-﻿@model List<LayoutIndexViewModel>
-
+﻿@using Cosmos.Editor.Data.Logic
+@using Microsoft.Extensions.Options;
+@inject IEditorSettings options
 @{
     ViewData["Title"] = "Website Design Inventory";
     var showFirstPageBtn = (bool)ViewData["ShowFirstPageBtn"];
     var showCreateFirstLayout = (bool)ViewData["ShowCreateFirstLayout"];
-
-    var rowCount = (int)ViewData["RowCount"];
-    var sortOrder = (string)ViewData["sortOrder"];
-    var currentSort = (string)ViewData["currentSort"];
-    var pageNumber = (int)ViewData["pageNo"];
-    var pageSize = (int)ViewData["pageSize"];
-
-    var pagerModel = new GridPagerPartialViewModel(pageNumber, rowCount, pageSize, sortOrder, currentSort, "/Layouts/Index");
-
 }
 <div class="pt-3">
     <div class="container">
@@ -58,71 +50,142 @@
                     </div>
                 </div>
                 <div class="col-md-6 d-flex justify-content-end">
-                    <partial name="~/Views/Shared/GridPager/_GridPager.cshtml" model="pagerModel"></partial>
+                   
                 </div>
             </div>
             <div class="row bg-dark">
                 <div class="col-md-12">
-                    <div class="table-responsive custom-table-responsive">
-                        <table class="table custom-table">
-                            <thead>
-                                <tr>
-                                    <th scope="col"></th>
-                                    <th scope="col">Editors</th>
-                                    <th scope="col">Design Name</th>
-                                    <th scope="col">Notes</th>
-                                    <th scope="col">Trash</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var row in Model)
-                                {
-                                    <tr>
-                                        <td scope="row">
-                                            @if (row.IsDefault)
-                                            {
-                                                <div class='btn btn-sm btn-success' title='Is now the default design for this website.'><span class='fa fa-check-circle'></span> Default</div>
-                                            }
-                                            else
-                                            {
-                                                <a href="@Url.Action("SetLayoutAsDefault", "Layouts")/@row.Id" title='Set this as the default design.' class='btn btn-sm btn-secondary'><i class='fa-regular fa-circle'></i></a>
-                                            }
-                                        </td>
-                                        <td scope="row">
-                                            <div class="btn-group" role="group" aria-label="Layer actions">
-                                                <a class="btn btn-sm btn-secondary" target="_blank" href="@Url.Action("Preview", "Layouts", new { Id = row.Id})" title="Preview"><span class="fa fa-binoculars"></span></a>
-                                                <a class="btn btn-sm btn-secondary" href="@Url.Action("EditNotes", "Layouts", new { Id = row.Id})" title="Edit Notes"><span class="fa fa-clipboard"></span></a>
-                                                <a class="btn btn-sm btn-secondary" href="@Url.Action("Designer", "Layouts", new { Id = row.Id})" title="Designer">Designer</a>
-                                                <a class="btn btn-sm btn-secondary" href="@Url.Action("EditCode", "Layouts", new { Id = row.Id})" title="Code editor">Code</a>
-                                                <a class="btn btn-sm btn-secondary" href="@Url.Action("ExportLayout", "Layouts", new { Id = row.Id})" title="Export design"><span class="fa-solid fa-cloud-arrow-down"></span></a>
-                                            </div>
-                                        </td>
-                                        <td style="min-width:30%;">
-                                            @row.LayoutName
-                                        </td>
-                                        <td>
-                                            @Html.Raw(row.Notes)
-                                        </td>
-                                        <td>
-                                            @if (row.IsDefault)
-                                            {
-                                                <a class="btn btn-sm btn-secondary" title="Cannot delete default design"> - </a>
-                                            }
-                                            else
-                                            {
-                                                <a class="btn btn-sm btn-secondary" href="@Url.Action("Delete", "Layouts", new { Id = row.Id })" title="Delete design"><span class="fa fa-trash-can"></span></a>
-                                            }
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
+                    <div id="pagelist-table" class="table-dark"></div>
+                    <script>
+
+                        const publisherUrl = "@options.PublisherUrl.TrimEnd('/')";
+                        const tblHeight = window.innerHeight - 200;
+                        let pageSize = Math.round(tblHeight / 50) + 1;
+
+                        function dateTime(cell, formatterParams, onRendered){
+                            //cell - the cell component
+                            //formatterParams - parameters set for the column
+                            //onRendered - function to call when the formatter has been rendered
+                            return getLocalTime(cell.getValue());
+                        }
+
+                        function dateFilterFunction(headerValue, rowValue, rowData, filterParams){
+                            if (rowValue === null || rowValue === "") {
+                                return false;
+                            }
+                            return headerValue === rowValue.split("T")[0]; //must return a boolean, true if it passes the filter.
+                        }
+
+                        const menuBar = function(cell, formatterParams){
+                            data = cell.getRow().getData();
+                            let html = "<div class='btn-group btn-group-sm' role='group' aria-label='Page actions.'>";
+                            
+                            // let url = data.UrlPath;
+                            // if (url === "root") {
+                            //     url = "";
+                            // }
+
+                            // if (data.IsDefault === true){
+                            //     html += "<div title='Current home page.' class='btn btn-sm btn-primary'><i class='fa-solid fa-house'></i></div>";
+                            // }
+                            // else if (data.LastPublished !== null && data.LastPublished !== ""){
+                            //     html += "<a href='/Editor/NewHome/" + data.ArticleNumber + "' title='Make this the new home page.' class='btn btn-sm btn-secondary'><i class='fa-solid fa-house'></i></a>";
+                            // }
+                            // else
+                            // {
+                            //     html += "<a title='Cannot make this the new home page until it is published.' onclick='alert(\"Cannot make this the home until it is published.\")' class='btn btn-sm btn-secondary'><i class='fa-solid fa-house'></i></a>";
+                            // }
+
+                            // html += "<a class='btn btn-sm btn-secondary' title='Create a clone of this page' href='/Editor/Clone/" + data.ArticleNumber + "'><i class='fa-solid fa-copy'></i></a>";
+
+                            // if (data.LastPublished !== null && canEdit && data.IsDefault === false)
+                            // {
+                            //     html += "<button onclick='unpublish(" + data.ArticleNumber + ")' title='Unpublishes a this item, and makes it no longer accessible except for editing.' class='btn btn-sm btn-secondary'><i class='fa-solid fa-calendar-xmark'></i></button>";
+                            // }
+                            
+                            html += "</div>";
+
+
+                            return html;
+                        };
+
+                        const pageTable = new Tabulator("#pagelist-table", {
+                            height:tblHeight + "px",
+                            pagination:true, //enable pagination
+                            paginationMode:"local", //enable local pagination
+                            paginationSize:pageSize, //optional parameter to request a certain number of rows per page
+                            persistence:{
+                                sort: true, //persist column sorting
+                                filter: true, //persist filters
+                                headerFilter: true, //persist header filters
+                                group: false, //persist row grouping
+                                page: true, //persist page
+                                columns: false, //persist columns
+                            },
+                            persistenceWriterFunc:function(id, type, data){
+                                //id - tables persistence id
+                                //type - type of data being persisted ("sort", "filter", "group", "page" or "columns")
+                                //data - array or object of data
+                                sessionStorage.setItem(id + "-" + type, JSON.stringify(data));
+                            },
+                            persistenceReaderFunc:function(id, type){
+                                //id - tables persistence id
+                                //type - type of data being persisted ("sort", "filter", "group", "page" or "columns")
+                                var data = sessionStorage.getItem(id + "-" + type);
+                                return data ? JSON.parse(data) : false;
+                            },
+                            layout:"fitColumns",
+                            ajaxURL:"@Url.Action("GetArticleList", "Editor")?publishedOnly=false", //ajax URL
+                            columns:[
+                                    {title:"Id", field:"Id", visible: false },
+
+                                    {title:"Actions", field:"IsDefault", formatter:menuBar, width:176, headerSort:false },
+
+                                    {title:"Version", field:"Version" },
+                                    {title:"Name", field:"LayoutName", sorter:"string", headerFilter:"input" },
+
+                                    {title:"Modified",
+                                        field:"LastModified",
+                                        headerFilter:"date",
+                                        headerFilterFunc:dateFilterFunction,
+                                        cellClick:openArticleVersions,
+                                        width:180,
+                                        sorter:"datetime",
+                                        sorterParams:{
+                                            format:"iso" },
+                                        formatter:"datetime",
+                                        formatterParams:{
+                                            inputFormat:"iso",
+                                            outputFormat:"MM/dd/yyyy HH:mm:ss",
+                                            invalidPlaceholder:"(Invalid date)"
+                                        }
+                                    },
+
+                                    {title:"Published",
+                                        field:"Published",
+                                        headerFilter:"date",
+                                        headerFilterFunc:dateFilterFunction,
+                                        cellClick:openArticleVersions,
+                                        width:180,
+                                        sorter:"datetime",
+                                        sorterParams:{
+                                            format:"iso" },
+                                        formatter:"datetime",
+                                        formatterParams:{
+                                            inputFormat:"iso",
+                                            outputFormat:"MM/dd/yyyy HH:mm:ss",
+                                            invalidPlaceholder:"(Invalid date)"
+                                        }
+                                    },
+                                ],
+                            });
+
+                    </script>
                 </div>
             </div>
             <div class="row cpws-table-pager-row-bottom">
                 <div class="col-md-12 d-flex justify-content-center">
-                    <partial name="~/Views/Shared/GridPager/_GridPager.cshtml" model="pagerModel"></partial>
+                    
                 </div>
             </div>
         }

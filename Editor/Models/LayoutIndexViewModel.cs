@@ -22,6 +22,11 @@ namespace Cosmos.Cms.Models
         public Guid Id { get; set; }
 
         /// <summary>
+        /// Gets or sets the version number of the object.
+        /// </summary>
+        public int Version { get; set; } = 0;
+
+        /// <summary>
         /// Gets or sets a value indicating whether is the default layout.
         /// </summary>
         [Display(Name = "Default website layout?")]
@@ -40,5 +45,15 @@ namespace Cosmos.Cms.Models
         [Display(Name = "Notes")]
         [DataType(DataType.Html)]
         public string Notes { get; set; }
+
+        /// <summary>
+        /// Gets or sets the last modified date and time.
+        /// </summary>
+        public DateTimeOffset LastModified { get; set; } = DateTimeOffset.Now;
+
+        /// <summary>
+        /// Gets or sets the published date and time.
+        /// </summary>
+        public DateTimeOffset? Published { get; set; }
     }
 }

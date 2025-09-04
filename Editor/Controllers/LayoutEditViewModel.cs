@@ -1,0 +1,44 @@
+﻿// <copyright file="LayoutEditViewModel.cs" company="Moonrise Software, LLC">
+// Copyright (c) Moonrise Software, LLC. All rights reserved.
+// Licensed under the GNU Public License, Version 3.0 (https://www.gnu.org/licenses/gpl-3.0.html)
+// See https://github.com/MoonriseSoftwareCalifornia/CosmosCMS
+// for more information concerning the license and the contributors participating to this project.
+// </copyright>
+
+namespace Cosmos.Editor.Controllers
+{
+    using System;
+
+    /// <summary>
+    /// Layout edit view model.
+    /// </summary>
+    public class LayoutEditViewModel
+    {
+        /// <summary>
+        /// Gets or sets layout ID number.
+        /// </summary>
+        public Guid Id { get; set; }
+
+        /// <summary>
+        /// Gets or sets hEAD content of the layout.
+        /// </summary>
+        public string Head { get; set; }
+
+        /// <summary>
+        /// Gets or sets hTML Header content.
+        /// </summary>
+        /// <remarks>Often is either a NAV or HEADER tag content, or both.</remarks>
+        public string HtmlHeader { get; set; }
+
+        /// <summary>
+        /// Gets or sets body tag HTML attributes.
+        /// </summary>
+        public string BodyHtmlAttributes { get; set; }
+
+        /// <summary>
+        /// Gets or sets layout footer.
+        /// </summary>
+        public string FooterHtmlContent { get; set; }
+
+    }
+}

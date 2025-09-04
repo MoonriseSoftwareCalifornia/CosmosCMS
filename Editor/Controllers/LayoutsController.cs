@@ -26,7 +26,6 @@ namespace Cosmos.Cms.Controllers
     using Cosmos.Editor.Data.Logic;
     using Cosmos.Editor.Models;
     using Cosmos.Editor.Models.GrapesJs;
-    using Cosmos.Editor.Services;
     using HtmlAgilityPack;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
@@ -91,21 +90,26 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Gets a list of layouts.
         /// </summary>
-        /// <param name="includeDefault">Default = false.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task<IActionResult> GetLayoutList(bool includeDefault = false)
+        /// <returns>A list of layouts.</returns>
+        public async Task<IActionResult> GetLayouts()
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            if (includeDefault)
+            var layouts = await dbContext.Layouts.Select(s => new LayoutIndexViewModel()
             {
-                return Json(await dbContext.Layouts.OrderBy(o => o.LayoutName).Select(s => new { LayoutId = s.Id, s.LayoutName, s.Notes }).ToListAsync());
-            }
+                Id = s.Id,
+                IsDefault = s.IsDefault,
+                LayoutName = s.LayoutName,
+                Notes = s.Notes,
+                Version = s.Version,
+                LastModified = s.LastModified,
+                Published = s.Published
+            }).OrderByDescending(o => o.Version).ToListAsync();
 
-            return Json(await dbContext.Layouts.Where(w => !w.IsDefault).OrderBy(o => o.LayoutName).Select(s => new { LayoutId = s.Id, s.LayoutName, s.Notes }).ToListAsync());
+            return Json(layouts);
         }
 
         /// <summary>

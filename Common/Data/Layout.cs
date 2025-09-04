@@ -23,6 +23,11 @@ namespace Cosmos.Common.Data
         public Guid Id { get; set; } = Guid.NewGuid();
 
         /// <summary>
+        /// Gets or sets the version number of the object.
+        /// </summary>
+        public int Version { get; set; } = 1;
+
+        /// <summary>
         /// Gets or sets the community layout ID.
         /// </summary>
         [Display(Name = "Community Layout Id")]
@@ -74,5 +79,7 @@ namespace Cosmos.Common.Data
         [Display(Name = "Footer Html Content", GroupName = "Footer")]
         [DataType(DataType.Html)]
         public string FooterHtmlContent { get; set; }
+        public DateTimeOffset LastModified { get; set; }
+        public DateTimeOffset? Published { get; set; }
     }
 }
