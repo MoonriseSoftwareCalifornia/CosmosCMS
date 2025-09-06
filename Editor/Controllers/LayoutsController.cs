@@ -21,7 +21,6 @@ namespace Cosmos.Cms.Controllers
     using Cosmos.Common.Data;
     using Cosmos.Common.Models;
     using Cosmos.Common.Services;
-    using Cosmos.Editor.Controllers;
     using Cosmos.Editor.Data;
     using Cosmos.Editor.Data.Logic;
     using Cosmos.Editor.Models;
@@ -98,18 +97,39 @@ namespace Cosmos.Cms.Controllers
                 return BadRequest(ModelState);
             }
 
-            var layouts = await dbContext.Layouts.Select(s => new LayoutIndexViewModel()
+            var layouts = await dbContext.Layouts.ToListAsync();
+
+            if (layouts.Any(l => l.Version.HasValue == false || l.Version == 0))
+            {
+                // Find the layout now published.
+                var pub = layouts.FirstOrDefault(f => f.IsDefault);
+                pub.Published = DateTimeOffset.UtcNow;
+                pub.LastModified = DateTimeOffset.UtcNow;
+                pub.Version = layouts.Count;
+
+                // Increment the versions of the other layouts.
+                var count = 1;
+                foreach (var layout in layouts.Where(w => w.Id != pub.Id))
+                {
+                    layout.Published = null;
+                    layout.LastModified = DateTimeOffset.UtcNow;
+                    layout.Version = count;
+                    count++;
+                }
+
+                await dbContext.SaveChangesAsync();
+            }
+
+            return Json(layouts.Select(s => new LayoutIndexViewModel ()
             {
                 Id = s.Id,
                 IsDefault = s.IsDefault,
                 LayoutName = s.LayoutName,
                 Notes = s.Notes,
-                Version = s.Version,
-                LastModified = s.LastModified,
+                Version = s.Version.Value,
+                LastModified = s.LastModified ?? DateTimeOffset.UtcNow,
                 Published = s.Published
-            }).OrderByDescending(o => o.Version).ToListAsync();
-
-            return Json(layouts);
+            }).OrderByDescending(o => o.Version).ToList());
         }
 
         /// <summary>
@@ -253,7 +273,7 @@ namespace Cosmos.Cms.Controllers
                 return BadRequest(ModelState);
             }
 
-            var layout = new Layout();
+            var layout = new Cosmos.Common.Data.Layout();
             layout.IsDefault = false;
             layout.LayoutName = "New Layout " + await dbContext.Layouts.CountAsync();
             layout.Notes = "New layout created. Please customize using code editor.";
@@ -293,11 +313,10 @@ namespace Cosmos.Cms.Controllers
         }
 
         /// <summary>
-        /// Loads the designer GUI.
+        /// Loads the designer GUI editing the latest version.
         /// </summary>
-        /// <param name="id">Template ID.</param>
         /// <returns>View.</returns>
-        public async Task<IActionResult> Designer(Guid id)
+        public async Task<IActionResult> Designer()
         {
             if (!ModelState.IsValid)
             {
@@ -307,13 +326,9 @@ namespace Cosmos.Cms.Controllers
             // Loads GrapeJS.
             ViewData["IsDesigner"] = true;
 
-            var template = await dbContext.Layouts.FirstOrDefaultAsync(f => f.Id == id);
-            if (template == null)
-            {
-                return NotFound();
-            }
+            var layout = await GetLayoutForEdit();
 
-            var config = new DesignerConfig(await dbContext.Layouts.FirstOrDefaultAsync(f => f.IsDefault), id.ToString(), template.LayoutName);
+            var config = new DesignerConfig(layout, layout.Id.ToString(), layout.LayoutName);
             var assets = await FileManagerController.GetImageAssetArray(storageContext, "/pub", "/pub/articles");
             if (assets != null)
             {
@@ -324,30 +339,29 @@ namespace Cosmos.Cms.Controllers
         }
 
         /// <summary>
-        /// Visual designer based on GrapeJS.
+        /// Gets data to edit.
         /// </summary>
-        /// <param name="id">Template ID.</param>
         /// <returns>IActionResult.</returns>
         [HttpGet]
-        public async Task<IActionResult> DesignerData(Guid id)
+        public async Task<IActionResult> DesignerData()
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var entity = await dbContext.Layouts.FirstOrDefaultAsync(f => f.Id == id);
+            var layout = await GetLayoutForEdit();
 
             var builder = new StringBuilder();
             builder.AppendLine("<body>");
             builder.AppendLine("<!--CCMS--START--HEADER-->");
-            if (string.IsNullOrEmpty(entity.HtmlHeader))
+            if (string.IsNullOrEmpty(layout.HtmlHeader))
             {
-                entity.Head = "<header style='height:50px;display:flex;justify-content:center;align-items: center;>HEADER GOES HERE</header>";
+                layout.Head = "<header style='height:50px;display:flex;justify-content:center;align-items: center;>HEADER GOES HERE</header>";
             }
             else
             {
-                builder.AppendLine(entity.HtmlHeader);
+                builder.AppendLine(layout.HtmlHeader);
             }
 
             builder.AppendLine("<!--CCMS--END--HEADER-->");
@@ -355,13 +369,13 @@ namespace Cosmos.Cms.Controllers
             builder.AppendLine("<div style='text-align: center'>PAGE CONTENT GOES IN THIS BLOCK<br/>Cannot edit with layout designer.</div>");
             builder.AppendLine("</div>");
             builder.AppendLine("<!--CCMS--START--FOOTER-->");
-            if (string.IsNullOrEmpty(entity.FooterHtmlContent))
+            if (string.IsNullOrEmpty(layout.FooterHtmlContent))
             {
-                entity.Head = "<footer style='height:50px;display:flex;justify-content:center;align-items: center;>FOOTER GOES HERE</footer>";
+                layout.Head = "<footer style='height:50px;display:flex;justify-content:center;align-items: center;>FOOTER GOES HERE</footer>";
             }
             else
             {
-                builder.AppendLine(entity.FooterHtmlContent);
+                builder.AppendLine(layout.FooterHtmlContent);
             }
 
             builder.AppendLine("<!--CCMS--END--FOOTER-->");
@@ -380,25 +394,20 @@ namespace Cosmos.Cms.Controllers
         [HttpPost]
         public async Task<IActionResult> DesignerData(Guid id, string title, string htmlContent, string cssContent)
         {
+            var layout = await dbContext.Layouts.FirstOrDefaultAsync(f => f.Id == id);
+
+            if (layout == null)
+            {
+                return NotFound();
+            }
+
             htmlContent = CryptoJsDecryption.Decrypt(htmlContent);
             cssContent = CryptoJsDecryption.Decrypt(cssContent);
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
 
             // Check for nested editable regions.
             if (!NestedEditableRegionValidation.Validate(htmlContent))
             {
                 return BadRequest("Cannot have nested editable regions.");
-            }
-
-            var entity = await dbContext.Layouts.FirstOrDefaultAsync(f => f.Id == id);
-
-            if (entity == null)
-            {
-                return NotFound();
             }
 
             // Get header and footer content.
@@ -415,8 +424,9 @@ namespace Cosmos.Cms.Controllers
             });
 
             // Update the layout.
-            entity.HtmlHeader = header;
-            entity.FooterHtmlContent = footer;
+            layout.HtmlHeader = header;
+            layout.FooterHtmlContent = footer;
+            layout.LastModified = DateTimeOffset.UtcNow;
 
             await dbContext.SaveChangesAsync();
 
@@ -424,131 +434,12 @@ namespace Cosmos.Cms.Controllers
         }
 
         /// <summary>
-        /// Edit the page header and footer of a layout.
-        /// </summary>
-        /// <param name="id">ID of the layout..</param>
-        /// <param name="header">Layout header content.</param>
-        /// <param name="footer">Layout footer content.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        [HttpPost]
-        public async Task<IActionResult> Edit([Bind("id,header,footer")] Guid id, string header, string footer)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var layout = await dbContext.Layouts.FirstOrDefaultAsync(i => i.Id == id);
-            layout.HtmlHeader = header;
-            layout.FooterHtmlContent = footer;
-
-            await dbContext.SaveChangesAsync();
-
-            return await GetLayoutWithHomePage(id);
-        }
-
-        /// <summary>
-        /// Gets a layout to edit it's notes.
-        /// </summary>
-        /// <param name="id">ID of the layout.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task<IActionResult> EditNotes(Guid? id)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            if (id == null)
-            {
-                return RedirectToAction("Index");
-            }
-
-            var model = await dbContext.Layouts.Select(s => new LayoutIndexViewModel
-            {
-                Id = s.Id,
-                IsDefault = s.IsDefault,
-                LayoutName = s.LayoutName,
-                Notes = s.Notes
-            }).FirstOrDefaultAsync(f => f.Id == id.Value);
-
-            if (model == null)
-            {
-                return NotFound();
-            }
-
-            return View(model);
-        }
-
-        /// <summary>
-        /// Edit layout notes.
-        /// </summary>
-        /// <param name="model">Layout post <see cref="LayoutIndexViewModel">model</see>.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        [HttpPost]
-        public async Task<IActionResult> EditNotes(LayoutIndexViewModel model)
-        {
-            model.Notes = CryptoJsDecryption.Decrypt(model.Notes);
-
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
-
-            if (model != null)
-            {
-                var layout = await dbContext.Layouts.FindAsync(model.Id);
-                layout.LayoutName = model.LayoutName;
-                var contentHtmlDocument = new HtmlDocument();
-                contentHtmlDocument.LoadHtml(HttpUtility.HtmlDecode(model.Notes));
-                if (contentHtmlDocument.ParseErrors.Any())
-                {
-                    foreach (var error in contentHtmlDocument.ParseErrors)
-                    {
-                        ModelState.AddModelError("Notes", error.Reason);
-                    }
-                }
-
-                var remove = "<div style=\"display:none;\"></div>";
-                layout.Notes = contentHtmlDocument.ParsedText.Replace(remove, string.Empty).Trim();
-
-                if (model.IsDefault)
-                {
-                    var layouts = await dbContext.Layouts.Where(w => w.Id != model.Id).ToListAsync();
-                    foreach (var layout1 in layouts)
-                    {
-                        layout1.IsDefault = false;
-                    }
-                }
-
-                await dbContext.SaveChangesAsync();
-            }
-
-            return RedirectToAction("Index");
-        }
-
-        /// <summary>
         /// Edit code for a layout.
         /// </summary>
-        /// <param name="id">Layout ID.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task<IActionResult> EditCode(Guid? id)
+        public async Task<IActionResult> EditCode()
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var layout = await dbContext.Layouts.FirstOrDefaultAsync(f => f.Id == id.Value);
-            if (layout == null)
-            {
-                return NotFound();
-            }
+            var layout = await GetLayoutForEdit();
 
             ViewData["PageTitle"] = layout.LayoutName;
 
@@ -591,7 +482,7 @@ namespace Cosmos.Cms.Controllers
         }
 
         /// <summary>
-        ///     Saves the code and html of the page.
+        ///     Saves the code and html of the layout.
         /// </summary>
         /// <param name="model">Post <see cref="LayoutCodeViewModel">model</see>.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
@@ -635,12 +526,13 @@ namespace Cosmos.Cms.Controllers
             model.BodyHtmlAttributes = StripBOM(model.BodyHtmlAttributes);
 
             // This layout now is the default, make sure the others are set to "false."
-            var entity = await dbContext.Layouts.FindAsync(model.Id);
-            entity.FooterHtmlContent =
+            var layout = await dbContext.Layouts.FindAsync(model.Id);
+            layout.FooterHtmlContent =
                 BaseValidateHtml("FooterHtmlContent", model.FooterHtmlContent);
-            entity.Head = BaseValidateHtml("Head", model.Head);
-            entity.HtmlHeader = BaseValidateHtml("HtmlHeader", model.HtmlHeader);
-            entity.BodyHtmlAttributes = model.BodyHtmlAttributes;
+            layout.Head = BaseValidateHtml("Head", model.Head);
+            layout.HtmlHeader = BaseValidateHtml("HtmlHeader", model.HtmlHeader);
+            layout.BodyHtmlAttributes = model.BodyHtmlAttributes;
+            layout.LastModified = DateTimeOffset.UtcNow;
 
             // Check validation again after validation of HTML
             await dbContext.SaveChangesAsync();
@@ -655,16 +547,63 @@ namespace Cosmos.Cms.Controllers
                 .ToList());
             jsonModel.ValidationState = ModelState.ValidationState;
 
-            try
+            return Json(jsonModel);
+        }
+
+        /// <summary>
+        /// Gets a layout to edit it's notes.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        public async Task<IActionResult> EditNotes()
+        {
+            var layout = await GetLayoutForEdit();
+
+            return View(new LayoutIndexViewModel
             {
-                await PurgeCdn();
-            }
-            catch (Exception e)
+                Id = layout.Id,
+                IsDefault = layout.IsDefault,
+                LayoutName = layout.LayoutName,
+                Notes = layout.Notes
+            });
+        }
+
+        /// <summary>
+        /// Edit layout notes.
+        /// </summary>
+        /// <param name="model">Layout post <see cref="LayoutIndexViewModel">model</see>.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        [HttpPost]
+        public async Task<IActionResult> EditNotes(LayoutIndexViewModel model)
+        {
+            model.Notes = CryptoJsDecryption.Decrypt(model.Notes);
+
+            if (!ModelState.IsValid)
             {
-                var d = e; // Debugging.
+                return View(model);
             }
 
-            return Json(jsonModel);
+            if (model != null)
+            {
+                var layout = await dbContext.Layouts.FindAsync(model.Id);
+                layout.LayoutName = model.LayoutName;
+                var contentHtmlDocument = new HtmlDocument();
+                contentHtmlDocument.LoadHtml(HttpUtility.HtmlDecode(model.Notes));
+                if (contentHtmlDocument.ParseErrors.Any())
+                {
+                    foreach (var error in contentHtmlDocument.ParseErrors)
+                    {
+                        ModelState.AddModelError("Notes", error.Reason);
+                    }
+                }
+
+                var remove = "<div style=\"display:none;\"></div>";
+                layout.Notes = contentHtmlDocument.ParsedText.Replace(remove, string.Empty).Trim();
+                layout.LastModified = DateTimeOffset.UtcNow;
+
+                await dbContext.SaveChangesAsync();
+            }
+
+            return RedirectToAction("Index");
         }
 
         /// <summary>
@@ -753,71 +692,36 @@ namespace Cosmos.Cms.Controllers
         }
 
         /// <summary>
-        /// Set a layout as the default layout.
+        ///     Publishes a layout as the default layout.
         /// </summary>
-        /// <param name="id">ID of the layout.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        [HttpGet]
-        public async Task<IActionResult> SetLayoutAsDefault(Guid? id)
+        /// <param name="id">Layout ID.</param>
+        /// <returns>Success or failure.</returns>
+        [HttpPost]
+        public async Task<IActionResult> Publish(Guid id)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest();
-            }
+            var layout = await dbContext.Layouts.FirstOrDefaultAsync(f => f.Id == id);
 
-            if (id == null)
-            {
-                return RedirectToAction("Index");
-            }
-
-            var model = await dbContext.Layouts.Select(s => new LayoutIndexViewModel
-            {
-                Id = s.Id,
-                IsDefault = s.IsDefault,
-                LayoutName = s.LayoutName,
-                Notes = s.Notes
-            }).FirstOrDefaultAsync(f => f.Id == id.Value);
-
-            if (model == null)
+            if (layout == null)
             {
                 return NotFound();
             }
 
-            return View(model);
-        }
-
-        /// <summary>
-        ///     Sets a layout as the default layout.
-        /// </summary>
-        /// <param name="model">Post <see cref="LayoutIndexViewModel">view model</see>.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        [HttpPost]
-        public async Task<IActionResult> SetLayoutAsDefault(LayoutIndexViewModel model)
-        {
-            if (!ModelState.IsValid)
+            if (layout.IsDefault)
             {
-                return View(model);
-            }
-
-            var layout = await dbContext.Layouts.FirstOrDefaultAsync(f => f.Id == model.Id);
-
-            if (layout == null)
-            {
-                return RedirectToAction("Index", "Layouts");
+                return Ok();
             }
 
             layout.IsDefault = true;
 
-            await dbContext.SaveChangesAsync();
-            var items = await dbContext.Layouts.Where(w => w.Id != model.Id).ToListAsync();
-            foreach (var item in items)
+            var others = await dbContext.Layouts.Where(w => w.Id != id && w.IsDefault == true).ToListAsync();
+            foreach (var item in others)
             {
                 item.IsDefault = false;
             }
 
             await dbContext.SaveChangesAsync();
 
-            return RedirectToAction("Index", "Layouts");
+            return RedirectToAction("Publish", "Editor");
         }
 
         /// <summary>
@@ -825,7 +729,7 @@ namespace Cosmos.Cms.Controllers
         /// </summary>
         /// <param name="id">Layout ID.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task<IActionResult> ImportCommunityLayout(string id)
+        public async Task<IActionResult> Import(string id)
         {
             if (!ModelState.IsValid)
             {
@@ -842,7 +746,18 @@ namespace Cosmos.Cms.Controllers
                 var utilities = new LayoutUtilities();
                 var layout = await utilities.GetCommunityLayout(id, false);
                 var communityPages = await utilities.GetCommunityTemplatePages(id);
-                layout.IsDefault = !await dbContext.Layouts.Where(a => a.IsDefault).CosmosAnyAsync();
+
+                if ((await dbContext.Layouts.FirstOrDefaultAsync(a => a.IsDefault)) == null)
+                {
+                    layout.Version = 1;
+                    layout.IsDefault = true;
+                }
+                else
+                {
+                    layout.Version = (await dbContext.Layouts.CountAsync()) + 1;
+                    layout.IsDefault = false;
+                }
+
                 dbContext.Layouts.Add(layout);
                 await dbContext.SaveChangesAsync();
 
@@ -883,32 +798,70 @@ namespace Cosmos.Cms.Controllers
         }
 
         /// <summary>
-        /// Gets the home page with the specified layout (may not be the default layout).
+        ///  Promotes a layout to a new version.
         /// </summary>
-        /// <param name="id">Layout Id (default layout if null).</param>
-        /// <returns>ViewResult with <see cref="ArticleViewModel"/>.</returns>
-        private async Task<IActionResult> GetLayoutWithHomePage(Guid? id)
+        /// <param name="id">ID of the layout to promote.</param>
+        /// <returns>New version number.</returns>
+        public async Task<IActionResult> Promote(Guid id)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest();
             }
 
-            // Get the home page
-            var model = await articleLogic.GetArticleByUrl(string.Empty);
-
-            // Specify layout if given.
-            if (id.HasValue)
+            var layout = await dbContext.Layouts.AsNoTracking().FirstOrDefaultAsync(f => f.Id == id);
+            if (layout == null)
             {
-                var layout = await dbContext.Layouts.FirstOrDefaultAsync(i => i.Id == id.Value);
-                model.Layout = new LayoutViewModel(layout);
+                return NotFound();
             }
 
-            // Make its editable
-            model.Layout.HtmlHeader = model.Layout.HtmlHeader.Replace(" crx=\"", " contenteditable=\"", StringComparison.CurrentCultureIgnoreCase);
-            model.Layout.FooterHtmlContent = model.Layout.FooterHtmlContent.Replace(" crx=\"", " contenteditable=\"", StringComparison.CurrentCultureIgnoreCase);
+            var newLayout = await NewVersion(layout);
 
-            return View(model);
+            return Json(newLayout.Version);
+        }
+
+        private async Task<Cosmos.Common.Data.Layout> GetLayoutForEdit()
+        {
+            var layout = await dbContext.Layouts.OrderByDescending(o => o.Version).FirstOrDefaultAsync();
+            if (layout == null)
+            {
+                layout = new Layout()
+                {
+                    Id = Guid.NewGuid(),
+                    IsDefault = true,
+                    LayoutName = "Default Layout",
+                    Notes = "Default layout created. Please customize using code editor.",
+                    Version = 1,
+                    LastModified = DateTimeOffset.UtcNow
+                };
+                dbContext.Layouts.Add(layout);
+                await dbContext.SaveChangesAsync();
+                return layout;
+            }
+
+            if (layout.IsDefault)
+            {
+                return await NewVersion(layout);
+            }
+
+            return layout;
+        }
+
+        /// <summary>
+        ///  Creates a new layout from an existing layout.
+        /// </summary>
+        /// <param name="layout">Exiting layout.</param>
+        /// <returns>New layout with an incremented version number.</returns>
+        private async Task<Cosmos.Common.Data.Layout> NewVersion(Cosmos.Common.Data.Layout layout)
+        {
+            layout.Id = Guid.NewGuid();
+            layout.IsDefault = false;
+            layout.Published = null;
+            layout.LastModified = DateTimeOffset.UtcNow;
+            layout.Version = (await dbContext.Layouts.CountAsync()) + 1;
+            dbContext.Layouts.Add(layout);
+            await dbContext.SaveChangesAsync();
+            return layout;
         }
 
         private string GetTextBetween(string input, string start, string end)
@@ -934,16 +887,5 @@ namespace Cosmos.Cms.Controllers
             return input.Substring(startIndex, endIndex - startIndex);
         }
 
-        private async Task PurgeCdn()
-        {
-            if (Request.Host.Host.Contains("localhost"))
-            {
-                return;
-            }
-
-            var settings = await Cosmos___SettingsController.GetCdnConfiguration(dbContext);
-            var cdnService = new Editor.Services.CdnService(settings, logger, HttpContext);
-            await cdnService.PurgeCdn(new List<string>() { "/" });
-        }
     }
 }

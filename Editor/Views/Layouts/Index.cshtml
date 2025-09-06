@@ -2,18 +2,28 @@
 @using Microsoft.Extensions.Options;
 @inject IEditorSettings options
 @{
-    ViewData["Title"] = "Website Design Inventory";
+    ViewData["Title"] = "Site Design Version List";
     var showFirstPageBtn = (bool)ViewData["ShowFirstPageBtn"];
     var showCreateFirstLayout = (bool)ViewData["ShowCreateFirstLayout"];
 }
+<link href="~/lib/tabulator-tables/dist/css/tabulator_midnight.css" rel="stylesheet" />
+<script src="~/lib/luxon/luxon.min.js"></script>
+<script src="~/lib/tabulator-tables/dist/js/tabulator.min.js"></script>
+<script src="~/js/clipboard.min.js"></script>
+<style>
+    .fs-small {
+        font-size: 0.8em;
+    }
+</style>
+
 <div class="pt-3">
     <div class="container">
         @if (showCreateFirstLayout)
         {
             <div class="row justify-content-center">
                 <div class="col-md-10 text-light">
-                    <h1>Website Design</h1>
-                    <p>&quot;Website designs&quot; provide a common functionality, look and feel across all pages on your website.</p>
+                    <h1>Site Design</h1>
+                    <p>&quot;Designs&quot; provide a common functionality, look and feel across all pages on your website.</p>
                     <h4>Choose a pre-built website design (recommended)</h4>
                     <div class="ms-5 mb-5">
                         <p class="mb-3">These designs are ready for use and some are designed for non-technical users.  The is the recommened choice for most users.</p>
@@ -32,7 +42,7 @@
             <div class="row">
                 <div class="col">
                     <h3 class="text-light">@ViewData["Title"]</h3>
-
+                    <p class="text-light">&quot;Designs&quot; provide a common functionality, look and feel across all pages on your website.</p>
                     @if (showFirstPageBtn && showCreateFirstLayout == false)
                     {
                         <a class="btn btn-sm btn-primary" title="Create website home page" href="/Editor/Create">Create Home Page <i class="fa-solid fa-circle-arrow-right"></i></a>
@@ -43,9 +53,10 @@
                 <div class="col-md-6">
                     <div class="btn-group" role="group" aria-label="Page Actions">
                         <a class="btn btn-sm btn-primary" href="@Url.Action("Create")">New design</a>
-                        <a class="btn btn-sm btn-secondary" title="Export the default layout." href="@Url.Action("ExportLayout")">Export blank</a>
-                        <a class="btn btn-sm btn-secondary" title="Export the default layout." href="@Url.Action("ExportLayout")">Export default</a>
-                        <a class="btn btn-sm btn-secondary" title="Import one of the community layouts." href="@Url.Action("CommunityLayouts")">Import design <i class="fa-solid fa-circle-arrow-right"></i></a>
+                        <a class="btn btn-sm btn-secondary" title="Edit layout code." href="@Url.Action("EditCode")"><i class="fa-solid fa-code"></i> Code</a>
+                        <a class="btn btn-sm btn-secondary" title="Edit with the designer tool." href="@Url.Action("Designer")"><i class="fa-solid fa-wand-magic-sparkles"></i> Design</a>
+                        <a class="btn btn-sm btn-secondary" title="Edit design title and notes." href="@Url.Action("EditNotes")"><i class="fa-solid fa-pen-to-square"></i> Notes</a>
+                        <a class="btn btn-sm btn-secondary" title="Import one of the community layouts." href="@Url.Action("CommunityLayouts")">Import design <i class="fa-solid fa-cloud-arrow-down"></i></a>
                         <a title="Return to page list" class="btn btn-sm btn-secondary" href="@Url.Action("Index", "Editor")">Page list <i class="fa-solid fa-circle-arrow-right"></i></a>
                     </div>
                 </div>
@@ -85,9 +96,13 @@
                             //     url = "";
                             // }
 
-                            // if (data.IsDefault === true){
-                            //     html += "<div title='Current home page.' class='btn btn-sm btn-primary'><i class='fa-solid fa-house'></i></div>";
-                            // }
+                            if (data.IsDefault === true){
+                                html += "<div title='Published design.' class='btn btn-sm btn-primary'><i class='fa-solid fa-circle-check'></i></div>";
+                            } else {
+                                html += "<div title='Published design.' class='btn btn-sm btn-secondary'><i class='fa-solid fa-xmark'></i></div>";
+                            }
+                            html += "<btn onclick='promote(\"" + data.Id + "\")' title='Create new version from this one.' class='btn btn-sm btn-secondary'><i class='fa-solid fa-square-caret-up'></i></btn>";
+                            
                             // else if (data.LastPublished !== null && data.LastPublished !== ""){
                             //     html += "<a href='/Editor/NewHome/" + data.ArticleNumber + "' title='Make this the new home page.' class='btn btn-sm btn-secondary'><i class='fa-solid fa-house'></i></a>";
                             // }
@@ -135,20 +150,35 @@
                                 return data ? JSON.parse(data) : false;
                             },
                             layout:"fitColumns",
-                            ajaxURL:"@Url.Action("GetArticleList", "Editor")?publishedOnly=false", //ajax URL
+                            ajaxURL:"@Url.Action("GetLayouts", "Layouts")", //ajax URL
                             columns:[
                                     {title:"Id", field:"Id", visible: false },
 
-                                    {title:"Actions", field:"IsDefault", formatter:menuBar, width:176, headerSort:false },
+                                    {title:"Actions", field:"IsDefault", formatter:menuBar, width:100, headerSort: false },
 
-                                    {title:"Version", field:"Version" },
-                                    {title:"Name", field:"LayoutName", sorter:"string", headerFilter:"input" },
+                                    {title:"Version", field:"Version", width: 100 },
 
+                                                                        {title:"Published",
+                                        field:"Published",
+                                        headerFilter:"date",
+                                        headerFilterFunc:dateFilterFunction,
+                                        cellClick:selectVersion,
+                                        width:180,
+                                        sorter:"datetime",
+                                        sorterParams:{
+                                            format:"iso" },
+                                        formatter:"datetime",
+                                        formatterParams:{
+                                            inputFormat:"iso",
+                                            outputFormat:"MM/dd/yyyy HH:mm:ss",
+                                            invalidPlaceholder:"(Invalid date)"
+                                        }
+                                    },
                                     {title:"Modified",
                                         field:"LastModified",
                                         headerFilter:"date",
                                         headerFilterFunc:dateFilterFunction,
-                                        cellClick:openArticleVersions,
+                                        cellClick:selectVersion,
                                         width:180,
                                         sorter:"datetime",
                                         sorterParams:{
@@ -161,24 +191,21 @@
                                         }
                                     },
 
-                                    {title:"Published",
-                                        field:"Published",
-                                        headerFilter:"date",
-                                        headerFilterFunc:dateFilterFunction,
-                                        cellClick:openArticleVersions,
-                                        width:180,
-                                        sorter:"datetime",
-                                        sorterParams:{
-                                            format:"iso" },
-                                        formatter:"datetime",
-                                        formatterParams:{
-                                            inputFormat:"iso",
-                                            outputFormat:"MM/dd/yyyy HH:mm:ss",
-                                            invalidPlaceholder:"(Invalid date)"
-                                        }
-                                    },
+                                    {title:"Name", field:"LayoutName", sorter:"string", headerFilter:"input" },
+                                    {title:"Notes", field:"Notes", sorter:"string", headerFilter:"input" },
                                 ],
                             });
+
+                        function selectVersion(e, cell) {
+                            const data = cell.getRow().getData();
+                            // window.location.href = "@Url.Action("Versions")/" + data.ArticleNumber;
+                        }
+
+                        function promote(id) {
+                            $.get("@Url.Action("Promote", "Layouts")/" + id, function (data) {
+                                pageTable.setData();
+                            });
+                        }
 
                     </script>
                 </div>

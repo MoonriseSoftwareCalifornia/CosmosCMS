@@ -25,7 +25,7 @@ namespace Cosmos.Common.Data
         /// <summary>
         /// Gets or sets the version number of the object.
         /// </summary>
-        public int Version { get; set; } = 1;
+        public int? Version { get; set; } = 1;
 
         /// <summary>
         /// Gets or sets the community layout ID.
@@ -79,7 +79,15 @@ namespace Cosmos.Common.Data
         [Display(Name = "Footer Html Content", GroupName = "Footer")]
         [DataType(DataType.Html)]
         public string FooterHtmlContent { get; set; }
-        public DateTimeOffset LastModified { get; set; }
+
+        /// <summary>
+        /// Gets or sets the date and time when the object was last modified.
+        /// </summary>
+        public DateTimeOffset? LastModified { get; set; } = DateTimeOffset.UtcNow;
+
+        /// <summary>
+        /// Gets or sets the date and time when the item was published.
+        /// </summary>
         public DateTimeOffset? Published { get; set; }
     }
 }

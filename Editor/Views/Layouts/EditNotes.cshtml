@@ -25,16 +25,6 @@
                     <input type="hidden" asp-for="Id" />
                     <input type="hidden" asp-for="IsDefault" />
                     <input type="hidden" asp-for="Notes" />
-                    <div class="form-group form-check">
-                        @if (Model.IsDefault)
-                        {
-                            <div class="btn btn-primary">Is default design</div>
-                        }
-                        else
-                        {
-                            <div class="btn btn-secondary">Is NOT default design</div>
-                        }
-                    </div>
                     <div class="form-group">
                         <label asp-for="LayoutName" class="control-label"></label>
                         <input asp-for="LayoutName" class="form-control" />
