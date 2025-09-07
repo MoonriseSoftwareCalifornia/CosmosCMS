@@ -1,0 +1,99 @@
+﻿@model ArticleViewModel
+@inject IEditorSettings options
+@using System.Reflection
+@using Cosmos.Cms.Common.Services.Configurations;
+@using Cosmos.Editor.Data.Logic
+@using Microsoft.Extensions.Options;
+@{
+    var assemblyName = Assembly.GetExecutingAssembly().GetName();
+    var isEditor = false;
+    var isAdministrator = false;
+    var isAuthor = false;
+    var isReviewer = false;
+
+    if (User != null && User.IsInRole("Editors"))
+    {
+        isEditor = true;
+    }
+
+    if (User != null && User.IsInRole("Administrators"))
+    {
+        isAdministrator = true;
+    }
+
+    if (User != null && User.IsInRole("Authors"))
+    {
+        isAuthor = true;
+    }
+
+    if (User != null && User.IsInRole("Reviewers"))
+    {
+        isReviewer = true;
+    }
+}
+<nav id="ccmsNavMenu" class="navbar navbar-expand-sm navbar-dark bg-dark" style="z-index: 20000000;">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">
+            <img src="~/images/logos/logo-white.png" height="30" />
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                @if(User != null && User.Identity != null && (isAdministrator || isEditor || isAuthor || isReviewer))
+                {
+                    <li class="nav-item">
+                        <a id="btnEditor" href="#" role="button" class="btn btn-sm btn-secondary mt-1">
+                            Back to edit <i class="fa-solid fa-arrow-rotate-left"></i>
+                        </a>
+                    </li>
+                }
+                @if (isAdministrator || isEditor)
+                {
+                    <li class="nav-item">
+                        <a id="btnPublish" href="#" role="button" class="btn btn-sm btn-secondary mt-1 ms-2">
+                            Publish <i class="fa-solid fa-cloud-arrow-up"></i>
+                        </a>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</nav>
+<script>
+
+    var isAuthor = @(isAuthor.ToString().ToLower());
+
+    let pageTitle = "";
+    let pagePath = "";
+
+    function closePreview() {
+        if (window.opener) {
+            window.close();
+        } else {
+            location.href = "/Editor/Versions/@Context.Request.Query["ArticleNumber"]";
+        }
+    }
+
+    function loadDdEditMenu() {
+        const ddMenu = $("#ddEditMenu");
+
+        ddMenu.html("Loading...");
+
+        const iframe = document.getElementById("iFrameWebPage");
+        const iframeWin = iframe.contentWindow || iframe.contentDocument.parentWindow;
+
+        pageTitle = iframeWin.document.head.querySelector("meta[name='cwps-meta-path-title']").content;
+        pagePath = iframeWin.document.head.querySelector("meta[name='cwps-meta-path-url']").content;
+
+    }
+
+    function closeDropDowns() {
+        $("#navbarEditDropdown").removeClass("show");
+        $("#ddEditMenu").removeClass("show");
+        $("#btnManage").removeClass("show");
+        $("#ddManageMenu").removeClass("show");
+    }
+
+</script>
