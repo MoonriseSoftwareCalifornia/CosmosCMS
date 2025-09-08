@@ -10,6 +10,7 @@
     var isAdministrator = false;
     var isAuthor = false;
     var isReviewer = false;
+    var previewType = Context.Request.Query["previewType"].ToString().ToLower();
 
     if (User != null && User.IsInRole("Editors"))
     {
@@ -32,6 +33,9 @@
     }
 
 }
+<script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 <nav id="ccmsNavMenu" class="navbar navbar-expand-sm navbar-dark bg-dark" style="z-index: 20000000;">
     <div class="container-fluid">
         <a class="navbar-brand" href="/">
@@ -42,29 +46,40 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                @if(User != null && User.Identity != null && (isAdministrator || isEditor || isAuthor || isReviewer))
+                <li class="nav-item">
+                    <a id="btnEditor" href="#" role="button" class="btn btn-sm btn-secondary mt-1">
+                        Back to edit <i class="fa-solid fa-arrow-rotate-left"></i>
+                    </a>
+                </li>
+                @if (previewType.Equals("article") && (isEditor || isAdministrator ))
                 {
                     <li class="nav-item">
-                        <a id="btnEditor" href="#" role="button" class="btn btn-sm btn-secondary mt-1">
-                            Back to edit <i class="fa-solid fa-arrow-rotate-left"></i>
-                        </a>
+                        <div id="divPublishedTitleGroup" class="input-group input-group-sm mt-1">
+                            <div id="lblPublished" class="input-group-text" style="height:31px;">Publish:</div>
+                            <input autocomplete="off" class="form-control text-truncate" name="tbPublished" id="tbPublished" placeholder="Choose date/time" value="" />
+                            <button class="btn btn-sm btn-danger" title="Publish now if new, or republish using previous date and time." type="button" id="btnPublishNow" onclick="bgEditClick('Publish')" style="display:none">Now</button>
+                            <button class="btn btn-sm btn-secondary" title="Clicking this button will make an editable draft of this page that is not published." type="button" id="btnDraftNow" onclick="bgEditClick('Draft')" style="display:none">Make Draft</button>
+                        </div>
                     </li>
                 }
-                @if (isAdministrator || isEditor)
+                else
                 {
                     <li class="nav-item">
                         <a id="btnPublish" href="#" role="button" class="btn btn-sm btn-secondary mt-1 ms-2">
-                            Publish <i class="fa-solid fa-cloud-arrow-up"></i>
+                            Publish now <i class="fa-solid fa-cloud-arrow-up"></i>
                         </a>
                     </li>
                 }
+
+                
             </ul>
         </div>
     </div>
 </nav>
 <script>
 
-    var isAuthor = @(isAuthor.ToString().ToLower());
+    const isAuthor = @(isAuthor.ToString().ToLower());
+    const previewType = "@previewType";
 
     let pageTitle = "";
     let pagePath = "";
@@ -97,4 +112,37 @@
         $("#ddManageMenu").removeClass("show");
     }
 
+    $("#btnPublish").on("click", function (e) {
+        e.preventDefault();
+        switch (previewType) {
+            case "article":
+                location.href = "/Editor/Publish/@Model.Id";
+                break;
+            case "layout":
+                location.href = "/Layouts/Publish/@Model.Layout.Id.ToString()";
+                break;
+        }
+    });
+
+    $('#tbPublished').daterangepicker({
+        autoUpdateInput: false,
+        timePicker: true,
+        singleDatePicker: true,
+        showDropdowns: true,
+        startDate: new Date(),
+        locale: {
+            format: 'MM/DD/YYYY hh:mm A'
+        }
+    });
+
+    $('#tbPublished').on('apply.daterangepicker', function (ev, picker) {
+        if (isAuthor) {
+            alert("Only Editors and Administratos can publish changes.");
+        } else {
+            $('#tbPublished').val(picker.startDate.format('MM/DD/YYYY hh:mm A'));
+            //displayLastPublished($('#tbPublished').val());
+            $("#Published").val($('#tbPublished').val());
+            $("#frmSave").submit();
+        }
+    });
 </script>

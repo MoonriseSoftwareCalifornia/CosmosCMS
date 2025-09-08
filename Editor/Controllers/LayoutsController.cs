@@ -613,12 +613,8 @@ namespace Cosmos.Cms.Controllers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> Preview(Guid id)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest();
-            }
-
-            var layout = await dbContext.Layouts.FindAsync(id);
+            Layout layout = await dbContext.Layouts.FirstOrDefaultAsync(f => f.Id == id);
+            
             if (layout == null)
             {
                 return NotFound();
@@ -632,7 +628,7 @@ namespace Cosmos.Cms.Controllers
 
             ViewData["LayoutId"] = model.Layout.Id.ToString();
 
-            return RedirectToAction("Index", "Home", new { layoutId = layout.Id });
+            return RedirectToAction("Index", "Home", new { layoutId = layout.Id, previewType = "layout" });
         }
 
         /// <summary>
@@ -856,11 +852,22 @@ namespace Cosmos.Cms.Controllers
         /// <returns>New layout with an incremented version number.</returns>
         private async Task<Cosmos.Common.Data.Layout> NewVersion(Cosmos.Common.Data.Layout layout)
         {
-            layout.Id = Guid.NewGuid();
-            layout.IsDefault = false;
-            layout.Published = null;
-            layout.LastModified = DateTimeOffset.UtcNow;
-            layout.Version = (await dbContext.Layouts.CountAsync()) + 1;
+            layout = new Layout()
+            {
+                CommunityLayoutId = layout.CommunityLayoutId,
+                LayoutName = layout.LayoutName + " (Copy)",
+                Notes = layout.Notes,
+                Head = layout.Head,
+                HtmlHeader = layout.HtmlHeader,
+                BodyHtmlAttributes = layout.BodyHtmlAttributes,
+                FooterHtmlContent = layout.FooterHtmlContent,
+                IsDefault = false,
+                Version = (await dbContext.Layouts.CountAsync()) + 1,
+                LastModified = DateTimeOffset.UtcNow,
+                Published = null,
+                Id = Guid.NewGuid()
+            };
+
             dbContext.Layouts.Add(layout);
             await dbContext.SaveChangesAsync();
             return layout;

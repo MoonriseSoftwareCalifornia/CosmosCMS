@@ -333,7 +333,7 @@ namespace Cosmos.Common.Data
                 modelBuilder.Entity<Layout>()
                     .ToContainer("Layouts")
                     .HasPartitionKey(a => a.Id)
-                    .HasKey(article => article.Id);
+                    .HasKey(layout => layout.Id);
 
                 modelBuilder.Entity<PublishedPage>()
                     .ToContainer("Pages")

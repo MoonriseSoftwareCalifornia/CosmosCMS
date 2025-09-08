@@ -144,9 +144,10 @@ namespace Cosmos.Cms.Controllers
         /// <param name="lang">Language code.</param>
         /// <param name="mode">json or nothing.</param>
         /// <param name="layoutId">Layout ID when previewing a layout.</param>
+        /// <param name="previewType">Preview type.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [AllowAnonymous]
-        public async Task<IActionResult> Index(string lang = "", string mode = "", Guid? layoutId = null)
+        public async Task<IActionResult> Index(string lang = "", string mode = "", Guid? layoutId = null, string previewType = "")
         {
             if (User.Identity?.IsAuthenticated == false)
             {

@@ -152,6 +152,7 @@
                             ajaxURL:"@Url.Action("GetLayouts", "Layouts")", //ajax URL
                             columns:[
                                     {title:"Id", field:"Id", visible: false },
+                                    {title:"Notes", field:"Notes", visible: false },
 
                                     {title:"Actions", field:"IsDefault", formatter:menuBar, width:100, headerSort: false },
 
@@ -190,8 +191,7 @@
                                         }
                                     },
 
-                                    {title:"Name", field:"LayoutName", sorter:"string", headerFilter:"input" },
-                                    {title:"Notes", field:"Notes", sorter:"string", headerFilter:"input" },
+                                    {title:"Name", field:"LayoutName", sorter:"string", headerFilter:"input" }
                                 ],
                             });
 

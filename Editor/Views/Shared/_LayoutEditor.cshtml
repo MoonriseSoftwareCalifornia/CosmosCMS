@@ -39,10 +39,6 @@
     <script src="~/lib/cosmos/jquery.blockui.js"></script>
     <script src="~/ccms/js/TimeUtils.js"></script>
 
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
-    <!-- http://www.daterangepicker.com/ -->
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
-
     <script>
         let cosmos_plugin_array = [];
         const isAuthor = @isAuthor.ToString().ToLower();
@@ -90,9 +86,6 @@
                                 <a title='Set which users and roles can access this page.' class="dropdown-item" onclick="bgEditClick('permissions')">Permissions</a>
                             </li>
                             <li><hr class="dropdown-divider"></li>
-                            <li id="btnPreview">
-                                <a class="dropdown-item" onclick="bgEditClick('Preview')">Preview</a>
-                            </li>
                             <li id="btnFiles">
                                 <a class="dropdown-item" title="Files that are uploaded to this page." onclick="bgEditClick('Files')">Files (this page)</a>
                             </li>
@@ -153,7 +146,6 @@
                         </div>
                     </li>
 
-
                     <li class="nav-item" id="divAutoSave" style="display:none">
                         <div class="form-check form-switch">
                             <input id="swAutoSave" class="form-check-input" type="checkbox" role="checkbox" checked>
@@ -185,7 +177,7 @@
 
                     <li class="nav-item">
                         <div class="btn-group" role="group" aria-label="Preview image button group">
-                            <a class="btn btn-sm btn-secondary mt-1" onclick="bgEditClick('Preview')">Preview</a>
+                            <a class="btn btn-sm btn-secondary mt-1" onclick="bgEditClick('Preview')">Preview/Publish</a>
                         </div>
                     </li>
 
