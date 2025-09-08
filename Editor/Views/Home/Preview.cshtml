@@ -3,11 +3,23 @@
     Layout = null;
     var article = (ArticleViewModel)ViewData["Article"];
     var returnUrl = (string)ViewData["ReturnUrl"];
-    var frameUrl = "/Home/CcmsContentIndex?target=" + Model.UrlPath.Replace("/Home/CcmsContentIndex?target=", "");
+
+    var frameUrl = string.Empty;
+    var layoutId = ViewData["LayoutId"]?.ToString() ?? "";
 
     if (!string.IsNullOrEmpty(Context.Request.Query["articleNumber"]))
     {
         frameUrl = "/Home/Preview" + Context.Request.QueryString;
+    }
+    else
+    {
+
+        frameUrl = "/Home/CcmsContentIndex?target=" + Model.UrlPath.Replace("/Home/CcmsContentIndex?target=", "");
+
+        if (!string.IsNullOrEmpty(layoutId))
+        {
+            frameUrl = frameUrl + $"&layoutId={layoutId}";
+        }
     }
 }
 <!DOCTYPE HTML>
@@ -26,7 +38,9 @@
     <partial name="_CosmosPreviewMenuPartial" model="Model" />
     <iframe id="iFrameWebPage" src="@frameUrl" style="position: absolute; top: 52px; width: 100%; margin:0px; padding:0px;z-index:1;"></iframe>
     <script>
-        // The following is used to wireup the menu links to this page.
+
+        const layoutId = '@layoutId';
+
         function setupIframe() {
             const iframe = document.getElementById("iFrameWebPage");
             const iframeWin = iframe.contentWindow || iframe.contentDocument.parentWindow;
@@ -35,6 +49,32 @@
             }
             loadDdEditMenu();
         };
+
+        // Function to add layoutId query parameter to all anchors in the iframe
+        function addLayoutIdToAnchors(iframeContent) {
+            const anchors = iframeContent.querySelectorAll('a[href]');
+            anchors.forEach(anchor => {
+                let href = anchor.getAttribute('href');
+                if (!href) return;
+                // Ignore external links
+                if (href.startsWith('http') || href.startsWith('mailto:')) return;
+                // Parse URL and add layoutId
+                let url;
+                try {
+                    url = new URL(href, window.location.origin);
+                } catch {
+                    // Relative URL fallback
+                    url = document.createElement('a');
+                    url.href = href;
+                }
+                // Only add if not already present
+                if (!url.searchParams.has('layoutId')) {
+                    url.searchParams.append('layoutId', layoutId);
+                    anchor.setAttribute('href', url.pathname + url.search + url.hash);
+                }
+            });
+        }
+
         window.addEventListener('resize', function (event) { setupIframe(); }, true);
 
         $(document).ready(function() {
@@ -42,11 +82,13 @@
 
             iframe.on('load', function() {
                 var iframeContent = iframe.contents();
+                if (layoutId !== '') {
+                    addLayoutIdToAnchors(iframeContent);
+                }
                 iframeContent.on('click', function(event) {
                     const iframeBaseUrl = "/Home/CcmsContentIndex?target=";
                     event.preventDefault();
                     const target = $(event.target);
-                    //const delegate = $(event.delegateTarget);
                     let anchor;
 
                     if (target.is('a')) {

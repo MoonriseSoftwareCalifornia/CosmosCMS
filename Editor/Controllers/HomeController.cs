@@ -7,6 +7,12 @@
 
 namespace Cosmos.Cms.Controllers
 {
+    using System;
+    using System.Diagnostics;
+    using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
+    using System.Web;
     using Cosmos.BlobService;
     using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Cms.Models;
@@ -19,16 +25,9 @@ namespace Cosmos.Cms.Controllers
     using Microsoft.AspNetCore.Identity.UI.Services;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
-    using Microsoft.EntityFrameworkCore.Infrastructure;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
     using Microsoft.Net.Http.Headers;
-    using System;
-    using System.Diagnostics;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
-    using System.Web;
 
     /// <summary>
     /// Home page controller.
@@ -42,9 +41,7 @@ namespace Cosmos.Cms.Controllers
         private readonly EditorSettings options;
         private readonly ApplicationDbContext dbContext;
         private readonly UserManager<IdentityUser> userManager;
-        private readonly SignInManager<IdentityUser> signInManager;
         private readonly StorageContext storageContext;
-        private readonly bool isMultiTenant;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HomeController"/> class.
@@ -76,9 +73,7 @@ namespace Cosmos.Cms.Controllers
             this.articleLogic = articleLogic;
             this.dbContext = dbContext;
             this.userManager = userManager;
-            this.signInManager = signInManager;
             this.storageContext = storageContext;
-            this.isMultiTenant = configuration.GetValue<bool?>("MultiTenantEditor") ?? false;
         }
 
         /// <summary>
@@ -141,43 +136,30 @@ namespace Cosmos.Cms.Controllers
         /// </summary>
         /// <param name="lang">Language code.</param>
         /// <param name="mode">json or nothing.</param>
+        /// <param name="layoutId">Layout ID when previewing a layout.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [AllowAnonymous]
-        public async Task<IActionResult> Index(string lang = "", string mode = "")
+        public async Task<IActionResult> Index(string lang = "", string mode = "", Guid? layoutId = null)
         {
-            
-            if (isMultiTenant && !IsDbContextConfigured())
-            {
-                return NotFound("This site is not yet configured. Please contact your administrator.");
-            }
-
-            if (User.Identity?.IsAuthenticated == true)
-            {
-                // Make sure the user's claims identity has an account here.
-                var user = await userManager.GetUserAsync(User);
-
-                if (user == null)
-                {
-                    Response.Cookies.Delete("CosmosAuthCookie");
-                    return Redirect("~/Identity/Account/Logout");
-                }
-
-                if (options.AllowSetup && (await dbContext.Users.CountAsync()) == 1 && !User.IsInRole("Administrators"))
-                {
-                    await userManager.AddToRoleAsync(user, "Administrators");
-                }
-
-                if (!User.IsInRole("Reviewers") && !User.IsInRole("Authors") && !User.IsInRole("Editors") &&
-                    !User.IsInRole("Administrators"))
-                {
-                    return View("~/Views/Home/AccessPending.cshtml");
-                }
-            }
-            else
+            if (User.Identity?.IsAuthenticated == false)
             {
                 // If we require authentication, redirect to the login page.
                 Response.Cookies.Delete("CosmosAuthCookie");
                 return Redirect("~/Identity/Account/Login");
+            }
+
+            // Make sure the user's claims identity has an account here.
+            var user = await userManager.GetUserAsync(User);
+
+            if (user == null)
+            {
+                Response.Cookies.Delete("CosmosAuthCookie");
+                return Redirect("~/Identity/Account/Logout");
+            }
+
+            if (options.AllowSetup && (await dbContext.Users.CountAsync()) == 1 && !User.IsInRole("Administrators"))
+            {
+                await userManager.AddToRoleAsync(user, "Administrators");
             }
 
             if (options.AllowSetup)
@@ -248,6 +230,14 @@ namespace Cosmos.Cms.Controllers
 
             article.EditModeOn = false;
             article.ReadWriteMode = true;
+
+            // If preview mode is on for a layout, set the new layout here.
+            if (layoutId.HasValue)
+            {
+                ViewData["LayoutId"] = layoutId.Value.ToString();
+                article.Layout = new LayoutViewModel(await dbContext.Layouts.FirstOrDefaultAsync(f => f.Id == layoutId));
+                return View("~/Views/Home/Preview.cshtml", article);
+            }
 
             return View(article);
         }
@@ -357,29 +347,6 @@ namespace Cosmos.Cms.Controllers
         private async Task<bool> EnsureArticleExists()
         {
             return await dbContext.Articles.CosmosAnyAsync();
-        }
-
-        // Replace the following line in IsDbContextConfigured():
-        // var databaseProvider = dbContext?.GetService<Microsoft.EntityFrameworkCore.Infrastructure.IDatabaseProvider>();
-        // with a check for ProviderName only, since IDatabaseProvider does not exist in EF Core public API.
-
-        private bool IsDbContextConfigured()
-        {
-            // ProviderName is set when the database is configured
-            try
-            {
-                var databaseProvider = dbContext?.Database.ProviderName;
-                if (string.IsNullOrEmpty(databaseProvider))
-                {
-                    return false;
-                }
-            }
-            catch
-            {
-                return false;
-            }
-
-            return true;
         }
     }
 }

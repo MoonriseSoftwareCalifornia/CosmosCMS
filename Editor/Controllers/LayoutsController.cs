@@ -630,7 +630,9 @@ namespace Cosmos.Cms.Controllers
             model.ReadWriteMode = false;
             model.PreviewMode = true;
 
-            return View("~/Views/Home/Preview.cshtml", model);
+            ViewData["LayoutId"] = model.Layout.Id.ToString();
+
+            return RedirectToAction("Index", "Home", new { layoutId = layout.Id });
         }
 
         /// <summary>

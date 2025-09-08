@@ -7,16 +7,11 @@
 
 namespace Cosmos.Cms.Areas.Identity.Pages.Account
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel.DataAnnotations;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
     using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Common.Data;
     using Cosmos.Common.Services;
     using Cosmos.DynamicConfig;
+    using Cosmos.Editor.Boot;
     using Cosmos.EmailServices;
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Authorization;
@@ -31,6 +26,12 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
+    using System;
+    using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations;
+    using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Login page model.
@@ -42,6 +43,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         private readonly ILogger<LoginModel> logger;
         private readonly IOptions<SiteSettings> options;
         private readonly IServiceProvider services;
+        private readonly bool isMultiTenant;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LoginModel"/> class.
@@ -62,6 +64,7 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
             this.logger = logger;
             this.options = options;
             this.services = services;
+            this.isMultiTenant = configuration.GetValue<bool?>("MultiTenantEditor") ?? false;
         }
 
         /// <summary>
@@ -121,6 +124,11 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<IActionResult> OnGetAsync(string returnUrl = "", string website = "")
         {
+            if (isMultiTenant && !IsDbContextConfigured())
+            {
+                return NotFound("This site is not yet configured. Please contact your administrator.");
+            }
+
             // Get a clean return URL.
             returnUrl = await GetReturnUrl(returnUrl);
 
@@ -184,6 +192,13 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
 
                 if (result.Succeeded)
                 {
+                    if (!User.IsInRole("Reviewers") && !User.IsInRole("Authors") && !User.IsInRole("Editors") &&
+                        !User.IsInRole("Administrators"))
+                    {
+                        ViewData["AccessPending"] = true;
+                        return Page();
+                    }
+
                     logger.LogInformation("User logged in.");
                     var test = SignInManager.IsSignedIn(User);
                     return LocalRedirect(returnUrl);
@@ -283,6 +298,25 @@ namespace Cosmos.Cms.Areas.Identity.Pages.Account
             }
 
             return string.IsNullOrWhiteSpace(returnUrl) ? "/" : returnUrl.Replace("http://", "https://");
+        }
+
+        private bool IsDbContextConfigured()
+        {
+            // ProviderName is set when the database is configured
+            try
+            {
+                var databaseProvider = DbContext?.Database.ProviderName;
+                if (string.IsNullOrEmpty(databaseProvider))
+                {
+                    return false;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>
