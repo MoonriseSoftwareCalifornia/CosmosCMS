@@ -82,8 +82,9 @@ namespace Cosmos.Cms.Controllers
         /// <param name="target">Path to page to edit.</param>
         /// <param name="articleNumber">article number to edit.</param>
         /// <param name="versionNumber">version to edit.</param>
+        /// <param name="layoutId">Layout ID when in preview mode.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task<IActionResult> CcmsContentIndex(string target, int? articleNumber = null, int? versionNumber = null)
+        public async Task<IActionResult> CcmsContentIndex(string target, int? articleNumber = null, int? versionNumber = null, Guid? layoutId = null)
         {
             if (!ModelState.IsValid)
             {
@@ -99,6 +100,12 @@ namespace Cosmos.Cms.Controllers
             else
             {
                 article = await articleLogic.GetArticleByArticleNumber(articleNumber.Value, versionNumber.Value);
+            }
+
+            if (layoutId.HasValue)
+            {
+                ViewData["LayoutId"] = layoutId.Value.ToString();
+                article.Layout = new LayoutViewModel(await dbContext.Layouts.FirstOrDefaultAsync(f => f.Id == layoutId));
             }
 
             return View(article);

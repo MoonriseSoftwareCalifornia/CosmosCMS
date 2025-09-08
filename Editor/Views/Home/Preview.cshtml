@@ -50,31 +50,6 @@
             loadDdEditMenu();
         };
 
-        // Function to add layoutId query parameter to all anchors in the iframe
-        function addLayoutIdToAnchors(iframeContent) {
-            const anchors = iframeContent.querySelectorAll('a[href]');
-            anchors.forEach(anchor => {
-                let href = anchor.getAttribute('href');
-                if (!href) return;
-                // Ignore external links
-                if (href.startsWith('http') || href.startsWith('mailto:')) return;
-                // Parse URL and add layoutId
-                let url;
-                try {
-                    url = new URL(href, window.location.origin);
-                } catch {
-                    // Relative URL fallback
-                    url = document.createElement('a');
-                    url.href = href;
-                }
-                // Only add if not already present
-                if (!url.searchParams.has('layoutId')) {
-                    url.searchParams.append('layoutId', layoutId);
-                    anchor.setAttribute('href', url.pathname + url.search + url.hash);
-                }
-            });
-        }
-
         window.addEventListener('resize', function (event) { setupIframe(); }, true);
 
         $(document).ready(function() {
@@ -82,9 +57,7 @@
 
             iframe.on('load', function() {
                 var iframeContent = iframe.contents();
-                if (layoutId !== '') {
-                    addLayoutIdToAnchors(iframeContent);
-                }
+               
                 iframeContent.on('click', function(event) {
                     const iframeBaseUrl = "/Home/CcmsContentIndex?target=";
                     event.preventDefault();
@@ -103,7 +76,11 @@
                         }
                         else {
                             const href = anchor.attr("href");
-                            const newUrl = iframeBaseUrl + href;
+                            let newUrl = iframeBaseUrl + href;
+                            // Only add if not already present
+                            if (layoutId !== '') {
+                                newUrl += "&layoutId=" + layoutId;
+                            }
                             iframe.attr('src', newUrl);
                         }
                     }

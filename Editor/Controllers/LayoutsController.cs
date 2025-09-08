@@ -120,6 +120,8 @@ namespace Cosmos.Cms.Controllers
                 await dbContext.SaveChangesAsync();
             }
 
+            var htmlDoc = new HtmlAgilityPack.HtmlDocument();
+
             return Json(layouts.Select(s => new LayoutIndexViewModel ()
             {
                 Id = s.Id,
