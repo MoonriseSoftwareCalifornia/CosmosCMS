@@ -51,27 +51,26 @@
                         Back to edit <i class="fa-solid fa-arrow-rotate-left"></i>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a id="btnPublish" href="#" role="button" class="btn btn-sm btn-secondary mt-1 ms-2">
+                        Publish now <i class="fa-solid fa-cloud-arrow-up"></i>
+                    </a>
+                </li>
                 @if (previewType.Equals("article") && (isEditor || isAdministrator ))
                 {
-                    <li class="nav-item">
-                        <div id="divPublishedTitleGroup" class="input-group input-group-sm mt-1">
-                            <div id="lblPublished" class="input-group-text" style="height:31px;">Publish:</div>
+                    <li class="nav-item" id="publishLater">
+                        <a id="btnPublishLater" href="#" role="button" class="btn btn-sm btn-secondary mt-1 ms-2">
+                            Publish later <i class="fa-solid fa-cloud-arrow-up"></i>
+                        </a>
+                    </li>
+                    <li class="nav-item" id="publishedTitleGroup" style="display:none">
+                        <div class="input-group input-group-sm mt-1">
+                            <div id="lblPublished" class="input-group-text" style="height:31px;">Publish date/time:</div>
                             <input autocomplete="off" class="form-control text-truncate" name="tbPublished" id="tbPublished" placeholder="Choose date/time" value="" />
-                            <button class="btn btn-sm btn-danger" title="Publish now if new, or republish using previous date and time." type="button" id="btnPublishNow" onclick="bgEditClick('Publish')" style="display:none">Now</button>
-                            <button class="btn btn-sm btn-secondary" title="Clicking this button will make an editable draft of this page that is not published." type="button" id="btnDraftNow" onclick="bgEditClick('Draft')" style="display:none">Make Draft</button>
+                            <button class="btn btn-sm btn-secondary" title="Publish now if new, or republish using previous date and time." type="button" id="btnPublishNow" onclick="bgEditClick('Publish')">Publish</button>
                         </div>
                     </li>
                 }
-                else
-                {
-                    <li class="nav-item">
-                        <a id="btnPublish" href="#" role="button" class="btn btn-sm btn-secondary mt-1 ms-2">
-                            Publish now <i class="fa-solid fa-cloud-arrow-up"></i>
-                        </a>
-                    </li>
-                }
-
-                
             </ul>
         </div>
     </div>
@@ -111,6 +110,11 @@
         $("#btnManage").removeClass("show");
         $("#ddManageMenu").removeClass("show");
     }
+
+    $("#publishLater").on("click", function (e) {
+      $("#publishLater").hide();
+      $("#publishedTitleGroup").show();
+    });
 
     $("#btnPublish").on("click", function (e) {
         e.preventDefault();
