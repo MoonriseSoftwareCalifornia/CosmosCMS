@@ -5,6 +5,7 @@
     ViewData["Title"] = Model.EditorTitle;
     var fields = Model.EditorFields.ToArray();
     var aclass = "active";
+    var readOnly = (bool?)ViewData["ReadOnly"] ?? false;
 }
 
 <style>
@@ -40,6 +41,7 @@
     var editor;
     var fieldId;
     var ccmsEditorIsLocked = false;
+    const readOnly = @readOnly.ToString().ToLower();
 
     $("#frmSave").submit(function (e) {
         e.preventDefault();
@@ -125,6 +127,10 @@
 
     // Save the changes for this editor
     function saveChanges(myModal) {
+
+        if (readOnly) {
+            return;
+        }
 
         saving();
 
@@ -215,6 +221,8 @@
 
         $("#btnSaveAsDraft").hide();
 
+        $("#btnSaveAsDraft").hide();
+
         $("#btnOpenLink").click(function (e) {
             if (openPickPageModal) {
                 openPickPageModal();
@@ -241,9 +249,18 @@
                 alert("Could not find openInsertImageModel().");
             }
         });
+
+        // Hide the navigation bar if in read-only mode.
+        if (readOnly) {
+            $("#navbarSupportedContent").hide();
+        }
     });
 
     $(window).bind('keydown', function (event) {
+        if (readOnly) {
+            return;
+        }
+
         if (event.ctrlKey || event.metaKey) {
             switch (String.fromCharCode(event.which).toLowerCase()) {
                 case 's':
@@ -257,6 +274,11 @@
     var timeout;
 
     $(window).bind('keyup', function (event) {
+
+        if (readOnly) {
+            return;
+        }
+
         // Clear the timeout if it has already been set.
         // This will prevent the previous task from executing
         // if it has been less than <MILLISECONDS>
@@ -300,10 +322,6 @@
         }
 
         $("#combobox").val("");
-        const inputLinkText = $("#inputLinkText").val("");
-        const switchNewWindow = $("#switchNewWindow").prop('checked', false);
-        const inputLinkCss = $("#inputLinkCss").val("");
-        const inputLinkStyle = $("#inputLinkStyle").val("");
 
         pickPageModal.show();
     }
@@ -311,9 +329,6 @@
     function insertPageLink() {
 
         const inputLinkText = $("#inputLinkText").val();
-        const switchNewWindow = $("#switchNewWindow").prop('checked');
-        const inputLinkCss = $("#inputLinkCss").val();
-        const inputLinkStyle = $("#inputLinkStyle").val();
 
         if (typeof (inputLinkText) === "undefined" || inputLinkText === null || inputLinkText === "") {
             $("#inputLinkTextError").show();

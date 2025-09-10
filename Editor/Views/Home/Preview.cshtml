@@ -1,26 +1,9 @@
-﻿@model ArticleViewModel
-@{
+﻿@{
     Layout = null;
-    var article = (ArticleViewModel)ViewData["Article"];
     var returnUrl = (string)ViewData["ReturnUrl"];
-
-    var frameUrl = string.Empty;
-    var layoutId = ViewData["LayoutId"]?.ToString() ?? "";
-
-    if (!string.IsNullOrEmpty(Context.Request.Query["articleNumber"]))
-    {
-        frameUrl = "/Home/Preview" + Context.Request.QueryString;
-    }
-    else
-    {
-
-        frameUrl = "/Home/CcmsContentIndex?target=" + Model.UrlPath.Replace("/Home/CcmsContentIndex?target=", "");
-
-        if (!string.IsNullOrEmpty(layoutId))
-        {
-            frameUrl = frameUrl + $"&layoutId={layoutId}";
-        }
-    }
+    var frameUrl = "/Home/CcmsContentIndex" + Context.Request.QueryString.ToString();
+    var layoutId = Context.Request.Query["layoutId"].ToString() ?? "";
+    var articleId = Context.Request.Query["articleId"].ToString() ?? "";
 }
 <!DOCTYPE HTML>
 <html>
@@ -42,11 +25,12 @@
 
 </head>
 <body class="cwps-body" style="margin:0px;padding:0px;">
-    <partial name="_CosmosPreviewMenuPartial" model="Model" />
+    <partial name="_CosmosPreviewMenuPartial" />
     <iframe id="iFrameWebPage" src="@frameUrl" style="position: absolute; top: 52px; width: 100%; margin:0px; padding:0px;z-index:1;"></iframe>
     <script>
 
         const layoutId = '@layoutId';
+        const articleId = '@articleId';
 
         function setupIframe() {
             const iframe = document.getElementById("iFrameWebPage");
@@ -54,7 +38,6 @@
             if (iframeWin.document.body) {
                 iframe.height = window.innerHeight - document.getElementById("ccmsNavMenu").clientHeight;
             }
-            loadDdEditMenu();
         };
 
         window.addEventListener('resize', function (event) { setupIframe(); }, true);
@@ -87,6 +70,9 @@
                             // Only add if not already present
                             if (layoutId !== '') {
                                 newUrl += "&layoutId=" + layoutId;
+                            }
+                            if (articleNumber !== '') {
+                                newUrl += "&articleId=" + articleId;
                             }
                             iframe.attr('src', newUrl);
                         }

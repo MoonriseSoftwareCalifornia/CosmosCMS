@@ -17,6 +17,8 @@
     var pagerModel = new GridPagerPartialViewModel(pageNumber, rowCount, pageSize, sortOrder, currentSort, "/Editor/Versions/" + articleNumber);
 
     var currentVersion = (int?)ViewData["CurrentVersion"];
+
+    var latestRow = Model.OrderByDescending(v => v.VersionNumber).FirstOrDefault();
 }
 <style>
     .toLocalTimeZone {
@@ -36,17 +38,35 @@
                 }
             </div>
         </div>
-        <div class="row cpws-table-pager-row-top ">
+        <div class="row">
             <div class="col-md-6">
                 <div class="btn-group" role="group" aria-label="Page Actions">
                     @if (!isReviewer)
                     {
-                        <a id="btnNewVersion" data-toggle="tooltip" data-placement="top" class="btn btn-sm btn-success" title="New draft created from the latest version." asp-action="CreateVersion" asp-route-id="@ViewData["ArticleId"]">New Draft</a>
+                        <a id="btnNewVersion" data-toggle="tooltip" data-placement="top" class="btn btn-sm btn-primary" title="New draft created from the latest version." asp-action="CreateVersion" asp-route-id="@ViewData["ArticleId"]">New Draft</a>
                         <button id="btnCompare" data-toggle="tooltip" data-placement="top" class="btn btn-sm btn-secondary" title="Compare two versions." type="button" disabled>Compare</button>
                         <button id="btnClear" data-toggle="tooltip" data-placement="top" class="btn btn-sm btn-secondary" title="Clear selection." type="button" disabled>Clear</button>
+                        @if (isAuthor == false)
+                        {
+                            <a class='btn btn-sm btn-secondary' role="button" data-toggle="tooltip" data-placement="top" title='The designer lets you create web pages with a drag-and-drop interface, no coding needed.' href='/Editor/Designer/@articleNumber'><i class="fa-solid fa-wand-magic-sparkles"></i> Designer</a>
+                            <a class='btn btn-sm btn-secondary' role="button" data-toggle="tooltip" data-placement="top" title='The code editor is a browser-based code editor that powers Visual Studio Code.' href='/Editor/EditCode/@articleNumber'><i class="fa-solid fa-code"></i> Code</a>
+                        }
+                        @if (latestRow.UsesHtmlEditor)
+                        {
+                            <a class='btn btn-sm btn-secondary' role="button" data-toggle="tooltip" data-placement="top" title="Create and edit web pages using a word processor like view, ensuring the final output matches the editing view." href='/Editor/Edit/@articleNumber'>HTML</a>
+                        }
+                        else
+                        {
+                            <a class='btn btn-sm btn-secondary disabled' role="button" data-toggle="tooltip" data-placement="top" title="HTML editor not enabled for this page (see <a href='https://cosmos.moonrise.net/page_templates'>documentation</a> on how to enable)." aria-disabled="true">HTML</a>
+                        }
                         <a title="Return to page list" class="btn btn-sm btn-secondary" href="@Url.Action("Index")">Page list <i class="fa-solid fa-circle-arrow-right"></i></a>
                     }
                 </div>
+            </div>
+        </div>
+        <div class="row cpws-table-pager-row-top ">
+            <div class="col-md-6">
+                &nbsp;
             </div>
             <div class="col-md-6 d-flex justify-content-end">
                 <partial name="~/Views/Shared/GridPager/_GridPager.cshtml" model="pagerModel"></partial>
@@ -61,7 +81,6 @@
                                 <th scope="col"></th>
                                 <th scope="col">Select</th>
                                 <th scope="col">#</th>
-                                <th scope="col" style="text-align:center">Editor</th>
                                 <th scope="col">Updated</th>
                                 <th scope="col">Published</th>
                                 <th scope="col">Expires</th>
@@ -86,34 +105,6 @@
                                     </td>
                                     <td scope="row" style="min-width:140px;">
                                         <a class='btn btn-sm btn-secondary' data-toggle="tooltip" data-placement="top" title='Preview version @row.VersionNumber.' onclick='openPreview(@articleNumber, @row.VersionNumber)'><i class="fa-solid fa-magnifying-glass"></i> v.@row.VersionNumber</a>
-                                    </td>
-                                    <td scope="row" style="text-align:center;background-color: #2C2D2F;inset: 10px 20px 30px 40px;">
-                                        <div class="btn-group" role="group" aria-label="Version actions">
-                                            @if (lastVersion == row.VersionNumber && isReviewer == false)
-                                            {
-                                                @if (isAuthor == false)
-                                                {
-                                                    <a class='btn btn-sm btn-secondary' role="button" data-toggle="tooltip" data-placement="top" title='The designer lets you create web pages with a drag-and-drop interface, no coding needed.' href='/Editor/Designer/@articleNumber'><i class="fa-solid fa-wand-magic-sparkles"></i> Designer</a>
-                                                    <a class='btn btn-sm btn-secondary' role="button" data-toggle="tooltip" data-placement="top" title='The code editor is a browser-based code editor that powers Visual Studio Code.' href='/Editor/EditCode/@articleNumber'><i class="fa-solid fa-code"></i> Code</a>
-                                                }
-                                                else
-                                                {
-                                                    <span></span>
-                                                }
-                                                @if (row.UsesHtmlEditor)
-                                                {
-                                                    <a class='btn btn-sm btn-secondary' role="button" data-toggle="tooltip" data-placement="top" title="Create and edit web pages using a word processor like view, ensuring the final output matches the editing view." href='/Editor/Edit/@articleNumber'>HTML</a>
-                                                }
-                                                else
-                                                {
-                                                    <a class='btn btn-sm btn-secondary disabled' role="button" data-toggle="tooltip" data-placement="top" title="HTML editor not enabled for this page (see <a href='https://cosmos.moonrise.net/page_templates'>documentation</a> on how to enable)." aria-disabled="true">HTML</a>
-                                                }
-                                            }
-                                            @* @if (isReviewer)
-                                            {
-                                                <a class='btn btn-sm btn-secondary' title='Export version' href='/Editor/ExportPage/@row.Id'><i class='fa-solid fa-cloud-arrow-down'></i></a>
-                                            } *@
-                                        </div>
                                     </td>
                                     <td scope="row">
                                         <div class='toLocalTimeZone'>@row.Updated</div>

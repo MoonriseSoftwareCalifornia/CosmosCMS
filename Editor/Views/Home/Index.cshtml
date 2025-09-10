@@ -1,15 +1,6 @@
-﻿@model ArticleViewModel
-@{
+﻿@{
     Layout = null;
-    var article = (ArticleViewModel)ViewData["Article"];
-
-    var frameUrl = "/Home/CcmsContentIndex?target=" + Model.UrlPath.Replace("/Home/CcmsContentIndex?target=", "");
-
-    if (!string.IsNullOrEmpty(Context.Request.Query["articleNumber"]))
-    {
-        frameUrl = "/Home/Preview" + Context.Request.QueryString;
-    }
-
+    var frameUrl = "/Home/CcmsContentIndex?target=" + Context.Request.QueryString;
 }
 <!DOCTYPE HTML>
 <html>
@@ -24,7 +15,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
 </head>
 <body class="cwps-body" style="margin:0px;padding:0px;">
-    <partial name="_CosmosMainMenuPartial" model="Model" />
+    <partial name="_CosmosMainMenuPartial" />
     <iframe id="iFrameWebPage" src="@frameUrl" style="position: absolute; top: 52px; width: 100%; margin:0px; padding:0px;z-index:1;"></iframe>
     <script>
         // The following is used to wireup the menu links to this page.
@@ -34,7 +25,6 @@
             if (iframeWin.document.body) {
                 iframe.height = window.innerHeight - document.getElementById("ccmsNavMenu").clientHeight;
             }
-            loadDdEditMenu();
         };
         window.addEventListener('resize', function (event) { setupIframe(); }, true);
 
@@ -44,10 +34,10 @@
             iframe.on('load', function() {
                 var iframeContent = iframe.contents();
                 iframeContent.on('click', function(event) {
-                    const iframeBaseUrl = "/Home/CcmsContentIndex?target=";
                     event.preventDefault();
                     const target = $(event.target);
                     //const delegate = $(event.delegateTarget);
+                    const iframeBaseUrl = "/Home/CcmsContentIndex?target=";
                     let anchor;
 
                     if (target.is('a')) {

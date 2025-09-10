@@ -80,11 +80,10 @@ namespace Cosmos.Cms.Controllers
         /// Editor home index method.
         /// </summary>
         /// <param name="target">Path to page to edit.</param>
-        /// <param name="articleNumber">article number to edit.</param>
-        /// <param name="versionNumber">version to edit.</param>
+        /// <param name="articleId">Article ID.</param>
         /// <param name="layoutId">Layout ID when in preview mode.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task<IActionResult> CcmsContentIndex(string target, int? articleNumber = null, int? versionNumber = null, Guid? layoutId = null)
+        public async Task<IActionResult> CcmsContentIndex(string target, Guid? articleId = null, Guid? layoutId = null)
         {
             if (!ModelState.IsValid)
             {
@@ -93,13 +92,31 @@ namespace Cosmos.Cms.Controllers
 
             ArticleViewModel article;
 
-            if (articleNumber == null)
+            if (articleId.HasValue)
             {
-                article = await articleLogic.GetArticleByUrl(target);
+                var user = await userManager.GetUserAsync(User);
+                var userId = new Guid(user.Id);
+                article = await articleLogic.GetArticleById(articleId.Value, EnumControllerName.Edit, userId);
             }
             else
             {
-                article = await articleLogic.GetArticleByArticleNumber(articleNumber.Value, versionNumber.Value);
+                article = await articleLogic.GetArticleByUrl(target);
+
+                if (article == null)
+                {
+                    // See if a page is un-published, but does exist, let us edit it.
+                    article = await articleLogic.GetArticleByUrl(HttpContext.Request.Path, publishedOnly: false);
+
+                    // Create your own not found page for a graceful page for users.
+                    article = await articleLogic.GetArticleByUrl("/not_found");
+
+                    HttpContext.Response.StatusCode = 404;
+
+                    if (article == null)
+                    {
+                        return NotFound();
+                    }
+                }
             }
 
             if (layoutId.HasValue)
@@ -144,10 +161,11 @@ namespace Cosmos.Cms.Controllers
         /// <param name="lang">Language code.</param>
         /// <param name="mode">json or nothing.</param>
         /// <param name="layoutId">Layout ID when previewing a layout.</param>
+        /// <param name="articleId">Article Id.</param>
         /// <param name="previewType">Preview type.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [AllowAnonymous]
-        public async Task<IActionResult> Index(string lang = "", string mode = "", Guid? layoutId = null, string previewType = "")
+        public async Task<IActionResult> Index(string lang = "", string mode = "", Guid? layoutId = null, Guid? articleId = null, string previewType = "")
         {
             if (User.Identity?.IsAuthenticated == false)
             {
@@ -204,50 +222,13 @@ namespace Cosmos.Cms.Controllers
             // If yes, do NOT include headers that allow caching. 
             Response.Headers[HeaderNames.CacheControl] = "no-store";
 
-            // Response.Headers[HeaderNames.Pragma] = "no-cache"; This conflicts with Azure Frontdoor premium with private links and affinity set.
-            var article = await articleLogic.GetArticleByUrl(HttpContext.Request.Path, lang);
-
-            // Article not found?
-            // try getting a version not published.
-            if (article == null)
+            if (string.IsNullOrEmpty(previewType))
             {
-                // See if a page is un-published, but does exist, let us edit it.
-                article = await articleLogic.GetArticleByUrl(HttpContext.Request.Path, lang, false);
-
-                if (article != null)
-                {
-                    // Go into edit mode
-                    if (!string.IsNullOrEmpty(article.Content) && article.Content.ToLower().Contains(" data-ccms-ceid="))
-                    {
-                        return RedirectToAction("Edit", "Editor", new { id = article.ArticleNumber });
-                    }
-
-                    return RedirectToAction("EditCode", "Editor", new { id = article.ArticleNumber });
-                }
-
-                // Create your own not found page for a graceful page for users.
-                article = await articleLogic.GetArticleByUrl("/not_found", lang);
-
-                HttpContext.Response.StatusCode = 404;
-
-                if (article == null)
-                {
-                    return NotFound();
-                }
+                ViewData["LoadEditList"] = true;
+                return View();
             }
 
-            article.EditModeOn = false;
-            article.ReadWriteMode = true;
-
-            // If preview mode is on for a layout, set the new layout here.
-            if (layoutId.HasValue)
-            {
-                ViewData["LayoutId"] = layoutId.Value.ToString();
-                article.Layout = new LayoutViewModel(await dbContext.Layouts.FirstOrDefaultAsync(f => f.Id == layoutId));
-                return View("~/Views/Home/Preview.cshtml", article);
-            }
-
-            return View(article);
+            return View("~/Views/Home/Preview.cshtml");
         }
 
         /// <summary>

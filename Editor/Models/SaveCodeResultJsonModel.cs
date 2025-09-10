@@ -50,15 +50,5 @@ namespace Cosmos.Cms.Models
         ///     Gets or sets errors in model state.
         /// </summary>
         public List<ModelStateEntry> Errors { get; set; }
-
-        /// <summary>
-        ///   Gets or sets updated model.
-        /// </summary>
-        public EditCodePostModel Model { get; set; } = null;
-
-        /// <summary>
-        /// Gets aRM Operation (present if CDN purged).
-        /// </summary>
-        public List<CdnResult> CdnResults { get; internal set; }
     }
 }

@@ -1,0 +1,169 @@
+﻿@using Newtonsoft.Json
+@model CompareCodeViewModel
+@{
+    Layout = "_LayoutEditor";
+    ViewData["Title"] = $"Comparing version {Model.Layouts[0].Version} with version {Model.Layouts[1].Version}";
+    var fields = Model.EditorFields.ToArray();
+    var aclass = "active";
+}
+
+<style>
+    .m-editor-container {
+        position: absolute;
+        top: 87px;
+        bottom: 1px;
+        left: 1px;
+        right: 1px;
+    }
+
+    .code-tabs.navbar {
+        margin-top: 0px;
+        margin-bottom: 0px;
+        padding-top: 2px;
+        height: 3px;
+    }
+
+    .code-tabs.nav-link {
+        height: 26px;
+        font-size: 0.8em;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+        padding-top: 2px;
+    }
+
+    .code-tabs.nav-link {
+        background-color: var(--bs-gray-600);
+        color: white;
+        border-color: transparent;
+    }
+
+        .code-tabs.nav-link.active {
+            background-color: var(--bs-gray-900);
+            color: white;
+            border-color: black;
+        }
+
+    /* Disable options */
+    #btnSaveChanges,
+    #btnSaveAsDraft,
+    #btnPreview,
+    #btnFiles,
+    #btnSourceCode,
+    #btnCcmsCodeEditor,
+    #btnSaveAndPublish,
+    #liBtnVersions,
+    #divAutoSave,
+    #msgSaving,
+    #lblPublished,
+    #tbPublished {
+        display: none !important;
+    }
+</style>
+
+<nav class="code-tabs navbar">
+    <ul class="nav nav-tabs " id="nav-tab">
+        @foreach (var field in fields)
+        {
+            <li class="nav-item">
+                <a class="code-tabs nav-link @aclass" title="@field.ToolTip" data-bs-toggle="tooltip" data-bs-placement="bottom" data-ccms-fieldname="@field.FieldName" aria-current="page">@field.FieldName</a>
+            </li>
+            aclass = "";
+        }
+    </ul>
+</nav>
+
+<div id="editorContainer"></div>
+
+<form>
+    <input type="hidden" asp-for="EditingField" />
+    <input type="hidden" asp-for="EditorType" />
+    <input type="hidden" asp-for="IsValid" />
+
+    <input id="leftHeadJavaScript" name="leftHeadJavaScript" type="hidden" value="@Model.Layouts[0].Head" />
+    <input id="rightHeadJavaScript" name="rightHeadJavaScript" type="hidden" value="@Model.Layouts[1].Head" />
+    <input id="leftContent" name="leftContent" type="hidden" value="@Model.Layouts[0].HtmlHeader" />
+    <input id="rightContent" name="rightContent" type="hidden" value="@Model.Layouts[1].HtmlHeader" />
+    <input id="left" name="leftFooterJavaScript" type="hidden" value="@Model.Layouts[0].FooterHtmlContent" />
+    <input id="right" name="rightFooterJavaScript" type="hidden" value="@Model.Layouts[1].FooterHtmlContent" />
+</form>
+
+<script>
+
+    var next;
+
+    var editor;
+    var fieldId;
+    var ccmsEditorIsLocked = false;
+
+    // Example: var editFields = '[{"FieldId":"HeaderJavaScript","FieldName":"Header JavaScript","EditorMode":0},{"FieldId":"Content","FieldName":"Html Content","EditorMode":1},{"FieldId":"FooterJavaScript","FieldName":"Footer JavaScript","EditorMode":0}]';
+    var editFields = @(Html.Raw(JsonConvert.SerializeObject(Model.EditorFields)));
+
+    $(document).ready(function () {
+        //var fieldInfo = editFields.find(o => o.FieldName === "Content");
+        createAndLoadEditor("HeadJavaScript");
+        // Refresh locks for everyone including self.
+        setTimeout(function () {
+            //ccmsSendSignal("NotifyRoomOfLock");
+        }, 2000);
+
+        $("[data-ccms-fieldname]").click(function (event) {
+            var name = $(event.target).attr("data-ccms-fieldname");
+            $("[data-ccms-fieldname]").removeClass("active");
+            var fieldInfo = editFields.find(o => o.FieldName === name);
+            createAndLoadEditor(fieldInfo.FieldId);
+            $(event.target).addClass("active");
+        });
+
+        var versions = '<div class="btn btn-sm btn-secondary mt-1 ms-3">Comparing: v.@ViewData["LeftVersion"] <i class="fa-solid fa-arrows-left-right"></i> v.@ViewData["RightVersion"]</div>'
+
+        $("#msgSpecial").html(versions);
+
+    });
+
+    function createAndLoadEditor(id) {
+        if (editor !== null && typeof editor !== "undefined") {
+            //if (editor.getModel()) {
+            //    editor.getModel().dispose();
+            //}
+            //$("#msgBox").html("Loading...");
+            editor.dispose();
+            editor = null;
+
+            $("#editorContainer").html("");
+        }
+        fieldId = null;
+
+        // 1 second delay
+        setTimeout(function () {
+            console.log("Executed after 1 second");
+        }, 1000);
+
+        $("#EditingField").val(null);
+
+        // Monaco AMD Editor  - https://microsoft.github.io/monaco-editor/
+        require.config({ paths: { 'vs': '/lib/monaco-editor/min/vs' } });
+
+        require(['vs/editor/editor.main'], function () {
+
+            var divId = "editspace" + id;
+
+            $("#editorContainer").append("<div id='" + divId + "' class='m-editor-container'></div>")
+
+            var leftCode = $("#left" + id).val();
+            var rightCode = $("#right" + id).val();
+
+            editor = monaco.editor.createDiffEditor(document.getElementById(divId), { theme: "vs-dark" });
+
+            editor.setModel({
+                original: monaco.editor.createModel(leftCode, 'html'),
+                modified: monaco.editor.createModel(rightCode, 'html')
+            });
+
+            $("#spinLoading").hide();
+        });
+
+    }
+
+</script>
+
+<script src="/lib/monaco-editor/min/vs/loader.js"></script>

@@ -15,9 +15,9 @@
 		<SignAssembly>false</SignAssembly>
 		<AnalysisLevel>5.0</AnalysisLevel>
 		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-		<Version>9.0.12.29</Version>
-		<AssemblyVersion>9.0.12.29</AssemblyVersion>
-		<FileVersion>9.0.12.29</FileVersion>
+		<Version>9.0.13.30</Version>
+		<AssemblyVersion>9.0.13.30</AssemblyVersion>
+		<FileVersion>9.0.13.30</FileVersion>
 		<UserSecretsId>498e495c-d772-4d44-870d-92009f01de57</UserSecretsId>
 		<PackageProjectUrl>https://www.moonrise.net/cosmos</PackageProjectUrl>
 		<NeutralLanguage></NeutralLanguage>
@@ -94,10 +94,10 @@
 		<PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.4.0" />
 		<PackageReference Include="Azure.Monitor.Query" Version="1.7.1" />
 		<PackageReference Include="MailChimp.Net.V3" Version="5.8.2" />
-		<PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="9.0.8" />
-		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.8" />
-		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.8" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.8" />
+		<PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="9.0.9" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.9" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.9" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.9" />
 		<PackageReference Include="Microsoft.PowerBI.Api" Version="4.22.0" />
 		<PackageReference Include="Otp.NET" Version="1.4.0">
 		  <TreatAsUsed>true</TreatAsUsed>

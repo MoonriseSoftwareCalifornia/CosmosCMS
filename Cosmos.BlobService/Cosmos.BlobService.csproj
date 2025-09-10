@@ -2,9 +2,9 @@
 
 	<PropertyGroup>
 		<TargetFramework>net9.0</TargetFramework>
-		<AssemblyVersion>9.0.12.29</AssemblyVersion>
-		<FileVersion>9.0.12.29</FileVersion>
-		<Version>9.0.12.29</Version>
+		<AssemblyVersion>9.0.13.30</AssemblyVersion>
+		<FileVersion>9.0.13.30</FileVersion>
+		<Version>9.0.13.30</Version>
 		<Title>Cosmos CMS Azure Storage Provider</Title>
 		<Authors>toiyabe62</Authors>
 		<Company>Moonrise Software LLC</Company>
@@ -40,7 +40,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Azure.Extensions.AspNetCore.DataProtection.Blobs" Version="1.5.1" />
-		<PackageReference Include="Azure.Identity" Version="1.15.0" />
+		<PackageReference Include="Azure.Identity" Version="1.16.0" />
 		<PackageReference Include="Azure.Storage.Files.Shares" Version="12.23.0" />
 		<PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
 			<PrivateAssets>all</PrivateAssets>

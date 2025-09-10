@@ -1,5 +1,4 @@
-﻿@model ArticleViewModel
-@inject IEditorSettings options
+﻿@inject IEditorSettings options
 @using System.Reflection
 @using Cosmos.Cms.Common.Services.Configurations;
 @using Cosmos.Editor.Data.Logic
@@ -10,6 +9,7 @@
     var isAdministrator = false;
     var isAuthor = false;
     var isReviewer = false;
+    var loadList = ViewData["LoadEditList"] as bool? ?? false;
 
     if (User != null && User.IsInRole("Editors"))
     {

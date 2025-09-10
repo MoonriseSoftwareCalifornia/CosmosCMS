@@ -168,7 +168,8 @@ namespace Cosmos.Cms.Controllers
             // Loads GrapeJS.
             ViewData["IsDesigner"] = true;
 
-            var article = await articleLogic.GetArticleByArticleNumber(id, null);
+            var article = await GetArticleForEdit(id);
+
             if (article == null)
             {
                 return NotFound();
@@ -257,7 +258,6 @@ namespace Cosmos.Cms.Controllers
                                         BannerImage = article.BannerImage,
                                         Content = html,
                                         Title = model.Title,
-                                        Published = model.Published,
                                         Expires = article.Expires,
                                         FooterJavaScript = article.FooterJavaScript,
                                         HeadJavaScript = article.HeadJavaScript,
@@ -950,16 +950,6 @@ namespace Cosmos.Cms.Controllers
                     return View(viewName: "__NewHomePage", model: model);
                 }
 
-                //try
-                //{
-                 _ = await articleLogic.CreateArticle(model.Title, Guid.Parse(await GetUserId()), model.TemplateId);
-                //}
-                //catch (Exception ex)
-                //{
-                //    ModelState.AddModelError("Title", ex.Message);
-                //    return View(viewName: "__NewHomePage", model: model);
-                //}
-
                 return Redirect("/");
             }
 
@@ -997,6 +987,20 @@ namespace Cosmos.Cms.Controllers
             }
 
             return View();
+        }
+
+        /// <summary>
+        /// Publishes an article.
+        /// </summary>
+        /// <param name="articleId">Article ID.</param>
+        /// <param name="datetime">Date and time to publish.</param>
+        /// <param name="editorUrl">Editor URL.</param>
+        /// <returns>IActionResult.</returns>
+        public async Task<IActionResult> PublishPage(Guid articleId, DateTimeOffset? datetime, string editorUrl)
+        {
+            await articleLogic.PublishArticle(articleId, datetime);
+
+            return Redirect(editorUrl);
         }
 
         /// <summary>
@@ -1450,7 +1454,7 @@ namespace Cosmos.Cms.Controllers
                 return Unauthorized();
             }
 
-            var article = await dbContext.Articles.Where(w => w.ArticleNumber == id).LastOrDefaultAsync();
+            var article = await GetArticleForEdit(id);
 
             var entry = await articleLogic.GetCatalogEntry(article);
 
@@ -1499,7 +1503,6 @@ namespace Cosmos.Cms.Controllers
             // Make sure we are setting to the orignal updated date/time
             // This is validated to make sure that someone else hasn't already edited this
             // entity
-            article.Published = model.Published;
             article.Updated = DateTimeOffset.UtcNow;
             article.Title = model.Title;
 
@@ -1556,8 +1559,6 @@ namespace Cosmos.Cms.Controllers
                 article.Content = decryptedData;
                 article.Updated = DateTimeOffset.UtcNow;
                 await dbContext.SaveChangesAsync();
-
-                // await hub.Clients.All.SendCoreAsync("UpdateEditors", [model.EditorId, model.Data]);
             }
 
             return Ok();
@@ -1577,7 +1578,7 @@ namespace Cosmos.Cms.Controllers
             }
 
             // Get an article, or a template based on the controller name.
-            var article = await articleLogic.GetArticleByArticleNumber(id, null);
+            var article = await GetArticleForEdit(id);
             if (article == null)
             {
                 return NotFound();
@@ -1630,7 +1631,7 @@ namespace Cosmos.Cms.Controllers
                         ToolTip = "Content to appear at the bottom of the <body> tag."
                     }
                 },
-                HeadJavaScript = article.HeadJavaScript,
+                HeadJavaScript = article.HeaderJavaScript,
                 FooterJavaScript = article.FooterJavaScript,
                 Content = article.Content,
                 EditingField = "HeadJavaScript",
@@ -1698,7 +1699,6 @@ namespace Cosmos.Cms.Controllers
                                 BannerImage = article.BannerImage,
                                 Content = model.Content,
                                 Title = model.Title,
-                                Published = model.Published,
                                 Expires = article.Expires,
                                 FooterJavaScript = model.FooterJavaScript,
                                 HeadJavaScript = model.HeadJavaScript,
@@ -1707,30 +1707,6 @@ namespace Cosmos.Cms.Controllers
                                 VersionNumber = article.VersionNumber,
                                 Updated = model.Updated.Value
                             }, Guid.Parse(await GetUserId()));
-
-                        jsonModel.Model = new EditCodePostModel()
-                        {
-                            Id = result.Model.Id,
-                            ArticleNumber = result.Model.ArticleNumber,
-                            VersionNumber = result.Model.VersionNumber,
-                            BannerImage = result.Model.BannerImage,
-                            Content = result.Model.Content,
-                            EditingField = model.EditingField,
-                            CustomButtons = model.CustomButtons,
-                            EditorMode = model.EditorMode,
-                            EditorFields = model.EditorFields,
-                            EditorTitle = model.EditorTitle,
-                            EditorType = model.EditorType,
-                            FooterJavaScript = result.Model.FooterJavaScript,
-                            HeadJavaScript = result.Model.HeadJavaScript,
-                            UrlPath = result.Model.UrlPath,
-                            Published = result.Model.Published,
-                            Title = result.Model.Title,
-                            Updated = result.Model.Updated,
-                            ArticlePermissions = entry.ArticlePermissions
-                        };
-
-                        jsonModel.CdnResults = result.CdnResults;
                     }
                     catch (Exception e)
                     {
@@ -1747,8 +1723,6 @@ namespace Cosmos.Cms.Controllers
                         .Where(w => w.ValidationState == ModelValidationState.Invalid)
                         .ToList());
                     jsonModel.ValidationState = ModelState.ValidationState;
-
-                    ViewData["Version"] = jsonModel.Model.VersionNumber;
 
                     return Json(jsonModel);
                 }
@@ -2313,5 +2287,55 @@ namespace Cosmos.Cms.Controllers
             // Now carry over what's being UPDATED to the original.
             return originalHtmlDoc.DocumentNode.OuterHtml;
         }
+
+
+
+        private async Task<Article> GetArticleForEdit(int articleNumber)
+        {
+            var article = await dbContext.Articles.Where(w => w.ArticleNumber == articleNumber).OrderByDescending(o => o.VersionNumber).FirstOrDefaultAsync();
+            if (article == null)
+            {
+               return null;
+            }
+
+            if (article.Published.HasValue)
+            {
+                return await NewVersion(article);
+            }
+
+            return article;
+        }
+
+        /// <summary>
+        ///  Creates a new layout from an existing layout.
+        /// </summary>
+        /// <param name="article">Exiting article.</param>
+        /// <returns>New layout with an incremented version number.</returns>
+        private async Task<Article> NewVersion(Article article)
+        {
+            var nextVersion = new Article()
+            {
+                VersionNumber = (await dbContext.Articles.Where(a => a.ArticleNumber == article.ArticleNumber).CountAsync()) + 1,
+                Published = null,
+                Id = Guid.NewGuid(),
+                ArticleNumber = article.ArticleNumber,
+                BannerImage = article.BannerImage,
+                Content = article.Content,
+                FooterJavaScript = article.FooterJavaScript,
+                HeaderJavaScript = article.HeaderJavaScript,
+                StatusCode = article.StatusCode,
+                Title = article.Title,
+                UrlPath = article.UrlPath,
+                Updated = DateTimeOffset.UtcNow,
+                TemplateId = article.TemplateId,
+                UserId = article.UserId,
+                Expires = article.Expires,
+            };
+
+            dbContext.Articles.Add(nextVersion);
+            await dbContext.SaveChangesAsync();
+            return nextVersion;
+        }
+
     }
 }

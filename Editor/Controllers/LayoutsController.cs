@@ -45,7 +45,6 @@ namespace Cosmos.Cms.Controllers
         private readonly Uri blobPublicAbsoluteUrl;
         private readonly IViewRenderService viewRenderService;
         private readonly StorageContext storageContext;
-        private readonly ILogger<LayoutsController> logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LayoutsController"/> class.
@@ -56,21 +55,18 @@ namespace Cosmos.Cms.Controllers
         /// <param name="options"><see cref="CosmosConfig">Cosmos configuration</see> options.</param>
         /// <param name="storageContext">Storage context.</param>
         /// <param name="viewRenderService">View rendering service.</param>
-        /// <param name="logger">Log service.</param>
         public LayoutsController(
             ApplicationDbContext dbContext,
             UserManager<IdentityUser> userManager,
             ArticleEditLogic articleLogic,
             IEditorSettings options,
             StorageContext storageContext,
-            IViewRenderService viewRenderService,
-            ILogger<LayoutsController> logger)
+            IViewRenderService viewRenderService)
             : base(dbContext, userManager)
         {
             this.dbContext = dbContext;
             this.articleLogic = articleLogic;
             this.storageContext = storageContext;
-            this.logger = logger;
 
             var htmlUtilities = new HtmlUtilities();
 
@@ -436,12 +432,14 @@ namespace Cosmos.Cms.Controllers
         /// <summary>
         /// Edit code for a layout.
         /// </summary>
+        /// <param name="id">Optional ID of the layout to view (not edit).</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task<IActionResult> EditCode()
+        public async Task<IActionResult> EditCode(Guid? id = null)
         {
-            var layout = await GetLayoutForEdit();
+            var layout = id.HasValue ? await dbContext.Layouts.FirstOrDefaultAsync(f => f.Id == id.Value) : await GetLayoutForEdit();
 
             ViewData["PageTitle"] = layout.LayoutName;
+            ViewData["ReadOnly"] = id.HasValue;
 
             var model = new LayoutCodeViewModel
             {
@@ -614,7 +612,10 @@ namespace Cosmos.Cms.Controllers
         public async Task<IActionResult> Preview(Guid id)
         {
             Layout layout = await dbContext.Layouts.FirstOrDefaultAsync(f => f.Id == id);
-            
+            var referer = Request.Headers["Referer"].ToString();
+
+            var url = new Uri(referer);
+
             if (layout == null)
             {
                 return NotFound();
@@ -626,9 +627,7 @@ namespace Cosmos.Cms.Controllers
             model.ReadWriteMode = false;
             model.PreviewMode = true;
 
-            ViewData["LayoutId"] = model.Layout.Id.ToString();
-
-            return RedirectToAction("Index", "Home", new { layoutId = layout.Id, previewType = "layout" });
+            return RedirectToAction("Index", "Home", new { layoutId = layout.Id, previewType = "layout", editorUrl = url.AbsolutePath });
         }
 
         /// <summary>
@@ -694,7 +693,6 @@ namespace Cosmos.Cms.Controllers
         /// </summary>
         /// <param name="id">Layout ID.</param>
         /// <returns>Success or failure.</returns>
-        [HttpPost]
         public async Task<IActionResult> Publish(Guid id)
         {
             var layout = await dbContext.Layouts.FirstOrDefaultAsync(f => f.Id == id);
@@ -855,7 +853,7 @@ namespace Cosmos.Cms.Controllers
             layout = new Layout()
             {
                 CommunityLayoutId = layout.CommunityLayoutId,
-                LayoutName = layout.LayoutName + " (Copy)",
+                LayoutName = layout.LayoutName,
                 Notes = layout.Notes,
                 Head = layout.Head,
                 HtmlHeader = layout.HtmlHeader,

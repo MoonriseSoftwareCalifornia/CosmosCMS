@@ -1,5 +1,4 @@
-﻿@model ArticleViewModel
-@inject IEditorSettings options
+﻿@inject IEditorSettings options
 @using System.Reflection
 @using Cosmos.Cms.Common.Services.Configurations;
 @using Cosmos.Editor.Data.Logic
@@ -9,8 +8,11 @@
     var isEditor = false;
     var isAdministrator = false;
     var isAuthor = false;
-    var isReviewer = false;
     var previewType = Context.Request.Query["previewType"].ToString().ToLower();
+    var editorUrl = Context.Request.Query["editorUrl"].ToString().ToLower();
+
+    var layoutId = Context.Request.Query["layoutId"].ToString() ?? "";
+    var articleId = Context.Request.Query["articleId"].ToString() ?? "";
 
     if (User != null && User.IsInRole("Editors"))
     {
@@ -25,11 +27,6 @@
     if (User != null && User.IsInRole("Authors"))
     {
         isAuthor = true;
-    }
-
-    if (User != null && User.IsInRole("Reviewers"))
-    {
-        isReviewer = true;
     }
 
 }
@@ -47,12 +44,12 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                    <a id="btnEditor" href="#" role="button" class="btn btn-sm btn-secondary mt-1">
+                    <a id="btnEditor" role="button" class="btn btn-sm btn-secondary mt-1">
                         Back to edit <i class="fa-solid fa-arrow-rotate-left"></i>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a id="btnPublish" href="#" role="button" class="btn btn-sm btn-secondary mt-1 ms-2">
+                    <a href="#" role="button" class="btn btn-sm btn-secondary mt-1 ms-2 btnPublish">
                         Publish now <i class="fa-solid fa-cloud-arrow-up"></i>
                     </a>
                 </li>
@@ -67,7 +64,7 @@
                         <div class="input-group input-group-sm mt-1">
                             <div id="lblPublished" class="input-group-text" style="height:31px;">Publish date/time:</div>
                             <input autocomplete="off" class="form-control text-truncate" name="tbPublished" id="tbPublished" placeholder="Choose date/time" value="" />
-                            <button class="btn btn-sm btn-secondary" title="Publish now if new, or republish using previous date and time." type="button" id="btnPublishNow" onclick="bgEditClick('Publish')">Publish</button>
+                            <button class="btn btn-sm btn-secondary btnPublish" title="Publish now if new, or republish using previous date and time." type="button">Publish</button>
                         </div>
                     </li>
                 }
@@ -83,47 +80,24 @@
     let pageTitle = "";
     let pagePath = "";
 
-    function closePreview() {
-        if (window.opener) {
-            window.close();
-        } else {
-            location.href = "/Editor/Versions/@Context.Request.Query["ArticleNumber"]";
-        }
-    }
-
-    function loadDdEditMenu() {
-        const ddMenu = $("#ddEditMenu");
-
-        ddMenu.html("Loading...");
-
-        const iframe = document.getElementById("iFrameWebPage");
-        const iframeWin = iframe.contentWindow || iframe.contentDocument.parentWindow;
-
-        pageTitle = iframeWin.document.head.querySelector("meta[name='cwps-meta-path-title']").content;
-        pagePath = iframeWin.document.head.querySelector("meta[name='cwps-meta-path-url']").content;
-
-    }
-
-    function closeDropDowns() {
-        $("#navbarEditDropdown").removeClass("show");
-        $("#ddEditMenu").removeClass("show");
-        $("#btnManage").removeClass("show");
-        $("#ddManageMenu").removeClass("show");
-    }
+    $("#btnEditor").on("click", function (e) {
+        e.preventDefault();
+        location.href = "@editorUrl";
+    });
 
     $("#publishLater").on("click", function (e) {
       $("#publishLater").hide();
       $("#publishedTitleGroup").show();
     });
 
-    $("#btnPublish").on("click", function (e) {
+    $(".btnPublish").on("click", function (e) {
         e.preventDefault();
         switch (previewType) {
             case "article":
-                location.href = "/Editor/Publish/@Model.Id";
+                location.href = "/Editor/PublishPage?articleId=@articleId&dateTime=" + $("#tbPublished").val() + "&editorUrl=@editorUrl";
                 break;
             case "layout":
-                location.href = "/Layouts/Publish/@Model.Layout.Id.ToString()";
+                location.href = "/Layouts/Publish/@layoutId";
                 break;
         }
     });

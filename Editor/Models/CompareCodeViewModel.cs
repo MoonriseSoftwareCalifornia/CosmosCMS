@@ -49,6 +49,11 @@ namespace Cosmos.Cms.Models
         /// <summary>
         /// Gets or sets articles to compare.
         /// </summary>
+        public Cosmos.Common.Data.Layout[] Layouts { get; set; }
+
+        /// <summary>
+        /// Gets or sets articles to compare.
+        /// </summary>
         public ArticleViewModel[] Articles { get; set; }
     }
 }

@@ -176,7 +176,7 @@
     }
 
     // Save the changes for this editor
-    function saveChanges() {
+    function saveChanges(postProcessing) {
 
         if (validatePermissions() === false) {
             // Need permissions set before going any further.
@@ -207,7 +207,7 @@
             VersionNumber: $("#VersionNumber").val(),
             Title: $("#Title").val(),
             RoleList: $("#RoleList").val(),
-            Published: $("#Published").val(),
+            Published: "",
             Updated: $("#Updated").val(),
             Content: encryptData($("#Content").val()),
             HeadJavaScript: encryptData($("#HeadJavaScript").val()),
@@ -219,7 +219,7 @@
             BannerImage: $("#BannerImage").val()
         };
 
-        $.post("@Url.Action("EditCode")",
+        $.post("/Editor/EditCode",
             model,
             function (response) {
                 saveInProgress = false;
@@ -227,22 +227,6 @@
                 doneSaving();
 
                 if (response.IsValid) {
-
-                    $("#Id").val(response.Model.Id);
-                    $("#ArticleNumber").val(response.Model.ArticleNumber);
-                    //$("#EditingField").val(response.Model.EditingField); // Don't update
-                    $("#UrlPath").val(response.Model.UrlPath);
-                    $("#VersionNumber").val(response.Model.VersionNumber);
-                    $("#spanWorkingVersionNo").html("Working Version: " + versionNumber);
-
-                    $("#Content").val(response.Model.Content);
-                    $("#RoleList").val(response.Model.RoleList);
-                    $("#Title").val(response.Model.Title);
-                    $("#divTitle").html(response.Model.Title);
-                    $("#Published").val(response.Model.Published);
-                    $("#Updated").val(response.Model.Updated);
-                    $("#HeadJavaScript").val(response.Model.HeadJavaScript);
-                    $("#FooterJavaScript").val(response.Model.FooterJavaScript);
                                        
                     checkDisplayLiveEditorButton('Content'); // Check after post data.
 
@@ -325,7 +309,6 @@
         $("#liBtnVersions").show();
 
         $("#divTitleGroup").show();
-        $("#divPublishedTitleGroup").show();
         $("#liInsert").show();
 
         $("#btnVersions").attr("href", "/Editor/Versions/" + $("#ArticleNumber").val() + "?versionNumber=" + $("#VersionNumber").val());
@@ -407,10 +390,6 @@
         }
 
         $("#combobox").val("");
-        const inputLinkText = $("#inputLinkText").val("");
-        const switchNewWindow = $("#switchNewWindow").prop('checked', false);
-        const inputLinkCss = $("#inputLinkCss").val("");
-        const inputLinkStyle = $("#inputLinkStyle").val("");
 
         pickPageModal.show();
     }
@@ -438,9 +417,6 @@
     function insertPageLink() {
 
         const inputLinkText = $("#inputLinkText").val();
-        const switchNewWindow = $("#switchNewWindow").prop('checked');
-        const inputLinkCss = $("#inputLinkCss").val();
-        const inputLinkStyle = $("#inputLinkStyle").val();
 
         if (typeof (inputLinkText) === "undefined" || inputLinkText === null || inputLinkText === "") {
             $("#inputLinkTextError").show();

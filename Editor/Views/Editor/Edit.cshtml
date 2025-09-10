@@ -189,7 +189,6 @@
 
         // Close loading spinner and display saved status
         $("#divTitleGroup").show();
-        $("#divPublishedTitleGroup").show();
         $("#spinLoading").hide();
         $("#btnSavingStatus").show();
     };
@@ -298,7 +297,6 @@
             const editorId = model.EditorId;
             const ckeditor = findEditor(editorId);
             const userId = model.UserId;
-            const offest = model.Offset;
             const command = model.Command;
 
             console.log("SignalR Command: " + command);

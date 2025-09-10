@@ -236,9 +236,9 @@ namespace Cosmos.Editor.Data.Logic
 
             if (isFirstArticle)
             {
-                await PublishArticle(article);
-            }
+                await PublishArticle(article.Id, DateTimeOffset.UtcNow);
 
+            }
 
             return await BuildArticleViewModel(article, "en-US");
         }
@@ -315,11 +315,11 @@ namespace Cosmos.Editor.Data.Logic
             var newHome = newHomeArticle.OrderBy(o => o.VersionNumber).LastOrDefault(f => f.Published.HasValue);
 
             // Publish the old home page as a regular page (also update catalog entry).
-            await PublishArticle(oldHome);
+            await PublishArticle(oldHome.Id, DateTimeOffset.UtcNow);
             await UpsertCatalogEntry(oldHome);
 
             // Publish the new home page as a regular page (also update catalog entry).
-            await PublishArticle(newHome);
+            await PublishArticle(newHome.Id, DateTimeOffset.UtcNow);
             await UpsertCatalogEntry(newHome);
         }
 
@@ -481,9 +481,6 @@ namespace Cosmos.Editor.Data.Logic
             // Keep track of the old title--used below if title has changed.
             string oldTitle = article.Title;
 
-            // A change in publish status triggers a new version.
-            var isNewVersion = article.Published != model.Published;
-
             // =======================================================
             // BEGIN: MAKE CONTENT CHANGES HERE
             // =======================================================
@@ -492,9 +489,7 @@ namespace Cosmos.Editor.Data.Logic
             // Make sure base tag is set properly.
             UpdateHeadBaseTag(model);
 
-            // Minify the HTML content.
             article.Content = model.Content;
-            article.Published = model.Published;
             article.Title = model.Title;
             article.Updated = DateTimeOffset.UtcNow;
             article.HeaderJavaScript = model.HeadJavaScript;
@@ -507,21 +502,6 @@ namespace Cosmos.Editor.Data.Logic
             // =======================================================
             UpdateHeadBaseTag(article);
 
-            if (isNewVersion)
-            {
-                DbContext.Entry(article).State = EntityState.Detached;
-
-                // Ensure a user ID is set for creator
-                article.UserId = userId.ToString();
-
-                // New version, gets a new ID.
-                article.Id = Guid.NewGuid();
-                article.VersionNumber = article.VersionNumber + 1;
-                model.VersionNumber = article.VersionNumber;
-                model.BannerImage = string.Empty;
-                DbContext.Articles.Add(article);
-            }
-
             // Make sure this saves now
             await DbContext.SaveChangesAsync();
 
@@ -532,15 +512,11 @@ namespace Cosmos.Editor.Data.Logic
             // Update the catalog entry -- happens before publishing.
             await UpsertCatalogEntry(article);
 
-            // HANDLE PUBLISHING OF AN ARTICLE
-            // This can be a new or existing article.
-            var results = await PublishArticle(article);
-
             var result = new ArticleUpdateResult
             {
                 ServerSideSuccess = true,
                 Model = model,
-                CdnResults = results
+                CdnResults = new List<CdnResult>()
             };
 
             return result;
@@ -1409,18 +1385,17 @@ namespace Cosmos.Editor.Data.Logic
         /// <summary>
         /// Logic handing logic for publishing articles and saves changes to the database.
         /// </summary>
-        /// <param name="article">Article entity.</param>
+        /// <param name="articleId">Article Id.</param>
+        /// <param name="dateTime">Publishing date and time.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         /// <remarks>
         /// If article is published, it adds the correct versions to the public pages collection. If not, 
         /// the article is removed from the public pages collection. Also updates the catalog entry.
         /// </remarks>
-        private async Task<List<CdnResult>> PublishArticle(Article article)
+        public async Task<List<CdnResult>> PublishArticle(Guid articleId, DateTimeOffset? dateTime)
         {
-            if (!article.Published.HasValue)
-            {
-                return null;
-            }
+            Article article = DbContext.Articles.FirstOrDefault(f => f.Id == articleId);
+
             // If the article is already published, then remove the other published versions.
             var others = await DbContext.Articles.Where(
                 w => w.ArticleNumber == article.ArticleNumber
@@ -1430,7 +1405,7 @@ namespace Cosmos.Editor.Data.Logic
             var now = DateTimeOffset.Now;
 
             // If published in the future, then keep the last published article
-            if (article.Published.Value > now)
+            if (dateTime.HasValue && dateTime.Value > now)
             {
                 // Keep the article pulished just before this one
                 var oneTokeep = others.Where(
@@ -1460,6 +1435,8 @@ namespace Cosmos.Editor.Data.Logic
             {
                 item.Published = null;
             }
+
+            article.Published = dateTime ?? now;
 
             await DbContext.SaveChangesAsync();
 
