@@ -32,46 +32,6 @@ namespace Cosmos.BlobService
         /// <param name="config">Startup configuration.</param>
         public static void AddCosmosStorageContext(this IServiceCollection services, IConfiguration config)
         {
-            // Azure Parameters
-            var azureBlobStorageConnectionString = config.GetConnectionString("AzureBlobStorageConnectionString");
-
-            if (string.IsNullOrEmpty(azureBlobStorageConnectionString))
-            {
-                azureBlobStorageConnectionString = GetKeyValue(config, "AzureBlobStorageConnectionString");
-            }
-
-            var azureBlobStorageContainerName = GetKeyValue(config, "AzureBlobStorageContainerName");
-            var azureBlobStorageEndPoint = GetKeyValue(config, "AzureBlobStorageEndPoint");
-            var isMultiTenant = config.GetValue<bool?>("MultiTenantEditor") ?? false;
-
-            var cosmosConfig = new CosmosStorageConfig();
-
-            cosmosConfig.PrimaryCloud = "azure";
-            cosmosConfig.StorageConfig = new StorageConfig();
-
-            if (string.IsNullOrEmpty(azureBlobStorageContainerName))
-            {
-                azureBlobStorageContainerName = "$web";
-            }
-
-            if (string.IsNullOrEmpty(azureBlobStorageEndPoint))
-            {
-                azureBlobStorageEndPoint = "/";
-            }
-
-            if (string.IsNullOrEmpty(azureBlobStorageConnectionString) == false &&
-                string.IsNullOrEmpty(azureBlobStorageContainerName) == false &&
-                string.IsNullOrEmpty(azureBlobStorageEndPoint) == false)
-            {
-                cosmosConfig.StorageConfig.AzureConfigs.Add(new AzureStorageConfig()
-                {
-                    AzureBlobStorageConnectionString = azureBlobStorageConnectionString,
-                    AzureBlobStorageContainerName = azureBlobStorageContainerName,
-                    AzureBlobStorageEndPoint = azureBlobStorageEndPoint
-                });
-            }
-
-            services.AddSingleton(Options.Create(cosmosConfig));
             services.AddTransient<StorageContext>();
         }
 
@@ -186,6 +146,11 @@ namespace Cosmos.BlobService
             }
 
             return data;
+        }
+
+        private static string GetConnectionString(IConfiguration config)
+        {
+            return config.GetConnectionString("StorageConnectionString") ?? config.GetConnectionString("AzureBlobStorageConnectionString");
         }
     }
 }

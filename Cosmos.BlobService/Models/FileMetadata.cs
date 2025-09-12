@@ -40,6 +40,11 @@ namespace Cosmos.BlobService.Models
         public DateTimeOffset LastModified { get; set; }
 
         /// <summary>
+        /// Gets or sets Created.
+        /// </summary>
+        public DateTimeOffset Created { get; set; }
+
+        /// <summary>
         /// Gets or sets upon upload, the UTC date time for the upload is saved as a 'tick'.
         /// </summary>
         /// <remarks>

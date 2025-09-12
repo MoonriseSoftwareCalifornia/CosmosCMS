@@ -83,7 +83,7 @@ namespace Cosmos.BlobService.Drivers
         /// </remarks>
         public async Task AppendBlobAsync(byte[] data, FileUploadMetaData fileMetaData, DateTimeOffset uploadDateTime, string mode = "block")
         {
-            if (mode.Equals("block", StringComparison.OrdinalIgnoreCase))
+            if (mode.Equals("block", StringComparison.CurrentCultureIgnoreCase))
             {
                 await this.UpdloadBlockBlobAsync(new MemoryStream(data), fileMetaData, uploadDateTime);
                 return;
@@ -229,7 +229,7 @@ namespace Cosmos.BlobService.Drivers
         /// <param name="path">Path to get blob names from.</param>
         /// <param name="filter">Search filter (optional).</param>
         /// <returns>Returns the names as a <see cref="string"/> list.</returns>
-        public async Task<List<string>> GetBlobNamesByPath(string path, string[] filter = null)
+        public async Task<List<string>> GetBlobNamesByPath(string path)
         {
             var containerClient =
                 this.blobServiceClient.GetBlobContainerClient(this.containerName);
@@ -414,7 +414,7 @@ namespace Cosmos.BlobService.Drivers
         /// </summary>
         /// <param name="path">Path from which to get objects from.</param>
         /// <returns>Returns objects as a <see cref="BlobHierarchyItem"/> <see cref="List{T}"/>.</returns>
-        public async Task<List<BlobHierarchyItem>> GetObjectsAsync(string path)
+        public async Task<List<BlobHierarchyItem>> GetBlobHierarchyItemsAsync(string path)
         {
             if (path == "/")
             {
@@ -437,6 +437,84 @@ namespace Cosmos.BlobService.Drivers
             }
 
             return results;
+        }
+
+        /// <summary>
+        ///  Gets files and directories for a given path.
+        /// </summary>
+        /// <param name="path">Path to seach on.</param>
+        /// <returns>List of File Manager Entries.</returns>
+        public async Task<List<FileManagerEntry>> GetFilesAndDirectories(string path)
+        {
+            if (!string.IsNullOrEmpty(path))
+            {
+                path = path.TrimStart('/');
+            }
+
+            var entries = new List<FileManagerEntry>();
+
+            var blobOjects = await GetBlobHierarchyItemsAsync(path);
+
+            foreach (var blob in blobOjects)
+            {
+                if (blob.IsBlob)
+                {
+                    if (blob.Blob.Name.EndsWith("folder.stubxx"))
+                    {
+                        continue;
+                    }
+
+                    var fileName = Path.GetFileNameWithoutExtension(blob.Blob.Name);
+
+                    var modified = blob.Blob.Properties.LastModified?.UtcDateTime ?? DateTime.UtcNow;
+
+                    entries.Add(new FileManagerEntry
+                    {
+                        Created = DateTime.Now,
+                        CreatedUtc = DateTime.UtcNow,
+                        Extension = Path.GetExtension(blob.Blob.Name),
+                        HasDirectories = false,
+                        IsDirectory = false,
+                        Modified = modified,
+                        ModifiedUtc = modified,
+                        Name = fileName,
+                        Path = blob.Blob.Name,
+                        Size = blob.Blob.Properties.ContentLength ?? 0
+                    });
+                }
+                else
+                {
+                    var parse = blob.Prefix.TrimEnd('/').Split('/');
+
+                    var subDirectory = await GetBlobHierarchyItemsAsync(blob.Prefix);
+
+                    entries.Add(new FileManagerEntry
+                    {
+                        Created = DateTime.Now,
+                        CreatedUtc = DateTime.UtcNow,
+                        Extension = string.Empty,
+                        HasDirectories = subDirectory.Any(a => a.IsPrefix),
+                        IsDirectory = true,
+                        Modified = DateTime.Now,
+                        ModifiedUtc = DateTime.UtcNow,
+                        Name = parse.Last(),
+                        Path = blob.Prefix.TrimEnd('/'),
+                        Size = 0
+                    });
+                }
+            }
+
+            return entries;
+        }
+
+        private async Task<FileManagerEntry> GetFileManagerEntry(BlobHierarchyItem item)
+        {
+            var entry = new FileManagerEntry()
+            {
+
+            };
+
+            return entry;
         }
 
         /// <summary>

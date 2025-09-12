@@ -950,6 +950,16 @@ namespace Cosmos.Cms.Controllers
                     return View(viewName: "__NewHomePage", model: model);
                 }
 
+                var template = await dbContext.Templates.FirstOrDefaultAsync(f => f.Title.ToLower() == "home page");
+                var article = await articleLogic.CreateArticle(model.Title, Guid.Parse(await GetUserId()), template.Id);
+                
+                article.Published = DateTimeOffset.UtcNow;
+                article.StatusCode = (int)StatusCodeEnum.Active;
+                article.Content = template.Content;
+                article.UrlPath = "root";
+
+                await articleLogic.SaveArticle(article, Guid.Parse(await GetUserId()));
+
                 return Redirect("/");
             }
 

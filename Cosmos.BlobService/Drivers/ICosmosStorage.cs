@@ -75,9 +75,15 @@ namespace Cosmos.BlobService.Drivers
         ///     Gets a list of blob names for a given path (is recursive).
         /// </summary>
         /// <param name="path">That to search for blobs.</param>
-        /// <param name="filter">Filter the use to search (optional).</param>
         /// <returns>A <see cref="List{T}"/> representing blobs found in the given path.</returns>
-        Task<List<string>> GetBlobNamesByPath(string path, string[] filter = null);
+        Task<List<string>> GetBlobNamesByPath(string path);
+
+        /// <summary>
+        ///     Gets files and subfolders for a given path.
+        /// </summary>
+        /// <param name="path">Path to objects.</param>
+        /// <returns>Returns metadata for the objects as a <see cref="FileManagerEntry"/> <see cref="List{T}"/>.</returns>
+        Task<List<FileManagerEntry>> GetFilesAndDirectories(string path);
 
         /// <summary>
         /// Opens a read stream from the blob in storage.

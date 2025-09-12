@@ -18,19 +18,19 @@ namespace Cosmos.BlobService.Config
         ///     Gets or sets access key Id.
         /// </summary>
         [Display(Name = "Key Id")]
-        public string AmazonAwsAccessKeyId { get; set; }
+        public string KeyId { get; set; }
 
         /// <summary>
-        ///     Gets or sets aWS secret access key.
+        ///     Gets or sets AWS secret access key.
         /// </summary>
         [Display(Name = "Key")]
-        public string AmazonAwsSecretAccessKey { get; set; }
+        public string Key { get; set; }
 
         /// <summary>
         ///     Gets or sets amazon bucket name.
         /// </summary>
         [Display(Name = "Bucket")]
-        public string AmazonBucketName { get; set; }
+        public string BucketName { get; set; }
 
         /// <summary>
         ///     Gets or sets amazon region.
@@ -38,17 +38,5 @@ namespace Cosmos.BlobService.Config
         [Display(Name = "Region")]
         [UIHint("AmazonRegions")]
         public string AmazonRegion { get; set; }
-
-        /// <summary>
-        ///     Gets or sets service URL.
-        /// </summary>
-        [Display(Name = "Website URL")]
-        public string ServiceUrl { get; set; }
-
-        /// <summary>
-        ///     Gets or sets profile name.
-        /// </summary>
-        [Display(Name = "Conn. Name")]
-        public string ProfileName { get; set; }
     }
 }

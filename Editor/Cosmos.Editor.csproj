@@ -107,6 +107,10 @@
 	  <Compile Include="Models\LayoutEditViewModel.cs.BAK" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Data\SQLite\" />
+	</ItemGroup>
+
 	<ProjectExtensions>
 		<VisualStudio>
 			<UserProperties libman_1json__JsonSchema="" />

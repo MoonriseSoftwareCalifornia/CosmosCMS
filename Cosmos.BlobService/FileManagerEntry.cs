@@ -88,4 +88,9 @@ public class FileManagerEntry
     /// Gets or sets the description of the file or folder.
     /// </summary>
     public string Description { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the ETag of the file or folder.
+    /// </summary>
+    public string ETag { get; internal set; }
 }

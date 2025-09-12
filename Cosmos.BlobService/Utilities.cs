@@ -35,7 +35,17 @@ namespace Cosmos.BlobService
                 return fileMetaData.ContentType;
             }
 
-            var extension = Path.GetExtension(fileMetaData.FileName)?.ToLower();
+            return GetContentType(fileMetaData.FileName);
+        }
+
+        /// <summary>
+        ///     Gets the content type of an uploaded file.
+        /// </summary>
+        /// <param name="fileName">File name including file extention.</param>
+        /// <returns>Returns MIME content type as <see cref="string"/>.</returns>
+        public static string GetContentType(string fileName)
+        {
+            var extension = Path.GetExtension(fileName)?.ToLower();
 
             if (string.IsNullOrEmpty(extension))
             {

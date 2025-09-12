@@ -7,18 +7,18 @@
 
 namespace Cosmos.Common.Data
 {
-    using System;
-    using System.Configuration;
-    using System.Linq;
-    using System.Threading.Tasks;
     using AspNetCore.Identity.FlexDb;
-    using Cosmos.DynamicConfig;
     using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.Azure.Cosmos;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Diagnostics;
+    using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
     using MySql.EntityFrameworkCore.Extensions;
+    using System;
+    using System.Configuration;
+    using System.Linq;
+    using System.Threading.Tasks;
 
     /// <summary>
     ///     Database Context for Cosmos CMS.
@@ -125,6 +125,7 @@ namespace Cosmos.Common.Data
         public static DbStatus EnsureDatabaseExists(string connectionString)
         {
             using var dbContext = new ApplicationDbContext(connectionString);
+
             if (dbContext.Database.IsCosmos())
             {
                 var databaseName = connectionString.Split(';').FirstOrDefault(s => s.StartsWith("Database=", StringComparison.InvariantCultureIgnoreCase))?.Split('=')[1];
@@ -279,6 +280,23 @@ namespace Cosmos.Common.Data
         /// <param name="modelBuilder">DB Context model builder.</param>
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+
+            if (this.Database.IsSqlite())
+            {
+                foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+                {
+                    var properties = entityType.ClrType.GetProperties().Where(p => p.PropertyType == typeof(DateTimeOffset)
+                                                                                || p.PropertyType == typeof(DateTimeOffset?));
+                    foreach (var property in properties)
+                    {
+                        modelBuilder
+                            .Entity(entityType.Name)
+                            .Property(property.Name)
+                            .HasConversion(new DateTimeOffsetToBinaryConverter());
+                    }
+                }
+            }
+
             if (this.Database.IsCosmos())
             {
                 // DEFAULT CONTAINER ENTITIES

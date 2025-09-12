@@ -39,6 +39,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="AWSSDK.S3" Version="4.0.7" />
 		<PackageReference Include="Azure.Extensions.AspNetCore.DataProtection.Blobs" Version="1.5.1" />
 		<PackageReference Include="Azure.Identity" Version="1.16.0" />
 		<PackageReference Include="Azure.Storage.Files.Shares" Version="12.23.0" />

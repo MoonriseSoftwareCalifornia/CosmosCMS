@@ -79,16 +79,9 @@ namespace Cosmos.Editor.Boot
             var connectionString = builder.Configuration.GetConnectionString("ApplicationDbContextConnection");
             if (string.IsNullOrEmpty(connectionString))
             {
-                // It has been the case in the past where Linux web apps want upper case variable names.
-                // This is a check for that.
-                var list = builder.Configuration.GetSection("ConnectionStrings").GetChildren();
-                var keys = new List<string>();
-                foreach (var item in list)
-                {
-                    keys.Add(item.Key);
-                }
-
-                throw new ArgumentException($"STARTUP: ApplicationDbContextConnection is null or empty. Did find: {string.Join(';', keys)}");
+                Console.WriteLine("No connection string, using SQLite");
+                var sqliteDbPath = Path.Combine(Environment.ProcessPath, "data", "SQLite", "cosmosdb");
+                connectionString = $"Data Source={sqliteDbPath};";
             }
                         
             // If this is set, the Cosmos identity provider will:
@@ -120,13 +113,13 @@ namespace Cosmos.Editor.Boot
                 .AddDefaultTokenProviders();
 
             // Add shared data protection here
-            var dataProtectionContainer = BlobService.ServiceCollectionExtensions.GetBlobContainerClient(builder.Configuration, new DefaultAzureCredential(), "dataprotection");
-            if (option.Value.SiteSettings.AllowSetup)
-            {
-                var webContainer = BlobService.ServiceCollectionExtensions.GetBlobContainerClient(builder.Configuration, new DefaultAzureCredential(), "$web");
-                dataProtectionContainer.CreateIfNotExistsAsync().GetAwaiter().GetResult();
-                webContainer.CreateIfNotExistsAsync().GetAwaiter().GetResult();
-            }
+            //var dataProtectionContainer = BlobService.ServiceCollectionExtensions.GetBlobContainerClient(builder.Configuration, new DefaultAzureCredential(), "dataprotection");
+            //if (option.Value.SiteSettings.AllowSetup)
+            //{
+            //    var webContainer = BlobService.ServiceCollectionExtensions.GetBlobContainerClient(builder.Configuration, new DefaultAzureCredential(), "$web");
+            //    dataProtectionContainer.CreateIfNotExistsAsync().GetAwaiter().GetResult();
+            //    webContainer.CreateIfNotExistsAsync().GetAwaiter().GetResult();
+            //}
 
             builder.Services.AddDataProtection()
             .UseCryptographicAlgorithms(
@@ -134,8 +127,8 @@ namespace Cosmos.Editor.Boot
             {
                 EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
                 ValidationAlgorithm = ValidationAlgorithm.HMACSHA256
-            })
-            .PersistKeysToAzureBlobStorage(dataProtectionContainer.GetBlobClient("editorkeys.xml"));
+            }).PersistKeysToDbContext<ApplicationDbContext>();
+            //.PersistKeysToAzureBlobStorage(dataProtectionContainer.GetBlobClient("editorkeys.xml"));
 
             // ===========================================================
             // SUPPORTED OAuth Providers
@@ -184,7 +177,7 @@ namespace Cosmos.Editor.Boot
             }
 
             // Add Azure CDN/Front door configuration here.
-            builder.Services.Configure<CdnService>(builder.Configuration.GetSection("AzureCdnConfig"));
+            // builder.Services.Configure<CdnService>(builder.Configuration.GetSection("AzureCdnConfig"));
 
             builder.Services.AddSession(options =>
             {

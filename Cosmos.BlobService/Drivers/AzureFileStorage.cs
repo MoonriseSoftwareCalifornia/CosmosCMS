@@ -241,7 +241,7 @@ namespace Cosmos.BlobService.Drivers
         }
 
         /// <inheritdoc/>
-        public async Task<List<string>> GetBlobNamesByPath(string path, string[] filter = null)
+        public async Task<List<string>> GetBlobNamesByPath(string path)
         {
             var list = new List<string>();
 
@@ -438,7 +438,7 @@ namespace Cosmos.BlobService.Drivers
         /// </summary>
         /// <param name="path">Path from which to retrieve objects.</param>
         /// <returns>Returns metadata as a <see cref="FileManagerEntry"/> <see cref="List{T}"/>.</returns>
-        public async Task<List<FileManagerEntry>> GetObjectsAsync(string path)
+        public async Task<List<FileManagerEntry>> GetFilesAndDirectories(string path)
         {
             path = path.Trim('/');
 

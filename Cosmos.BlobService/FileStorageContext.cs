@@ -174,7 +174,7 @@ namespace Cosmos.BlobService
                 path = path.TrimStart('/');
             }
 
-            var entries = await this.driver.GetObjectsAsync(path);
+            var entries = await this.driver.GetFilesAndDirectories(path);
             return entries;
         }
 

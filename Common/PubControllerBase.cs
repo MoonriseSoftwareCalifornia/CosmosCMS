@@ -75,27 +75,23 @@ namespace Cosmos.Publisher.Controllers
                 Response.Headers.Expires = DateTimeOffset.UtcNow.ToString("ddd, dd MMM yyyy HH:mm:ss 'GMT'");
             }
 
-            var client = storageContext.GetAppendBlobClient(HttpContext.Request.Path);
+            var properties = await storageContext.GetFileAsync(HttpContext.Request.Path);
 
-            if (client != null && await client.ExistsAsync())
+            try
             {
-                try
-                {
-                    var properties = await client.GetPropertiesAsync();
-
-                    return File(
-                        fileStream: await client.OpenReadAsync(),
-                        contentType: properties.Value.ContentType,
-                        lastModified: properties.Value.LastModified,
-                        entityTag: new EntityTagHeaderValue(properties.Value.ETag.ToString()));
-                }
-                catch (Exception)
-                {
-                    return NotFound();
-                }
+                var fileStream = await storageContext.OpenBlobReadStreamAsync(HttpContext.Request.Path);
+                var contentType = Utilities.GetContentType(properties.Name);
+                return File(
+                    fileStream: fileStream,
+                    contentType: contentType,
+                    lastModified: properties.ModifiedUtc,
+                    entityTag: new EntityTagHeaderValue(properties.ETag));
             }
-
-            return NotFound();
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return NotFound();
+            }
         }
     }
 }

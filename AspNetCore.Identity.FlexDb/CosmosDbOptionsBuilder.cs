@@ -66,6 +66,10 @@ namespace AspNetCore.Identity.FlexDb
             {
                 optionsBuilder.UseMySQL(connectionString);
             }
+            else if (connectionString.StartsWith("Data Source=", StringComparison.CurrentCultureIgnoreCase) && connectionString.Contains(".db"))
+            {
+                optionsBuilder.UseSqlite(connectionString);
+            }
             else if (connectionString.Contains("AccountEndpoint=", StringComparison.InvariantCultureIgnoreCase))
             {
                 var parts = connectionString.Split(';', StringSplitOptions.RemoveEmptyEntries);
