@@ -92,5 +92,5 @@ public class FileManagerEntry
     /// <summary>
     /// Gets or sets the ETag of the file or folder.
     /// </summary>
-    public string ETag { get; internal set; }
+    public string ETag { get; set; }
 }

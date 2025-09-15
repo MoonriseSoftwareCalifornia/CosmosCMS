@@ -7,8 +7,12 @@
 
 namespace Cosmos.BlobService
 {
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Threading.Tasks;
     using Azure.Identity;
-    using Azure.Storage.Blobs.Specialized;
     using Cosmos.BlobService.Config;
     using Cosmos.BlobService.Drivers;
     using Cosmos.BlobService.Models;
@@ -16,23 +20,12 @@ namespace Cosmos.BlobService
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Options;
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Threading.Tasks;
 
     /// <summary>
     ///     Multi cloud blob service context.
     /// </summary>
     public sealed class StorageContext
     {
-        /// <summary>
-        /// Default Azure token credential.
-        /// </summary>
-        private readonly DefaultAzureCredential credential;
-
         /// <summary>
         /// Used to brefly store chuk data while uploading.
         /// </summary>
@@ -44,7 +37,7 @@ namespace Cosmos.BlobService
         /// <remarks>This field holds a reference to an implementation of <see
         /// cref="IDynamicConfigurationProvider"/>. It is used to access configuration settings that can change at
         /// runtime.</remarks>
-        private readonly IDynamicConfigurationProvider? dynamicConfigurationProvider;
+        private readonly IDynamicConfigurationProvider dynamicConfigurationProvider;
 
         /// <summary>
         /// Multi-tenant editor flag.
@@ -107,14 +100,8 @@ namespace Cosmos.BlobService
         public async Task DeleteFolderAsync(string path)
         {
             // Ensure leading slash is removed.
-            path = path.TrimStart('/');
-
-            var blobs = await this.GetBlobNamesByPath(path);
-
-            foreach (var blob in blobs)
-            {
-                this.DeleteFile(blob);
-            }
+            var driver = GetPrimaryDriver();
+            await driver.DeleteFolderAsync(path);
         }
 
         /// <summary>
@@ -203,15 +190,14 @@ namespace Cosmos.BlobService
         /// </summary>
         /// <param name="path">Path to blob to open read stream from.</param>
         /// <returns>Data as a <see cref="Stream"/>.</returns>
-        public async Task<Stream> OpenBlobReadStreamAsync(string path)
+        public async Task<Stream> GetStreamAsync(string path)
         {
             // Ensure leading slash is removed.
             path = path.TrimStart('/');
 
             // Get the primary driver based on the configuration.
-            var driver = (AzureStorage)this.GetPrimaryDriver();
-            var blob = await driver.GetBlobAsync(path);
-            return await blob.OpenReadAsync();
+            var driver = GetPrimaryDriver();
+            return await driver.GetStreamAsync(path);
         }
 
         /// <summary>
@@ -222,7 +208,8 @@ namespace Cosmos.BlobService
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task RenameAsync(string path, string destination)
         {
-            await this.CopyObjectsAsync(path, destination, true);
+            var driver = GetPrimaryDriver();
+            await driver.RenameAsync(path, destination);
         }
 
         /// <summary>
@@ -231,15 +218,15 @@ namespace Cosmos.BlobService
         /// <param name="stream"><see cref="MemoryStream"/> containing data being appended.</param>
         /// <param name="fileMetaData"><see cref="FileUploadMetaData"/> containing metadata about the data 'chunk' and blob.</param>
         /// <param name="mode">Is either append or block.</param>
-        public void AppendBlob(MemoryStream stream, FileUploadMetaData fileMetaData, string mode = "append")
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        public async Task AppendBlob(MemoryStream stream, FileUploadMetaData fileMetaData, string mode = "append")
         {
             var mark = DateTimeOffset.UtcNow;
 
             // Gets the primary driver based on the configuration.
             var driver = this.GetPrimaryDriver();
 
-            var task = driver.AppendBlobAsync(stream.ToArray(), fileMetaData, mark, mode);
-            task.Wait();
+            await driver.AppendBlobAsync(stream.ToArray(), fileMetaData, mark, mode);
         }
 
         /// <summary>
@@ -248,13 +235,12 @@ namespace Cosmos.BlobService
         /// <param name="path">Path to the folder to create.</param>
         /// <returns>Folder metadata as a <see cref="FileManagerEntry"/>.</returns>
         /// <remarks>Creates the folder if it does not already exist.</remarks>
-        public FileManagerEntry CreateFolder(string path)
+        public async Task<FileManagerEntry> CreateFolder(string path)
         {
             var driver = this.GetPrimaryDriver();
             if (!driver.BlobExistsAsync(path + "/folder.stubxx").Result)
             {
-                var task = driver.CreateFolderAsync(path);
-                task.Wait();
+                await driver.CreateFolderAsync(path);
             }
 
             // Gets the primary driver based on the configuration.
@@ -277,106 +263,15 @@ namespace Cosmos.BlobService
         }
 
         /// <summary>
-        ///    Gets the blob items for a given path.
-        /// </summary>
-        /// <param name="path">Path to search.</param>
-        /// <param name="extensions">Extensions to match.</param>
-        /// <returns>FileManagerEntry list.</returns>
-        public async Task<List<FileManagerEntry>> GetBlobItemsAsync(string path, string[] extensions)
-        {
-            if (!string.IsNullOrEmpty(path))
-            {
-                path = path.TrimStart('/');
-            }
-
-            var entries = new List<FileManagerEntry>();
-
-            // Get the primary driver based on the configuration.
-            var azureDriver = (AzureStorage)this.GetPrimaryDriver();
-
-            // Get the blob items from Azure storage.
-            var azureResults = await azureDriver.GetBlobItemsAsync(path);
-
-            // Filter the results based on the provided extensions.
-            foreach (var azureResult in azureResults)
-            {
-                var extension = Path.GetExtension(azureResult.Name).ToLower();
-                if (extensions.Contains(extension))
-                {
-                    var fileName = Path.GetFileNameWithoutExtension(azureResult.Name);
-                    var modified = azureResult.Properties.LastModified?.UtcDateTime ?? DateTime.UtcNow;
-                    var entry = new FileManagerEntry
-                    {
-                        Created = DateTime.Now,
-                        CreatedUtc = DateTime.UtcNow,
-                        Extension = extension,
-                        HasDirectories = false,
-                        IsDirectory = false,
-                        Modified = modified,
-                        ModifiedUtc = modified,
-                        Name = fileName,
-                        Path = azureResult.Name,
-                        Size = azureResult.Properties.ContentLength ?? 0
-                    };
-
-                    if (azureResult.Metadata.TryGetValue("ccmsimagex", out var ccmsImageX))
-                    {
-                        if (azureResult.Metadata.TryGetValue("ccmsimagey", out var ccmsImageY)
-                            && azureResult.Metadata.TryGetValue("ccmsimagedpi", out var ccmsImageDpi))
-                        {
-                            entry.ImageX = int.Parse(ccmsImageX);
-                            entry.ImageY = int.Parse(ccmsImageY);
-                            entry.ImageDpi = int.Parse(ccmsImageDpi);
-                        }
-                    }
-
-                    entries.Add(entry);
-                }
-            }
-
-            return entries;
-        }
-
-        /// <summary>
-        ///     Gets the contents for a folder.
-        /// </summary>
-        /// <param name="path">Path to folder.</param>
-        /// <returns>Returns metadata as a <see cref="FileManagerEntry"/> <see cref="List{T}"/>.</returns>
-        public async Task<List<FileManagerEntry>> GetFolderContents(string path)
-        {
-            if (!string.IsNullOrEmpty(path))
-            {
-                path = path.TrimStart('/');
-
-                if (path == "/")
-                {
-                    path = string.Empty;
-                }
-                else
-                {
-                    if (!path.EndsWith("/"))
-                    {
-                        path = path + "/";
-                    }
-                }
-            }
-
-            return await this.GetFilesAndDirectories(path);
-        }
-
-        /// <summary>
         ///     Gets files and subfolders for a given path.
         /// </summary>
         /// <param name="path">Path to objects.</param>
         /// <returns>Returns metadata for the objects as a <see cref="FileManagerEntry"/> <see cref="List{T}"/>.</returns>
         public async Task<List<FileManagerEntry>> GetFilesAndDirectories(string path)
         {
-            if (!string.IsNullOrEmpty(path))
-            {
-                path = path.TrimStart('/');
-            }
-
             var driver = this.GetPrimaryDriver();
+
+            path = path.TrimStart('/');
 
             var entries = await driver.GetFilesAndDirectories(path);
 
@@ -412,43 +307,41 @@ namespace Cosmos.BlobService
 
             // Get the blob storage drivers.
             var driver = this.GetPrimaryDriver();
-
-            // Get a list of blobs to rename.
-            var blobNames = await this.GetBlobNamesByPath(target);
+            await driver.RenameAsync(target, destination);
 
             // Work through the list here.
-            foreach (var srcBlobName in blobNames)
-            {
-                var tasks = new List<Task>();
+            //foreach (var srcBlobName in blobNames)
+            //{
+            //    var tasks = new List<Task>();
 
-                var destBlobName = srcBlobName.Replace(target, destination);
+            //    var destBlobName = srcBlobName.Replace(target, destination);
 
-                if (await driver.BlobExistsAsync(destBlobName))
-                {
-                    throw new Exception($"Could not copy {srcBlobName} as {destBlobName} already exists.");
-                }
+            //    if (await driver.BlobExistsAsync(destBlobName))
+            //    {
+            //        throw new Exception($"Could not copy {srcBlobName} as {destBlobName} already exists.");
+            //    }
 
-                await driver.CopyBlobAsync(srcBlobName, destBlobName);
+            //    await driver.CopyBlobAsync(srcBlobName, destBlobName);
 
-                // Now check to see if files were copied
-                var success = await driver.BlobExistsAsync(destBlobName);
+            //    // Now check to see if files were copied
+            //    var success = await driver.BlobExistsAsync(destBlobName);
 
-                if (success)
-                {
-                    // Deleting the source is in the case of RENAME.
-                    // Copying things does not delete the source
-                    if (deleteSource)
-                    {
-                        await driver.DeleteIfExistsAsync(srcBlobName);
-                    }
-                }
-                else
-                {
-                    // The copy was NOT successfull, delete any copied files and halt, throw an error.
-                    await driver.DeleteIfExistsAsync(destBlobName);
-                    throw new Exception($"Could not copy: {srcBlobName} to {destBlobName}");
-                }
-            }
+            //    if (success)
+            //    {
+            //        // Deleting the source is in the case of RENAME.
+            //        // Copying things does not delete the source
+            //        if (deleteSource)
+            //        {
+            //            await driver.DeleteIfExistsAsync(srcBlobName);
+            //        }
+            //    }
+            //    else
+            //    {
+            //        // The copy was NOT successfull, delete any copied files and halt, throw an error.
+            //        await driver.DeleteIfExistsAsync(destBlobName);
+            //        throw new Exception($"Could not copy: {srcBlobName} to {destBlobName}");
+            //    }
+            //}
         }
 
         /// <summary>
@@ -505,13 +398,12 @@ namespace Cosmos.BlobService
                         KeyId = keyId,
                         Key = key
                     },
-                    new MemoryCache(new MemoryCacheOptions()));
+                    memoryCache);
             }
             else
             {
                 throw new Exception("No valid storage connection string found. Please check your configuration.");
             }
         }
-
     }
 }

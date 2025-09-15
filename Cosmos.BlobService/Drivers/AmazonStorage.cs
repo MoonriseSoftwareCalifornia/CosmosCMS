@@ -7,13 +7,6 @@
 
 namespace Cosmos.BlobService.Drivers
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Net;
-    using System.Text;
-    using System.Threading.Tasks;
     using Amazon;
     using Amazon.S3;
     using Amazon.S3.Model;
@@ -21,12 +14,22 @@ namespace Cosmos.BlobService.Drivers
     using Azure.Storage.Blobs.Models;
     using Cosmos.BlobService.Config;
     using Cosmos.BlobService.Models;
+    using Microsoft.Azure.Cosmos.Linq;
     using Microsoft.Extensions.Caching.Distributed;
     using Microsoft.Extensions.Caching.Memory;
     using Newtonsoft.Json;
+    using Org.BouncyCastle.Asn1.X509;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Net;
+    using System.Reflection.Metadata;
+    using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
-    ///     AWS S3 storage driver
+    ///     AWS S3 storage driver.
     /// </summary>
     public sealed class AmazonStorage : ICosmosStorage
     {
@@ -124,7 +127,7 @@ namespace Cosmos.BlobService.Drivers
                         });
 
                     // Save the upload ID in the blob metadata
-                    //await client.PutObjectAsync(request);
+                    // await client.PutObjectAsync(request);
                 }
 
                 // This is the upload ID used to keep track of all the parts.
@@ -137,7 +140,6 @@ namespace Cosmos.BlobService.Drivers
                     var responses = bytes == null
                         ? new List<UploadPartResponse>()
                         : JsonConvert.DeserializeObject<List<UploadPartResponse>>(Encoding.UTF32.GetString(bytes));
-
 
                     await using Stream stream = new MemoryStream(data);
                     stream.Position = 0;
@@ -180,7 +182,8 @@ namespace Cosmos.BlobService.Drivers
                     else
                     {
                         // Cache the list for the next chunk upload
-                        cache.Set(fileMetaData.UploadUid + "responses",
+                        cache.Set(
+                            fileMetaData.UploadUid + "responses",
                             Encoding.UTF32.GetBytes(JsonConvert.SerializeObject(responses)));
                     }
                 }
@@ -231,7 +234,8 @@ namespace Cosmos.BlobService.Drivers
                 await client.CopyObjectAsync(
                     config.BucketName,
                     source,
-                    config.BucketName, destination);
+                    config.BucketName,
+                    destination);
             }
         }
 
@@ -243,17 +247,12 @@ namespace Cosmos.BlobService.Drivers
         /// <exception cref="Exception">Folder creation failure.</exception>
         public async Task CreateFolderAsync(string path)
         {
-            //
             // Blob storage does not have a folder object, just blobs with paths.
             // Therefore, to create an illusion of a folder, we have to create a blob
             // that will be in the folder.  For example:
-            // 
-            // To create folder /pictures 
-            //
+            // To create folder /pictures.
             // You have to pub a blob here /pictures/folder.subxx
-            //
             // To remove a folder, you simply remove all blobs below /pictures
-            //
 
             // Make sure the path doesn't already exist.
             // Don't lead with "/" with S3
@@ -281,12 +280,11 @@ namespace Cosmos.BlobService.Drivers
         ///     Gets a list of blobs by path.
         /// </summary>
         /// <param name="path">Path to get blob names from.</param>
-        /// <param name="filter">Search filter (optional).</param>
         /// <returns>Returns the names as a <see cref="string"/> list.</returns>
         public async Task<List<string>> GetBlobNamesByPath(string path)
         {
-            var blobList = await GetObjectsAsync(path);
-            return blobList.Select(s => s.Key).ToList();
+            var s3Result = await GetObjectsAsync(path, false);
+            return s3Result.Blobs.Select(s => s.Key).ToList();
         }
 
         /// <summary>
@@ -306,6 +304,13 @@ namespace Cosmos.BlobService.Drivers
 
                 using var client = GetClient();
 
+                var exists = await BlobExistsAsync(path);
+
+                if (!exists)
+                {
+                    return;
+                }
+
                 await client.DeleteObjectAsync(deleteObjectRequest);
             }
             catch (AmazonS3Exception e)
@@ -318,76 +323,115 @@ namespace Cosmos.BlobService.Drivers
         }
 
         /// <summary>
-        ///     Deletes a folder and all its contents.
+        /// Deletes all blobs at and under a given path using AmazonS3Client.
         /// </summary>
-        /// <param name="path">Path to doomed folder.</param>
-        /// <returns>Returns the number of deleted obhects as an <see cref="int"/>.</returns>
+        /// <param name="path">The path to delete blobs from (acts as prefix).</param>
+        /// <returns>The number of deleted objects.</returns>
         public async Task<int> DeleteFolderAsync(string path)
         {
-            var blobs = await GetObjectsAsync(path);
+            using var client = GetClient();
 
-            if (blobs.Any())
+            var objectsToDelete = new List<KeyVersion>();
+            string continuationToken = null;
+
+            do
             {
-                using var client = GetClient();
-
-                var deleteObjectsRequest = new DeleteObjectsRequest
+                var listRequest = new ListObjectsV2Request
                 {
-                    BucketName = config.BucketName
+                    BucketName = config.BucketName,
+                    Prefix = path,
+                    ContinuationToken = continuationToken
                 };
 
-                foreach (var blob in blobs)
+                var listResponse = await client.ListObjectsV2Async(listRequest);
+
+                foreach (var s3Object in listResponse.S3Objects)
                 {
-                    deleteObjectsRequest.AddKey(blob.Key);
+                    objectsToDelete.Add(new KeyVersion { Key = s3Object.Key });
                 }
 
-                var result = await client.DeleteObjectsAsync(deleteObjectsRequest);
-                return result.DeletedObjects.Count;
+                continuationToken = listResponse.IsTruncated ?? false ? listResponse.NextContinuationToken : null;
+            }
+            while (continuationToken != null);
+
+            int deletedCount = 0;
+
+            // S3 DeleteObjectsRequest supports up to 1000 objects per request
+            for (int i = 0; i < objectsToDelete.Count; i += 1000)
+            {
+                var batch = objectsToDelete.Skip(i).Take(1000).ToList();
+                if (batch.Count == 0)
+                {
+                    break;
+                }
+
+                var deleteRequest = new DeleteObjectsRequest
+                {
+                    BucketName = config.BucketName,
+                    Objects = batch
+                };
+
+                var deleteResponse = await client.DeleteObjectsAsync(deleteRequest);
+                deletedCount += deleteResponse.DeletedObjects.Count;
             }
 
-            return 0;
+            return deletedCount;
         }
 
         /// <summary>
         ///     Gets files and subfolders for a given path.
         /// </summary>
         /// <param name="path">Path from which to get objects from.</param>
+        /// <param name="isRecursive">Is recursive.</param>
         /// <returns>Returns objects as a <see cref="BlobHierarchyItem"/> <see cref="List{T}"/>.</returns>
-        public async Task<List<S3Object>> GetObjectsAsync(string path)
+        public async Task<AwsGetObjectsResult> GetObjectsAsync(string path, bool isRecursive)
         {
-            path = path.TrimStart('/');
-
             var request = new ListObjectsV2Request
             {
                 BucketName = config.BucketName
             };
+
+            var pathParts = path?.Split("/", StringSplitOptions.RemoveEmptyEntries).Count() + 1;
 
             if (!string.IsNullOrEmpty(path))
             {
                 request.Prefix = path;
             }
 
+            if (!isRecursive)
+            {
+                request.Delimiter = "/";
+            }
+
             ListObjectsV2Response response;
-            var blobList = new List<S3Object>();
 
             using var client = GetClient();
+
+            var result = new AwsGetObjectsResult();
 
             do
             {
                 response = await client.ListObjectsV2Async(request);
+                if (response.CommonPrefixes != null && response.CommonPrefixes.Any())
+                {
+                    result.CommonPrefixes.AddRange(response.CommonPrefixes);
+                }
 
                 // Process the response.
                 if (response.S3Objects != null)
                 {
-                    foreach (var blobItem in response.S3Objects)
+                    var s3Objects = response.S3Objects.Where(w => w.Key.Count(c => c == '/') <= pathParts);
+                    foreach (var blobItem in s3Objects)
                     {
-                        blobList.Add(blobItem);
+                        result.Blobs.Add(blobItem);
                     }
                 }
 
                 request.ContinuationToken = response.NextContinuationToken;
-            } while (response.IsTruncated == true);
+            }
+            while (response.IsTruncated == true);
 
-            return blobList;
+            return result;
         }
 
         /// <summary>
@@ -397,53 +441,60 @@ namespace Cosmos.BlobService.Drivers
         /// <returns>FileManagerEntry list.</returns>
         public async Task<List<FileManagerEntry>> GetFilesAndDirectories(string path)
         {
-            var blobs = await GetObjectsAsync(path);
+            if (!string.IsNullOrEmpty(path) && !path.EndsWith('/'))
+            {
+                path += '/';
+            }
+
+            var s3Result = await GetObjectsAsync(path, false); // false because we only want one level deep.
             var list = new List<FileManagerEntry>();
 
-            foreach (var blob in blobs)
+            foreach (var blob in s3Result.Blobs)
             {
-                var isFolder = IsFolder(blob.Key);
-                if (isFolder)
+                if (blob.Key.Replace("folder.stubxx", string.Empty).Equals(path, StringComparison.CurrentCultureIgnoreCase))
                 {
-                    var pathToFolder = blob.Key.TrimEnd('/').Replace("folder.stubxx", string.Empty);
-                    var subs = await GetObjectsAsync(pathToFolder);
+                    // This is the folder stub file, skip it.
+                    continue;
+                }
 
-                    list.Add(new FileManagerEntry()
-                    {
-                        Created = DateTime.SpecifyKind(blob.LastModified ?? DateTime.UtcNow, DateTimeKind.Utc),
-                        CreatedUtc = DateTime.SpecifyKind(blob.LastModified ?? DateTime.UtcNow, DateTimeKind.Utc),
-                        Extension = System.IO.Path.GetExtension(blob.Key),
-                        HasDirectories = subs.Any(a => IsFolder(a.Key)),
-                        IsDirectory = true,
-                        Modified = DateTime.SpecifyKind(blob.LastModified ?? DateTime.UtcNow, DateTimeKind.Utc),
-                        ModifiedUtc = DateTime.SpecifyKind(blob.LastModified ?? DateTime.UtcNow, DateTimeKind.Utc),
-                        Name = System.IO.Path.GetFileName(blob.Key.TrimEnd('/').Replace("folder.stubxx", string.Empty)),
-                        Path = pathToFolder
-                    });
-                }
-                else
+                list.Add(new FileManagerEntry()
                 {
-                    list.Add(new FileManagerEntry()
-                    {
-                        Created = DateTime.SpecifyKind(blob.LastModified ?? DateTime.UtcNow, DateTimeKind.Utc),
-                        CreatedUtc = DateTime.SpecifyKind(blob.LastModified ?? DateTime.UtcNow, DateTimeKind.Utc),
-                        Extension = System.IO.Path.GetExtension(blob.Key),
-                        HasDirectories = false,
-                        IsDirectory = false,
-                        Modified = DateTime.SpecifyKind(blob.LastModified ?? DateTime.UtcNow, DateTimeKind.Utc),
-                        ModifiedUtc = DateTime.SpecifyKind(blob.LastModified ?? DateTime.UtcNow, DateTimeKind.Utc),
-                        Name = System.IO.Path.GetFileName(blob.Key),
-                        Path = blob.Key
-                    });
-                }
+                    Created = DateTime.SpecifyKind(blob.LastModified ?? DateTime.UtcNow, DateTimeKind.Utc),
+                    CreatedUtc = DateTime.SpecifyKind(blob.LastModified ?? DateTime.UtcNow, DateTimeKind.Utc),
+                    Extension = System.IO.Path.GetExtension(blob.Key),
+                    HasDirectories = false,
+                    IsDirectory = false,
+                    Modified = DateTime.SpecifyKind(blob.LastModified ?? DateTime.UtcNow, DateTimeKind.Utc),
+                    ModifiedUtc = DateTime.SpecifyKind(blob.LastModified ?? DateTime.UtcNow, DateTimeKind.Utc),
+                    Name = System.IO.Path.GetFileName(blob.Key),
+                    Path = blob.Key
+                });
+            }
+
+            foreach (var prefix in s3Result.CommonPrefixes)
+            {
+                var pathToFolder = path + prefix;
+                var folderName = prefix.Split("/", StringSplitOptions.RemoveEmptyEntries).Last();
+
+                var hasSubs = (path == string.Empty || path == "/")
+                    ? (await GetObjectsAsync(path, false)).Blobs.Any(a => IsFolder(a.Key))
+                    : s3Result.CommonPrefixes.Any();
+
+                list.Add(new FileManagerEntry()
+                {
+                    Created = DateTime.UtcNow,
+                    CreatedUtc = DateTime.UtcNow,
+                    Extension = string.Empty,
+                    HasDirectories = hasSubs,
+                    IsDirectory = true,
+                    Modified = DateTime.UtcNow,
+                    ModifiedUtc = DateTime.UtcNow,
+                    Name = folderName,
+                    Path = pathToFolder
+                });
             }
 
             return list;
-        }
-
-        private bool IsFolder(string key)
-        {
-            return key.EndsWith("folder.stubxx", StringComparison.CurrentCultureIgnoreCase) || key.EndsWith("/");
         }
 
         /// <summary>
@@ -482,20 +533,23 @@ namespace Cosmos.BlobService.Drivers
         /// <summary>
         /// Gets metadata for a blob.
         /// </summary>
-        /// <param name="path">Path to file from which to get metadata.</param>
+        /// <param name="target">Path to file from which to get metadata.</param>
         /// <returns>Returns metadata as a <see cref="FileMetadata"/>.</returns>
         public async Task<FileMetadata> GetFileMetadataAsync(string target)
         {
             var blob = await GetBlobAsync(target);
 
-            _ = long.TryParse(blob.Metadata["ccmsuploaduid"], out var mark);
+            // _ = long.TryParse(blob.Metadata["ccmsuploaduid"], out var mark);
             return new FileMetadata()
             {
                 ContentLength = blob.ContentLength,
                 ContentType = blob.Headers.ContentType,
                 ETag = blob.ETag,
                 LastModified = DateTime.SpecifyKind(blob.LastModified ?? DateTime.UtcNow, DateTimeKind.Utc),
-                Created = DateTime.SpecifyKind(blob.LastModified ?? DateTime.UtcNow, DateTimeKind.Utc)
+                Created = DateTime.SpecifyKind(blob.LastModified ?? DateTime.UtcNow, DateTimeKind.Utc),
+                FileName = blob.Key,
+                UploadDateTime = (blob.LastModified ?? DateTime.UtcNow).Ticks,
+                UploadSize = blob.ContentLength
             };
         }
 
@@ -514,6 +568,37 @@ namespace Cosmos.BlobService.Drivers
         {
             var blob = await GetBlobAsync(path);
             return blob.ResponseStream;
+        }
+
+        /// <summary>
+        ///     Renames a file or folder.
+        /// </summary>
+        /// <param name="path">Path to file or folder.</param>
+        /// <param name="destination">The new name or path.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        public async Task RenameAsync(string path, string destination)
+        {
+            var result = await GetObjectsAsync(path, true);
+            var blobs = result.Blobs.Select(s => s.Key).ToList();
+
+            // Work through the list here.
+            foreach (var srcBlobName in blobs)
+            {
+                var tasks = new List<Task>();
+
+                var destBlobName = srcBlobName.Replace(path, destination);
+
+                await CopyBlobAsync(srcBlobName, destBlobName);
+
+                // Now check to see if files were copied
+                var success = await BlobExistsAsync(destBlobName);
+                await DeleteIfExistsAsync(destBlobName);
+
+                if (!success)
+                {
+                    throw new Exception($"Could not copy: {srcBlobName} to {destBlobName}");
+                }
+            }
         }
 
         /// <summary>
@@ -546,7 +631,6 @@ namespace Cosmos.BlobService.Drivers
 
             return result.HttpStatusCode == HttpStatusCode.OK;
         }
-
 
         /// <summary>
         /// Gets the amount of bytes consumed in a storage account container.
@@ -590,6 +674,11 @@ namespace Cosmos.BlobService.Drivers
             {
                 RegionEndpoint = regionIdentifier
             });
+        }
+
+        private bool IsFolder(string key)
+        {
+            return key.EndsWith("folder.stubxx", StringComparison.CurrentCultureIgnoreCase) || key.EndsWith("/");
         }
     }
 }

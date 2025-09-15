@@ -227,7 +227,6 @@ namespace Cosmos.BlobService.Drivers
         ///     Gets a list of blobs by path.
         /// </summary>
         /// <param name="path">Path to get blob names from.</param>
-        /// <param name="filter">Search filter (optional).</param>
         /// <returns>Returns the names as a <see cref="string"/> list.</returns>
         public async Task<List<string>> GetBlobNamesByPath(string path)
         {
@@ -507,16 +506,6 @@ namespace Cosmos.BlobService.Drivers
             return entries;
         }
 
-        private async Task<FileManagerEntry> GetFileManagerEntry(BlobHierarchyItem item)
-        {
-            var entry = new FileManagerEntry()
-            {
-
-            };
-
-            return entry;
-        }
-
         /// <summary>
         ///    Gets a list of blobs for a given path.
         /// </summary>
@@ -725,6 +714,36 @@ namespace Cosmos.BlobService.Drivers
         {
             var containerClient = blobServiceClient.GetBlobContainerClient(this.containerName);
             return containerClient.GetBlobClient(path);
+        }
+
+        /// <summary>
+        ///     Renames a file or folder.
+        /// </summary>
+        /// <param name="path">Path to file or folder.</param>
+        /// <param name="destination">The new name or path.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        public async Task RenameAsync(string path, string destination)
+        {
+            var blobs = await GetBlobNamesByPath(path);
+
+            // Work through the list here.
+            foreach (var srcBlobName in blobs)
+            {
+                var tasks = new List<Task>();
+
+                var destBlobName = srcBlobName.Replace(path, destination);
+
+                await CopyBlobAsync(srcBlobName, destBlobName);
+
+                // Now check to see if files were copied
+                var success = await BlobExistsAsync(destBlobName);
+                await DeleteIfExistsAsync(destBlobName);
+
+                if (!success)
+                {
+                    throw new Exception($"Could not copy: {srcBlobName} to {destBlobName}");
+                }
+            }
         }
 
         /// <summary>
