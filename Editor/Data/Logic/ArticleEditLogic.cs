@@ -1216,7 +1216,7 @@ namespace Cosmos.Editor.Data.Logic
                     FileName = Path.GetFileName(filePath).ToLower(),
                     ImageHeight = string.Empty,
                     ImageWidth = string.Empty,
-                    RelativePath = filePath.ToLower(),
+                    RelativePath = filePath.TrimStart('/').ToLower(),
                     TotalChunks = 1,
                     TotalFileSize = stream.Length,
                     UploadUid = Guid.NewGuid().ToString(),

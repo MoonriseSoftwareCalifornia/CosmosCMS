@@ -15,6 +15,7 @@ namespace Cosmos.Publisher.Controllers
     using Cosmos.Common.Data;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Options;
+    using Microsoft.Extensions.Primitives;
     using Microsoft.Net.Http.Headers;
 
     /// <summary>
@@ -85,7 +86,7 @@ namespace Cosmos.Publisher.Controllers
                     fileStream: fileStream,
                     contentType: contentType,
                     lastModified: properties.ModifiedUtc,
-                    entityTag: new EntityTagHeaderValue(properties.ETag));
+                    entityTag: null);
             }
             catch (Exception e)
             {

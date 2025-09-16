@@ -65,7 +65,7 @@ namespace Cosmos.BlobService
             }
             else
             {
-                var connectionString = configuration.GetConnectionString("StorageConnectionString");
+                var connectionString = configuration.GetConnectionString("StorageConnectionString") ?? configuration.GetConnectionString("AzureBlobStorageConnectionString");
                 primaryDriver = GetDriverFromConnectionString(connectionString);
             }
         }

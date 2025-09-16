@@ -67,6 +67,8 @@ namespace Cosmos.BlobService.Drivers
         /// </remarks>
         public async Task AppendBlobAsync(byte[] data, FileUploadMetaData fileMetaData, DateTimeOffset uploadDateTime, string mode)
         {
+            fileMetaData.RelativePath = fileMetaData.RelativePath.TrimStart('/');
+
             // ReSharper disable once PossibleNullReferenceException
             using var client = GetClient();
 

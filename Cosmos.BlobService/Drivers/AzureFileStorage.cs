@@ -39,6 +39,8 @@ namespace Cosmos.BlobService.Drivers
         /// <inheritdoc/>
         public async Task AppendBlobAsync(byte[] data, FileUploadMetaData fileMetaData, DateTimeOffset uploadDateTime, string mode)
         {
+            fileMetaData.RelativePath = fileMetaData.RelativePath.TrimStart('/');
+
             // Name of the directory and file we'll create
             var dirName = Path.GetDirectoryName(fileMetaData.RelativePath);
 
