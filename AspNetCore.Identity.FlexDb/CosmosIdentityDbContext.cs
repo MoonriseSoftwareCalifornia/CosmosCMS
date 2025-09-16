@@ -45,7 +45,7 @@ namespace AspNetCore.Identity.FlexDb
         /// <summary>
         /// OnModelCreating event override.
         /// </summary>
-        /// <param name="builder"></param>
+        /// <param name="builder">Model builder service.</param>
         protected override void OnModelCreating(ModelBuilder builder)
         {
             if (this.Database.IsCosmos())
