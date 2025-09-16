@@ -1209,7 +1209,7 @@ namespace Cosmos.Editor.Data.Logic
 
                 var filePath = page.UrlPath.Equals("root", StringComparison.OrdinalIgnoreCase) ? "/index.html" : page.UrlPath;
 
-                storageContext.AppendBlob(stream, new BlobService.Models.FileUploadMetaData()
+                await storageContext.AppendBlob(stream, new BlobService.Models.FileUploadMetaData()
                 {
                     ChunkIndex = 0,
                     ContentType = "text/html",
@@ -1265,7 +1265,7 @@ namespace Cosmos.Editor.Data.Logic
             {
                 var storagePath = $"/{filePath}";
 
-                storageContext.AppendBlob(stream, new BlobService.Models.FileUploadMetaData()
+                await storageContext.AppendBlob(stream, new BlobService.Models.FileUploadMetaData()
                 {
                     ChunkIndex = 0,
                     ContentType = "application/xml",
@@ -1285,7 +1285,7 @@ namespace Cosmos.Editor.Data.Logic
             {
                 var storagePath = "/robots.txt";
 
-                storageContext.AppendBlob(stream, new BlobService.Models.FileUploadMetaData()
+                await storageContext.AppendBlob(stream, new BlobService.Models.FileUploadMetaData()
                 {
                     ChunkIndex = 0,
                     ContentType = "text/plain",
@@ -1323,7 +1323,7 @@ namespace Cosmos.Editor.Data.Logic
                 }
             }
 
-            storageContext.AppendBlob(stream, new BlobService.Models.FileUploadMetaData()
+            await storageContext.AppendBlob(stream, new BlobService.Models.FileUploadMetaData()
             {
                 ChunkIndex = 0,
                 ContentType = "application/json",
@@ -1490,7 +1490,7 @@ namespace Cosmos.Editor.Data.Logic
                 var html = await viewRenderService.RenderToStringAsync("~/Views/Home/Redirect.cshtml", model);
                 using var stream = new MemoryStream(Encoding.UTF8.GetBytes(html));
 
-                storageContext.AppendBlob(stream, new BlobService.Models.FileUploadMetaData()
+                await storageContext.AppendBlob(stream, new BlobService.Models.FileUploadMetaData()
                 {
                     ChunkIndex = 0,
                     ContentType = "text/html",

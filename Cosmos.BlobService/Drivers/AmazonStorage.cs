@@ -481,7 +481,6 @@ namespace Cosmos.BlobService.Drivers
 
             foreach (var prefix in s3Result.CommonPrefixes)
             {
-                var pathToFolder = path + prefix;
                 var folderName = prefix.Split("/", StringSplitOptions.RemoveEmptyEntries).Last();
 
                 var hasSubs = (path == string.Empty || path == "/")
@@ -498,7 +497,7 @@ namespace Cosmos.BlobService.Drivers
                     Modified = DateTime.UtcNow,
                     ModifiedUtc = DateTime.UtcNow,
                     Name = folderName,
-                    Path = pathToFolder
+                    Path = prefix
                 });
             }
 

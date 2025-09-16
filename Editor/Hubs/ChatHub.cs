@@ -140,7 +140,7 @@ namespace Cosmos.Cms.Hubs
                         // Open a stream
                         await using var memoryStream = new MemoryStream();
 
-                        await using (var stream = await storageContext.OpenBlobReadStreamAsync(id))
+                        await using (var stream = await storageContext.GetStreamAsync(id))
                         {
                             // Load into memory and release the blob stream right away
                             await stream.CopyToAsync(memoryStream);

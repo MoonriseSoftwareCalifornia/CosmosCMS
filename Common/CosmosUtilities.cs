@@ -84,7 +84,7 @@ namespace Cosmos.Common
         {
             path = $"/pub/articles/{articleNumber}/{path.TrimStart('/')}";
 
-            var contents = await storageContext.GetFolderContents(path);
+            var contents = await storageContext.GetFilesAndDirectories(path);
 
             return contents;
         }

@@ -79,7 +79,7 @@ namespace Cosmos.Publisher.Controllers
 
             try
             {
-                var fileStream = await storageContext.OpenBlobReadStreamAsync(HttpContext.Request.Path);
+                var fileStream = await storageContext.GetStreamAsync(HttpContext.Request.Path);
                 var contentType = Utilities.GetContentType(properties.Name);
                 return File(
                     fileStream: fileStream,

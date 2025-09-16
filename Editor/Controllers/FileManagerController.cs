@@ -148,17 +148,17 @@ namespace Cosmos.Cms.Controllers
         /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
         public static async Task<string[]> GetImageAssetArray(StorageContext storageContext, string path, string exclude)
         {
-            var blobs = await storageContext.GetBlobItemsAsync(path, FileManagerController.ValidImageExtensions);
+            var blobs = await storageContext.GetFilesAndDirectories(path);
 
             if (!string.IsNullOrEmpty(exclude))
             {
-                return blobs.Where(w => !w.Path.ToLower().StartsWith(exclude.TrimStart('/').ToLower())).Select(s => new
+                return blobs.Where(w => FileManagerController.ValidImageExtensions.Contains(Path.GetExtension(w.Name).ToLower()) && !w.Path.ToLower().StartsWith(exclude.TrimStart('/').ToLower())).Select(s => new
                 {
                     src = FixPath(s.Path),
                 }).ToList().Select(s => s.src).ToArray();
             }
 
-            return blobs.Select(s => new
+            return blobs.Where(w => FileManagerController.ValidImageExtensions.Contains(Path.GetExtension(w.Name).ToLower())).Select(s => new
             {
                 src = FixPath(s.Path),
             }).ToList().Select(s => s.src).ToArray();
@@ -189,8 +189,6 @@ namespace Cosmos.Cms.Controllers
             {
                 selectOne = false;
             }
-
-            storageContext.CreateFolder("/pub");
 
             if (string.IsNullOrEmpty(target) || target == "/")
             {
@@ -280,7 +278,7 @@ namespace Cosmos.Cms.Controllers
             }
             else
             {
-                var model = await storageContext.GetFolderContents(target);
+                var model = await storageContext.GetFilesAndDirectories(target);
                 query = model.AsQueryable();
             }
 
@@ -382,8 +380,6 @@ namespace Cosmos.Cms.Controllers
                 return View(model);
             }
 
-            storageContext.CreateFolder("/pub");
-
             try
             {
                 foreach (var item in model.Items)
@@ -438,8 +434,6 @@ namespace Cosmos.Cms.Controllers
                 return View(model);
             }
 
-            storageContext.CreateFolder("/pub");
-
             try
             {
                 foreach (var item in model.Items)
@@ -450,16 +444,15 @@ namespace Cosmos.Cms.Controllers
                     {
                         // moving a directory
                         dest = model.Destination + item.TrimEnd('/').Split('/').LastOrDefault();
+                        await storageContext.MoveFolderAsync(item, dest);
                     }
                     else
                     {
                         // moving a file
                         var fileName = Path.GetFileName(item);
                         dest = model.Destination + "/" + fileName;
+                        await storageContext.MoveFileAsync(item, dest);
                     }
-
-                    // Same as move
-                    await storageContext.RenameAsync(item, dest);
                 }
             }
             catch (Exception e)
@@ -538,7 +531,7 @@ namespace Cosmos.Cms.Controllers
             using var memoryStream = new MemoryStream();
             await file.CopyToAsync(memoryStream);
 
-            storageContext.AppendBlob(memoryStream, metaData);
+            await storageContext.AppendBlob(memoryStream, metaData);
 
             return Content(blobEndPoint + "/" + relativePath);
         }
@@ -624,13 +617,13 @@ namespace Cosmos.Cms.Controllers
                 if (part != "/pub")
                 {
                     var folder = part.Trim('/');
-                    storageContext.CreateFolder(folder);
+                    await storageContext.CreateFolder(folder);
                 }
             }
 
             using var memoryStream = new MemoryStream();
             await Request.Body.CopyToAsync(memoryStream);
-            storageContext.AppendBlob(memoryStream, metaData);
+            await storageContext.AppendBlob(memoryStream, metaData);
 
             if (metaData.TotalChunks - 1 == metaData.ChunkIndex)
             {
@@ -691,7 +684,7 @@ namespace Cosmos.Cms.Controllers
                 using var memoryStream = new MemoryStream();
                 await file.CopyToAsync(memoryStream);
 
-                storageContext.AppendBlob(memoryStream, metaData);
+                await storageContext.AppendBlob(memoryStream, metaData);
 
                 try
                 {
@@ -955,13 +948,13 @@ namespace Cosmos.Cms.Controllers
             relativePath = UrlEncode(relativePath);
 
             // Check for duplicate entries
-            var existingEntries = await storageContext.GetFolderContents(model.ParentFolder);
+            var existingEntries = await storageContext.GetFilesAndDirectories(model.ParentFolder);
 
             if (!existingEntries.Exists(f => f.Name.Equals(model.FileName)))
             {
                 using var memoryStream = new MemoryStream();
                 await memoryStream.WriteAsync(Encoding.UTF8.GetBytes(string.Empty));
-                storageContext.AppendBlob(memoryStream, new FileUploadMetaData()
+                await storageContext.AppendBlob(memoryStream, new FileUploadMetaData()
                 {
                     ChunkIndex = 0,
                     ContentType = MimeTypeMap.GetMimeType(Path.GetExtension(model.FileName)),
@@ -993,7 +986,7 @@ namespace Cosmos.Cms.Controllers
             relativePath = UrlEncode(relativePath);
 
             // Check for duplicate entries
-            var existingEntries = await storageContext.GetFolderContents(model.ParentFolder);
+            var existingEntries = await storageContext.GetFilesAndDirectories(model.ParentFolder);
 
             if (!existingEntries.Exists(f => f.Name.Equals(model.FolderName)))
             {
@@ -1024,7 +1017,7 @@ namespace Cosmos.Cms.Controllers
 
             if (!blob.IsDirectory)
             {
-                using var stream = await storageContext.OpenBlobReadStreamAsync(path);
+                using var stream = await storageContext.GetStreamAsync(path);
                 using var memStream = new MemoryStream();
                 stream.CopyTo(memStream);
                 return File(memStream.ToArray(), "application/octet-stream", fileDownloadName: blob.Name);
@@ -1057,7 +1050,7 @@ namespace Cosmos.Cms.Controllers
             }
 
             // Check for duplicate entries
-            var existingEntries = await storageContext.GetFolderContents(target);
+            var existingEntries = await storageContext.GetFilesAndDirectories(target);
 
             if (existingEntries != null && existingEntries.Any())
             {
@@ -1151,7 +1144,7 @@ namespace Cosmos.Cms.Controllers
 
                 var dest = $"{model.BlobRootPath}/{UrlEncode(model.ToBlobName)}";
 
-                await storageContext.RenameAsync(target, dest);
+                await storageContext.MoveFileAsync(target, dest);
             }
 
             return Ok();
@@ -1276,7 +1269,7 @@ namespace Cosmos.Cms.Controllers
                 // Open a stream
                 await using var memoryStream = new MemoryStream();
 
-                await using (var stream = await storageContext.OpenBlobReadStreamAsync(path))
+                await using (var stream = await storageContext.GetStreamAsync(path))
                 {
                     // Load into memory and release the blob stream right away
                     await stream.CopyToAsync(memoryStream);
@@ -1511,7 +1504,7 @@ namespace Cosmos.Cms.Controllers
                     ImageWidth = model.width
                 };
 
-                storageContext.AppendBlob(output, metaData);
+                await storageContext.AppendBlob(output, metaData);
             }
             catch (Exception e)
             {
@@ -1545,7 +1538,7 @@ namespace Cosmos.Cms.Controllers
                 throw new NotSupportedException($"Image type {extension} not supported.");
             }
 
-            using var stream = await storageContext.OpenBlobReadStreamAsync(target);
+            using var stream = await storageContext.GetStreamAsync(target);
             var image = await Image.LoadAsync(stream);
             var newImage = image.Clone(i => i.Resize(new ResizeOptions() { Mode = ResizeMode.Crop, Position = AnchorPositionMode.Center, Size = new Size(width, height) }));
 
@@ -1625,7 +1618,7 @@ namespace Cosmos.Cms.Controllers
                 if (part != "/pub")
                 {
                     var folder = part.Trim('/');
-                    storageContext.CreateFolder(folder);
+                    await storageContext.CreateFolder(folder);
                 }
             }
 
@@ -1634,7 +1627,7 @@ namespace Cosmos.Cms.Controllers
                 await using (var memoryStream = new MemoryStream())
                 {
                     await stream.CopyToAsync(memoryStream);
-                    storageContext.AppendBlob(memoryStream, fileMetaData);
+                    await storageContext.AppendBlob(memoryStream, fileMetaData);
                 }
             }
 
