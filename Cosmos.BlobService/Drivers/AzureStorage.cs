@@ -83,14 +83,13 @@ namespace Cosmos.BlobService.Drivers
         /// </remarks>
         public async Task AppendBlobAsync(byte[] data, FileUploadMetaData fileMetaData, DateTimeOffset uploadDateTime, string mode = "block")
         {
-            if (mode.Equals("block", StringComparison.CurrentCultureIgnoreCase))
+            if (mode.Equals("block", StringComparison.CurrentCultureIgnoreCase) || fileMetaData.TotalChunks == 1)
             {
                 await this.UpdloadBlockBlobAsync(new MemoryStream(data), fileMetaData, uploadDateTime);
                 return;
             }
 
             var blobClient = this.GetBlobClient(fileMetaData.RelativePath);
-            var properties = await blobClient.GetPropertiesAsync();
 
             var appendClient = this.GetAppendBlobClient(fileMetaData.RelativePath);
 
@@ -230,6 +229,16 @@ namespace Cosmos.BlobService.Drivers
         /// <returns>Returns the names as a <see cref="string"/> list.</returns>
         public async Task<List<string>> GetBlobNamesByPath(string path)
         {
+            if (path == "/")
+            {
+                path = string.Empty;
+            }
+
+            if (path.StartsWith('/'))
+            {
+                path = path.TrimStart('/');
+            }
+
             var containerClient =
                 this.blobServiceClient.GetBlobContainerClient(this.containerName);
 
@@ -241,7 +250,9 @@ namespace Cosmos.BlobService.Drivers
                 results.AddRange(page.Values);
             }
 
-            return results.Select(s => s.Name).ToList();
+            var folderStub = path + "folder.stubxx";
+
+            return results.Where(w => w.Name != folderStub).Select(s => s.Name).ToList();
         }
 
         /// <summary>
@@ -391,15 +402,20 @@ namespace Cosmos.BlobService.Drivers
             var blobClient = await this.GetBlobAsync(path);
             var properties = await blobClient.GetPropertiesAsync();
             _ = long.TryParse(properties.Value.Metadata["ccmsuploaduid"], out var mark);
-            return new FileMetadata()
+
+            var eTag = properties.Value.ETag.ToString("H").Trim('"');
+
+            var metaData = new FileMetadata()
             {
                 ContentLength = properties.Value.ContentLength,
                 ContentType = properties.Value.ContentType,
-                ETag = properties.Value.ETag.ToString(),
+                ETag = eTag,
                 FileName = blobClient.Name,
                 LastModified = properties.Value.LastModified.UtcDateTime,
                 UploadDateTime = mark
             };
+
+            return metaData;
         }
 
         /// <inheritdoc/>
@@ -419,10 +435,9 @@ namespace Cosmos.BlobService.Drivers
             {
                 path = string.Empty;
             }
-
-            if (!string.IsNullOrEmpty(path))
+            else if (!path.EndsWith("/") && path.Equals(string.Empty) == false)
             {
-                path = path.TrimStart('/');
+                path += "/";
             }
 
             var containerClient = this.blobServiceClient.GetBlobContainerClient(this.containerName);
@@ -717,32 +732,39 @@ namespace Cosmos.BlobService.Drivers
         }
 
         /// <summary>
-        ///     Renames a file or folder.
+        ///     Renames a file.
         /// </summary>
-        /// <param name="path">Path to file or folder.</param>
-        /// <param name="destination">The new name or path.</param>
+        /// <param name="sourceFile">Path to file.</param>
+        /// <param name="destinationFile">Destination file name.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task RenameAsync(string path, string destination)
+        public async Task MoveFileAsync(string sourceFile, string destinationFile)
         {
-            var blobs = await GetBlobNamesByPath(path);
+            await CopyBlobAsync(sourceFile, destinationFile);
+            await DeleteIfExistsAsync(sourceFile);
+        }
+
+        /// <summary>
+        ///     Moves a folder.
+        /// </summary>
+        /// <param name="sourceFolder">Source folder.</param>
+        /// <param name="destinationFolder">Destination folder.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        public async Task MoveFolderAsync(string sourceFolder, string destinationFolder)
+        {
+            var blobs = await GetBlobNamesByPath(sourceFolder);
 
             // Work through the list here.
             foreach (var srcBlobName in blobs)
             {
                 var tasks = new List<Task>();
 
-                var destBlobName = srcBlobName.Replace(path, destination);
+                var fileName = Path.GetFileName(srcBlobName);
+                var destBlobName = destinationFolder.TrimEnd('/') + "/" + fileName.TrimStart('/');
 
                 await CopyBlobAsync(srcBlobName, destBlobName);
 
                 // Now check to see if files were copied
-                var success = await BlobExistsAsync(destBlobName);
-                await DeleteIfExistsAsync(destBlobName);
-
-                if (!success)
-                {
-                    throw new Exception($"Could not copy: {srcBlobName} to {destBlobName}");
-                }
+                await DeleteIfExistsAsync(srcBlobName);
             }
         }
 

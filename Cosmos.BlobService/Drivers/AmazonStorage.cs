@@ -7,6 +7,13 @@
 
 namespace Cosmos.BlobService.Drivers
 {
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Net;
+    using System.Text;
+    using System.Threading.Tasks;
     using Amazon;
     using Amazon.S3;
     using Amazon.S3.Model;
@@ -14,19 +21,9 @@ namespace Cosmos.BlobService.Drivers
     using Azure.Storage.Blobs.Models;
     using Cosmos.BlobService.Config;
     using Cosmos.BlobService.Models;
-    using Microsoft.Azure.Cosmos.Linq;
     using Microsoft.Extensions.Caching.Distributed;
     using Microsoft.Extensions.Caching.Memory;
     using Newtonsoft.Json;
-    using Org.BouncyCastle.Asn1.X509;
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Net;
-    using System.Reflection.Metadata;
-    using System.Text;
-    using System.Threading.Tasks;
 
     /// <summary>
     ///     AWS S3 storage driver.
@@ -209,6 +206,7 @@ namespace Cosmos.BlobService.Drivers
         /// <returns>Returns a <see cref="bool"/> indicating it exists or not.</returns>
         public async Task<bool> BlobExistsAsync(string path)
         {
+            path = path.TrimStart('/');
             var blob = await GetBlobAsync(path);
 
             return blob != null && blob.HttpStatusCode != HttpStatusCode.NotFound;
@@ -225,6 +223,9 @@ namespace Cosmos.BlobService.Drivers
         /// </remarks>
         public async Task CopyBlobAsync(string source, string destination)
         {
+            source = source.TrimStart('/');
+            destination = destination.TrimStart('/');
+
             var sourceObject = await GetBlobAsync(source);
 
             if (sourceObject != null)
@@ -294,6 +295,8 @@ namespace Cosmos.BlobService.Drivers
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task DeleteIfExistsAsync(string path)
         {
+            path = path.TrimStart('/');
+
             try
             {
                 var deleteObjectRequest = new DeleteObjectRequest
@@ -345,9 +348,12 @@ namespace Cosmos.BlobService.Drivers
 
                 var listResponse = await client.ListObjectsV2Async(listRequest);
 
-                foreach (var s3Object in listResponse.S3Objects)
+                if (listResponse.S3Objects != null)
                 {
-                    objectsToDelete.Add(new KeyVersion { Key = s3Object.Key });
+                    foreach (var s3Object in listResponse.S3Objects)
+                    {
+                        objectsToDelete.Add(new KeyVersion { Key = s3Object.Key });
+                    }
                 }
 
                 continuationToken = listResponse.IsTruncated ?? false ? listResponse.NextContinuationToken : null;
@@ -386,6 +392,8 @@ namespace Cosmos.BlobService.Drivers
         /// <returns>Returns objects as a <see cref="BlobHierarchyItem"/> <see cref="List{T}"/>.</returns>
         public async Task<AwsGetObjectsResult> GetObjectsAsync(string path, bool isRecursive)
         {
+            path = path.TrimStart('/') ?? string.Empty;
+
             var request = new ListObjectsV2Request
             {
                 BucketName = config.BucketName
@@ -511,7 +519,10 @@ namespace Cosmos.BlobService.Drivers
                     return null;
                 }
 
-                path = path.TrimStart('/');
+                if (path.StartsWith('/'))
+                {
+                    path = path.TrimStart('/');
+                }
 
                 using var client = GetClient();
 
@@ -571,14 +582,26 @@ namespace Cosmos.BlobService.Drivers
         }
 
         /// <summary>
-        ///     Renames a file or folder.
+        ///     Renames a file.
         /// </summary>
-        /// <param name="path">Path to file or folder.</param>
-        /// <param name="destination">The new name or path.</param>
+        /// <param name="sourceFile">Path to file.</param>
+        /// <param name="destinationFile">Destination file name.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task RenameAsync(string path, string destination)
+        public async Task MoveFileAsync(string sourceFile, string destinationFile)
         {
-            var result = await GetObjectsAsync(path, true);
+            await CopyBlobAsync(sourceFile, destinationFile);
+            await DeleteIfExistsAsync(sourceFile);
+        }
+
+        /// <summary>
+        ///     Moves a folder.
+        /// </summary>
+        /// <param name="sourceFolder">Source folder.</param>
+        /// <param name="destinationFolder">Destination folder.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        public async Task MoveFolderAsync(string sourceFolder, string destinationFolder)
+        {
+            var result = await GetObjectsAsync(sourceFolder, true);
             var blobs = result.Blobs.Select(s => s.Key).ToList();
 
             // Work through the list here.
@@ -586,18 +609,13 @@ namespace Cosmos.BlobService.Drivers
             {
                 var tasks = new List<Task>();
 
-                var destBlobName = srcBlobName.Replace(path, destination);
+                var fileName = Path.GetFileName(srcBlobName);
+                var destBlobName = destinationFolder.TrimEnd('/') + "/" + fileName.TrimStart('/');
 
                 await CopyBlobAsync(srcBlobName, destBlobName);
 
                 // Now check to see if files were copied
-                var success = await BlobExistsAsync(destBlobName);
-                await DeleteIfExistsAsync(destBlobName);
-
-                if (!success)
-                {
-                    throw new Exception($"Could not copy: {srcBlobName} to {destBlobName}");
-                }
+                await DeleteIfExistsAsync(srcBlobName);
             }
         }
 

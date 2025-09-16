@@ -81,27 +81,39 @@ namespace Cosmos.BlobService.Drivers
         }
 
         /// <summary>
-        /// Rename a file.
+        ///     Renames a file.
         /// </summary>
-        /// <param name="path">Path to the item being renamed.</param>
-        /// <param name="destination">Where it is being moved to.</param>
+        /// <param name="sourceFile">Path to file.</param>
+        /// <param name="destinationFile">Destination file name.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task RenameAsync(string path, string destination)
+        public async Task MoveFileAsync(string sourceFile, string destinationFile)
         {
-            var source = await this.GetObjectAsync(path);
+            await CopyBlobAsync(sourceFile, destinationFile);
+            await DeleteIfExistsAsync(sourceFile);
+        }
 
-            if (source.IsDirectory)
+        /// <summary>
+        ///     Moves a folder.
+        /// </summary>
+        /// <param name="sourceFolder">Source folder.</param>
+        /// <param name="destinationFolder">Destination folder.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        public async Task MoveFolderAsync(string sourceFolder, string destinationFolder)
+        {
+            var blobs = await GetBlobNamesByPath(sourceFolder);
+
+            // Work through the list here.
+            foreach (var srcBlobName in blobs)
             {
-                var directory = this.shareClient.GetDirectoryClient(path);
-                await directory.RenameAsync(destination);
-            }
-            else
-            {
-                path = Path.GetDirectoryName(path).Replace("\\", "/");
-                var fileName = Path.GetFileName(path);
-                var directory = this.shareClient.GetDirectoryClient(path);
-                var file = directory.GetFileClient(fileName);
-                await file.RenameAsync(destination);
+                var tasks = new List<Task>();
+
+                var fileName = Path.GetFileName(srcBlobName);
+                var destBlobName = destinationFolder.TrimEnd('/') + "/" + fileName.TrimStart('/');
+
+                await CopyBlobAsync(srcBlobName, destBlobName);
+
+                // Now check to see if files were copied
+                await DeleteIfExistsAsync(srcBlobName);
             }
         }
 

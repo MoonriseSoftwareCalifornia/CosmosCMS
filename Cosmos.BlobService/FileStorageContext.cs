@@ -117,17 +117,6 @@ namespace Cosmos.BlobService
         }
 
         /// <summary>
-        ///     Renames (and can move) a file or folder.
-        /// </summary>
-        /// <param name="sourcePath">Full path to item to change.</param>
-        /// <param name="destinationPath">Full path to the new name.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task RenameAsync(string sourcePath, string destinationPath)
-        {
-            await this.driver.RenameAsync(sourcePath, destinationPath);
-        }
-
-        /// <summary>
         ///     Append bytes to blob(s).
         /// </summary>
         /// <param name="stream">Data <see cref="MemoryStream"/> to append to the blob.</param>

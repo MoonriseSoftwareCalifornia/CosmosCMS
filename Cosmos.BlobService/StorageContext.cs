@@ -179,7 +179,8 @@ namespace Cosmos.BlobService
                 ModifiedUtc = metadata.LastModified.UtcDateTime,
                 Name = fileName,
                 Path = blobName,
-                Size = metadata.ContentLength
+                Size = metadata.ContentLength,
+                ETag = metadata.ETag
             };
 
             return fileManagerEntry;
@@ -201,15 +202,27 @@ namespace Cosmos.BlobService
         }
 
         /// <summary>
-        ///     Renames a file or folder.
+        ///     Renames a file.
         /// </summary>
-        /// <param name="path">Path to file or folder.</param>
-        /// <param name="destination">The new name or path.</param>
+        /// <param name="sourceFile">Path to file.</param>
+        /// <param name="destinationFile">Destination file name.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task RenameAsync(string path, string destination)
+        public async Task MoveFileAsync(string sourceFile, string destinationFile)
         {
             var driver = GetPrimaryDriver();
-            await driver.RenameAsync(path, destination);
+            await driver.MoveFileAsync(sourceFile, destinationFile);
+        }
+
+        /// <summary>
+        ///     Moves a folder.
+        /// </summary>
+        /// <param name="sourceFolder">Source folder.</param>
+        /// <param name="destinationFolder">Destination folder.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        public async Task MoveFolderAsync(string sourceFolder, string destinationFolder)
+        {
+            var driver = GetPrimaryDriver();
+            await driver.MoveFolderAsync(sourceFolder, destinationFolder);
         }
 
         /// <summary>
@@ -307,52 +320,41 @@ namespace Cosmos.BlobService
 
             // Get the blob storage drivers.
             var driver = this.GetPrimaryDriver();
-            await driver.RenameAsync(target, destination);
+            var blobNames = await driver.GetBlobNamesByPath(target);
 
             // Work through the list here.
-            //foreach (var srcBlobName in blobNames)
-            //{
-            //    var tasks = new List<Task>();
+            foreach (var srcBlobName in blobNames)
+            {
+                var tasks = new List<Task>();
 
-            //    var destBlobName = srcBlobName.Replace(target, destination);
+                var destBlobName = srcBlobName.Replace(target, destination);
 
-            //    if (await driver.BlobExistsAsync(destBlobName))
-            //    {
-            //        throw new Exception($"Could not copy {srcBlobName} as {destBlobName} already exists.");
-            //    }
+                if (await driver.BlobExistsAsync(destBlobName))
+                {
+                    throw new Exception($"Could not copy {srcBlobName} as {destBlobName} already exists.");
+                }
 
-            //    await driver.CopyBlobAsync(srcBlobName, destBlobName);
+                await driver.CopyBlobAsync(srcBlobName, destBlobName);
 
-            //    // Now check to see if files were copied
-            //    var success = await driver.BlobExistsAsync(destBlobName);
+                // Now check to see if files were copied
+                var success = await driver.BlobExistsAsync(destBlobName);
 
-            //    if (success)
-            //    {
-            //        // Deleting the source is in the case of RENAME.
-            //        // Copying things does not delete the source
-            //        if (deleteSource)
-            //        {
-            //            await driver.DeleteIfExistsAsync(srcBlobName);
-            //        }
-            //    }
-            //    else
-            //    {
-            //        // The copy was NOT successfull, delete any copied files and halt, throw an error.
-            //        await driver.DeleteIfExistsAsync(destBlobName);
-            //        throw new Exception($"Could not copy: {srcBlobName} to {destBlobName}");
-            //    }
-            //}
-        }
-
-        /// <summary>
-        ///    Gets the blob names by path.
-        /// </summary>
-        /// <param name="path">Path.</param>
-        /// <returns>List of blob names.</returns>
-        private async Task<List<string>> GetBlobNamesByPath(string path)
-        {
-            var primaryDriver = this.GetPrimaryDriver();
-            return await primaryDriver.GetBlobNamesByPath(path);
+                if (success)
+                {
+                    // Deleting the source is in the case of RENAME.
+                    // Copying things does not delete the source
+                    if (deleteSource)
+                    {
+                        await driver.DeleteIfExistsAsync(srcBlobName);
+                    }
+                }
+                else
+                {
+                    // The copy was NOT successfull, delete any copied files and halt, throw an error.
+                    await driver.DeleteIfExistsAsync(destBlobName);
+                    throw new Exception($"Could not copy: {srcBlobName} to {destBlobName}");
+                }
+            }
         }
 
         /// <summary>

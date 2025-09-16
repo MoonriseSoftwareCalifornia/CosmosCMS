@@ -119,12 +119,20 @@ namespace Cosmos.BlobService.Drivers
         Task<Stream> GetStreamAsync(string target);
 
         /// <summary>
-        /// Renames one or more objects from path to destination.
+        /// Moves a file to a new path.
         /// </summary>
-        /// <param name="path">Source directory or file.</param>
-        /// <param name="destination">Destination directory or file.</param>
+        /// <param name="sourceFile">Source file.</param>
+        /// <param name="destinationFile">Destination file.</param>
         /// <returns>A <see cref="Task"/>.</returns>
-        Task RenameAsync(string path, string destination);
+        Task MoveFileAsync(string sourceFile, string destinationFile);
+
+        /// <summary>
+        ///     Moves a folder.
+        /// </summary>
+        /// <param name="sourceFolder">Source folder.</param>
+        /// <param name="destinationFolder">Destination folder.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Task MoveFolderAsync(string sourceFolder, string destinationFolder);
 
         /// <summary>
         /// Uploads file as a <see cref="Stream"/> to a file.
