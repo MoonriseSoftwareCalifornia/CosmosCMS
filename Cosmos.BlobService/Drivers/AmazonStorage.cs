@@ -550,6 +550,10 @@ namespace Cosmos.BlobService.Drivers
         public async Task<FileMetadata> GetFileMetadataAsync(string target)
         {
             var blob = await GetBlobAsync(target);
+            if (blob == null)
+            {
+                return null;
+            }
 
             // _ = long.TryParse(blob.Metadata["ccmsuploaduid"], out var mark);
             return new FileMetadata()

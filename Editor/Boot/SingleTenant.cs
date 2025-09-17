@@ -8,10 +8,7 @@
 namespace Cosmos.Editor.Boot
 {
     using System;
-    using System.Collections.Generic;
     using System.IO;
-    using System.Linq;
-    using System.Text;
     using System.Text.RegularExpressions;
     using System.Threading.RateLimiting;
     using System.Threading.Tasks;
@@ -25,7 +22,6 @@ namespace Cosmos.Editor.Boot
     using Cosmos.Common.Data;
     using Cosmos.Common.Services.Configurations;
     using Cosmos.Editor.Data.Logic;
-    using Cosmos.Editor.Services;
     using Cosmos.EmailServices;
     using Microsoft.AspNetCore.Antiforgery;
     using Microsoft.AspNetCore.Builder;
@@ -38,7 +34,6 @@ namespace Cosmos.Editor.Boot
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.RateLimiting;
     using Microsoft.EntityFrameworkCore;
-    using Microsoft.EntityFrameworkCore.Infrastructure;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
@@ -80,7 +75,7 @@ namespace Cosmos.Editor.Boot
             if (string.IsNullOrEmpty(connectionString))
             {
                 Console.WriteLine("No connection string, using SQLite");
-                var sqliteDbPath = Path.Combine(Environment.ProcessPath, "data", "SQLite", "cosmosdb");
+                var sqliteDbPath = Path.Combine(Environment.ProcessPath, "Data", "SQLite", "cosmos.db");
                 connectionString = $"Data Source={sqliteDbPath};";
             }
                         

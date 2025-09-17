@@ -157,6 +157,11 @@ namespace Cosmos.BlobService
             var driver = this.GetPrimaryDriver();
             var metadata = await driver.GetFileMetadataAsync(path);
 
+            if (metadata == null)
+            {
+                return null;
+            }
+
             var isDirectory = metadata.FileName.EndsWith("folder.stubxx");
             var fileName = Path.GetFileName(metadata.FileName);
             var blobName = metadata.FileName;
@@ -180,7 +185,8 @@ namespace Cosmos.BlobService
                 Name = fileName,
                 Path = blobName,
                 Size = metadata.ContentLength,
-                ETag = metadata.ETag
+                ETag = metadata.ETag,
+                ContentType = metadata.ContentType
             };
 
             return fileManagerEntry;

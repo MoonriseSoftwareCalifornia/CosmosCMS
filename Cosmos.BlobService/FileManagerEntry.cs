@@ -93,4 +93,9 @@ public class FileManagerEntry
     /// Gets or sets the ETag of the file or folder.
     /// </summary>
     public string ETag { get; set; }
+
+    /// <summary>
+    /// Gets or sets the MIME content type of the file.
+    /// </summary>
+    public string ContentType { get; set; }
 }

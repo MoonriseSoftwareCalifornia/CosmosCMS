@@ -60,6 +60,8 @@ namespace Cosmos.Cms.Publisher.Controllers
             : base(articleLogic, dbContext, storageContext, logger, emailSender)
         {
             this.configuration = configuration;
+            
+
             this.logger = logger;
             this.articleLogic = articleLogic;
             this.options = options;
@@ -71,12 +73,6 @@ namespace Cosmos.Cms.Publisher.Controllers
             catch
             {
                 // Ignore if the service is not registered.
-            }
-
-            // Ensure the database is created if we are in setup mode.
-            if (options.Value.SiteSettings.AllowSetup)
-            {
-                _ = dbContext.Database.EnsureCreatedAsync().Result;
             }
         }
 

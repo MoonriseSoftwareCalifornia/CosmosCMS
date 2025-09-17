@@ -7,6 +7,9 @@
 
 namespace Cosmos.Common.Data
 {
+    using System;
+    using System.Linq;
+    using System.Threading.Tasks;
     using AspNetCore.Identity.FlexDb;
     using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
     using Microsoft.AspNetCore.Identity;
@@ -15,10 +18,6 @@ namespace Cosmos.Common.Data
     using Microsoft.EntityFrameworkCore.Diagnostics;
     using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
     using MySql.EntityFrameworkCore.Extensions;
-    using System;
-    using System.Configuration;
-    using System.Linq;
-    using System.Threading.Tasks;
 
     /// <summary>
     ///     Database Context for Cosmos CMS.
@@ -280,7 +279,6 @@ namespace Cosmos.Common.Data
         /// <param name="modelBuilder">DB Context model builder.</param>
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-
             if (this.Database.IsSqlite())
             {
                 foreach (var entityType in modelBuilder.Model.GetEntityTypes())
@@ -292,7 +290,7 @@ namespace Cosmos.Common.Data
                         modelBuilder
                             .Entity(entityType.Name)
                             .Property(property.Name)
-                            .HasConversion(new DateTimeOffsetToBinaryConverter());
+                            .HasConversion(new DateTimeOffsetToUtcDateTimeTicksConverter());
                     }
                 }
             }

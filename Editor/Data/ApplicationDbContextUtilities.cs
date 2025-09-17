@@ -10,7 +10,6 @@ namespace Cosmos.Editor.Data
     using System;
     using Cosmos.Common.Data;
     using Cosmos.DynamicConfig;
-    using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.DependencyInjection;
 
     /// <summary>

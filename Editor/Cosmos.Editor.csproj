@@ -7,9 +7,9 @@
 		<EnableNETAnalyzers>false</EnableNETAnalyzers>
 		<RepositoryUrl>https://github.com/CosmosSoftware/CosmosCms</RepositoryUrl>
 		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-		<Version>9.0.13.30</Version>
-		<AssemblyVersion>9.0.13.30</AssemblyVersion>
-		<FileVersion>9.0.13.30</FileVersion>
+		<Version>9.0.14.1</Version>
+		<AssemblyVersion>9.0.14.1</AssemblyVersion>
+		<FileVersion>9.0.14.1</FileVersion>
 		<RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
 		<Authors></Authors>
 		<ApplicationInsightsResourceId>/subscriptions/9bdb8e29-156f-4fc9-a1fe-1bb6a915a4f0/resourceGroups/CosmosCMS/providers/microsoft.insights/components/edit-cosmos-cms202107021426</ApplicationInsightsResourceId>
@@ -73,7 +73,7 @@
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="9.0.9" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.MicrosoftAccount" Version="9.0.9" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="9.0.9" />
-		<PackageReference Include="Microsoft.Graph" Version="5.91.0" />
+		<PackageReference Include="Microsoft.Graph" Version="5.93.0" />
 		
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
 		<PackageReference Include="NUglify" Version="1.21.17" />

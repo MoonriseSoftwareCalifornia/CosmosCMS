@@ -10,13 +10,9 @@ namespace Cosmos.Publisher.Controllers
     using System;
     using System.Threading.Tasks;
     using Cosmos.BlobService;
-    using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Common;
     using Cosmos.Common.Data;
     using Microsoft.AspNetCore.Mvc;
-    using Microsoft.Extensions.Options;
-    using Microsoft.Extensions.Primitives;
-    using Microsoft.Net.Http.Headers;
 
     /// <summary>
     /// Secure file access controller and proxy.

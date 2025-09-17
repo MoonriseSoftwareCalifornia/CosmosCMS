@@ -91,9 +91,9 @@
       },
       "Microsoft.Graph": {
         "type": "Direct",
-        "requested": "[5.91.0, )",
-        "resolved": "5.91.0",
-        "contentHash": "hQNs20OGTA/2JyfmMRygs2kYTccLXvqM/NQ8zoWx+Myc8B0tFvcCgsHfroE+L+lKAVDK8rOJsT9EgFsEwgsa0w==",
+        "requested": "[5.93.0, )",
+        "resolved": "5.93.0",
+        "contentHash": "cHkO9PL+/5LmBJ0KEhPJSpgIyGbtSCZbM9FI2LQkezplTK1NXJxN8MHVGMUmBYcGxvOUGhU4IMdz1IJHNStcGg==",
         "dependencies": {
           "Microsoft.Graph.Core": "3.2.4"
         }
@@ -161,15 +161,15 @@
       },
       "AWSSDK.Core": {
         "type": "Transitive",
-        "resolved": "4.0.0.26",
-        "contentHash": "sP+yvQm/caU3MNAmk/AeI9t/SN2AGoXw84UK7KgjHvjyRxEzgb2bEpiClNGfNqtfI+9pGBSG2OwMOvapajoBxQ=="
+        "resolved": "4.0.0.28",
+        "contentHash": "CwCRCIbkDEc7DHwhk7BFt6k8985ytWyqwmRCiavI5/INkTyA/xSKXHS8jm8n/Xq74eRKfX7uAnD5hvI3TqpT0g=="
       },
       "AWSSDK.S3": {
         "type": "Transitive",
-        "resolved": "4.0.7",
-        "contentHash": "5+DpOmodS7IBxWamMxv2VaK+kkTHv/rQPakop0b33ymd/zX9XQU/39sRJdaxYgJ2igMmVEE74+i5PXy3JowcgA==",
+        "resolved": "4.0.7.2",
+        "contentHash": "dSE0ydwtZp9p+vmA/FHB8x27xNW9bxItuWQu0YHnm+D3EvKI6yQZ0wxBPkgOJJEuatgtc81hHgG8OA+VJfEydg==",
         "dependencies": {
-          "AWSSDK.Core": "[4.0.0.26, 5.0.0)"
+          "AWSSDK.Core": "[4.0.0.28, 5.0.0)"
         }
       },
       "Azure.Communication.Email": {
@@ -1149,8 +1149,8 @@
       },
       "Newtonsoft.Json": {
         "type": "Transitive",
-        "resolved": "13.0.3",
-        "contentHash": "HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ=="
+        "resolved": "13.0.4",
+        "contentHash": "pdgNNMai3zv51W5aq268sujXUyx7SNdE2bj1wZcWjAQrKMFZV260lbqYop1d2GM67JI1huLRwxo9ZqnfF/lC6A=="
       },
       "Newtonsoft.Json.Bson": {
         "type": "Transitive",
@@ -1956,18 +1956,18 @@
           "Microsoft.EntityFrameworkCore.Sqlite": "[9.0.9, )",
           "Microsoft.Extensions.Caching.Memory": "[9.0.9, )",
           "MySql.EntityFrameworkCore": "[9.0.6, )",
-          "Newtonsoft.Json": "[13.0.3, )",
+          "Newtonsoft.Json": "[13.0.4, )",
           "System.Text.Json": "[9.0.9, )"
         }
       },
       "cosmos.blobservice": {
         "type": "Project",
         "dependencies": {
-          "AWSSDK.S3": "[4.0.7, )",
+          "AWSSDK.S3": "[4.0.7.2, )",
           "Azure.Extensions.AspNetCore.DataProtection.Blobs": "[1.5.1, )",
           "Azure.Identity": "[1.16.0, )",
           "Azure.Storage.Files.Shares": "[12.23.0, )",
-          "Cosmos.DynamicConfig": "[9.0.13.30, )"
+          "Cosmos.DynamicConfig": "[9.0.14.1, )"
         }
       },
       "cosmos.common": {
@@ -1976,8 +1976,8 @@
           "AspNetCore.Identity.CosmosDb": "[9.0.13.30, )",
           "Azure.Extensions.AspNetCore.Configuration.Secrets": "[1.4.0, )",
           "Azure.Monitor.Query": "[1.7.1, )",
-          "Cosmos.BlobService": "[9.0.13.30, )",
-          "Cosmos.DynamicConfig": "[9.0.13.30, )",
+          "Cosmos.BlobService": "[9.0.14.1, )",
+          "Cosmos.DynamicConfig": "[9.0.14.1, )",
           "MailChimp.Net.V3": "[5.8.2, )",
           "Microsoft.AspNetCore.DataProtection.EntityFrameworkCore": "[9.0.9, )",
           "Microsoft.AspNetCore.Identity.EntityFrameworkCore": "[9.0.9, )",
