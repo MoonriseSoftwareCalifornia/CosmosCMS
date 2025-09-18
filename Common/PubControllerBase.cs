@@ -77,7 +77,7 @@ namespace Cosmos.Publisher.Controllers
             try
             {
                 var fileStream = await storageContext.GetStreamAsync(HttpContext.Request.Path);
-                var contentType = Utilities.GetContentType(properties.Name);
+                var contentType = properties.ContentType ?? Utilities.GetContentType(properties.Name);
                 return File(
                     fileStream: fileStream,
                     contentType: contentType,

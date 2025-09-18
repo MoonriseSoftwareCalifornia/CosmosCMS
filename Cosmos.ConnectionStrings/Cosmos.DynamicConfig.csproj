@@ -4,7 +4,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>9.0.15.1</Version>
+    <Version>9.0.15.2</Version>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>Sky CMS Dynamic Config</Title>
   </PropertyGroup>
