@@ -3,7 +3,7 @@
 @using Microsoft.Extensions.Options
 @using Cosmos.DynamicConfig
 @inject IOptions<CosmosConfig> options
-@model RegisterModel
+@model Sky.Cms.Areas.Identity.Pages.Account.RegisterModel
 @{
     ViewData["Title"] = "Create Account";
     Html.ViewContext.ViewBag.BrowserTitle = "Register Account";
@@ -21,13 +21,13 @@
                         <h5>Terms and Conditions</h5>
                         <div style="font-size:8pt;">
                             <p>
-                                Cosmos CMS is free software: you can use it, redistribute it, and/or modify
+                                Sky CMS is free software: you can use it, redistribute it, and/or modify
                                 it under the terms of the  <a target="_blank" href="https://github.com/MoonriseSoftwareCalifornia/CosmosCMS?tab=GPL-3.0-1-ov-file#readme">
                                     GNU General Public License Version 3
                                 </a> as published by the
                                 Free Software Foundation.
                             </p>
-                            <p>Cosmos CMS &copy; @DateTime.UtcNow.Year <a target="_blank" href="https://www.moonrise.net">Moonrise Software LLC.</a></p>
+                            <p>Sky CMS &copy; @DateTime.UtcNow.Year <a target="_blank" href="https://www.moonrise.net">Moonrise Software LLC.</a></p>
                         </div>
                         <div id="ckBoxDiv" class="form-check mb-4" style="position:relative">
                             <input class="form-check-input" type="checkbox" value="true" id="chkTerms">

@@ -5,14 +5,13 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
-namespace Cosmos.Publisher.Controllers
+namespace Sky.Editor.Controllers
 {
     using Cosmos.BlobService;
-    using Cosmos.Cms.Common.Services.Configurations;
     using Cosmos.Common.Data;
-    using Cosmos.Editor.Data.Logic;
+    using Sky.Editor.Data.Logic;
+    using Cosmos.Publisher.Controllers;
     using Microsoft.AspNetCore.Mvc;
-    using Microsoft.Extensions.Options;
 
     /// <summary>
     /// Secure file access controller and proxy.

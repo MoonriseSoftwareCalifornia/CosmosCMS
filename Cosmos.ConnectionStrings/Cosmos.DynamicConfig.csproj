@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <Version>9.0.15.1</Version>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Title>Cosmos CMS Dynamic Config</Title>
+    <Title>Sky CMS Dynamic Config</Title>
   </PropertyGroup>
 
   <ItemGroup>

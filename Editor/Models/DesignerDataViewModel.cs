@@ -5,13 +5,13 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
-namespace Cosmos.Editor.Models
+namespace Sky.Editor.Models
 {
     using System;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
     using Cosmos.Cms.Data;
-    using Cosmos.Editor.Models.GrapesJs;
+    using Sky.Editor.Models.GrapesJs;
     using MailChimp.Net.Models;
 
     /// <summary>

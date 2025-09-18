@@ -42,6 +42,8 @@
 	  <Content Remove="C:\Users\toiya\.nuget\packages\cosmos.cms.common\7.0.0.10\contentFiles\any\net6.0\Views\CCMS_Examples\TextFile1.txt" />
 	  <Content Remove="C:\Users\toiya\.nuget\packages\cosmos.cms.common\7.0.0.10\contentFiles\any\net6.0\Views\CCMS_Examples\_CosmosLayout.cshtml" />
 	  <Content Remove="stylecop.json" />
+	  <Content Remove="wwwroot\images\skycms\SkyCMSLogoDarkBackground.jpeg" />
+	  <Content Remove="wwwroot\images\skycms\SkyCMSLogoLightBackground.jpeg" />
 	  <Content Remove="wwwroot\lib\cosmos\ckeditor\ckeditor-widget.301.js" />
 	</ItemGroup>
 

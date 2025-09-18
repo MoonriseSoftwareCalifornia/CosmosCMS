@@ -5,10 +5,10 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
-namespace Cosmos.Cms.Models
+namespace Sky.Cms.Models
 {
     using System.Collections.Generic;
-    using Cosmos.Cms.Models.Interfaces;
+    using Sky.Cms.Models.Interfaces;
     using Cosmos.Common.Models;
 
     /// <summary>

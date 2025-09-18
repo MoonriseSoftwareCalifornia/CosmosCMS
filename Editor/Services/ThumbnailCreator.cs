@@ -5,7 +5,7 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
-namespace Cosmos.Cms.Services
+namespace Sky.Cms.Services
 {
     using System;
     using System.Collections.Generic;
@@ -13,7 +13,7 @@ namespace Cosmos.Cms.Services
     using System.Drawing.Drawing2D;
     using System.Drawing.Imaging;
     using System.IO;
-    using Cosmos.Cms.Models;
+    using Sky.Cms.Models;
 
     /// <summary>
     /// Image thumbnail creator.

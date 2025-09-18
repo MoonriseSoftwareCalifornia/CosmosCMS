@@ -5,8 +5,8 @@
 		<TargetFrameworks>net9.0</TargetFrameworks>
 		<Authors>toiyabe62</Authors>
 		<Company>Moonrise Software LLC</Company>
-		<Product>Cosmos CMS</Product>
-		<Description>This package contains all the common methods and objects used by the Cosmos CMS editor website, and by any website service the role of a publishing website.</Description>
+		<Product>Sky CMS</Product>
+		<Description>This package contains all the common methods and objects used by the Sky CMS editor website, and by any website service the role of a publishing website.</Description>
 		<Copyright>Eric Kauffman</Copyright>
 		<RepositoryType>Class Library</RepositoryType>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -46,7 +46,7 @@
 
 	<PropertyGroup>
 		<DisableImplicitAspNetCoreAnalyzers>true</DisableImplicitAspNetCoreAnalyzers>
-		<Title>Cosmos CMS Common Objects</Title>
+		<Title>Sky CMS Common Objects</Title>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<RepositoryUrl>https://github.com/MoonriseSoftwareCalifornia/CosmosCMS</RepositoryUrl>
 	</PropertyGroup>

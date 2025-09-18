@@ -5,7 +5,7 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
-namespace Cosmos.Cms.Hubs
+namespace Sky.Cms.Hubs
 {
     using System;
     using System.Collections.Generic;
@@ -14,9 +14,9 @@ namespace Cosmos.Cms.Hubs
     using System.Text;
     using System.Threading.Tasks;
     using Cosmos.BlobService;
-    using Cosmos.Cms.Models;
+    using Sky.Cms.Models;
     using Cosmos.Common.Data;
-    using Cosmos.Editor.Data.Logic;
+    using Sky.Editor.Data.Logic;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.SignalR;
     using Microsoft.EntityFrameworkCore;

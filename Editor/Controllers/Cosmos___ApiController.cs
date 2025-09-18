@@ -5,7 +5,7 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
-namespace Cosmos.Editor.Controllers
+namespace Sky.Editor.Controllers
 {
     using System;
     using System.Collections.Generic;

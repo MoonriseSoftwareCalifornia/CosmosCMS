@@ -5,7 +5,7 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
-namespace Cosmos.Editor.Data.Logic
+namespace Sky.Editor.Data.Logic
 {
     using System;
     using System.Collections.Generic;
@@ -17,13 +17,9 @@ namespace Cosmos.Editor.Data.Logic
     using Azure.ResourceManager;
     using Cosmos.BlobService;
     using Cosmos.Cms.Common.Services.Configurations;
-    using Cosmos.Cms.Controllers;
-    using Cosmos.Cms.Models;
-    using Cosmos.Cms.Services;
     using Cosmos.Common.Data;
     using Cosmos.Common.Data.Logic;
     using Cosmos.Common.Models;
-    using Cosmos.Editor.Controllers;
     using Cosmos.Editor.Services;
     using Microsoft.AspNetCore.Http;
     using Microsoft.EntityFrameworkCore;
@@ -32,6 +28,10 @@ namespace Cosmos.Editor.Data.Logic
     using Microsoft.Extensions.Options;
     using Newtonsoft.Json;
     using SendGrid.Helpers.Errors.Model;
+    using Sky.Cms.Controllers;
+    using Sky.Cms.Models;
+    using Sky.Cms.Services;
+    using Sky.Editor.Controllers;
     using X.Web.Sitemap.Extensions;
 
     /// <summary>
@@ -1211,7 +1211,7 @@ namespace Cosmos.Editor.Data.Logic
 
                 var filePath = page.UrlPath.Equals("root", StringComparison.OrdinalIgnoreCase) ? "/index.html" : page.UrlPath;
 
-                await storageContext.AppendBlob(stream, new BlobService.Models.FileUploadMetaData()
+                await storageContext.AppendBlob(stream, new Cosmos.BlobService.Models.FileUploadMetaData()
                 {
                     ChunkIndex = 0,
                     ContentType = "text/html",
@@ -1267,7 +1267,7 @@ namespace Cosmos.Editor.Data.Logic
             {
                 var storagePath = $"/{filePath}";
 
-                await storageContext.AppendBlob(stream, new BlobService.Models.FileUploadMetaData()
+                await storageContext.AppendBlob(stream, new Cosmos.BlobService.Models.FileUploadMetaData()
                 {
                     ChunkIndex = 0,
                     ContentType = "application/xml",
@@ -1287,7 +1287,7 @@ namespace Cosmos.Editor.Data.Logic
             {
                 var storagePath = "/robots.txt";
 
-                await storageContext.AppendBlob(stream, new BlobService.Models.FileUploadMetaData()
+                await storageContext.AppendBlob(stream, new Cosmos.BlobService.Models.FileUploadMetaData()
                 {
                     ChunkIndex = 0,
                     ContentType = "text/plain",
@@ -1325,7 +1325,7 @@ namespace Cosmos.Editor.Data.Logic
                 }
             }
 
-            await storageContext.AppendBlob(stream, new BlobService.Models.FileUploadMetaData()
+            await storageContext.AppendBlob(stream, new Cosmos.BlobService.Models.FileUploadMetaData()
             {
                 ChunkIndex = 0,
                 ContentType = "application/json",
@@ -1492,7 +1492,7 @@ namespace Cosmos.Editor.Data.Logic
                 var html = await viewRenderService.RenderToStringAsync("~/Views/Home/Redirect.cshtml", model);
                 using var stream = new MemoryStream(Encoding.UTF8.GetBytes(html));
 
-                await storageContext.AppendBlob(stream, new BlobService.Models.FileUploadMetaData()
+                await storageContext.AppendBlob(stream, new Cosmos.BlobService.Models.FileUploadMetaData()
                 {
                     ChunkIndex = 0,
                     ContentType = "text/html",

@@ -5,15 +5,15 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
-namespace Cosmos.Cms.Models
+namespace Sky.Cms.Models
 {
     using System;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
     using Cosmos.Cms.Data;
-    using Cosmos.Cms.Models.Interfaces;
     using Cosmos.Common.Data;
     using Cosmos.Common.Models;
+    using Sky.Cms.Models.Interfaces;
 
     /// <summary>
     /// Edit code post view model.

@@ -5,7 +5,7 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
-namespace Cosmos.Editor.Models
+namespace Sky.Editor.Models
 {
     /// <summary>
     /// The model for the data that is passed to the CryptoJS encryption/decryption functions.

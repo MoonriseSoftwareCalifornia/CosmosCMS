@@ -5,7 +5,7 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
-namespace Cosmos.Editor.Models.GrapesJs
+namespace Sky.Editor.Models.GrapesJs
 {
     using System.Collections.Generic;
 

@@ -5,11 +5,11 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
-namespace Cosmos.Editor.Controllers
+namespace Sky.Editor.Controllers
 {
     using System;
     using System.Threading.Tasks;
-    using Cosmos.Editor.Models;
+    using Sky.Editor.Models;
     using Cosmos.EmailServices;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity.UI.Services;

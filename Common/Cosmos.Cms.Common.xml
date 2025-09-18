@@ -6,7 +6,7 @@
     <members>
         <member name="T:Cosmos.Cms.Common.Controllers.CosmosController">
             <summary>
-                Base class for the Cosmos CMS controller.
+                Base class for the Sky CMS controller.
             </summary>
         </member>
         <member name="F:Cosmos.Cms.Common.Controllers.CosmosController._articleLogic">
@@ -64,7 +64,7 @@
         </member>
         <member name="T:Cosmos.Common.Data.ApplicationDbContext">
             <summary>
-                Database Context for Cosmos CMS
+                Database Context for Sky CMS
             </summary>
         </member>
         <member name="P:Cosmos.Common.Data.ApplicationDbContext.GetLastSyncResult">
@@ -2252,7 +2252,7 @@
         </member>
         <member name="T:Cosmos.Cms.Common.Services.TranslationServices">
             <summary>
-                Cosmos CMS Language translation
+                Sky CMS Language translation
             </summary>
         </member>
         <member name="M:Cosmos.Cms.Common.Services.TranslationServices.IsConfigured">

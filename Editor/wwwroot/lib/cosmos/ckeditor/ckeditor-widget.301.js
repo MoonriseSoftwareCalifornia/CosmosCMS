@@ -1,4 +1,4 @@
-// CKEditor configuration for Cosmos CMS.
+// CKEditor configuration for Sky CMS.
 import {
     InlineEditor,
     Autoformat,

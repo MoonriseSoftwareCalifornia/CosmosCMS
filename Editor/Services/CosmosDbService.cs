@@ -5,7 +5,7 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
-namespace Cosmos.Editor.Data
+namespace Sky.Editor.Data
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;

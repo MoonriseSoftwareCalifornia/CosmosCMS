@@ -6,6 +6,7 @@
 // </copyright>
 
 using Microsoft.Extensions.Configuration;
+using Sky.Editor.Boot;
 using System.Reflection;
 
 var builder = Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(args);
@@ -22,6 +23,6 @@ if (isMultiTenantEditor)
 else
 {
     System.Console.WriteLine($"Starting Cosmos CMS Editor in Single-Tenant Mode (v.{versionNumber}).");
-    var app = Cosmos.Editor.Boot.SingleTenant.BuildApp(builder);
+    var app = SingleTenant.BuildApp(builder);
     await app.RunAsync();
 }

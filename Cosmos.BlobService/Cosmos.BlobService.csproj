@@ -5,7 +5,7 @@
 		<AssemblyVersion>9.0.15.1</AssemblyVersion>
 		<FileVersion>9.0.15.1</FileVersion>
 		<Version>9.0.15.1</Version>
-		<Title>Cosmos CMS Azure Storage Provider</Title>
+		<Title>Sky CMS Azure Storage Provider</Title>
 		<Authors>toiyabe62</Authors>
 		<Company>Moonrise Software LLC</Company>
 		<Description>Manages BLOB objects in Azure.</Description>

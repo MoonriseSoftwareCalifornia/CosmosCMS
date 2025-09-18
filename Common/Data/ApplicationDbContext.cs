@@ -20,7 +20,7 @@ namespace Cosmos.Common.Data
     using MySql.EntityFrameworkCore.Extensions;
 
     /// <summary>
-    ///     Database Context for Cosmos CMS.
+    ///     Database Context for Sky CMS.
     /// </summary>
     public class ApplicationDbContext : CosmosIdentityDbContext<IdentityUser, IdentityRole, string>, IDataProtectionKeyContext
     {

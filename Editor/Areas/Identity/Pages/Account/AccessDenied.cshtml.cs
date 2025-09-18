@@ -5,7 +5,7 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
-namespace Cosmos.Cms.Areas.Identity.Pages.Account
+namespace Sky.Cms.Areas.Identity.Pages.Account
 {
     using Microsoft.AspNetCore.Mvc.RazorPages;
 

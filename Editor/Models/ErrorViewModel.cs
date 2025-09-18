@@ -5,7 +5,7 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
-namespace Cosmos.Cms.Models
+namespace Sky.Cms.Models
 {
     /// <summary>
     /// Error view model.

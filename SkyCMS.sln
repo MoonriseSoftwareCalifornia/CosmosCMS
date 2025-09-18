@@ -12,13 +12,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.Common", "Common\Cosmos.Common.csproj", "{2233829B-29FC-4E78-9245-124E30FE1A48}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.Publisher", "Publisher\Cosmos.Publisher.csproj", "{FA561356-EE78-4B23-B5B5-B6D6882803B5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sky.Publisher", "Publisher\Sky.Publisher.csproj", "{FA561356-EE78-4B23-B5B5-B6D6882803B5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.DynamicConfig", "Cosmos.ConnectionStrings\Cosmos.DynamicConfig.csproj", "{70D8E9EA-B453-2994-F298-2710D7C54110}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.BlobService", "Cosmos.BlobService\Cosmos.BlobService.csproj", "{64FDAA1C-34E7-7934-3DB2-CEC111894009}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cosmos.Editor", "Editor\Cosmos.Editor.csproj", "{AC03A22A-54ED-5D8A-9B92-90FD1178AD85}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sky.Editor", "Editor\Sky.Editor.csproj", "{AC03A22A-54ED-5D8A-9B92-90FD1178AD85}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetCore.Identity.FlexDb", "AspNetCore.Identity.FlexDb\AspNetCore.Identity.FlexDb.csproj", "{F9CA3D7A-2839-16ED-5B32-587FE415EDDF}"
 EndProject

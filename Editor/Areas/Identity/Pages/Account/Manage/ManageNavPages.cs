@@ -5,7 +5,7 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
-namespace Cosmos.Cms.Areas.Identity.Pages.Account.Manage
+namespace Sky.Cms.Areas.Identity.Pages.Account.Manage
 {
     using System;
     using System.IO;

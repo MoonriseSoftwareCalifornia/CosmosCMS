@@ -5,10 +5,10 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
-namespace Cosmos.Editor.Models
+namespace Sky.Editor.Models
 {
     using System.ComponentModel.DataAnnotations;
-    using Cosmos.Editor.Data.Logic;
+    using Sky.Editor.Data.Logic;
 
     /// <summary>
     /// Editor instance configuration saved in the database..
