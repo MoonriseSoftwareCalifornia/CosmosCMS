@@ -12,6 +12,7 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
+COPY ["AspNetCore.Identity.FlexDb/Cosmos.Editor.csproj", "AspNetCore.Identity.FlexDb/"]
 COPY ["Editor/Cosmos.Editor.csproj", "Editor/"]
 COPY ["Common/Cosmos.Common.csproj", "Common/"]
 RUN dotnet restore "./Editor/Cosmos.Editor.csproj"

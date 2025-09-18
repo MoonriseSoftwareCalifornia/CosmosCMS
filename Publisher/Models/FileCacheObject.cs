@@ -17,7 +17,9 @@ namespace Cosmos.Publisher.Models
         /// <summary>
         /// Initializes a new instance of the <see cref="FileCacheObject"/> class.
         /// </summary>
-        public FileCacheObject() { }
+        public FileCacheObject()
+        {
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FileCacheObject"/> class.

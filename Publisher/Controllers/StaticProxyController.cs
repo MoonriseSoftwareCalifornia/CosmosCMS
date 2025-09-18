@@ -6,11 +6,11 @@
 // </copyright>
 namespace Cosmos.Publisher.Controllers
 {
+    using System.Net.Mime;
     using Cosmos.BlobService;
     using Cosmos.Publisher.Models;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Caching.Memory;
-    using System.Net.Mime;
 
     /// <summary>
     /// Static proxy controller.

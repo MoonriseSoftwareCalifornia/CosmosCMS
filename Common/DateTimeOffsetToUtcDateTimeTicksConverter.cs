@@ -18,7 +18,7 @@ namespace Cosmos.Common
     /// <remarks>This converter transforms a <see cref="DateTimeOffset"/> into a <see cref="long"/>
     /// representing the number of ticks of the equivalent UTC <see cref="DateTime"/>. It also converts the ticks back
     /// into a <see cref="DateTimeOffset"/> with a UTC offset. This is useful for persisting <see
-    /// cref="DateTimeOffset"/> values in databases that store date-time information as ticks. 
+    /// cref="DateTimeOffset"/> values in databases that store date-time information as ticks.
     /// Please see <see href="https://nitratine.net/blog/post/a-warning-for-ef-cores-datetimeoffsettobinaryconverter/">this article</see>
     /// for more information.</remarks>
     public class DateTimeOffsetToUtcDateTimeTicksConverter : ValueConverter<DateTimeOffset, long>
@@ -30,7 +30,7 @@ namespace Cosmos.Common
         ///     Hints that can be used by the <see cref="ITypeMappingSource" /> to create data types with appropriate
         ///     facets for the converted data.
         /// </param>
-        public DateTimeOffsetToUtcDateTimeTicksConverter(ConverterMappingHints? mappingHints = null)
+        public DateTimeOffsetToUtcDateTimeTicksConverter(ConverterMappingHints mappingHints = null)
             : base(
                 v => v.UtcDateTime.Ticks,
                 v => new DateTimeOffset(v, new TimeSpan(0, 0, 0)),

@@ -2,10 +2,10 @@
 
 	<PropertyGroup>
 		<TargetFramework>net9.0</TargetFramework>
-		<Version>9.0.14.1</Version>
-		<AssemblyVersion>9.0.14.1</AssemblyVersion>
-		<FileVersion>9.0.14.1</FileVersion>
-		<PackageVersion>9.0.13.30</PackageVersion>
+		<Version>9.0.15.1</Version>
+		<AssemblyVersion>9.0.15.1</AssemblyVersion>
+		<FileVersion>9.0.15.1</FileVersion>
+		<PackageVersion>9.0.15.1</PackageVersion>
 		<Authors>toiyabe62</Authors>
 		<Nullable>enable</Nullable>
 		<RepositoryType>GitHub</RepositoryType>
@@ -45,7 +45,7 @@
 		<Content Include="B2C_BrandIcon_Black.png" />
 		<Content Include="_res\icons\B2C_BrandIcon_Black.png" />
 		<None Include="../README.md" Pack="true" PackagePath="\" />
-		<PackageReference Include="Duende.IdentityServer.EntityFramework.Storage" Version="7.3.1" />
+		<PackageReference Include="Duende.IdentityServer.EntityFramework.Storage" Version="7.3.2" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 	</ItemGroup>
 

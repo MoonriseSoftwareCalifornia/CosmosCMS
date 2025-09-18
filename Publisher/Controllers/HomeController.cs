@@ -60,8 +60,6 @@ namespace Cosmos.Cms.Publisher.Controllers
             : base(articleLogic, dbContext, storageContext, logger, emailSender)
         {
             this.configuration = configuration;
-            
-
             this.logger = logger;
             this.articleLogic = articleLogic;
             this.options = options;

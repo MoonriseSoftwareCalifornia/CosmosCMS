@@ -39,6 +39,11 @@ namespace Cosmos.Publisher.Boot
     /// configurations are in place before the application begins handling requests.</remarks>
     public static class DynamicPublisherWebsite
     {
+        /// <summary>
+        /// Boots the web application by configuring services, middleware, and settings.
+        /// </summary>
+        /// <param name="builder">Web application service builder.</param>
+        /// <returns>Task.</returns>
         public static async Task Boot(WebApplicationBuilder builder)
         {
             // Add memory cache for Cosmos data logic and other services.

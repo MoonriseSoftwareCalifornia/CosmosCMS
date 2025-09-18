@@ -116,9 +116,9 @@ namespace Cosmos.Common.Data.Logic
         public async Task<Sitemap> GetSiteMap()
         {
             var publicUrl = "/";
-
+            var dt = DateTimeOffset.UtcNow.AddMinutes(10);
             var query = from t in DbContext.ArticleCatalog
-                        where t.Published <= DateTimeOffset.UtcNow.AddMinutes(10)
+                        where t.Published <= dt
                         select new
                         {
                             t.UrlPath,
@@ -301,8 +301,9 @@ namespace Cosmos.Common.Data.Logic
 
             if (memoryCache == null || cacheSpan == null)
             {
+                var dt = DateTimeOffset.UtcNow;
                 var entity = await DbContext.Pages
-               .Where(a => a.UrlPath == urlPath && a.Published <= DateTimeOffset.UtcNow)
+               .Where(a => a.UrlPath == urlPath && a.Published <= dt)
                .OrderByDescending(o => o.VersionNumber).AsNoTracking().FirstOrDefaultAsync();
 
                 if (entity == null)
@@ -317,8 +318,10 @@ namespace Cosmos.Common.Data.Logic
 
             if (model == null)
             {
+                // This is for SQLite which does not support DateTimeOffset natively.
+                var dt = DateTimeOffset.UtcNow;
                 var data = await DbContext.Pages
-                   .Where(a => a.UrlPath == urlPath && a.Published.HasValue && a.Published <= DateTimeOffset.UtcNow)
+                   .Where(a => a.UrlPath == urlPath && a.Published.HasValue && a.Published <= dt)
                    .OrderByDescending(o => o.VersionNumber).AsNoTracking().FirstOrDefaultAsync();
 
                 if (data == null)
@@ -347,8 +350,10 @@ namespace Cosmos.Common.Data.Logic
                 urlPath = "root";
             }
 
+            // This is for SQLite which does not support DateTimeOffset natively.
+            var dt = DateTimeOffset.UtcNow;
             return await DbContext.Pages
-                       .Where(a => a.UrlPath == urlPath && a.Published.HasValue && a.Published <= DateTimeOffset.UtcNow)
+                       .Where(a => a.UrlPath == urlPath && a.Published.HasValue && a.Published <= dt)
                        .Select(s => new ArticleViewModel
                        {
                            ArticleNumber = s.ArticleNumber,
@@ -405,8 +410,9 @@ namespace Cosmos.Common.Data.Logic
 
             text = text.ToLower();
 
+            var dt = DateTimeOffset.UtcNow;
             var query = DbContext.Pages
-                .Where(a => a.StatusCode == 0 && a.Published <= DateTimeOffset.UtcNow && (a.Content.ToLower().Contains(text) || a.Title.ToLower().Contains(text))).AsQueryable();
+                .Where(a => a.StatusCode == 0 && a.Published <= dt && (a.Content.ToLower().Contains(text) || a.Title.ToLower().Contains(text))).AsQueryable();
 
             var terms = text.Split(' ');
 

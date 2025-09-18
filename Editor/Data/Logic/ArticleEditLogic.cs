@@ -894,8 +894,10 @@ namespace Cosmos.Editor.Data.Logic
 
             if (publishedOnly)
             {
+                // SQLite does not support partition key queries, so we have to do this the hard way.
+                var dt = DateTimeOffset.UtcNow;
                 var article = await DbContext.Pages.WithPartitionKey(urlPath)
-                    .Where(a => a.Published <= DateTimeOffset.UtcNow &&
+                    .Where(a => a.Published <= dt &&
                                 activeStatusCodes.Contains(a.StatusCode)) // Now filter on active status code.
                     .OrderByDescending(o => o.VersionNumber).FirstOrDefaultAsync();
 

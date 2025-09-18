@@ -70,15 +70,9 @@ namespace Cosmos.Editor.Boot
             var option = cosmosStartup.Build();
             builder.Services.AddSingleton(option);
 
-            // The Cosmos connection string
+            // Database connection string
             var connectionString = builder.Configuration.GetConnectionString("ApplicationDbContextConnection");
-            if (string.IsNullOrEmpty(connectionString))
-            {
-                Console.WriteLine("No connection string, using SQLite");
-                var sqliteDbPath = Path.Combine(Environment.ProcessPath, "Data", "SQLite", "cosmos.db");
-                connectionString = $"Data Source={sqliteDbPath};";
-            }
-                        
+
             // If this is set, the Cosmos identity provider will:
             // 1. Create the database if it does not already exist.
             // 2. Create the required containers if they do not already exist.
@@ -107,15 +101,6 @@ namespace Cosmos.Editor.Boot
                 .AddDefaultUI() // Use this if Identity Scaffolding added
                 .AddDefaultTokenProviders();
 
-            // Add shared data protection here
-            //var dataProtectionContainer = BlobService.ServiceCollectionExtensions.GetBlobContainerClient(builder.Configuration, new DefaultAzureCredential(), "dataprotection");
-            //if (option.Value.SiteSettings.AllowSetup)
-            //{
-            //    var webContainer = BlobService.ServiceCollectionExtensions.GetBlobContainerClient(builder.Configuration, new DefaultAzureCredential(), "$web");
-            //    dataProtectionContainer.CreateIfNotExistsAsync().GetAwaiter().GetResult();
-            //    webContainer.CreateIfNotExistsAsync().GetAwaiter().GetResult();
-            //}
-
             builder.Services.AddDataProtection()
             .UseCryptographicAlgorithms(
             new AuthenticatedEncryptorConfiguration
@@ -123,7 +108,6 @@ namespace Cosmos.Editor.Boot
                 EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
                 ValidationAlgorithm = ValidationAlgorithm.HMACSHA256
             }).PersistKeysToDbContext<ApplicationDbContext>();
-            //.PersistKeysToAzureBlobStorage(dataProtectionContainer.GetBlobClient("editorkeys.xml"));
 
             // ===========================================================
             // SUPPORTED OAuth Providers

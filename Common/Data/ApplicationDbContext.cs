@@ -11,12 +11,12 @@ namespace Cosmos.Common.Data
     using System.Linq;
     using System.Threading.Tasks;
     using AspNetCore.Identity.FlexDb;
+    using Cosmos.Common.Data.SQlite;
     using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.Azure.Cosmos;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Diagnostics;
-    using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
     using MySql.EntityFrameworkCore.Extensions;
 
     /// <summary>
@@ -281,18 +281,7 @@ namespace Cosmos.Common.Data
         {
             if (this.Database.IsSqlite())
             {
-                foreach (var entityType in modelBuilder.Model.GetEntityTypes())
-                {
-                    var properties = entityType.ClrType.GetProperties().Where(p => p.PropertyType == typeof(DateTimeOffset)
-                                                                                || p.PropertyType == typeof(DateTimeOffset?));
-                    foreach (var property in properties)
-                    {
-                        modelBuilder
-                            .Entity(entityType.Name)
-                            .Property(property.Name)
-                            .HasConversion(new DateTimeOffsetToUtcDateTimeTicksConverter());
-                    }
-                }
+                SQLiteUtils.OnModelCreating(modelBuilder);
             }
 
             if (this.Database.IsCosmos())

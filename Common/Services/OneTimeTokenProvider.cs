@@ -116,7 +116,9 @@ namespace Cosmos.Common.Services
                 return VerificationResult.Invalid;
             }
 
-            if (identityUser.LockoutEnabled && identityUser.LockoutEnd.HasValue && identityUser.LockoutEnd > DateTimeOffset.UtcNow)
+            // The following is because SQLite does not support DateTimeOffset natively.
+            var dt = DateTimeOffset.UtcNow;
+            if (identityUser.LockoutEnabled && identityUser.LockoutEnd.HasValue && identityUser.LockoutEnd > dt)
             {
                 logger.LogWarning("User {UserId} is locked out, cannot verify token.", identityUser.Id);
 

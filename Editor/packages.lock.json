@@ -278,17 +278,17 @@
       },
       "Duende.IdentityServer.EntityFramework.Storage": {
         "type": "Transitive",
-        "resolved": "7.3.1",
-        "contentHash": "ZJuMGnvspC0dN314rcOvLUGxudal05CyjfASsTxt9tx2lfw6Khf5fMtqyRJftNIQ/TOfM0IsdNHhfXJuyiztMQ==",
+        "resolved": "7.3.2",
+        "contentHash": "3fV0mJ7x9LMvJ8Z4LftlUDY+cCV8HMUcoIg5NGIefqC1A5EMxYFvACR7/Y5K3WxhP2OytiziH9P02qe2y3Jxrw==",
         "dependencies": {
-          "Duende.IdentityServer.Storage": "7.3.1",
+          "Duende.IdentityServer.Storage": "7.3.2",
           "Microsoft.EntityFrameworkCore.Relational": "9.0.3"
         }
       },
       "Duende.IdentityServer.Storage": {
         "type": "Transitive",
-        "resolved": "7.3.1",
-        "contentHash": "DXZgh0tf0AOnfAuUa3isBHI9keucXi6piGkgPsDBw/qmLL+smo/9lXWBfi6Tm+hsrGggid7RDB9Aq5iZe/OeLQ==",
+        "resolved": "7.3.2",
+        "contentHash": "a3G+kV9NM/DN3v2g0OCpy0h77e/vSr2rcLDcPnLCQjGUHTcMQtC+GNuAX0Tr9I/mdNrjdO37lYF+zDKUB9NiOA==",
         "dependencies": {
           "Duende.IdentityModel": "7.1.0",
           "Microsoft.AspNetCore.DataProtection.Abstractions": "9.0.3"
@@ -1947,7 +1947,7 @@
       "AspNetCore.Identity.CosmosDb": {
         "type": "Project",
         "dependencies": {
-          "Duende.IdentityServer.EntityFramework.Storage": "[7.3.1, )",
+          "Duende.IdentityServer.EntityFramework.Storage": "[7.3.2, )",
           "Microsoft.AspNetCore.Identity.EntityFrameworkCore": "[9.0.9, )",
           "Microsoft.AspNetCore.Identity.UI": "[9.0.9, )",
           "Microsoft.EntityFrameworkCore.Cosmos": "[9.0.9, )",
