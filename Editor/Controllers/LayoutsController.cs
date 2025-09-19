@@ -736,7 +736,7 @@ namespace Cosmos.Cms.Controllers
             {
                 if (await dbContext.Layouts.Where(c => c.CommunityLayoutId == id).CosmosAnyAsync())
                 {
-                    throw new ArgumentException("Layout already loaded.");
+                    return BadRequest("Design already loaded."); // Already imported.
                 }
 
                 var utilities = new LayoutUtilities();
@@ -759,28 +759,19 @@ namespace Cosmos.Cms.Controllers
 
                 if (communityPages != null && communityPages.Any())
                 {
-                    var pages = communityPages.Select(p => new Template()
+                    foreach (var page in communityPages)
                     {
-                        CommunityLayoutId = p.CommunityLayoutId,
-                        Content = articleLogic.Ensure_ContentEditable_IsMarked(p.Content),
-                        Description = p.Description,
-                        LayoutId = layout.Id,
-                        Title = p.Title,
-                        PageType = p.PageType
-                    });
-
-                    // Mark the content editable regions.
-                    dbContext.Templates.AddRange(pages);
-                    await dbContext.SaveChangesAsync();
-
-                    if (!await dbContext.Pages.CosmosAnyAsync() && !await dbContext.Articles.CosmosAnyAsync())
-                    {
-                        var page = new PublishedPage()
+                        var template = new Template()
                         {
-                            Title = "Home",
-                            TemplateId = pages.First().Id
+                            CommunityLayoutId = page.CommunityLayoutId,
+                            Content = articleLogic.Ensure_ContentEditable_IsMarked(page.Content),
+                            Description = page.Description,
+                            LayoutId = layout.Id,
+                            Title = page.Title,
+                            PageType = page.PageType,
+                            Id = Guid.NewGuid()
                         };
-                        dbContext.Pages.Add(page);
+                        dbContext.Templates.Add(template);
                         await dbContext.SaveChangesAsync();
                     }
                 }

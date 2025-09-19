@@ -199,7 +199,7 @@ namespace Cosmos.Cms.Data.Logic
                 catch (Exception e)
                 {
                     var t = e; // Debugging
-                    throw;
+                    //throw;
                 }
             }
 
