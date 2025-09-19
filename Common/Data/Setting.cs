@@ -28,7 +28,7 @@ namespace Cosmos.Common.Data
         [Required]
         [MinLength(1)]
         [Display(Name = "Group")]
-        public string Group { get; set; }
+        public string Group { get; set; } = string.Empty;
 
         /// <summary>
         /// Gets or sets setting Name.
@@ -36,7 +36,7 @@ namespace Cosmos.Common.Data
         [Required]
         [MinLength(1)]
         [Display(Name = "Name")]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         /// <summary>
         /// Gets or sets setting value.
@@ -44,7 +44,7 @@ namespace Cosmos.Common.Data
         [Required]
         [MinLength(1)]
         [Display(Name = "Value")]
-        public string Value { get; set; }
+        public string Value { get; set; } = string.Empty;
 
         /// <summary>
         /// Gets or sets a value indicating whether setting value is required.
@@ -57,8 +57,8 @@ namespace Cosmos.Common.Data
         /// Gets or sets description of setting.
         /// </summary>
         [Required]
-        [MinLength(1)]
+        [MinLength(0)]
         [Display(Name = "Description")]
-        public string Description { get; set; }
+        public string Description { get; set; } = " - ";
     }
 }

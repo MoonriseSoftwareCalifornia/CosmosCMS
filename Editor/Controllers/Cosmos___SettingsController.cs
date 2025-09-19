@@ -123,6 +123,7 @@ namespace Cosmos.Editor.Controllers
                     Group = EDITORSETGROUPNAME,
                     Name = "EditorSettings",
                     Value = Newtonsoft.Json.JsonConvert.SerializeObject(model),
+                    Description = "Settings used by the Cosmos Editor",
                 };
                 dbContext.Settings.Add(settings);
             }
