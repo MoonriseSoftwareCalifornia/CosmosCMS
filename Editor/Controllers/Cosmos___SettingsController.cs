@@ -80,7 +80,7 @@ namespace Cosmos.Editor.Controllers
         /// <returns>IActionResult.</returns>
         public IActionResult Index()
         {
-            if (this.settings.IsMultiTenantEditor)
+            if (true)
             {
                 var model = ((EditorSettings)this.settings).GetEditorConfig();
                 model.IsMultiTenantEditor = true; // This is set by environment variables and cannot be changed.
@@ -104,10 +104,10 @@ namespace Cosmos.Editor.Controllers
         public async Task<IActionResult> Index(EditorConfig model)
         {
             model.IsMultiTenantEditor = true; // This is set by environment variables and cannot be changed.
-            if (!ModelState.IsValid || !this.settings.IsMultiTenantEditor)
-            {
-                return View(model);
-            }
+            //if (!ModelState.IsValid || !this.settings.IsMultiTenantEditor)
+            //{
+            //    return View(model);
+            //}
 
             // Check if mode is static website, and if so, set the blob URL.
             if (model.StaticWebPages)
@@ -115,7 +115,8 @@ namespace Cosmos.Editor.Controllers
                 model.BlobPublicUrl = "/";
             }
 
-            var settings = await dbContext.Settings.FirstOrDefaultAsync(f => f.Group == EDITORSETGROUPNAME);
+            var allSettings = await dbContext.Settings.ToListAsync();
+            var settings = allSettings.FirstOrDefault(f => f.Group == EDITORSETGROUPNAME);
             if (settings == null)
             {
                 settings = new Setting

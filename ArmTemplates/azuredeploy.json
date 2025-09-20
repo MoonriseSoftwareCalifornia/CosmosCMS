@@ -104,6 +104,7 @@
         "appServicePlanName": "[concat('appplan', uniquestring(resourceGroup().id))]",
         "location": "[resourceGroup().location]",
         "accountName": "[concat('cosmos', uniqueString(resourceGroup().id))]",
+        "fileShareName": "data-sqlite",
         "smtpEmailProviderOptions__Host": "",
         "smtpEmailProviderOptions__Port": "",
         "smtpEmailProviderOptions__EnableSsl":"",
@@ -189,6 +190,32 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
             ]
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/fileServices",
+            "apiVersion": "2023-01-01",
+            "name": "[concat(variables('storageAccountName'), '/default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+            ],
+            "properties": {
+                "shareDeleteRetentionPolicy": {
+                    "enabled": true,
+                    "days": 7
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/fileServices/shares",
+            "apiVersion": "2023-01-01",
+            "name": "[concat(variables('storageAccountName'), '/default/', variables('fileShareName'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/fileServices', variables('storageAccountName'), 'default')]"
+            ],
+            "properties": {
+                "shareQuota": 1,
+                "enabledProtocols": "SMB"
+            }
         },
         {
             "type": "Microsoft.Web/serverfarms",
@@ -329,12 +356,12 @@
             "type": "Microsoft.Web/sites/config",
             "apiVersion": "2023-01-01",
             "name": "[concat(variables('editorName'), '/web')]",
-            "location": "West US",
+            "location": "[variables('location')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Web/sites', variables('editorName'))]"
             ],
             "properties": {
-                "numberOfWorkers": 1,
+                "numberOfWorkers": "[int('1')]",
                 "defaultDocuments": [
                     "Default.htm",
                     "Default.html",
@@ -348,62 +375,20 @@
                 ],
                 "netFrameworkVersion": "v4.0",
                 "linuxFxVersion": "DOCKER|toiyabe/cosmos-editor:latest",
-                "requestTracingEnabled": false,
-                "remoteDebuggingEnabled": false,
-                "remoteDebuggingVersion": "VS2022",
-                "httpLoggingEnabled": true,
-                "acrUseManagedIdentityCreds": false,
-                "logsDirectorySizeLimit": 35,
-                "detailedErrorLoggingEnabled": false,
-                "scmType": "None",
-                "use32BitWorkerProcess": true,
-                "webSocketsEnabled": false,
-                "alwaysOn": true,
-                "managedPipelineMode": "Integrated",
-                "virtualApplications": [
-                    {
-                        "virtualPath": "/",
-                        "physicalPath": "site\\wwwroot",
-                        "preloadEnabled": true
-                    }
-                ],
-                "loadBalancing": "LeastRequests",
-                "experiments": {
-                    "rampUpRules": []
-                },
-                "autoHealEnabled": false,
-                "vnetRouteAllEnabled": false,
-                "vnetPrivatePortsCount": 0,
-                "localMySqlEnabled": false,
-                "managedServiceIdentityId": 2703,
-                "ipSecurityRestrictions": [
-                    {
-                        "ipAddress": "Any",
-                        "action": "Allow",
-                        "priority": 2147483647,
-                        "name": "Allow all",
-                        "description": "Allow all access"
-                    }
-                ],
-                "scmIpSecurityRestrictions": [
-                    {
-                        "ipAddress": "Any",
-                        "action": "Allow",
-                        "priority": 2147483647,
-                        "name": "Allow all",
-                        "description": "Allow all access"
-                    }
-                ],
-                "scmIpSecurityRestrictionsUseMain": false,
-                "http20Enabled": true,
+                "requestTracingEnabled": "[bool('false')]",
+                "remoteDebuggingEnabled": "[bool('false')]",
+                "httpLoggingEnabled": "[bool('false')]",
+                "logsDirectorySizeLimit": "[int('35')]",
+                "detailedErrorLoggingEnabled": "[bool('false')]",
+                "use32BitWorkerProcess": "[bool('false')]",
+                "webSocketsEnabled": "[bool('false')]",
+                "alwaysOn": "[bool('true')]",
+                "autoHealEnabled": "[bool('false')]",
+                "localMySqlEnabled": "[bool('false')]",
+                "http20Enabled": "[bool('true')]",
                 "minTlsVersion": "1.2",
-                "scmMinTlsVersion": "1.2",
                 "ftpsState": "Disabled",
-                "preWarmedInstanceCount": 0,
-                "elasticWebAppScaleLimit": 0,
-                "functionsRuntimeScaleMonitoringEnabled": false,
-                "minimumElasticInstanceCount": 1,
-                "azureStorageAccounts": {}
+                "healthCheckPath": "/Identity/Account/Login"
             }
         },
         {
@@ -517,7 +502,6 @@
             ]
         },
         {
-            "condition": "[or(equals(parameters('architecture'),'Decoupled'), equals(parameters('architecture'),'Headless'))]",
             "type": "Microsoft.Web/sites/config",
             "apiVersion": "2023-01-01",
             "name": "[concat(variables('publisherName'), '/web')]",
@@ -526,76 +510,28 @@
                 "[resourceId('Microsoft.Web/sites', variables('publisherName'))]"
             ],
             "properties": {
-                "numberOfWorkers": 1,
+                "numberOfWorkers": "[int('1')]",
                 "defaultDocuments": [
                     "Default.htm",
                     "Default.html",
                     "Default.asp",
                     "index.htm",
-                    "index.html",
-                    "iisstart.htm",
-                    "default.aspx",
-                    "index.php",
-                    "hostingstart.html"
+                    "index.html"
                 ],
-                "netFrameworkVersion": "v4.0",
-                "linuxFxVersion": "[concat('DOCKER|toiyabe/cosmos-', variables('publisherContainerName'), ':latest')]",
-                "requestTracingEnabled": false,
-                "remoteDebuggingEnabled": false,
-                "remoteDebuggingVersion": "VS2022",
-                "httpLoggingEnabled": true,
-                "acrUseManagedIdentityCreds": false,
-                "logsDirectorySizeLimit": 35,
-                "detailedErrorLoggingEnabled": false,
-                "scmType": "None",
-                "use32BitWorkerProcess": true,
-                "webSocketsEnabled": false,
-                "alwaysOn": true,
-                "managedPipelineMode": "Integrated",
-                "virtualApplications": [
-                    {
-                        "virtualPath": "/",
-                        "physicalPath": "site\\wwwroot",
-                        "preloadEnabled": true
-                    }
-                ],
-                "loadBalancing": "LeastRequests",
-                "experiments": {
-                    "rampUpRules": []
-                },
-                "autoHealEnabled": false,
-                "vnetRouteAllEnabled": false,
-                "vnetPrivatePortsCount": 0,
-                "localMySqlEnabled": false,
-                "ipSecurityRestrictions": [
-                    {
-                        "ipAddress": "Any",
-                        "action": "Allow",
-                        "priority": 2147483647,
-                        "name": "Allow all",
-                        "description": "Allow all access"
-                    }
-                ],
-                "scmIpSecurityRestrictions": [
-                    {
-                        "ipAddress": "Any",
-                        "action": "Allow",
-                        "priority": 2147483647,
-                        "name": "Allow all",
-                        "description": "Allow all access"
-                    }
-                ],
-                "scmIpSecurityRestrictionsUseMain": false,
-                "http20Enabled": true,
+                "netFrameworkVersion": "v6.0",
+                "requestTracingEnabled": "[bool('false')]",
+                "remoteDebuggingEnabled": "[bool('false')]",
+                "httpLoggingEnabled": "[bool('false')]",
+                "logsDirectorySizeLimit": "[int('35')]",
+                "detailedErrorLoggingEnabled": "[bool('false')]",
+                "use32BitWorkerProcess": "[bool('false')]",
+                "webSocketsEnabled": "[bool('false')]",
+                "alwaysOn": "[bool('true')]",
+                "autoHealEnabled": "[bool('false')]",
+                "localMySqlEnabled": "[bool('false')]",
+                "http20Enabled": "[bool('true')]",
                 "minTlsVersion": "1.2",
-                "scmMinTlsVersion": "1.2",
-                "ftpsState": "Disabled",
-                "preWarmedInstanceCount": 0,
-                "elasticWebAppScaleLimit": 0,
-                "healthCheckPath": "/Identity/Account/Login",
-                "functionsRuntimeScaleMonitoringEnabled": false,
-                "minimumElasticInstanceCount": 1,
-                "azureStorageAccounts": {}
+                "ftpsState": "Disabled"
             }
         }
     ],
