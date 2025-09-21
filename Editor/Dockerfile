@@ -31,4 +31,4 @@ RUN dotnet publish "./Sky.Editor.csproj" -c $BUILD_CONFIGURATION -o /app/publish
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Cosmos.Editor.dll"]
+ENTRYPOINT ["dotnet", "Sky.Editor.dll"]
