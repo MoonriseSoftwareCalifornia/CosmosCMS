@@ -15,7 +15,6 @@
 		<RepositoryUrl>https://github.com/CosmosSoftware/AspNetCore.Identity.FlexDb</RepositoryUrl>
 		<PackageProjectUrl>https://github.com/CosmosSoftware/AspNetCore.Identity.FlexDb</PackageProjectUrl>
 		<PackageIcon>B2C_BrandIcon_Black.png</PackageIcon>
-		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<RepositoryType>git</RepositoryType>
