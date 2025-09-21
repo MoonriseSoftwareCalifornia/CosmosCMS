@@ -27,4 +27,4 @@ RUN dotnet publish "./Sky.Publisher.csproj" -c $BUILD_CONFIGURATION -o /app/publ
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Cosmos.Publisher.dll"]
+ENTRYPOINT ["dotnet", "Sky.Publisher.dll"]
