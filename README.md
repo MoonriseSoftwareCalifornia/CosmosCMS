@@ -1,12 +1,12 @@
-# Cosmos CMS
-[Project Website](https://cosmos.moonrise.net) | [Documentation](https://cosmos.moonrise.net/Docs) | [Get Free Help](https://cosmos.moonrise.net/Support) | [YouTube Channel](https://www.youtube.com/@cosmos-cms) | [Install](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS?tab=readme-ov-file#installation) | [Slack Channel](https://cosmos-cms.slack.com/)
+# Sky CMS
+[Project Website](https://Sky.moonrise.net) | [Documentation](https://Sky.moonrise.net/Docs) | [Get Free Help](https://Sky.moonrise.net/Support) | [YouTube Channel](https://www.youtube.com/@Sky-cms) | [Install](https://github.com/MoonriseSoftwareCalifornia/SkyCMS?tab=readme-ov-file#installation) | [Slack Channel](https://Sky-cms.slack.com/)
 
-[![CodeQL](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/codeql.yml)
-[![Publish Docker Images CI](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/actions/workflows/docker-image.yml)
+[![CodeQL](https://github.com/MoonriseSoftwareCalifornia/SkyCMS/actions/workflows/codeql.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/SkyCMS/actions/workflows/codeql.yml)
+[![Publish Docker Images CI](https://github.com/MoonriseSoftwareCalifornia/SkyCMS/actions/workflows/docker-image.yml/badge.svg)](https://github.com/MoonriseSoftwareCalifornia/SkyCMS/actions/workflows/docker-image.yml)
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FMoonriseSoftwareCalifornia%2FCosmosCMS%2Frefs%2Fheads%2Fmain%2FArmTemplates%2Fazuredeploy.json)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FMoonriseSoftwareCalifornia%2FSkyCMS%2Frefs%2Fheads%2Fmain%2FArmTemplates%2Fazuredeploy.json)
 
-[Cosmos](https://cosmos.moonrise.net/) is an open-source CMS that runs in multiple modes depending on your need:
+[Sky](https://Sky.moonrise.net/) is an open-source CMS that runs in multiple modes depending on your need:
 
 * Static - All content hosted on a static website with content automatically refreshed. High performance, stability and ease of operation.
 * Headless - Content is delivered via API. This is best where content is consumed in many channels, such as web, mobile and desktop.
@@ -14,7 +14,7 @@
 
 ## Our Design Objectives
 
-The objectives behind Cosmos are as follows:
+The objectives behind Sky are as follows:
 
 * Out perform classic CMS's in terms of speed, capacity and stability.
 * Easy to use by web developers and non-technical content editors alike.
@@ -45,7 +45,7 @@ We aimed to create a system that is user-friendly for both web developers and no
 
 [GrapesJS](https://grapesjs.com/) is a free, open-source web builder framework designed to help developers and designers create and customize web pages and HTML templates with ease. It features a visual editor with a drag-and-drop interface, allowing users to build complex web pages without needing extensive coding knowledge [3](https://esketchers.com/grapesjs-things-to-consider-before-using-it/). GrapesJS is popular due to its flexibility, extensive customization options, and a wide range of pre-designed templates and components [4](https://www.talentica.com/blogs/grapesjs-things-to-consider-before-using-it/). It was initially developed to be integrated into Content Management Systems (CMS) to speed up the creation of dynamic templates, making it a versatile tool for both beginners and experienced developers [4](https://www.talentica.com/blogs/grapesjs-things-to-consider-before-using-it/). The ability to export designs in various formats and its active community support further contribute to its widespread adoption [3](https://esketchers.com/grapesjs-things-to-consider-before-using-it/).
 
-See our [YouTube video](https://www.youtube.com/watch?v=mVGPlbnbC5c) that shows GrapesJS at work with Cosmos.
+See our [YouTube video](https://www.youtube.com/watch?v=mVGPlbnbC5c) that shows GrapesJS at work with Sky.
 
 ### Monaco/Visual Studio Code
 
@@ -65,17 +65,17 @@ Our implementation of Monaco includes a DIFF tool and Emmet Notation.
 
 [FilePond](https://pqina.nl/filepond/) is a versatile file upload library designed for web applications, offering a sleek and customizable interface for handling file uploads. It supports features like image previews, drag-and-drop functionality, and file validation, making it user-friendly and efficient [9](https://npm-compare.com/filepond). FilePond's popularity stems from its ease of integration, extensive customization options, and the ability to handle various file types seamlessly [9](https://npm-compare.com/filepond). Its active community and continuous updates ensure it remains a reliable and up-to-date solution for developers looking to enhance their web applications with robust file upload capabilities [9](https://npm-compare.com/filepond).
 
-## Cosmos CMS Stack
+## Sky CMS Stack
 
-Cosmos is a cloud-native application that uses a modern tech stack.
+Sky is a cloud-native application that uses a modern tech stack.
 
-### NoSQL Database - Cosmos DB
+### NoSQL Database - Sky DB
 
-Cosmos CMS uses **Azure Cosmos DB**, which is a fully managed, globally distributed NoSQL and relational database service provided by Microsoft. It is designed to offer high availability, low latency, and seamless scalability.
+Sky CMS uses **Azure Cosmos DB**, which is a fully managed, globally distributed NoSQL and relational database service provided by Microsoft. It is designed to offer high availability, low latency, and seamless scalability.
 
 ### Blob Storage and Static Website
 
-Cosmos stores static assets uploaded as content to the website in a **blob storage** with a **static website**. This is key to how Cosmos can perform so well. Hosting website assets this way offers several benefits:
+Sky stores static assets uploaded as content to the website in a **blob storage** with a **static website**. This is key to how Sky can perform so well. Hosting website assets this way offers several benefits:
 
 * Blob storage with a static website improves performance by reducing server load and latency.
 * Cost-effective and scalable for storing large amounts of unstructured data (images, videos, documents).
@@ -84,27 +84,27 @@ Cosmos stores static assets uploaded as content to the website in a **blob stora
 
 ### Azure App Services
 
-The Editor, Publisher, and API are all ASP.NET Core applications that are Linux Docker containerized.  We deploy each in Web App Services, hosted by App Service plans.  The publisher application also comes in as [NodeJS](https://github.com/MoonriseSoftwareCalifornia/Cosmos.Publisher.NodeJs) application that is deployed via code, and uses the Cosmos API service.
+The Editor, Publisher, and API are all ASP.NET Core applications that are Linux Docker containerized.  We deploy each in Web App Services, hosted by App Service plans.  The publisher application also comes in as [NodeJS](https://github.com/MoonriseSoftwareCalifornia/Sky.Publisher.NodeJs) application that is deployed via code, and uses the Sky API service.
 
 ## Code Base
 
 Almost 70% of the code base is JavaScript, and much of that is from CKEditor, GrapesJS, Monaco, Filerobot, and Filepond. Back-end logic is written in ASP.NET Core (C#), and that accounts for only 9%. What remains is CSS, HTML, SCSS and TypeScript.
 
-![Code Base Percentages](CosmosCodeBase.png)
+![Code Base Percentages](SkyCodeBase.png)
 
-Most of what makes up Cosmos is NPM and NuGet package-based.
+Most of what makes up Sky is NPM and NuGet package-based.
 
 ## Docker Containers
 
 The Editor, API and the ASP.NET Core-based Publisher are deployed as Docker containers.  Each can be found on Docker Hub:
 
-* [Editor Docker Container](https://hub.docker.com/r/toiyabe/cosmos-editor)
-* [API Docker Container](https://hub.docker.com/r/toiyabe/cosmos-api)
-* [Publisher Docker Container](https://hub.docker.com/r/toiyabe/cosmos-publisher)
-* [NodeJS Publisher code deploy](https://github.com/MoonriseSoftwareCalifornia/Cosmos.Publisher.NodeJs)
+* [Editor Docker Container](https://hub.docker.com/r/toiyabe/Sky-editor)
+* [API Docker Container](https://hub.docker.com/r/toiyabe/Sky-api)
+* [Publisher Docker Container](https://hub.docker.com/r/toiyabe/Sky-publisher)
+* [NodeJS Publisher code deploy](https://github.com/MoonriseSoftwareCalifornia/Sky.Publisher.NodeJs)
 
 ## Installation
 
-Cosmos and all its components are installed using a Azure Resource Manager (ARM) template.  The source code for these templates are located in the [ArmTemplates](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/tree/main/ArmTemplates/Installation) folder of this repository.
+Sky and all its components are installed using a Azure Resource Manager (ARM) template.  The source code for these templates are located in the [ArmTemplates](https://github.com/MoonriseSoftwareCalifornia/SkyCMS/tree/main/ArmTemplates/Installation) folder of this repository.
 
-Go to the [documentation website](https://cosmos.moonrise.net/install) to install Cosmos.
+Go to the [documentation website](https://Sky.moonrise.net/install) to install Sky.

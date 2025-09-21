@@ -5,7 +5,7 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
-namespace Cosmos.Cms.Controllers
+namespace Sky.Cms.Controllers
 {
     using System;
     using System.Collections.Generic;
@@ -14,7 +14,6 @@ namespace Cosmos.Cms.Controllers
     using System.Text;
     using System.Text.Encodings.Web;
     using System.Threading.Tasks;
-    using Cosmos.Cms.Models;
     using Cosmos.Common.Data;
     using Cosmos.Editor.Services;
     using Cosmos.EmailServices;
@@ -25,6 +24,7 @@ namespace Cosmos.Cms.Controllers
     using Microsoft.AspNetCore.WebUtilities;
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
+    using Sky.Cms.Models;
 
     // See: https://docs.microsoft.com/en-us/aspnet/core/mvc/controllers/areas?view=aspnetcore-3.1
 

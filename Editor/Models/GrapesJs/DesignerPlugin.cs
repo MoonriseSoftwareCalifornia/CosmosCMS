@@ -1,4 +1,4 @@
-﻿namespace Cosmos.Editor.Models.GrapesJs
+﻿namespace Sky.Editor.Models.GrapesJs
 {
     /// <summary>
     /// Designer plugin definition.

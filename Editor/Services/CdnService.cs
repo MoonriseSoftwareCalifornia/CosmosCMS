@@ -20,7 +20,7 @@ namespace Cosmos.Editor.Services
     using Azure.ResourceManager.Cdn;
     using Azure.ResourceManager.Cdn.Models;
     using Cosmos.Common.Data;
-    using Cosmos.Editor.Controllers;
+    using Sky.Editor.Controllers;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Logging;
 

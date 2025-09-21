@@ -4,9 +4,9 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>9.0.15.3</Version>
+    <Version>9.0.15.2</Version>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Title>Cosmos CMS Dynamic Config</Title>
+    <Title>Sky CMS Dynamic Config</Title>
   </PropertyGroup>
 
   <ItemGroup>

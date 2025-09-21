@@ -5,30 +5,27 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
-namespace Cosmos.Cms.Controllers
+namespace Sky.Cms.Controllers
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using Cosmos.BlobService;
-    using Cosmos.Cms.Common.Services.Configurations;
-    using Cosmos.Cms.Models;
     using Cosmos.Common.Data;
     using Cosmos.Common.Data.Logic;
     using Cosmos.Common.Models;
     using Cosmos.Common.Services;
-    using Cosmos.Editor.Data;
-    using Cosmos.Editor.Data.Logic;
-    using Cosmos.Editor.Models;
-    using Cosmos.Editor.Models.GrapesJs;
-    using Cosmos.Editor.Services;
     using HtmlAgilityPack;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
-    using Microsoft.Extensions.Options;
+    using Sky.Cms.Models;
+    using Sky.Editor.Data;
+    using Sky.Editor.Data.Logic;
+    using Sky.Editor.Models;
+    using Sky.Editor.Models.GrapesJs;
 
     /// <summary>
     /// Templates controller.

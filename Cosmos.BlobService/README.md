@@ -1,6 +1,6 @@
 # Azure Blob Storage Context
 
-This is a an Azure Blob Storage context used by [Cosmos CMS](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS) and 
+This is a an Azure Blob Storage context used by [Sky CMS](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS) and 
 can be used by any .Net Core. project.
 
 It is a simple wrapper around the Azure Blob Storage SDK that provides a more convenient way to interact with the Azure Blob Storage.
@@ -46,9 +46,9 @@ Notice the account key is set to "**AccessToken**". This is how the Azure Blob S
 
 ### Using the context in a .Net Core project
 
-NOTE: For a full example of this package in use, please see the Cosmos CMS project [file manager controller](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/blob/main/Editor/Controllers/FileManagerController.cs).
+NOTE: For a full example of this package in use, please see the Sky CMS project [file manager controller](https://github.com/MoonriseSoftwareCalifornia/CosmosCMS/blob/main/Editor/Controllers/FileManagerController.cs).
 
-Meanhile, here is an example of how to use the context in a .Net Core project.
+Meanwhile, here is an example of how to use the context in a .Net Core project.
 
 In the Startup.cs or Project.cs file, add this using statement:
 
@@ -58,7 +58,7 @@ using Cosmos.BlobService;
 
 And then add this line to the ConfigureServices method:
 ```csharp
-// Add the BLOB and File Storage contexts for Cosmos CMS
+// Add the BLOB and File Storage contexts for Sky CMS
 builder.Services.AddCosmosStorageContext(builder.Configuration);
 ```
 

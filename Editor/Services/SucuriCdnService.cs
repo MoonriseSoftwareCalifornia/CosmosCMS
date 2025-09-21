@@ -12,7 +12,7 @@ namespace Cosmos.Editor.Services
     using System.Net.Http;
     using System.Text;
     using System.Threading.Tasks;
-    using Cosmos.Editor.Controllers;
+    using Sky.Editor.Controllers;
 
     /// <summary>
     /// Sucuri CDN service API class.

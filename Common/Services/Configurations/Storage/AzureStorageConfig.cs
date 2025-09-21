@@ -30,6 +30,6 @@ namespace Cosmos.Cms.Common.Services.Configurations.Storage
         ///     Gets or sets storage end point.
         /// </summary>
         [Display(Name = "Website URL")]
-        public string AzureBlobStorageEndPoint { get; set; }
+        public string AzureBlobStorageEndPoint { get; set; } = "/";
     }
 }

@@ -5,11 +5,11 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
-namespace Cosmos.Cms.Models
+namespace Sky.Cms.Models
 {
     using System.Collections.Generic;
     using Cosmos.Common.Models;
-    using Cosmos.Editor.Controllers;
+    using Sky.Editor.Controllers;
 
     /// <summary>
     ///   The result of a update operation.

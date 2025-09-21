@@ -5,7 +5,7 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
-namespace Cosmos.Editor.Controllers
+namespace Sky.Editor.Controllers
 {
     using System;
     using System.Collections.Generic;
@@ -13,8 +13,8 @@ namespace Cosmos.Editor.Controllers
     using System.Linq;
     using System.Threading.Tasks;
     using Cosmos.Common.Data;
-    using Cosmos.Editor.Data.Logic;
-    using Cosmos.Editor.Models;
+    using Sky.Editor.Data.Logic;
+    using Sky.Editor.Models;
     using Cosmos.Editor.Services;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;

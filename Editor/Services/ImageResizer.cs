@@ -5,10 +5,10 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
-namespace Cosmos.Cms.Services
+namespace Sky.Cms.Services
 {
     using System;
-    using Cosmos.Cms.Models;
+    using Sky.Cms.Models;
 
     /// <summary>
     /// Image resize utility.

@@ -5,12 +5,12 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
-namespace Cosmos.Editor.Models.GrapesJs
+namespace Sky.Editor.Models.GrapesJs
 {
     using System.Collections.Generic;
     using System.Linq;
     using Cosmos.Common.Data;
-    using Cosmos.Editor.Data.Logic;
+    using Sky.Editor.Data.Logic;
 
     /// <summary>
     /// Designer configuration.

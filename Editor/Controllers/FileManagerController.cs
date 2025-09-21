@@ -5,7 +5,7 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
-namespace Cosmos.Cms.Controllers
+namespace Sky.Cms.Controllers
 {
     using System;
     using System.Collections.Generic;
@@ -16,13 +16,9 @@ namespace Cosmos.Cms.Controllers
     using System.Web;
     using Cosmos.BlobService;
     using Cosmos.BlobService.Models;
-    using Cosmos.Cms.Models;
-    using Cosmos.Cms.Services;
     using Cosmos.Common.Data;
     using Cosmos.Common.Services;
-    using Cosmos.Editor.Controllers;
-    using Cosmos.Editor.Data.Logic;
-    using Cosmos.Editor.Models;
+    using Sky.Editor.Models;
     using Cosmos.Editor.Services;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Hosting;
@@ -35,6 +31,10 @@ namespace Cosmos.Cms.Controllers
     using Newtonsoft.Json;
     using SixLabors.ImageSharp;
     using SixLabors.ImageSharp.Processing;
+    using Sky.Cms.Models;
+    using Sky.Cms.Services;
+    using Sky.Editor.Controllers;
+    using Sky.Editor.Data.Logic;
 
     /// <summary>
     /// File manager controller.

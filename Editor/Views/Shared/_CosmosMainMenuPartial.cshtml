@@ -1,7 +1,7 @@
 ﻿@inject IEditorSettings options
 @using System.Reflection
 @using Cosmos.Cms.Common.Services.Configurations;
-@using Cosmos.Editor.Data.Logic
+@using Sky.Editor.Data.Logic
 @using Microsoft.Extensions.Options;
 @{
     var assemblyName = Assembly.GetExecutingAssembly().GetName();
@@ -34,7 +34,7 @@
 <nav id="ccmsNavMenu" class="navbar navbar-expand-sm navbar-dark bg-dark" style="z-index: 20000000;">
     <div class="container-fluid">
         <a class="navbar-brand" href="/">
-            <img src="~/images/logos/logo-white.png" height="30" />
+            <img src="~/images/skycms/SkyCMSLogoNoWiTextDarkTransparent30h.png" height="30" />
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -93,24 +93,21 @@
                             }
                             <li><hr class="dropdown-divider"></li>
                             <li>
-                                <a class="dropdown-item fw-lighter" title="Cosmos CMS is licensed to users under GNU General Public License Version 3." href="https://github.com/MoonriseSoftwareCalifornia/CosmosCMS?tab=GPL-3.0-1-ov-file#readme" target="_blank">User License</a>
+                                <a class="dropdown-item fw-lighter" title="Sky CMS is licensed to users under GNU General Public License Version 3." href="https://github.com/MoonriseSoftwareCalifornia/CosmosCMS?tab=GPL-3.0-1-ov-file#readme" target="_blank">User License</a>
                             </li>
                         </ul>
                     </li>
                 }
-                @if (Model != null && isReviewer != true)
-                {
-                    <li id="editorDropDown" class="nav-item dropdown" style="display: none;">
-                        <a id="navbarEditDropdown" onclick="loadDdEditMenu()" data-ccms-urlpath="@Model.UrlPath" class="nav-link dropdown-toggle" href="#"
-                        role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Edit
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-dark" id="ddEditMenu">
-                            <li><a class="dropdown-item" href="#">Choose version to edit:</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                        </ul>
-                    </li>
-                }
+                <li id="editorDropDown" class="nav-item dropdown">
+                    <a id="navbarEditDropdown" onclick="loadDdEditMenu()" class="nav-link dropdown-toggle" href="#"
+                       role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Edit
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-dark" id="ddEditMenu">
+                        <li><a class="dropdown-item" href="#">Choose version to edit:</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                    </ul>
+                </li>
                 <li class="nav-item"><span title="Cosmos Version" class="nav-link text-mute">@assemblyName.Version.ToString()</span></li>
                 @if (Context.Request.Path == "/home/preview")
                 {
@@ -130,6 +127,8 @@
 
     let pageTitle = "";
     let pagePath = "";
+    let loadList = @loadList.ToString().ToLower();
+
 
     function closePreview() {
         if (window.opener) {
@@ -147,10 +146,8 @@
         const iframe = document.getElementById("iFrameWebPage");
         const iframeWin = iframe.contentWindow || iframe.contentDocument.parentWindow;
 
-        pageTitle = iframeWin.document.head.querySelector("meta[name='cwps-meta-path-title']").content;
-        pagePath = iframeWin.document.head.querySelector("meta[name='cwps-meta-path-url']").content;
-
-        let loadList = @((Model != null).ToString().ToLower());
+        // pageTitle = iframeWin.document.head.querySelector("meta[name='cwps-meta-path-title']").content;
+        // pagePath = iframeWin.document.head.querySelector("meta[name='cwps-meta-path-url']").content;
 
         let showEditDropDown = false;
 
@@ -210,6 +207,8 @@
                     $("#editorDropDown").hide();
                 }
             });
+        } else {
+            ddMenu.hide();
         }
     }
 
@@ -222,6 +221,12 @@
 
     $(document).ready(function () {
         setPublicSiteUrl();
+        if (loadList) {
+            loadDdEditMenu();
+        } else {
+            $("#ddEditMenu").hide();
+            $("#editorDropDown").hide();
+        }
     });
 
     function setPublicSiteUrl() {

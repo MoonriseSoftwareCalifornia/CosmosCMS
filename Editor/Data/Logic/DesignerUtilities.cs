@@ -5,11 +5,11 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
-namespace Cosmos.Editor.Data.Logic
+namespace Sky.Editor.Data.Logic
 {
     using System.Collections.Generic;
     using System.Linq;
-    using Cosmos.Editor.Models;
+    using Sky.Editor.Models;
     using HtmlAgilityPack;
 
     /// <summary>

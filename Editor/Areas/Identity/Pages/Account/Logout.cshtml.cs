@@ -5,10 +5,9 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
-namespace Cosmos.Cms.Areas.Identity.Pages.Account
+namespace Sky.Cms.Areas.Identity.Pages.Account
 {
     using System.Threading.Tasks;
-    using Cosmos.DynamicConfig;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;

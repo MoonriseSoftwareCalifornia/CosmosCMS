@@ -5,10 +5,9 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
-namespace Cosmos.Editor.Boot
+namespace Sky.Editor.Boot
 {
     using System;
-    using System.IO;
     using System.Text.RegularExpressions;
     using System.Threading.RateLimiting;
     using System.Threading.Tasks;
@@ -17,11 +16,9 @@ namespace Cosmos.Editor.Boot
     using Azure.Identity;
     using Cosmos.BlobService;
     using Cosmos.Cms.Common.Services.Configurations;
-    using Cosmos.Cms.Hubs;
-    using Cosmos.Cms.Services;
     using Cosmos.Common.Data;
     using Cosmos.Common.Services.Configurations;
-    using Cosmos.Editor.Data.Logic;
+    using Sky.Editor.Data.Logic;
     using Cosmos.EmailServices;
     using Microsoft.AspNetCore.Antiforgery;
     using Microsoft.AspNetCore.Builder;
@@ -38,6 +35,8 @@ namespace Cosmos.Editor.Boot
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Newtonsoft.Json.Serialization;
+    using Sky.Cms.Hubs;
+    using Sky.Cms.Services;
 
     /// <summary>
     /// Boots up the multi-tenant editor.

@@ -5,20 +5,18 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
-namespace Cosmos.IdentityManagement.Website.Controllers
+namespace Sky.Editor.Controllers
 {
     using System;
     using System.Linq;
     using System.Threading.Tasks;
-    using Cosmos.Cms.Common.Services.Configurations;
-    using Cosmos.Cms.Models;
     using Cosmos.Common.Data;
     using Cosmos.Editor.Services;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
-    using Microsoft.Extensions.Options;
+    using Sky.Cms.Models;
 
     /// <summary>
     /// Role management controller.

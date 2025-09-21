@@ -1,5 +1,5 @@
 ﻿@using Cosmos.Cms.Common.Services.Configurations
-@using Cosmos.Editor.Data.Logic
+@using Sky.Editor.Data.Logic
 @using Microsoft.Extensions.Options
 @inject IEditorSettings options
 @model List<Cosmos.BlobService.FileManagerEntry>
@@ -8,7 +8,7 @@
     var publisherUrl = ViewData["PublisherUrl"];
     var blobStaticWebsiteUrl = options.BlobPublicUrl;
     var directoryOnly = (bool)ViewData["DirectoryOnly"];
-    var editorExtensions = Cosmos.Cms.Controllers.FileManagerController.ValidEditorExtensions;
+    var editorExtensions = Sky.Cms.Controllers.FileManagerController.ValidEditorExtensions;
     var imageEditorExtensions = new string[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
     var topDirectory = (string)ViewData["TopDirectory"];
     var rowCount = (int)ViewData["RowCount"];

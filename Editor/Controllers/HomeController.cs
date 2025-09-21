@@ -5,7 +5,7 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
-namespace Cosmos.Cms.Controllers
+namespace Sky.Cms.Controllers
 {
     using System;
     using System.Diagnostics;
@@ -14,10 +14,9 @@ namespace Cosmos.Cms.Controllers
     using System.Threading.Tasks;
     using Cosmos.BlobService;
     using Cosmos.Cms.Common.Services.Configurations;
-    using Cosmos.Cms.Models;
     using Cosmos.Common.Data;
     using Cosmos.Common.Models;
-    using Cosmos.Editor.Data.Logic;
+    using Sky.Editor.Data.Logic;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Identity;
@@ -27,6 +26,7 @@ namespace Cosmos.Cms.Controllers
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
     using Microsoft.Net.Http.Headers;
+    using Sky.Cms.Models;
 
     /// <summary>
     /// Home page controller.

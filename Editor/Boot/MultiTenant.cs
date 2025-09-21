@@ -8,7 +8,6 @@
 namespace Cosmos.Editor.Boot
 {
     using System;
-    using System.Configuration;
     using System.Text.RegularExpressions;
     using System.Threading.RateLimiting;
     using System.Threading.Tasks;
@@ -18,12 +17,10 @@ namespace Cosmos.Editor.Boot
     using Azure.Identity;
     using Cosmos.BlobService;
     using Cosmos.Cms.Common.Services.Configurations;
-    using Cosmos.Cms.Hubs;
-    using Cosmos.Cms.Services;
     using Cosmos.Common.Data;
     using Cosmos.Common.Services.Configurations;
     using Cosmos.DynamicConfig;
-    using Cosmos.Editor.Data.Logic;
+    using Sky.Editor.Data.Logic;
     using Cosmos.Editor.Services;
     using Cosmos.EmailServices;
     using Microsoft.AspNetCore.Antiforgery;
@@ -38,6 +35,8 @@ namespace Cosmos.Editor.Boot
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Newtonsoft.Json.Serialization;
+    using Sky.Cms.Hubs;
+    using Sky.Cms.Services;
 
     /// <summary>
     ///  Creates a multi-tenant web application.

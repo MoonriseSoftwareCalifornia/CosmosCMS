@@ -11,7 +11,6 @@ namespace Cosmos.BlobService
     using System.Linq;
     using Azure.Identity;
     using Azure.Storage.Blobs;
-    using Cosmos.BlobService.Config;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.DataProtection;
     using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;

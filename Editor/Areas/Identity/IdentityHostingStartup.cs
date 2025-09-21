@@ -5,12 +5,12 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
-using Cosmos.Cms.Areas.Identity;
 using Microsoft.AspNetCore.Hosting;
+using Sky.Cms.Areas.Identity;
 
 [assembly: HostingStartup(typeof(IdentityHostingStartup))]
 
-namespace Cosmos.Cms.Areas.Identity
+namespace Sky.Cms.Areas.Identity
 {
     /// <summary>
     /// Identity hosting startup class.

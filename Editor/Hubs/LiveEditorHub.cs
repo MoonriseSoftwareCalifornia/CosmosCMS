@@ -5,11 +5,11 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
-namespace Cosmos.Cms.Hubs
+namespace Sky.Cms.Hubs
 {
     using System;
     using System.Threading.Tasks;
-    using Cosmos.Cms.Models;
+    using Sky.Cms.Models;
     using Cosmos.Common.Services;
     using Cosmos.Editor.Services;
     using Microsoft.AspNetCore.SignalR;

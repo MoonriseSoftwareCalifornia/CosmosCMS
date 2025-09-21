@@ -11,7 +11,7 @@ namespace Cosmos.Cms.Data
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
     using System.Linq;
-    using Cosmos.Cms.Models;
+    using Sky.Cms.Models;
     using Cosmos.Common.Data;
     using Cosmos.Common.Data.Logic;
     using Microsoft.EntityFrameworkCore;

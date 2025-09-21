@@ -1,9 +1,9 @@
 ﻿@using Newtonsoft.Json
-@model Cosmos.Editor.Models.ArticleDesignerDataViewModel
+@model Sky.Editor.Models.ArticleDesignerDataViewModel
 @{
     Layout = "_LayoutEditor";
     ViewData["Title"] = Model.Title;
-    var designerConfig = (Cosmos.Editor.Models.GrapesJs.DesignerConfig)ViewData["DesignerConfig"];
+    var designerConfig = (Sky.Editor.Models.GrapesJs.DesignerConfig)ViewData["DesignerConfig"];
 }
 
 <form id="frmSave" asp-action="DesignerData" asp-controller="Editor" method="post">

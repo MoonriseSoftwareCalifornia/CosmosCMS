@@ -1,6 +1,7 @@
 ﻿@{
     Layout = null;
     var frameUrl = "/Home/CcmsContentIndex?target=" + Context.Request.QueryString;
+    var isDebug = frameUrl;
 }
 <!DOCTYPE HTML>
 <html>
@@ -33,7 +34,24 @@
 
             iframe.on('load', function() {
                 var iframeContent = iframe.contents();
-                iframeContent.on('click', function(event) {
+
+                // Add onclick handler to all anchors inside the iframe
+                iframeContent.on('click', function(e) {
+                    // Your onclick logic here
+                    e.preventDefault(); // Prevent the default anchor behavior
+                    let anchor;
+                    const target = $(e.target);
+                    if (target.is('a')) {
+                        anchor = target;
+                    } else {
+                        anchor = target.closest('a');
+                    }
+                    window.location.href = anchor.attr("href")
+                });
+            });
+
+            iframe.on('click', function(event) {
+                    alert('click');
                     event.preventDefault();
                     const target = $(event.target);
                     //const delegate = $(event.delegateTarget);
@@ -45,19 +63,8 @@
                     } else {
                         anchor = target.closest('a');
                     }
-
-                    if (anchor.is('a')) {
-                        if (anchor.attr("href").toLowerCase().startsWith("http")) {
-                            window.location.href = anchor.attr("href");
-                        }
-                        else {
-                            const href = anchor.attr("href");
-                            const newUrl = iframeBaseUrl + href;
-                            iframe.attr('src', newUrl);
-                        }
-                    }
+                    window.location.href = anchor.attr("href");
                 });
-            });
         });
     </script>
 </body>

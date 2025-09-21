@@ -5,7 +5,7 @@
 // for more information concerning the license and the contributors participating to this project.
 // </copyright>
 
-namespace Cosmos.Cms.Controllers
+namespace Sky.Cms.Controllers
 {
     using System;
     using System.Collections.Generic;
@@ -14,18 +14,15 @@ namespace Cosmos.Cms.Controllers
     using System.Threading.Tasks;
     using System.Web;
     using Cosmos.BlobService;
-    using Cosmos.Cms.Hubs;
-    using Cosmos.Cms.Models;
-    using Cosmos.Cms.Services;
     using Cosmos.Common.Data;
     using Cosmos.Common.Data.Logic;
     using Cosmos.Common.Models;
     using Cosmos.Common.Services;
-    using Cosmos.Editor.Controllers;
-    using Cosmos.Editor.Data;
-    using Cosmos.Editor.Data.Logic;
-    using Cosmos.Editor.Models;
-    using Cosmos.Editor.Models.GrapesJs;
+    using Sky.Editor.Controllers;
+    using Sky.Editor.Data;
+    using Sky.Editor.Data.Logic;
+    using Sky.Editor.Models;
+    using Sky.Editor.Models.GrapesJs;
     using Cosmos.Editor.Services;
     using HtmlAgilityPack;
     using Microsoft.AspNetCore.Authorization;
@@ -39,6 +36,9 @@ namespace Cosmos.Cms.Controllers
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
     using SendGrid.Helpers.Errors.Model;
+    using Sky.Cms.Hubs;
+    using Sky.Cms.Models;
+    using Sky.Cms.Services;
 
     /// <summary>
     /// Editor controller.
