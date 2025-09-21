@@ -44,7 +44,6 @@
 	<ItemGroup>
 		<Content Include="B2C_BrandIcon_Black.png" />
 		<Content Include="_res\icons\B2C_BrandIcon_Black.png" />
-		<None Include="../README.md" Pack="true" PackagePath="\" />
 		<PackageReference Include="Duende.IdentityServer.EntityFramework.Storage" Version="7.3.2" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 	</ItemGroup>
