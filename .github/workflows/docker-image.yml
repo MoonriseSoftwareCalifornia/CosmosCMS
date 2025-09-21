@@ -20,10 +20,10 @@ jobs:
     - name: List Directory
       run: ls -alg
     - name: Build Editor Docker Image
-      run: docker build . --file Editor/Dockerfile --tag ${{ secrets.DOCKERLOGIN}}/cosmos-editor:latest
+      run: docker build . --file Editor/Dockerfile --tag ${{ secrets.DOCKERLOGIN}}/sky-editor:latest
     - name: Push Editor container to Docker Hub
-      run: docker push ${{ secrets.DOCKERLOGIN}}/cosmos-editor
+      run: docker push ${{ secrets.DOCKERLOGIN}}/sky-editor
     - name: Build Publisher Docker Image
-      run: docker build . --file Publisher/Dockerfile --tag ${{ secrets.DOCKERLOGIN}}/cosmos-publisher:latest
+      run: docker build . --file Publisher/Dockerfile --tag ${{ secrets.DOCKERLOGIN}}/sky-publisher:latest
     - name: Push Publisher container to Docker Hub
-      run: docker push ${{ secrets.DOCKERLOGIN}}/cosmos-publisher
+      run: docker push ${{ secrets.DOCKERLOGIN}}/sky-publisher
