@@ -5,18 +5,11 @@
         "description": "Installs the Cosmos CMS with options for architecture, email service, and app service plan <a target='_blank' href='https://cosmos.moonrise.net/install'>(see docs)</a>."
     },
     "parameters": {
-        "customDomainName": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "If you are using a custom domain, enter it here without 'http://' or 'https://' (e.g. mydomain.com). You will need to configure DNS and SSL after installation <a target='_blank' href='https://cosmos.moonrise.net/install#Domain'>(see docs)</a>."
-            }
-        },
         "architecture": {
             "type": "string",
             "defaultValue": "Static",
             "allowedValues": [
-                "Static",
+				"Static",
                 "Decoupled",
                 "Headless"
             ],
@@ -102,29 +95,66 @@
     },
     "functions": [],
     "variables": {
+        "allowLocalAccounts": "true",
         "adminEmail": "[parameters('noReplyEmailAddress')]",
-        "cosmosSendGridApiKey": "[parameters('sendGridApiKey')]",
+        "cosmosSendGridApiKey": "",
         "webAppPlanSku": "[concat(if(equals(parameters('webAppPlanChoice'), 'Free Tier'), 'F1', ''),if(equals(parameters('webAppPlanChoice'), 'Shared Tier'), 'D1', ''),if(equals(parameters('webAppPlanChoice'), 'Basic Tier'), 'B3', ''), if(equals(parameters('webAppPlanChoice'), 'Standard Tier'), 'S1', ''), if(equals(parameters('webAppPlanChoice'), 'Premium Tier'), 'P0v3', ''))]",
         "webAppTier": "[concat(if(equals(parameters('webAppPlanChoice'), 'Free Tier'), 'Free', ''),if(equals(parameters('webAppPlanChoice'), 'Shared Tier'), 'Shared', ''),if(equals(parameters('webAppPlanChoice'), 'Basic Tier'), 'Basic', ''),if(equals(parameters('webAppPlanChoice'), 'Standard Tier'), 'Standard', ''))]",
         "webAppFamily": "[concat(if(equals(parameters('webAppPlanChoice'), 'Free Tier'), 'F', ''),if(equals(parameters('webAppPlanChoice'), 'Shared Tier'), 'D', ''),if(equals(parameters('webAppPlanChoice'), 'Basic Tier'), 'B', ''),if(equals(parameters('webAppPlanChoice'), 'Standard Tier'), 'S', ''))]",
         "appServicePlanName": "[concat('appplan', uniquestring(resourceGroup().id))]",
         "location": "[resourceGroup().location]",
+        "accountName": "[concat('cosmos', uniqueString(resourceGroup().id))]",
         "fileShareName": "data-sqlite",
-        "smtpEmailProviderOptions__Host": "[parameters('smtpHostName')]",
-        "smtpEmailProviderOptions__Port": "[parameters('smtpPort')]",
-        "smtpEmailProviderOptions__EnableSsl": "[parameters('smtpEnableSsl')]",
-        "smtpEmailProviderOptions__UserName": "[parameters('smtpUserName')]",
-        "smtpEmailProviderOptions__Password": "[parameters('smtpPassword')]",
+        "smtpEmailProviderOptions__Host": "",
+        "smtpEmailProviderOptions__Port": "",
+        "smtpEmailProviderOptions__EnableSsl":"",
+        "smtpEmailProviderOptions__UserName": "",
+        "smtpEmailProviderOptions__Password": "",
         "storageAccountName": "[concat('files', uniquestring(resourceGroup().id))]",
         "storageAccountType": "[parameters('storageAccountType')]",
         "editorName": "[concat('editor-', uniquestring(resourceGroup().id))]",
         "publisherName": "[concat('publisher-', uniquestring(resourceGroup().id))]",
+        "databaseName": "cosmoscms",
         "azureCommunicationConnection": "[parameters('azureCommunicationsConnectionString')]",
         "publisherContainerName": "[if(equals(parameters('architecture'),'Headless'), 'api', 'publisher')]",
         "publisherEnvironment": "[if(equals(parameters('architecture'),'Headless'), 'Development', 'Production')]"
     },
     "resources": [
-        // Create the storage account for static website hosting and file shares.
+        {
+            "type": "Microsoft.DocumentDB/databaseAccounts",
+            "apiVersion": "2022-05-15",
+            "name": "[toLower(variables('accountName'))]",
+            "location": "[variables('location')]",
+            "properties": {
+                "databaseAccountOfferType": "Standard",
+                "consistencyPolicy": {
+                    "defaultConsistencyLevel": "Session"
+                },
+                "locations": [
+                    {
+                        "locationName": "[variables('location')]"
+                    }
+                ],
+                "capabilities": [
+                    {
+                        "name": "EnableServerless"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases",
+            "apiVersion": "2022-05-15",
+            "name": "[format('{0}/{1}', toLower(variables('accountName')), variables('databaseName'))]",
+            "properties": {
+                "resource": {
+                    "id": "[variables('databaseName')]"
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts', toLower(variables('accountName')))]"
+            ]
+        },
         {
             "name": "[variables('storageAccountName')]",
             "type": "Microsoft.Storage/storageAccounts",
@@ -137,7 +167,6 @@
                 "tier": "Standard"
             }
         },
-        // Create a blob container for static website hosting.
         {
             "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
             "apiVersion": "2021-04-01",
@@ -146,7 +175,22 @@
                 "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
             ]
         },
-        // Create the file share services and enable soft delete.
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+            "apiVersion": "2021-04-01",
+            "name": "[format('{0}/default/{1}', variables('storageAccountName'), 'pkeys')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+            "apiVersion": "2021-04-01",
+            "name": "[format('{0}/default/{1}', variables('storageAccountName'), 'ekeys')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+            ]
+        },
         {
             "type": "Microsoft.Storage/storageAccounts/fileServices",
             "apiVersion": "2023-01-01",
@@ -161,7 +205,6 @@
                 }
             }
         },
-        // Create the file share
         {
             "type": "Microsoft.Storage/storageAccounts/fileServices/shares",
             "apiVersion": "2023-01-01",
@@ -174,7 +217,6 @@
                 "enabledProtocols": "SMB"
             }
         },
-        // Deploy the app service plan and web apps.
         {
             "type": "Microsoft.Web/serverfarms",
             "apiVersion": "2020-12-01",
@@ -201,7 +243,6 @@
                 "zoneRedundant": false
             }
         },
-        // Create the web app for the editor.
         {
             "type": "Microsoft.Web/sites",
             "apiVersion": "2020-12-01",
@@ -209,7 +250,8 @@
             "location": "[variables('location')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
-                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts', toLower(variables('accountName')))]"
             ],
             "kind": "app,linux,container",
             "identity": {
@@ -235,7 +277,7 @@
                 "hyperV": false,
                 "siteConfig": {
                     "numberOfWorkers": 1,
-                    "linuxFxVersion": "DOCKER|toiyabe/sky-editor:latest",
+                    "linuxFxVersion": "DOCKER|toiyabe/cosmos-editor:latest",
                     "acrUseManagedIdentityCreds": false,
                     "alwaysOn": true,
                     "http20Enabled": true,
@@ -252,16 +294,7 @@
                 "httpsOnly": true,
                 "redundancyMode": "None",
                 "storageAccountRequired": false,
-                "keyVaultReferenceIdentity": "SystemAssigned",
-                "azureStorageAccounts": {
-                    "sharedsqlite": {
-                        "type": "AzureFiles",
-                        "accountName": "[variables('storageAccountName')]",
-                        "shareName": "data-sqlite",
-                        "accessKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2022-09-01').keys[0].value]",
-                        "mountPath": "/data/sqlite"
-                    }
-                }
+                "keyVaultReferenceIdentity": "SystemAssigned"
             },
             "resources": [
                 {
@@ -275,11 +308,15 @@
                         "displayName": "appsettings"
                     },
                     "properties": {
-                        "AzureBlobStorageEndPoint": "/",
+                        "AzureBlobStorageEndPoint": "[reference(concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName')), '2018-07-01').primaryEndpoints.web]",
                         "AdminEmail": "[variables('adminEmail')]",
                         "CosmosAllowSetup": "true",
+                        "AllowLocalAccounts": "[variables('allowLocalAccounts')]",
+                        "CosmosArchitecture": "[parameters('architecture')]",
+                        "CosmosStaticWebPages": "[if(equals(parameters('architecture'),'Static'), 'true', 'false')]",
                         "CosmosSendGridApiKey": "[variables('cosmosSendGridApiKey')]",
                         "CosmosPublisherUrl": "[concat('https://', variables('publisherName'), '.azurewebsites.net')]",
+                        "CosmosBlobContainer": "$web",
                         "SmtpEmailProviderOptions__Host": "[variables('smtpEmailProviderOptions__Host')]",
                         "SmtpEmailProviderOptions__Port": "[variables('smtpEmailProviderOptions__Port')]",
                         "SmtpEmailProviderOptions__EnableSsl": "[variables('smtpEmailProviderOptions__EnableSsl')]",
@@ -300,10 +337,10 @@
                     ],
                     "properties": {
                         "ApplicationDbContextConnection": {
-                            "value": "Data Source=/data/sqlite/skycms.db",
+                            "value": "[listConnectionStrings(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('accountName')), '2019-12-12').connectionStrings[0].connectionString]",
                             "type": "Custom"
                         },
-                        "StorageConnectionString": {
+                        "AzureBlobStorageConnectionString": {
                             "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageAccountName'),';AccountKey=',concat(listKeys(concat(resourceGroup().id,'/providers/Microsoft.Storage/storageAccounts/', variables('storageAccountName')),'2015-05-01-preview').key1))]",
                             "type": "Custom"
                         },
@@ -315,7 +352,6 @@
                 }
             ]
         },
-        // Configure the editor web app.
         {
             "type": "Microsoft.Web/sites/config",
             "apiVersion": "2023-01-01",
@@ -325,35 +361,43 @@
                 "[resourceId('Microsoft.Web/sites', variables('editorName'))]"
             ],
             "properties": {
-                "numberOfWorkers": "1",
-                "defaultDocuments": "Default.htm,Default.html,Default.asp,index.htm,index.html,default.aspx",
-                "netFrameworkVersion": "v6.0",
-                "linuxFxVersion": "[concat('DOCKER|toiyabe/cosmos-', variables('publisherContainerName'), ':latest')]",
-                "requestTracingEnabled": "false",
-                "remoteDebuggingEnabled": "false",
-                "httpLoggingEnabled": "false",
-                "logsDirectorySizeLimit": "35",
-                "detailedErrorLoggingEnabled": "false",
-                "use32BitWorkerProcess": "false",
-                "webSocketsEnabled": "false",
-                "alwaysOn": "true",
-                "autoHealEnabled": "false",
-                "localMySqlEnabled": "false",
-                "http20Enabled": "true",
+                "numberOfWorkers": "[int('1')]",
+                "defaultDocuments": [
+                    "Default.htm",
+                    "Default.html",
+                    "Default.asp",
+                    "index.htm",
+                    "index.html",
+                    "default.aspx"
+                ],
+                "netFrameworkVersion": "v4.0",
+                "linuxFxVersion": "DOCKER|toiyabe/cosmos-editor:latest",
+                "requestTracingEnabled": "[bool('false')]",
+                "remoteDebuggingEnabled": "[bool('false')]",
+                "httpLoggingEnabled": "[bool('false')]",
+                "logsDirectorySizeLimit": "[int('35')]",
+                "detailedErrorLoggingEnabled": "[bool('false')]",
+                "use32BitWorkerProcess": "[bool('false')]",
+                "webSocketsEnabled": "[bool('false')]",
+                "alwaysOn": "[bool('true')]",
+                "autoHealEnabled": "[bool('false')]",
+                "localMySqlEnabled": "[bool('false')]",
+                "http20Enabled": "[bool('true')]",
                 "minTlsVersion": "1.2",
                 "ftpsState": "Disabled",
-                "storageAccountUrl": "[reference(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2019-06-01').primaryEndpoints.web]"
+                "healthCheckPath": "/Identity/Account/Login"
             }
         },
-        // Create the web app for the publisher.
         {
+            "condition": "[or(equals(parameters('architecture'),'Decoupled'), equals(parameters('architecture'),'Headless'))]",
             "type": "Microsoft.Web/sites",
             "apiVersion": "2020-12-01",
             "name": "[variables('publisherName')]",
             "location": "[variables('location')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
-                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts', toLower(variables('accountName')))]"
             ],
             "kind": "app,linux,container",
             "identity": {
@@ -401,7 +445,7 @@
             },
             "resources": [
                 {
-                    "condition": "[or(equals(parameters('architecture'),'Decoupled'), equals(parameters('architecture'),'Headless'))]",
+                    "condition": "[or(equals(parameters('architecture'),'Decoupled'), equals(parameters('architecture'),'Headless'))]",      
                     "name": "appsettings",
                     "type": "config",
                     "apiVersion": "2020-12-01",
@@ -414,31 +458,19 @@
                     "properties": {
                         "ASPNETCORE_ENVIRONMENT": "[variables('publisherEnvironment')]",
                         "AdminEmail": "[variables('adminEmail')]",
-                        "AllowLocalAccounts": "true",
-                        "CosmosStaticWebPages": {
-                            "value": "[reference(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2019-06-01').primaryEndpoints.web]"
-                        },
-                        "AzureBlobStorageEndPoint": {
-                            "value": "[reference(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2019-06-01').primaryEndpoints.blob]"
-                        },
+                        "AllowLocalAccounts": "[variables('allowLocalAccounts')]",
+                        "AzureBlobStorageEndPoint": "[reference(concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName')), '2018-07-01').primaryEndpoints.web]",
+                        "CosmosRequiresAuthentication": "false",
                         "CosmosSendGridApiKey": "[variables('cosmosSendGridApiKey')]",
                         "SmtpEmailProviderOptions__Host": "[variables('smtpEmailProviderOptions__Host')]",
-                        "DOCKER_REGISTRY_SERVER_URL": {
-                            "value": "https://index.docker.io"
-                        },
-                        "DOCKER_REGISTRY_SERVER_USERNAME": {
-                            "value": ""
-                        },
-                        "DOCKER_REGISTRY_SERVER_PASSWORD": {
-                            "value": ""
-                        },
-                        "WEBSITES_ENABLE_APP_SERVICE_STORAGE": {
-                            "value": "false"
-                        }
+                        "DOCKER_REGISTRY_SERVER_URL": "https://index.docker.io",
+                        "DOCKER_REGISTRY_SERVER_USERNAME": "",
+                        "DOCKER_REGISTRY_SERVER_PASSWORD": "",
+                        "WEBSITES_ENABLE_APP_SERVICE_STORAGE": "false"
                     }
                 },
                 {
-                    "condition": "[or(equals(parameters('architecture'),'Decoupled'), equals(parameters('architecture'),'Headless'))]",
+                    "condition": "[or(equals(parameters('architecture'),'Decoupled'), equals(parameters('architecture'),'Headless'))]",      
                     "name": "connectionStrings",
                     "type": "config",
                     "apiVersion": "2020-12-01",
@@ -446,7 +478,7 @@
                         "[resourceId('Microsoft.Web/sites', variables('publisherName'))]"
                     ],
                     "properties": {
-                        "ApplicationDbContextConnection": "Data Source=/data/sqlite/skycms.db",
+                        "ApplicationDbContextConnection": "[listConnectionStrings(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('accountName')), '2019-12-12').connectionStrings[0].connectionString]",
                         "AzureBlobStorageConnectionString": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageAccountName'),';AccountKey=',concat(listKeys(concat(resourceGroup().id,'/providers/Microsoft.Storage/storageAccounts/', variables('storageAccountName')),'2015-05-01-preview').key1))]",
                         "AzureCommunicationConnection": "[variables('azureCommunicationConnection')]"
                     }
@@ -457,60 +489,35 @@
             "type": "Microsoft.Web/sites/config",
             "apiVersion": "2023-01-01",
             "name": "[concat(variables('publisherName'), '/web')]",
-            "location": "[variables('location')]",
+            "location": "West US",
             "dependsOn": [
                 "[resourceId('Microsoft.Web/sites', variables('publisherName'))]"
             ],
             "properties": {
-                "numberOfWorkers": "1",
-                "defaultDocuments": "Default.htm,Default.html,Default.asp,index.htm,index.html,default.aspx",
-                "netFrameworkVersion": "v6.0",
-                "linuxFxVersion": "[concat('DOCKER|toiyabe/cosmos-', variables('publisherContainerName'), ':latest')]",
-                "requestTracingEnabled": "false",
-                "remoteDebuggingEnabled": "false",
-                "httpLoggingEnabled": "false",
-                "logsDirectorySizeLimit": "35",
-                "detailedErrorLoggingEnabled": "false",
-                "use32BitWorkerProcess": "false",
-                "webSocketsEnabled": "false",
-                "alwaysOn": "true",
-                "autoHealEnabled": "false",
-                "localMySqlEnabled": "false",
-                "http20Enabled": "true",
-                "minTlsVersion": "1.2",
-                "ftpsState": "Disabled"
-            }
-        },
-        {
-            "condition": "[not(equals(parameters('customDomainName'), ''))]",
-            "type": "Microsoft.Web/sites/hostNameBindings",
-            "apiVersion": "2022-03-01",
-            "name": "[concat(variables('publisherName'), '/', parameters('customDomainName'))]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', variables('publisherName'))]"
-            ],
-            "properties": {
-                "hostNameType": "Verified",
-                "customHostNameDnsRecordType": "CName"
+                "numberOfWorkers": "[int('1')]",
+                "defaultDocuments": "[createArray('Default.htm', 'Default.html', 'Default.asp', 'index.htm', 'index.html')]",
+                "netFrameworkVersion": {
+                    "value": "v6.0"
+                },
+                "requestTracingEnabled": "[bool('false')]",
+                "remoteDebuggingEnabled": "[bool('false')]",
+                "httpLoggingEnabled": "[bool('false')]",
+                "logsDirectorySizeLimit": "[int('35')]",
+                "detailedErrorLoggingEnabled": "[bool('false')]",
+                "use32BitWorkerProcess": "[bool('false')]",
+                "webSocketsEnabled": "[bool('false')]",
+                "alwaysOn": "[bool('true')]",
+                "autoHealEnabled": "[bool('false')]",
+                "localMySqlEnabled": "[bool('false')]",
+                "http20Enabled": "[bool('true')]",
+                "minTlsVersion": {
+                    "value": "1.2"
+                },
+                "ftpsState": {
+                    "value": "Disabled"
+                }
             }
         }
-
     ],
-    "outputs": {
-        "domainVerificationId": {
-            "condition": "[not(equals(parameters('customDomainName'), ''))]",
-            "type": "string",
-            "value": "[reference(resourceId('Microsoft.Web/sites', variables('publisherName')), '2022-03-01').customDomainVerificationId]"
-        },
-        "txtRecordName": {
-            "condition": "[not(equals(parameters('customDomainName'), ''))]",
-            "type": "string",
-            "value": "[concat('asuid.', parameters('customDomainName'))]"
-        },
-        "txtRecordValue": {
-            "condition": "[not(equals(parameters('customDomainName'), ''))]",
-            "type": "string",
-            "value": "[reference(resourceId('Microsoft.Web/sites', variables('publisherName')), '2022-03-01').customDomainVerificationId]"
-        }
-    }
+    "outputs": {}
 }

@@ -30,7 +30,7 @@ namespace Cosmos.BlobService.Config
         ///     Gets or sets storage end point.
         /// </summary>
         [Display(Name = "Website URL")]
-        public string AzureBlobStorageEndPoint { get; set; }
+        public string AzureBlobStorageEndPoint { get; set; } = "/";
 
         /// <summary>
         /// Gets or sets the file share name.

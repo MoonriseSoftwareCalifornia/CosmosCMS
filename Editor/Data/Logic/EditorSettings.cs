@@ -202,11 +202,11 @@ namespace Sky.Editor.Data.Logic
                 {
                     AllowSetup = this.configuration.GetValue<bool?>("AllowSetup") ?? false,
                     IsMultiTenantEditor = this.isMultiTenantEditor,
-                    BlobPublicUrl = this.configuration.GetValue<string>("AzureBlobStorageEndPoint"),
+                    BlobPublicUrl = this.configuration.GetValue<string>("AzureBlobStorageEndPoint") ?? "/",
                     CosmosRequiresAuthentication = this.configuration.GetValue<bool?>("CosmosRequiresAuthentication") ?? false,
                     MicrosoftAppId = this.configuration.GetValue<string>("MicrosoftAppId") ?? string.Empty,
                     PublisherUrl = this.configuration.GetValue<string>("CosmosPublisherUrl"),
-                    StaticWebPages = this.configuration.GetValue<bool?>("CosmosStaticWebPages") ?? false,
+                    StaticWebPages = this.configuration.GetValue<bool?>("CosmosStaticWebPages") ?? true,
                 };
 
                 if (string.IsNullOrWhiteSpace(config.BlobPublicUrl))
