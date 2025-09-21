@@ -14,9 +14,11 @@ VOLUME ["/data/sqlite"]
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["AspNetCore.Identity.FlexDb/Sky.Editor.csproj", "AspNetCore.Identity.FlexDb/"]
-COPY ["Editor/Sky.Editor.csproj", "Editor/"]
+COPY ["AspNetCore.Identity.FlexDb/AspNetCore.Identity.FlexDb.csproj", "AspNetCore.Identity.FlexDb/"]
+COPY ["Cosmos.BlobService/Cosmos.BlobService.csproj", "Cosmos.BlobService/"]
+COPY ["Cosmos.ConnectionStrings/Cosmos.DynamicConfig.csproj", "Cosmos.ConnectionStrings/"]
 COPY ["Common/Cosmos.Common.csproj", "Common/"]
+COPY ["Editor/Sky.Editor.csproj", "Editor/"]
 RUN dotnet restore "./Editor/Sky.Editor.csproj"
 COPY . .
 WORKDIR "/src/Editor"

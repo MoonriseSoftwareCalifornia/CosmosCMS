@@ -11,8 +11,11 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["Publisher/Sky.Publisher.csproj", "Publisher/"]
+COPY ["AspNetCore.Identity.FlexDb/AspNetCore.Identity.FlexDb.csproj", "AspNetCore.Identity.FlexDb/"]
+COPY ["Cosmos.BlobService/Cosmos.BlobService.csproj", "Cosmos.BlobService/"]
+COPY ["Cosmos.ConnectionStrings/Cosmos.DynamicConfig.csproj", "Cosmos.ConnectionStrings/"]
 COPY ["Common/Cosmos.Common.csproj", "Common/"]
+COPY ["Publisher/Sky.Publisher.csproj", "Publisher/"]
 RUN dotnet restore "./Publisher/Sky.Publisher.csproj"
 COPY . .
 WORKDIR "/src/Publisher"
