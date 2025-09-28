@@ -38,7 +38,7 @@ If you are using a managed identity--and not an account key--define the connecti
 {
   "ConnectionStrings": {
 	 "AzureBlobStorageConnectionString": "DefaultEndpointsProtocol=https;AccountName=[YOUR-ACCOUNT-NAME];AccountKey=AccessToken
-}
+    }
 }
 ```
 

@@ -15,6 +15,7 @@ namespace Cosmos.BlobService.Drivers
     using System.Text;
     using System.Threading.Tasks;
     using Amazon;
+    using Amazon.Runtime;
     using Amazon.S3;
     using Amazon.S3.Model;
     using Azure.Storage.Blobs;
@@ -26,12 +27,13 @@ namespace Cosmos.BlobService.Drivers
     using Newtonsoft.Json;
 
     /// <summary>
-    ///     AWS S3 storage driver.
+    ///     AWS S3 and Cloudflare S2 storage driver.
     /// </summary>
     public sealed class AmazonStorage : ICosmosStorage
     {
         private readonly AmazonStorageConfig config;
         private readonly IMemoryCache cache;
+        private bool? usingCloudFlareR2 = null;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AmazonStorage"/> class.
@@ -85,12 +87,14 @@ namespace Cosmos.BlobService.Drivers
                     BucketName = config.BucketName,
                     Key = fileMetaData.RelativePath,
                     InputStream = memoryStream,
-                    ContentType = Utilities.GetContentType(fileMetaData)
+                    ContentType = Utilities.GetContentType(fileMetaData),
+                    DisablePayloadSigning = usingCloudFlareR2,
+                    DisableDefaultChecksumValidation = usingCloudFlareR2
                 };
 
-                putRequest.Metadata.Add("ccmsuploaduid", fileMetaData.UploadUid);
-                putRequest.Metadata.Add("ccmssize", fileMetaData.TotalFileSize.ToString());
-                putRequest.Metadata.Add("ccmsdatetime", uploadDateTime.UtcDateTime.Ticks.ToString());
+                //putRequest.Metadata.Add("ccmsuploaduid", fileMetaData.UploadUid);
+                //putRequest.Metadata.Add("ccmssize", fileMetaData.TotalFileSize.ToString());
+                //putRequest.Metadata.Add("ccmsdatetime", uploadDateTime.UtcDateTime.Ticks.ToString());
 
                 await client.PutObjectAsync(putRequest);
 
@@ -270,7 +274,9 @@ namespace Cosmos.BlobService.Drivers
                 {
                     BucketName = config.BucketName,
                     Key = fullPath,
-                    ContentBody = $"This is a folder stub file for {path}."
+                    ContentBody = $"This is a folder stub file for {path}.",
+                    DisablePayloadSigning = usingCloudFlareR2,
+                    DisableDefaultChecksumValidation = usingCloudFlareR2
                 };
 
                 using var client = GetClient();
@@ -643,7 +649,9 @@ namespace Cosmos.BlobService.Drivers
                 BucketName = config.BucketName,
                 Key = fileMetaData.RelativePath,
                 InputStream = readStream,
-                ContentType = Utilities.GetContentType(fileMetaData)
+                ContentType = Utilities.GetContentType(fileMetaData),
+                DisablePayloadSigning = usingCloudFlareR2,
+                DisableDefaultChecksumValidation = usingCloudFlareR2
             };
 
             putRequest.Metadata.Add("ccmsuploaduid", fileMetaData.UploadUid);
@@ -689,13 +697,33 @@ namespace Cosmos.BlobService.Drivers
             return await GetBytesConsumed();
         }
 
+        /// <summary>
+        ///  Gets the Amazon S3 client.
+        /// </summary>
+        /// <returns>AmazonS3Client.</returns>
         private AmazonS3Client GetClient()
         {
-            var regionIdentifier = RegionEndpoint.GetBySystemName(config.AmazonRegion);
+            // e.g., https://<account_id>.r2.cloudflarestorage.com
+            if (!string.IsNullOrEmpty(config.AccountId))
+            {
+                // Using Cloudflare R2
+                usingCloudFlareR2 = true;
+                var r2Config = new AmazonS3Config
+                {
+                    ServiceURL = $"https://{config.AccountId}.r2.cloudflarestorage.com",
+                    ForcePathStyle = true
+                };
+                var credentials = new BasicAWSCredentials(config.KeyId, config.Key);
+                var client = new AmazonS3Client(credentials, r2Config);
+
+                var response = client.ListBucketsAsync().Result;
+
+                return client;
+            }
 
             return new AmazonS3Client(config.KeyId, config.Key, new AmazonS3Config()
             {
-                RegionEndpoint = regionIdentifier
+                RegionEndpoint = RegionEndpoint.GetBySystemName(config.AmazonRegion)
             });
         }
 

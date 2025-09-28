@@ -389,6 +389,25 @@ namespace Cosmos.BlobService
             {
                 return new AzureStorage(connectionString, new DefaultAzureCredential());
             }
+            else if (connectionString.Contains("accountid", StringComparison.CurrentCultureIgnoreCase))
+            {
+                // Example: AccountId=xxxxxx;Bucket=cosmoscms-001;KeyId=AKIA;Key=MySecretKey;
+                var parts = connectionString.Split(';', StringSplitOptions.RemoveEmptyEntries);
+                var bucket = parts.FirstOrDefault(p => p.StartsWith("Bucket=", StringComparison.CurrentCultureIgnoreCase)).Split("=")[1];
+                var accountId = parts.FirstOrDefault(p => p.StartsWith("AccountId=", StringComparison.CurrentCultureIgnoreCase)).Split("=")[1];
+                var keyId = parts.FirstOrDefault(p => p.StartsWith("KeyId=", StringComparison.CurrentCultureIgnoreCase)).Split("=")[1];
+                var key = parts.FirstOrDefault(p => p.StartsWith("Key=", StringComparison.CurrentCultureIgnoreCase)).Split("=")[1];
+
+                return new AmazonStorage(
+                    new AmazonStorageConfig()
+                    {
+                        AccountId = accountId,
+                        KeyId = keyId,
+                        Key = key,
+                        BucketName = bucket,
+                    },
+                    memoryCache);
+            }
             else if (connectionString.Contains("bucket", StringComparison.CurrentCultureIgnoreCase))
             {
                 // Example: Bucket=cosmoscms-001;Region=us-east-2;KeyId=AKIA;Key=MySecretKey;

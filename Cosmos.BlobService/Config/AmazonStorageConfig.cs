@@ -38,5 +38,11 @@ namespace Cosmos.BlobService.Config
         [Display(Name = "Region")]
         [UIHint("AmazonRegions")]
         public string AmazonRegion { get; set; }
+
+        /// <summary>
+        ///  Gets or sets the Cloudflare account ID for R2 storage.
+        /// </summary>
+        [Display(Name = "Cloudflare Account ID (for R2)")]
+        public string AccountId { get; set; }
     }
 }
