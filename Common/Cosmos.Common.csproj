@@ -110,9 +110,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\AspNetCore.Identity.FlexDb\AspNetCore.Identity.FlexDb.csproj" />
 	  <ProjectReference Include="..\Cosmos.BlobService\Cosmos.BlobService.csproj" />
-	  <ProjectReference Include="..\Cosmos.ConnectionStrings\Cosmos.DynamicConfig.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

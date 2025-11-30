@@ -21,8 +21,4 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.9" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\AspNetCore.Identity.FlexDb\AspNetCore.Identity.FlexDb.csproj" />
-  </ItemGroup>
-
 </Project>
