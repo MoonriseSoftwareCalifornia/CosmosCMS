@@ -3,7 +3,7 @@
   "name": "asp.net",
   "private": true,
   "devDependencies": {
-    "eslint": "^8.46.0"
+    "eslint": "^9.26.0"
   },
   "dependencies": {
     "grapesjs": "^0.22.5",
